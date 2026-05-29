@@ -1383,13 +1383,40 @@ function WeekReflection({ weekNum, slug, prompts }) {
 }
 
 // ─── Meetings tab ─────────────────────────────────────────────────────────────
-function MeetingsSection({ slug }) {
+function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
   const [meetings, setMeetings] = useState(null);
 
   useEffect(() => {
     fetch(`/api/meetings?slug=${slug}`)
       .then(r => r.json())
-      .then(d => setMeetings(d.meetings || []))
+      .then(async d => {
+        const list = d.meetings || [];
+        setMeetings(list);
+
+        // Count qualifying sessions: 60+ min AND has Granola notes
+        const qualifying = list.filter(m => m.sixtyMin === true && m.notes && m.notes.trim());
+        const count = qualifying.length;
+
+        // Auto-check mentor session milestones as they're earned
+        const toCheck = [
+          { key: "mentorSession1", earned: count >= 1 },
+          { key: "mentorSession2", earned: count >= 2 },
+          { key: "mentorSession3", earned: count >= 3 },
+        ];
+
+        for (const { key, earned } of toCheck) {
+          if (earned && !milestones?.[key]) {
+            try {
+              await fetch("/api/update-milestone", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ slug, milestone: key, value: true }),
+              });
+              if (onMilestoneUpdate) onMilestoneUpdate(key);
+            } catch (_) {}
+          }
+        }
+      })
       .catch(() => setMeetings([]));
   }, [slug]);
 
@@ -2186,7 +2213,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       case "resources": return <ResourcesSection />;
       case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} />;
       case "goals": return <GoalsSection mentee={mentee} slug={slug} />;
-      case "meetings": return <MeetingsSection slug={slug} />;
+      case "meetings": return <MeetingsSection slug={slug} milestones={liveMilestones || mentee.milestones || {}} onMilestoneUpdate={(key) => setLiveMilestones(prev => ({ ...(prev || mentee.milestones || {}), [key]: true }))} />;
       case "profile": return <ProfileSection mentee={mentee} slug={slug} cohortMates={cohortMates} allCohortMembers={allCohortMembers} />;
       case "support": return (
         <div style={{ maxWidth: 520 }}>
