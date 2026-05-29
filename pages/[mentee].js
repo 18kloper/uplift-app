@@ -1109,10 +1109,12 @@ function WeekReflection({ weekNum, slug, prompts }) {
     );
   }
 
-  // Week 6: action items + tagline + sessions
+  // Week 6: tagline + action items + sessions
   if (weekNum === 6) {
     return (
       <div>
+        <Tagline text={week.tagline} />
+
         {/* Action items */}
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
           <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
@@ -1120,8 +1122,8 @@ function WeekReflection({ weekNum, slug, prompts }) {
           </p>
           {[
             { text: "Review your milestones — make sure they're up to date and complete any outstanding items." },
-            { text: "By this time you should have met with your mentor for a minimum of two sessions." },
-            { text: "Take a look at this week's educational sessions if you haven't already." },
+            { text: "Remember to submit your mentorship meeting." },
+            { text: "Check out the educational sessions happening this week." },
           ].map((item, i) => (
             <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 2 ? 12 : 0 }}>
               <div style={{
@@ -1136,11 +1138,10 @@ function WeekReflection({ weekNum, slug, prompts }) {
             </div>
           ))}
           <p style={{ margin: "14px 0 0", fontSize: 11, color: "#9b8fcf", fontStyle: "italic" }}>
-            *Only 2 weeks until the Summit &amp; Graduation — make sure you're on track with your educational sessions.
+            *By this time you should have met with your mentor for a minimum of two sessions. Only 2 weeks until the Summit &amp; Graduation — make sure you're on track with your educational sessions.
           </p>
         </div>
 
-        <Tagline text={week.tagline} />
         <EventsSection events={week.events} />
       </div>
     );
