@@ -92,6 +92,28 @@ export default async function handler(req, res) {
       }
     } catch (_) {}
 
+    // ── If this is a participation response, also update the Participation tab ─
+    if (fieldKey === "participation" && (value === "accepted" || value === "declined")) {
+      try {
+        const statusLabel = value === "accepted" ? "Accepted" : "Declined";
+        const partRead = await sheets.spreadsheets.values.get({
+          spreadsheetId,
+          range: "Participation!A6:A500",
+        });
+        const partSlugs = partRead.data.values || [];
+        const partRowIdx = partSlugs.findIndex((row) => row[0] === slug);
+        if (partRowIdx > -1) {
+          const sheetRow = partRowIdx + 6; // rows start at 6 in the sheet
+          await sheets.spreadsheets.values.update({
+            spreadsheetId,
+            range: `Participation!E${sheetRow}:F${sheetRow}`,
+            valueInputOption: "USER_ENTERED",
+            requestBody: { values: [[statusLabel, timestamp]] },
+          });
+        }
+      } catch (_) {}
+    }
+
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error("Sheet write failed:", err.message);

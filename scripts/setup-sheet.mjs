@@ -51,6 +51,8 @@ async function run() {
   const toCreate = [];
   if (!existingTitles.has("Dashboard"))
     toCreate.push({ addSheet: { properties: { title: "Dashboard", index: 0 } } });
+  if (!existingTitles.has("Participation"))
+    toCreate.push({ addSheet: { properties: { title: "Participation", index: 1 } } });
   for (const m of MENTEES)
     if (!existingTitles.has(m.slug))
       toCreate.push({ addSheet: { properties: { title: m.slug } } });
@@ -116,7 +118,70 @@ async function run() {
     },
   });
 
-  // 6. Write headers to every mentee tab
+  // 6. Write Participation tab
+  console.log("Writing Participation tab…");
+  const TEST_SLUGS = new Set(["kennedy", "jackie", "aaron", "mj"]);
+  const realMentees = MENTEES
+    .filter(m => !TEST_SLUGS.has(m.slug))
+    .sort((a, b) => a.cohort - b.cohort || a.last.localeCompare(b.last));
+
+  // Data starts at row 6 (index 5), so formulas reference E6:E500
+  const partRows = [
+    ["Total Accepted",  `=COUNTIF(E6:E500,"Accepted")`],
+    ["Total Declined",  `=COUNTIF(E6:E500,"Declined")`],
+    ["No Response",     `=COUNTA(A6:A500)-COUNTIF(E6:E500,"Accepted")-COUNTIF(E6:E500,"Declined")`],
+    [],
+    ["Slug", "Name", "Company", "Cohort", "Status", "Last Updated"],
+    ...realMentees.map(m => [
+      m.slug,
+      `${m.first} ${m.last}`,
+      m.company || "",
+      `Cohort ${m.cohort}`,
+      "",
+      "",
+    ]),
+  ];
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: SHEET_ID,
+    range: "Participation!A1",
+    valueInputOption: "USER_ENTERED",
+    requestBody: { values: partRows },
+  });
+
+  // Format the Participation tab
+  const partId = sheetIdMap["Participation"];
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId: SHEET_ID,
+    requestBody: {
+      requests: [
+        // Bold + purple header on summary rows (1-3)
+        { repeatCell: {
+            range: { sheetId: partId, startRowIndex: 0, endRowIndex: 3 },
+            cell: { userEnteredFormat: { textFormat: { bold: true }, backgroundColor: { red: 0.22, green: 0.18, blue: 0.54 } } },
+            fields: "userEnteredFormat(textFormat,backgroundColor)" } },
+        // White text on summary rows
+        { repeatCell: {
+            range: { sheetId: partId, startRowIndex: 0, endRowIndex: 3 },
+            cell: { userEnteredFormat: { textFormat: { bold: true, foregroundColor: { red: 1, green: 1, blue: 1 } } } },
+            fields: "userEnteredFormat.textFormat" } },
+        // Bold column header row (row 5, index 4)
+        { repeatCell: {
+            range: { sheetId: partId, startRowIndex: 4, endRowIndex: 5 },
+            cell: { userEnteredFormat: {
+              textFormat: { bold: true },
+              backgroundColor: { red: 0.94, green: 0.92, blue: 1.0 },
+            } },
+            fields: "userEnteredFormat(textFormat,backgroundColor)" } },
+        // Freeze first 5 rows
+        { updateSheetProperties: {
+            properties: { sheetId: partId, gridProperties: { frozenRowCount: 5 } },
+            fields: "gridProperties.frozenRowCount" } },
+      ],
+    },
+  });
+
+  // 7. Write headers to every mentee tab
   console.log("Writing mentee tab headers…");
   await sheets.spreadsheets.values.batchUpdate({
     spreadsheetId: SHEET_ID,
