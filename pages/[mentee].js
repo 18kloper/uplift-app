@@ -1279,14 +1279,16 @@ function WeekReflection({ weekNum, slug, prompts }) {
 
         <Tagline text={week.tagline} />
         <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{
+          <div style={{
             display: "inline-block", padding: "14px 36px",
-            background: "#5c4eb5", color: "#fff", borderRadius: 10,
-            fontSize: 16, fontWeight: 700, textDecoration: "none",
-            boxShadow: "0 4px 14px rgba(92,78,181,0.35)",
+            background: "#e8e4f5", color: "#9b8fcf", borderRadius: 10,
+            fontSize: 16, fontWeight: 700, cursor: "default",
           }}>
-            {week.submitLabel} →
-          </a>
+            🔒 {week.submitLabel}
+          </div>
+          <p style={{ margin: "10px 0 0", fontSize: 13, color: "#9b8fcf", fontStyle: "italic" }}>
+            This link will be unlocked on <strong style={{ color: "#6b6480" }}>July 18th</strong>.
+          </p>
         </div>
       </div>
     );
