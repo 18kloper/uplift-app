@@ -1386,13 +1386,20 @@ function GoalsSection({ mentee, slug }) {
   const [responses, setResponses] = useState({});
 
   useEffect(() => {
-    // Pull all Week 1 written responses from localStorage
     const keys = {
-      primary_refine:    `${slug}_w1_primary_refine`,
-      secondary_refine:  `${slug}_w1_secondary_refine`,
-      prompt_q0:         `${slug}_w1_b0_q0`,
-      prompt_q1:         `${slug}_w1_b0_q1`,
-      prompt_q2:         `${slug}_w1_b0_q2`,
+      // Week 1
+      primary_refine:   `${slug}_w1_primary_refine`,
+      secondary_refine: `${slug}_w1_secondary_refine`,
+      w1_q0:            `${slug}_w1_b0_q0`,
+      w1_q1:            `${slug}_w1_b0_q1`,
+      w1_q2:            `${slug}_w1_b0_q2`,
+      // Week 2
+      w2_prep_q1:       `${slug}_w2_prep_q1`,
+      w2_prep_q2:       `${slug}_w2_prep_q2`,
+      w2_prep_q3:       `${slug}_w2_prep_q3`,
+      // Week 3
+      w3_role_model:    `${slug}_w3_role_model`,
+      w3_deploy_tactic: `${slug}_w3_deploy_tactic`,
     };
     const loaded = {};
     for (const [k, storageKey] of Object.entries(keys)) {
@@ -1402,7 +1409,7 @@ function GoalsSection({ mentee, slug }) {
     setResponses(loaded);
   }, [slug]);
 
-  const hasAnyResponse = Object.keys(responses).length > 0;
+  const hasAnyResponse = Object.values(responses).some(v => v.trim());
 
   return (
     <div>
@@ -1459,22 +1466,57 @@ function GoalsSection({ mentee, slug }) {
         </div>
       )}
 
-      {/* Prompt block responses */}
-      {(responses.prompt_q0 || responses.prompt_q1 || responses.prompt_q2) && (
+      {/* Week 1 prompt block responses */}
+      {(responses.w1_q0 || responses.w1_q1 || responses.w1_q2) && (
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "22px 26px", marginBottom: 16 }}>
           <p style={{ margin: "0 0 16px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
-            Week 1 Reflections
+            Week 1 — Pre-Meeting Reflections
           </p>
           {[
-            { key: "prompt_q0", q: "Who is your ideal first customer, and why?" },
-            { key: "prompt_q1", q: "What does your current customer acquisition process look like?" },
-            { key: "prompt_q2", q: "What assumptions about your market have you not yet tested?" },
+            { key: "w1_q0", q: "Who is your ideal first customer, and why?" },
+            { key: "w1_q1", q: "What does your current customer acquisition process look like?" },
+            { key: "w1_q2", q: "What assumptions about your market have you not yet tested?" },
           ].filter(item => responses[item.key]).map((item, i, arr) => (
             <div key={item.key} style={{ marginBottom: i < arr.length - 1 ? 20 : 0 }}>
               <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, color: "#6b6480" }}>{item.q}</p>
-              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
-                {responses[item.key]}
-              </p>
+              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{responses[item.key]}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Week 2 pre-meeting prep */}
+      {(responses.w2_prep_q1 || responses.w2_prep_q2 || responses.w2_prep_q3) && (
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "22px 26px", marginBottom: 16 }}>
+          <p style={{ margin: "0 0 16px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
+            Week 2 — Before Your First Mentor Meeting
+          </p>
+          {[
+            { key: "w2_prep_q1", q: "What's the single most important thing you want your mentor to understand about your company?" },
+            { key: "w2_prep_q2", q: "What's one decision you're currently stuck on that you'd love an outside perspective on?" },
+            { key: "w2_prep_q3", q: "What would make this first meeting feel like a success to you?" },
+          ].filter(item => responses[item.key]).map((item, i, arr) => (
+            <div key={item.key} style={{ marginBottom: i < arr.length - 1 ? 20 : 0 }}>
+              <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, color: "#6b6480" }}>{item.q}</p>
+              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{responses[item.key]}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Week 3 reflections */}
+      {(responses.w3_role_model || responses.w3_deploy_tactic) && (
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "22px 26px", marginBottom: 16 }}>
+          <p style={{ margin: "0 0 16px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
+            Week 3 — Building With Intention
+          </p>
+          {[
+            { key: "w3_role_model",    q: "Who do you want to build like?" },
+            { key: "w3_deploy_tactic", q: "What's one thing they're doing that you could deploy this week?" },
+          ].filter(item => responses[item.key]).map((item, i, arr) => (
+            <div key={item.key} style={{ marginBottom: i < arr.length - 1 ? 20 : 0 }}>
+              <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, color: "#6b6480" }}>{item.q}</p>
+              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{responses[item.key]}</p>
             </div>
           ))}
         </div>
