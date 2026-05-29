@@ -1041,6 +1041,13 @@ function WeekReflection({ weekNum, slug, prompts }) {
           ))}
         </div>
 
+        <p style={{
+          textAlign: "center", fontSize: 14, color: "#7a5c00",
+          background: "#fffbeb", border: "1px solid #f5d97a",
+          borderRadius: 8, padding: "10px 16px", marginBottom: 24, fontStyle: "italic",
+        }}>
+          {week.tagline}
+        </p>
         <EventsSection events={week.events} />
         <div style={{ textAlign: "center", marginBottom: 12 }}>
           <a href="#" style={{
@@ -1052,13 +1059,6 @@ function WeekReflection({ weekNum, slug, prompts }) {
             {week.submitLabel} →
           </a>
         </div>
-        <p style={{
-          textAlign: "center", fontSize: 14, color: "#7a5c00",
-          background: "#fffbeb", border: "1px solid #f5d97a",
-          borderRadius: 8, padding: "10px 16px", marginBottom: 28, fontStyle: "italic",
-        }}>
-          {week.tagline}
-        </p>
       </div>
     );
   }
