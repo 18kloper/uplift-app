@@ -1024,7 +1024,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
           </p>
           {[
             { text: "Have your third mentorship session with your mentor. We encourage you to meet more, but this is where you should be at minimum." },
-            { text: "This is the last week to complete your virtual educational sessions — you need all 3 by end of this week to participate in graduation." },
+            { text: "This is the last week to complete your virtual educational sessions — you need all 3 by end of this week to participate in graduation. There are 3 sessions available this week." },
             { text: "Submit your 3rd mentor meeting below." },
           ].map((item, i) => (
             <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 2 ? 12 : 0 }}>
