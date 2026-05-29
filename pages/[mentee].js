@@ -441,91 +441,76 @@ function ParticipationWidget({ slug }) {
     setSubmitting(false);
   };
 
+  const changeBtn = (onClear) => (
+    <button onClick={onClear} style={{
+      background: "none", border: "none", padding: 0, fontSize: 11,
+      color: "rgba(255,255,255,0.45)", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit",
+    }}>
+      Change response
+    </button>
+  );
+
   if (choice === "accepted") {
     return (
-      <div style={{
-        background: "#f0faf5", borderRadius: 12, border: "1px solid #b8e8d0",
-        padding: "20px 24px", marginBottom: 24, display: "flex", alignItems: "center", gap: 14,
-      }}>
-        <span style={{ fontSize: 26, flexShrink: 0 }}>🎉</span>
-        <div>
-          <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14, color: "#1a6e42" }}>
-            You're confirmed — we'll see you at onboarding!
-          </p>
-          <p style={{ margin: "0 0 6px", fontSize: 13, color: "#22a366", lineHeight: 1.5 }}>
-            We've recorded your participation. Welcome to Uplift Summer 2026.
-          </p>
-          <button onClick={() => { localStorage.removeItem(storageKey); setChoice(null); }} style={{
-            background: "none", border: "none", padding: 0, fontSize: 12, color: "#9b8fcf",
-            cursor: "pointer", textDecoration: "underline",
-          }}>
-            Change response
-          </button>
-        </div>
+      <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 18, marginTop: 4 }}>
+        <p style={{ margin: "0 0 3px", fontWeight: 700, fontSize: 14, color: "#7eeab4" }}>
+          ✓ You're confirmed — we'll see you at onboarding!
+        </p>
+        <p style={{ margin: "0 0 8px", fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>
+          We've recorded your participation. Welcome to Uplift Summer 2026.
+        </p>
+        {changeBtn(() => { localStorage.removeItem(storageKey); setChoice(null); })}
       </div>
     );
   }
 
   if (choice === "declined") {
     return (
-      <div style={{
-        background: "#fff8f0", borderRadius: 12, border: "1px solid #f5d9b8",
-        padding: "20px 24px", marginBottom: 24, display: "flex", alignItems: "center", gap: 14,
-      }}>
-        <span style={{ fontSize: 26, flexShrink: 0 }}>💛</span>
-        <div>
-          <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14, color: "#a0600a" }}>
-            We're sorry to hear that — your response has been recorded.
-          </p>
-          <p style={{ margin: "0 0 6px", fontSize: 13, color: "#c47d2a", lineHeight: 1.5 }}>
-            If anything changes, reach out to <a href="mailto:uplift@techunited.co" style={{ color: "#c47d2a" }}>uplift@techunited.co</a>.
-          </p>
-          <button onClick={() => { localStorage.removeItem(storageKey); setChoice(null); }} style={{
-            background: "none", border: "none", padding: 0, fontSize: 12, color: "#9b8fcf",
-            cursor: "pointer", textDecoration: "underline",
-          }}>
-            Change response
-          </button>
-        </div>
+      <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 18, marginTop: 4 }}>
+        <p style={{ margin: "0 0 3px", fontWeight: 700, fontSize: 14, color: "rgba(255,255,255,0.85)" }}>
+          Your response has been recorded.
+        </p>
+        <p style={{ margin: "0 0 8px", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
+          We're sorry to hear that. If anything changes, reach out to{" "}
+          <a href="mailto:uplift@techunited.co" style={{ color: "rgba(255,255,255,0.7)" }}>uplift@techunited.co</a>.
+        </p>
+        {changeBtn(() => { localStorage.removeItem(storageKey); setChoice(null); })}
       </div>
     );
   }
 
   return (
-    <div style={{
-      background: "#fff", borderRadius: 12, border: "2px solid #e8e4f5",
-      padding: "22px 24px", marginBottom: 24,
-    }}>
-      <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+    <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 18, marginTop: 4 }}>
+      <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)" }}>
         Confirm Your Participation
       </p>
-      <p style={{ margin: "0 0 18px", fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>
-        Please let us know whether you'll be joining us for Uplift Summer 2026.
+      <p style={{ margin: "0 0 14px", fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.5 }}>
+        We need to hear from you by <strong style={{ color: "#fff" }}>Wednesday, June 3rd</strong>.
       </p>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <button
           onClick={() => handleChoice("accepted")}
           disabled={submitting}
           style={{
-            background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)", color: "#fff",
-            border: "none", borderRadius: 8, padding: "11px 22px",
-            fontSize: 14, fontWeight: 600, cursor: submitting ? "wait" : "pointer",
+            background: "rgba(255,255,255,0.15)", color: "#fff",
+            border: "1px solid rgba(255,255,255,0.35)", borderRadius: 8, padding: "10px 20px",
+            fontSize: 13, fontWeight: 600, cursor: submitting ? "wait" : "pointer",
             fontFamily: "inherit",
           }}
         >
-          ✓ I will be participating
+          ✓ I Accept
         </button>
         <button
           onClick={() => handleChoice("declined")}
           disabled={submitting}
           style={{
-            background: "#fff", color: "#9b8fcf",
-            border: "1.5px solid #d4d0e8", borderRadius: 8, padding: "11px 22px",
-            fontSize: 14, fontWeight: 500, cursor: submitting ? "wait" : "pointer",
+            background: "transparent", color: "rgba(255,255,255,0.65)",
+            border: "1px solid rgba(255,255,255,0.25)", borderRadius: 8, padding: "10px 20px",
+            fontSize: 13, fontWeight: 500, cursor: submitting ? "wait" : "pointer",
             fontFamily: "inherit",
           }}
         >
-          I'm no longer able to participate
+          I Decline
         </button>
       </div>
     </div>
@@ -561,10 +546,8 @@ function Week1({ mentee, slug, prompts, mentorUnlocked }) {
             <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7, opacity: 0.85 }}>{cohort.why}</p>
           </div>
         )}
+        <ParticipationWidget slug={slug} />
       </div>
-
-      {/* Participation confirmation */}
-      <ParticipationWidget slug={slug} />
 
       {/* Action items */}
       <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
