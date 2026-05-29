@@ -2058,7 +2058,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
         {/* Header */}
         <div style={{ background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)", padding: "28px 24px 24px", color: "#fff" }}>
           <div style={{ maxWidth: 720, margin: "0 auto" }}>
-            <img src="/uplift-logo.png" alt="Uplift" style={{ height: 36, marginBottom: 18, display: "block" }} />
+            <img src="/uplift-logo-white.png" alt="Uplift" style={{ height: 36, marginBottom: 18, display: "block" }} />
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                 Cohort {mentee.cohort}{myCohortHeader ? ` — ${myCohortHeader.name}` : ""}
