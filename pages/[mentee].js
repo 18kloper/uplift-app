@@ -1535,14 +1535,9 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                     }}>
                       {i + 1}
                     </div>
-                    <div>
-                      <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1a1733" }}>
-                        Session {i + 1}
-                      </p>
-                      {m.date && (
-                        <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>{m.date}</p>
-                      )}
-                    </div>
+                    <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1a1733" }}>
+                      Session {i + 1}
+                    </p>
                   </div>
                   <span style={{
                     background: "#e8f8f0", color: "#1a6e42",
@@ -1551,6 +1546,25 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                     ✓ Verified
                   </span>
                 </div>
+
+                {/* Confirmed details row */}
+                <div style={{ display: "flex", gap: 24, marginBottom: 16, flexWrap: "wrap" }}>
+                  {m.date && (
+                    <div>
+                      <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
+                        Confirmed Date
+                      </p>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{m.date}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
+                      Confirmed Duration
+                    </p>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#1a6e42" }}>60 minutes or more</p>
+                  </div>
+                </div>
+
                 {m.notes && (
                   <div style={{ marginBottom: m.takeaways ? 14 : 0 }}>
                     <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
