@@ -1757,7 +1757,7 @@ function EduSessionsSection({ milestones }) {
       {/* Welcome banner */}
       <div style={{
         background: "#f0faf5", borderRadius: 12, border: "1px solid #b8e8d0",
-        padding: "18px 22px", marginBottom: 20,
+        padding: "18px 22px", marginBottom: 16,
       }}>
         <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 700, color: "#1a4a32" }}>
           👋 Hi there — thank you for participating in Uplift!
@@ -1769,6 +1769,49 @@ function EduSessionsSection({ milestones }) {
           </a>{" "}
           and we'll get it sorted.
         </p>
+      </div>
+
+      {/* Session format explainer */}
+      <div style={{
+        background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
+        padding: "18px 22px", marginBottom: 20,
+      }}>
+        <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 700, color: "#1a1733" }}>
+          About our educational session formats
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {[
+            {
+              label: "Expert Insight",
+              color: "#5c4eb5",
+              bg: "#f3f0ff",
+              desc: "A structured fireside chat or lecture centered on a specific topic. These sessions feature a guest speaker and are more presentation-driven — you can submit questions live, but the format is curated to maximize what you take away.",
+            },
+            {
+              label: "Industry Q&A",
+              color: "#2a7fd4",
+              bg: "#f0f7ff",
+              desc: "A more open and conversational session with a guest. There's still some light structure, but the emphasis is on real dialogue — you'll have a genuine opportunity to ask questions, share your perspective, and engage directly with the speaker.",
+            },
+            {
+              label: "Peer Development",
+              color: "#0f9d6e",
+              bg: "#f0faf5",
+              desc: "A hands-on workshop designed to sharpen your professional skills. These sessions may or may not feature a guest, but they always put you and your cohort at the center — expect active participation, discussion, and practical takeaways.",
+            },
+          ].map(({ label, color, bg, desc }) => (
+            <div key={label} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+              <span style={{
+                background: bg, color, borderRadius: 6,
+                padding: "3px 10px", fontSize: 11, fontWeight: 700,
+                whiteSpace: "nowrap", marginTop: 2, flexShrink: 0,
+              }}>
+                {label}
+              </span>
+              <p style={{ margin: 0, fontSize: 13, color: "#4a4060", lineHeight: 1.65 }}>{desc}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Progress card */}
