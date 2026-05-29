@@ -105,7 +105,7 @@ const WEEKS = [
 const PRIMARY_TABS = [
   { id: "journey",    label: "My Journey" },
   { id: "milestones", label: "Milestones" },
-  { id: "goals",      label: "Goals & Reflections" },
+  { id: "goals",      label: "My Goals & Reflections" },
   { id: "meetings",   label: "Logged Mentorship Sessions" },
   { id: "edu",        label: "Logged Educational Sessions" },
   { id: "calendar",   label: "Calendar" },
@@ -113,7 +113,7 @@ const PRIMARY_TABS = [
   { id: "profile",    label: "Cohort Directory" },
   { id: "support",    label: "Support" },
 ];
-const TAB_ROW_1 = ["journey", "milestones", "goals", "meetings", "edu"];
+const TAB_ROW_1 = ["journey", "goals", "milestones", "meetings", "edu"];
 const TAB_ROW_2 = ["calendar", "resources", "profile", "support"];
 
 // ─── Save to Google Sheets ────────────────────────────────────────────────────
@@ -1754,6 +1754,23 @@ function EduSessionsSection({ milestones }) {
 
   return (
     <div>
+      {/* Welcome banner */}
+      <div style={{
+        background: "#f0faf5", borderRadius: 12, border: "1px solid #b8e8d0",
+        padding: "18px 22px", marginBottom: 20,
+      }}>
+        <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 700, color: "#1a4a32" }}>
+          👋 Hi there — thank you for participating in Uplift!
+        </p>
+        <p style={{ margin: 0, fontSize: 13, color: "#2d6e50", lineHeight: 1.7 }}>
+          Educational session attendance is one of the few things that needs to be manually verified by our team. We appreciate your patience — if your attendance hasn't been updated within a week, please reach out to{" "}
+          <a href="mailto:uplift@techunited.co" style={{ color: "#1a6e42", fontWeight: 600, textDecoration: "none" }}>
+            uplift@techunited.co
+          </a>{" "}
+          and we'll get it sorted.
+        </p>
+      </div>
+
       {/* Progress card */}
       <div style={{
         background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)",
