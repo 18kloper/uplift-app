@@ -883,10 +883,20 @@ function WeekReflection({ weekNum, slug, prompts }) {
     );
   }
 
-  // Week 3: action items + tagline + sessions + prompt
+  // Week 3: tagline + action items + sessions + prompt
   if (weekNum === 3) {
     return (
       <div>
+        <p style={{
+          background: "#f5f3ff", borderRadius: 10, padding: "14px 18px",
+          fontSize: 15, lineHeight: 1.6, marginBottom: 24, fontStyle: "italic",
+          color: "#3d2f8a",
+        }}>
+          We know everyone's schedules look different —{" "}
+          <span style={{ textDecoration: "underline" }}>by this time you should have met with your mentor for at least an hour</span>
+          . If you have not done so, this is an opportunity to catch up. If you have already done so, we encourage you to continue communication with your mentor and to attend one of this week's virtual sessions.
+        </p>
+
         {/* Action items */}
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
           <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
@@ -910,16 +920,6 @@ function WeekReflection({ weekNum, slug, prompts }) {
             </div>
           ))}
         </div>
-
-        <p style={{
-          background: "#f5f3ff", borderRadius: 10, padding: "14px 18px",
-          fontSize: 15, lineHeight: 1.6, marginBottom: 20, fontStyle: "italic",
-          color: "#3d2f8a",
-        }}>
-          We know everyone's schedules look different —{" "}
-          <span style={{ textDecoration: "underline" }}>by this time you should have met with your mentor for at least an hour</span>
-          . If you have not done so, this is an opportunity to catch up. If you have already done so, we encourage you to continue communication with your mentor and to attend one of this week's virtual sessions.
-        </p>
         <EventsSection events={week.events} />
 
         {/* Reflection prompt */}
