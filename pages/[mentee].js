@@ -1128,6 +1128,26 @@ function WeekReflection({ weekNum, slug, prompts }) {
     );
   }
 
+  // Locked prompt block shown on weeks 5–7 until midpoint is attended
+  const LockedPrompts = () => (
+    <div style={{
+      background: "#fafafa", borderRadius: 12, border: "1px solid #ede9f8",
+      padding: "24px 28px", marginTop: 24, opacity: 0.7,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
+          Reflection Prompts
+        </p>
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9b8fcf", background: "#ede9f8", borderRadius: 4, padding: "2px 7px" }}>
+          🔒 Unlocked after the Midpoint Meetup
+        </span>
+      </div>
+      <p style={{ margin: 0, fontSize: 14, color: "#b0a8cc", lineHeight: 1.6, fontStyle: "italic" }}>
+        These prompts will become available after you've attended the Midpoint Meetup on June 23rd.
+      </p>
+    </div>
+  );
+
   // Week 5: action items, submit button, sessions
   if (weekNum === 5) {
     return (
@@ -1170,6 +1190,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
           </a>
         </div>
         <EventsSection events={week.events} />
+        <LockedPrompts />
       </div>
     );
   }
@@ -1220,6 +1241,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
             {week.submitLabel} →
           </a>
         </div>
+        <LockedPrompts />
       </div>
     );
   }
@@ -1304,6 +1326,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
         </div>
 
         <EventsSection events={week.events} />
+        <LockedPrompts />
       </div>
     );
   }
