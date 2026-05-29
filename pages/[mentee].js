@@ -114,7 +114,7 @@ const PRIMARY_TABS = [
   { id: "support",    label: "Support" },
 ];
 const TAB_ROW_1 = ["journey", "goals", "milestones", "meetings", "edu"];
-const TAB_ROW_2 = ["calendar", "resources", "profile", "support"];
+const TAB_ROW_2 = ["calendar", "profile", "resources", "support"];
 
 // ─── Save to Google Sheets ────────────────────────────────────────────────────
 async function persistToSheet(slug, weekNum, fieldKey, value, question = "") {
