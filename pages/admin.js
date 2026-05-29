@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import Head from "next/head";
 
-const COHORTS = ["All", "Edison", "Hopper", "Bardeen", "Lawrence", "Morrison"];
+const COHORT_NAMES = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
+const COHORTS = ["All", 1, 2, 3, 4, 5]; // filter by number, display with name
 
 const STATUS_CONFIG = {
   "at-risk":         { label: "At Risk",          color: "#c0392b", bg: "#fef0f0", dot: "#e74c3c" },
@@ -127,7 +128,7 @@ function Dashboard({ data, refreshedAt }) {
   const { mentees = [] } = data;
 
   const filtered = mentees.filter(m => {
-    const cohortMatch = activeCohort === "All" || m.cohort === activeCohort;
+    const cohortMatch = activeCohort === "All" || String(m.cohort) === String(activeCohort);
     const searchMatch = !search ||
       `${m.first} ${m.last} ${m.company}`.toLowerCase().includes(search.toLowerCase());
     return cohortMatch && searchMatch;
@@ -142,7 +143,7 @@ function Dashboard({ data, refreshedAt }) {
 
   const cohortCounts = {};
   COHORTS.slice(1).forEach(c => {
-    cohortCounts[c] = mentees.filter(m => m.cohort === c).length;
+    cohortCounts[c] = mentees.filter(m => String(m.cohort) === String(c)).length;
   });
 
   return (
@@ -208,6 +209,7 @@ function Dashboard({ data, refreshedAt }) {
             {COHORTS.map(c => {
               const active = activeCohort === c;
               const count = c === "All" ? mentees.length : cohortCounts[c] || 0;
+              const label = c === "All" ? "All Cohorts" : `${c} · ${COHORT_NAMES[c]}`;
               return (
                 <button key={c} onClick={() => setActiveCohort(c)} style={{
                   padding: "7px 14px", borderRadius: 20, fontSize: 13, fontWeight: active ? 700 : 500,
@@ -216,7 +218,7 @@ function Dashboard({ data, refreshedAt }) {
                   color: active ? "#fff" : "#6b6480",
                   cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
                 }}>
-                  {c} <span style={{ opacity: 0.7, fontSize: 11 }}>({count})</span>
+                  {label} <span style={{ opacity: 0.7, fontSize: 11 }}>({count})</span>
                 </button>
               );
             })}
@@ -237,7 +239,7 @@ function Dashboard({ data, refreshedAt }) {
         {/* Results count */}
         <p style={{ margin: "0 0 14px", fontSize: 13, color: "#9b8fcf" }}>
           Showing {filtered.length} mentee{filtered.length !== 1 ? "s" : ""}
-          {activeCohort !== "All" ? ` in Cohort ${activeCohort}` : ""}
+          {activeCohort !== "All" ? ` in Cohort ${activeCohort} · ${COHORT_NAMES[activeCohort]}` : ""}
           {search ? ` matching "${search}"` : ""}
         </p>
 
@@ -288,9 +290,9 @@ function Dashboard({ data, refreshedAt }) {
                   <span style={{
                     fontSize: 11, fontWeight: 700, color: "#5c4eb5",
                     background: "#f3f0ff", borderRadius: 5, padding: "3px 8px",
-                    display: "inline-block",
+                    display: "inline-block", whiteSpace: "nowrap",
                   }}>
-                    {m.cohort}
+                    {m.cohort} · {COHORT_NAMES[m.cohort] || m.cohort}
                   </span>
 
                   {/* Status */}
@@ -344,7 +346,7 @@ function Dashboard({ data, refreshedAt }) {
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
             {COHORTS.slice(1).map(cohort => {
-              const group = mentees.filter(m => m.cohort === cohort);
+              const group = mentees.filter(m => String(m.cohort) === String(cohort));
               const atRisk    = group.filter(m => m.status === "at-risk").length;
               const attention = group.filter(m => m.status === "needs-attention").length;
               const onTrack   = group.filter(m => m.status === "on-track").length;
@@ -356,7 +358,7 @@ function Dashboard({ data, refreshedAt }) {
                   background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "16px 18px",
                 }}>
                   <p style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 700, color: "#1a1733" }}>
-                    Cohort {cohort}
+                    {cohort} · {COHORT_NAMES[cohort]}
                   </p>
                   <p style={{ margin: "0 0 4px", fontSize: 12, color: "#6b6480" }}>
                     {group.length} mentees
