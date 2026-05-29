@@ -738,25 +738,81 @@ function WeekReflection({ weekNum, slug, prompts }) {
 
   // Week 9: closing / Summit content
   if (weekNum === 9) {
+    const summit = week.events.find((e) => e.required);
+    const bonusSessions = week.events.filter((e) => !e.required);
     return (
       <div>
-        <Tagline text={week.tagline} />
-        <EventsSection events={week.events} />
-        <p style={{ margin: "0 0 20px", fontSize: 17, fontWeight: 700, color: "#1a1733" }}>
-          The Summit and Graduation is this week.
-        </p>
+        {/* Attendance required banner */}
+        <div style={{
+          background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)",
+          borderRadius: 14, padding: "28px 32px", color: "#fff", marginBottom: 24,
+        }}>
+          <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", opacity: 0.7 }}>
+            Required to complete the program
+          </p>
+          <p style={{ margin: "0 0 12px", fontSize: 22, fontWeight: 700, lineHeight: 1.3 }}>
+            🎓 Uplift Summit &amp; Graduation
+          </p>
+          <p style={{ margin: "0 0 20px", fontSize: 15, lineHeight: 1.7, opacity: 0.9 }}>
+            You <strong>must attend the Summit and Graduation to complete the program</strong> and receive your certificate. This is the finish line — we can't wait to celebrate everything you've built this summer.
+          </p>
+          {summit && (
+            <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 18, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+              <div>
+                <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, opacity: 0.7, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                  {summit.day} · In-Person
+                </p>
+                <p style={{ margin: 0, fontSize: 14, opacity: 0.85 }}>Details and location TBD — register to stay updated.</p>
+              </div>
+              <a href={summit.url || "#"} target="_blank" rel="noopener noreferrer" style={{
+                background: "#fff", color: "#3d2f8a", borderRadius: 8,
+                padding: "10px 20px", fontSize: 13, fontWeight: 700, textDecoration: "none", flexShrink: 0,
+              }}>
+                Register on Luma →
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* By now checklist */}
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "24px 28px", marginBottom: 24 }}>
           <p style={{ margin: "0 0 14px", fontSize: 15, fontWeight: 600, color: "#3d2f8a" }}>By now you should have:</p>
           <ul style={{ margin: "0 0 18px", paddingLeft: 22, lineHeight: 2.2 }}>
             <li style={{ fontSize: 14, color: "#1a1733" }}>Met with your mentor for a minimum of 3 hours</li>
-            <li style={{ fontSize: 14, color: "#1a1733" }}>Attended 3 virtual sessions</li>
-            <li style={{ fontSize: 14, color: "#1a1733" }}>Logged 3 meetings</li>
+            <li style={{ fontSize: 14, color: "#1a1733" }}>Attended 3 virtual educational sessions</li>
+            <li style={{ fontSize: 14, color: "#1a1733" }}>Logged all 3 mentor meetings</li>
             <li style={{ fontSize: 14, color: "#1a1733" }}>Completed your end report</li>
           </ul>
-          <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#22a366" }}>
-            🎓 At the Summit you will receive a certificate of completion.
+          <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf", fontStyle: "italic" }}>
+            If anything above is outstanding, contact <a href="mailto:uplift@techunited.co" style={{ color: "#5c4eb5", fontWeight: 600 }}>uplift@techunited.co</a> before the Summit.
           </p>
         </div>
+
+        {/* Bonus session */}
+        {bonusSessions.length > 0 && (
+          <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
+            <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
+              Bonus Session
+            </p>
+            <p style={{ margin: "0 0 14px", fontSize: 13, color: "#9b8fcf", fontStyle: "italic" }}>
+              If you still need one more virtual educational session to hit your 3, this is your chance.
+            </p>
+            {bonusSessions.map((ev, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0" }}>
+                <div style={{ width: 17, height: 17, border: "1.5px solid #c0b8d8", borderRadius: 3, flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ fontWeight: 600, fontSize: 14, color: "#1a1733" }}>{ev.name}</span>
+                  <span style={{ marginLeft: 6, fontSize: 13, color: "#6b6480" }}>— {ev.day}, {ev.time} · {ev.format}</span>
+                </div>
+                <a href={ev.url || "#"} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>
+                  Register on Luma →
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Quote */}
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24, borderLeft: "4px solid #5c4eb5" }}>
           <p style={{ margin: "0 0 10px", fontSize: 15, fontWeight: 500, color: "#1a1733", lineHeight: 1.5 }}>
             If you'd like, we would love to share a quote from you on our <a href="https://techunited.org" target="_blank" rel="noopener noreferrer" style={{ color: "#5c4eb5" }}>webpage</a> — your name will be linked.
