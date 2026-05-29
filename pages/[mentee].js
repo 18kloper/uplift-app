@@ -1012,10 +1012,10 @@ function WeekReflection({ weekNum, slug, prompts }) {
         {/* Midpoint reflection prompts */}
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "24px 28px", marginTop: 24 }}>
           <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
-            Before You Go
+            Ahead of the Midpoint Meetup
           </p>
           <p style={{ margin: "0 0 20px", fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
-            Take a moment to set your intentions for the Midpoint Meetup before you walk in the door.
+            We'd love to hear from you before you arrive. Take a moment to set your intentions.
           </p>
 
           <p style={{ margin: "0 0 8px", fontSize: 14, fontWeight: 600, color: "#1a1733" }}>
