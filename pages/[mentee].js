@@ -87,7 +87,9 @@ const WEEKS = [
     type: "reflection",
     submitLabel: "Submit your End Report (5 min)",
     submitPrimary: true,
-    events: [],
+    events: [
+      { name: "Expert Session — Edison", day: "Mon Jul 20", time: "12:30–1:00pm", format: "Virtual", url: "https://luma.com/9slfqpvz" },
+    ],
   },
   {
     num: 9, label: "Week 9", title: "Summit & Graduation", dateRange: "Jul 27–Aug 4",
