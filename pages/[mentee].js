@@ -1326,19 +1326,40 @@ function ResourcesSection() {
             {cat.category}
           </p>
           <div style={{ display: "grid", gap: 8 }}>
-            {cat.items.map((item, i) => (
-              <a key={i} href={item.url} target="_blank" rel="noopener noreferrer" style={{
-                background: "#fff", borderRadius: 10, border: "1px solid #e8e4f5",
-                padding: "14px 18px", display: "flex", justifyContent: "space-between",
-                alignItems: "center", textDecoration: "none", gap: 12,
-              }}>
-                <div>
-                  <p style={{ margin: "0 0 2px", fontWeight: 600, fontSize: 14, color: "#1a1733" }}>{item.title}</p>
-                  <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>{item.description}</p>
-                </div>
-                <span style={{ fontSize: 14, color: "#5c4eb5", flexShrink: 0 }}>→</span>
-              </a>
-            ))}
+            {cat.items.map((item, i) => {
+              const isDisabled = item.locked || item.comingSoon;
+              const Tag = isDisabled ? "div" : "a";
+              const extraProps = isDisabled ? {} : { href: item.url, target: "_blank", rel: "noopener noreferrer" };
+              return (
+                <Tag key={i} {...extraProps} style={{
+                  background: isDisabled ? "#fafafa" : "#fff",
+                  borderRadius: 10,
+                  border: `1px solid ${isDisabled ? "#ede9f8" : "#e8e4f5"}`,
+                  padding: "14px 18px", display: "flex", justifyContent: "space-between",
+                  alignItems: "center", textDecoration: "none", gap: 12,
+                  opacity: isDisabled ? 0.7 : 1,
+                  cursor: isDisabled ? "default" : "pointer",
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                      <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: isDisabled ? "#6b6183" : "#1a1733" }}>{item.title}</p>
+                      {item.locked && (
+                        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9b8fcf", background: "#f0ecff", borderRadius: 4, padding: "2px 7px" }}>
+                          🔒 {item.lockedLabel || "Locked"}
+                        </span>
+                      )}
+                      {item.comingSoon && (
+                        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9b8fcf", background: "#f0ecff", borderRadius: 4, padding: "2px 7px" }}>
+                          Coming soon
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>{item.description}</p>
+                  </div>
+                  <span style={{ fontSize: 14, color: isDisabled ? "#c4b8e8" : "#5c4eb5", flexShrink: 0 }}>→</span>
+                </Tag>
+              );
+            })}
           </div>
         </div>
       ))}
