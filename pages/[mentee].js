@@ -25,7 +25,7 @@ const WEEKS = [
     type: "mentor-meeting",
     submitLabel: "Submit your 1st mentor meeting",
     events: [
-      { name: "Expert Insight — Edison", day: "Mon Jun 8", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/vxnzwket" },
+      { name: "Expert Insight — Edison", day: "Mon Jun 8", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/vxnzwket", speaker: { name: "Aerica Shiso Banks", linkedin: null } },
       { name: "Industry Q&A — Edison", day: "Fri Jun 12", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/0dh6bt4o" },
     ],
   },
@@ -34,7 +34,7 @@ const WEEKS = [
     tagline: "We know everyone's schedules look different — by this time you should have met with your mentor for at least an hour. If you have not done so, this is an opportunity to catch up. If you have already done so, we encourage you to continue communication with your mentor and to attend one of this week's virtual sessions.",
     type: "reflection",
     events: [
-      { name: "Expert Insight — Hopper", day: "Mon Jun 15", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/nj4xfgv6" },
+      { name: "Expert Insight — Hopper", day: "Mon Jun 15", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/nj4xfgv6", speaker: { name: "Marc Saint-Ulysse", linkedin: "https://www.linkedin.com/in/marc-saint-ulysse-5b13262a" } },
       { name: "Peer Development — Edison", day: "Tue Jun 16", time: "5:30–6:00pm", format: "Virtual", url: "https://lu.ma/h9vhfsb2" },
     ],
   },
@@ -45,7 +45,7 @@ const WEEKS = [
     type: "reflection",
     events: [
       { name: "Midpoint Meetup", day: "Tue Jun 23", time: "4:00–7:00pm", format: "In-Person", location: "Antique Lofts, Hoboken, NJ — 2 min walk from the PATH", required: true, url: "https://lu.ma/zfr1e2gt" },
-      { name: "Industry Q&A — Hopper", day: "Fri Jun 26", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/e0sayfyh" },
+      { name: "Industry Q&A — Hopper", day: "Fri Jun 26", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/e0sayfyh", speaker: { name: "Joanne Wilson", linkedin: "https://www.linkedin.com/in/joanne-wilson-b0886110" } },
     ],
   },
   {
@@ -55,7 +55,7 @@ const WEEKS = [
     type: "reflection",
     submitLabel: "Submit your 2nd mentor meeting",
     events: [
-      { name: "Expert Insight — Bardeen", day: "Mon Jun 29", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/mvcaeaiu" },
+      { name: "Expert Insight — Bardeen", day: "Mon Jun 29", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/mvcaeaiu", speaker: { name: "Christina Perla", linkedin: "https://www.linkedin.com/in/christinaperla/" } },
       { name: "Peer Development — Hopper", day: "Tue Jun 30", time: "5:30–6:00pm", format: "Virtual", url: "https://lu.ma/ycu81x75" },
       { name: "Industry Q&A — Bardeen", day: "Fri Jul 3", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/zs1dqfeq" },
     ],
@@ -76,9 +76,9 @@ const WEEKS = [
     type: "reflection",
     submitLabel: "Submit your 3rd mentor meeting",
     events: [
-      { name: "Expert Insight — Morrison", day: "Mon Jul 13", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/oh01c8fi" },
+      { name: "Expert Insight — Morrison", day: "Mon Jul 13", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/oh01c8fi", speaker: { name: "Crissy Buteas", linkedin: "https://www.linkedin.com/in/chrissy-buteas-9382063/" } },
       { name: "Peer Development — Lawrence", day: "Tue Jul 14", time: "5:30–6:00pm", format: "Virtual", url: "https://lu.ma/jgqgpyvx" },
-      { name: "Industry Q&A — Lawrence", day: "Fri Jul 17", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/ekk5ycbt" },
+      { name: "Industry Q&A — Lawrence", day: "Fri Jul 17", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/ekk5ycbt", speaker: { name: "Jie Li", linkedin: "https://www.linkedin.com/in/jieli2016/" } },
     ],
   },
   {
@@ -88,7 +88,7 @@ const WEEKS = [
     submitLabel: "Submit your End Report (5 min)",
     submitPrimary: true,
     events: [
-      { name: "Expert Session — Edison", day: "Mon Jul 20", time: "12:30–1:00pm", format: "Virtual", url: "https://luma.com/9slfqpvz" },
+      { name: "Expert Session — Edison", day: "Mon Jul 20", time: "12:30–1:00pm", format: "Virtual", url: "https://luma.com/9slfqpvz", speaker: { name: "Tony Triumph", linkedin: "https://www.linkedin.com/in/tonytriumph/" } },
     ],
   },
   {
@@ -243,7 +243,7 @@ function EventsSection({ events, submitLabel, submitPrimary, note, footerNote })
           </p>
           {events.map((ev, i) => (
             <div key={i} style={{
-              display: "flex", alignItems: "center", gap: 10,
+              display: "flex", alignItems: "flex-start", gap: 10,
               padding: "10px 0", borderBottom: i < events.length - 1 ? "1px solid #f5f3ff" : "none",
             }}>
               <div style={{ width: 17, height: 17, border: "1.5px solid #c0b8d8", borderRadius: 3, flexShrink: 0 }} />
@@ -257,6 +257,18 @@ function EventsSection({ events, submitLabel, submitPrimary, note, footerNote })
                 <span style={{ marginLeft: 6, fontSize: 13, color: "#6b6480" }}>
                   — {ev.day}{ev.time ? `, ${ev.time}` : ""} · {ev.format}
                 </span>
+                {ev.speaker && (
+                  <p style={{ margin: "3px 0 0", fontSize: 12, color: "#6b6480" }}>
+                    Featuring special guest:{" "}
+                    {ev.speaker.linkedin ? (
+                      <a href={ev.speaker.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: "#5c4eb5", fontWeight: 600, textDecoration: "none" }}>
+                        {ev.speaker.name} ↗
+                      </a>
+                    ) : (
+                      <span style={{ fontWeight: 600, color: "#1a1733" }}>{ev.speaker.name}</span>
+                    )}
+                  </p>
+                )}
               </div>
               <a href={ev.url || "#"} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>
                 Register on Luma →
