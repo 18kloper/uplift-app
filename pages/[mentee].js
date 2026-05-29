@@ -639,9 +639,9 @@ function Week2({ mentee, slug, mentorUnlocked }) {
         </p>
         {[
           { text: "Schedule your first meeting with your mentor." },
+          { text: "Participate in your first mentorship session." },
           { text: "Attend one of this week's sessions — check them out below." },
           { text: "Take some time to think about the prompts below." },
-          { text: "Host your first meeting with your mentor." },
           { text: "Submit your first mentor meeting." },
         ].map((item, i) => (
           <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 4 ? 12 : 0 }}>
@@ -664,8 +664,17 @@ function Week2({ mentee, slug, mentorUnlocked }) {
         </p>
       </div>
 
+      {/* Reminder — above the submit button */}
+      <p style={{
+        textAlign: "center", fontSize: 14, color: "#7a5c00",
+        background: "#fffbeb", border: "1px solid #f5d97a",
+        borderRadius: 8, padding: "10px 16px", marginBottom: 14, fontStyle: "italic",
+      }}>
+        All pairs should meet for 1 hour by the end of this week.
+      </p>
+
       {/* Submit meeting button */}
-      <div style={{ textAlign: "center", marginBottom: 14 }}>
+      <div style={{ textAlign: "center", marginBottom: 24 }}>
         <a href="#" style={{
           display: "inline-block", padding: "14px 36px",
           background: "#5c4eb5", color: "#fff", borderRadius: 10,
@@ -675,15 +684,6 @@ function Week2({ mentee, slug, mentorUnlocked }) {
           Submit your 1st mentor meeting →
         </a>
       </div>
-
-      {/* Reminder — below the submit button */}
-      <p style={{
-        textAlign: "center", fontSize: 14, color: "#7a5c00",
-        background: "#fffbeb", border: "1px solid #f5d97a",
-        borderRadius: 8, padding: "10px 16px", marginBottom: 24, fontStyle: "italic",
-      }}>
-        All pairs should meet for 1 hour by the end of this week.
-      </p>
 
       {/* Sessions */}
       <EventsSection events={week.events} />
