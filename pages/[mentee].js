@@ -678,7 +678,7 @@ function Week2({ mentee, slug, mentorUnlocked }) {
 
       {/* Submit meeting button */}
       <div style={{ textAlign: "center", marginBottom: 24 }}>
-        <a href="#" style={{
+        <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{
           display: "inline-block", padding: "14px 36px",
           background: "#5c4eb5", color: "#fff", borderRadius: 10,
           fontSize: 16, fontWeight: 700, textDecoration: "none",
@@ -1004,7 +1004,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
         </div>
 
         <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <a href="#" style={{
+          <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{
             display: "inline-block", padding: "14px 36px",
             background: "#5c4eb5", color: "#fff", borderRadius: 10,
             fontSize: 16, fontWeight: 700, textDecoration: "none",
@@ -1055,7 +1055,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
         </p>
         <EventsSection events={week.events} />
         <div style={{ textAlign: "center", marginBottom: 12 }}>
-          <a href="#" style={{
+          <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{
             display: "inline-block", padding: "14px 36px",
             background: "#5c4eb5", color: "#fff", borderRadius: 10,
             fontSize: 16, fontWeight: 700, textDecoration: "none",
