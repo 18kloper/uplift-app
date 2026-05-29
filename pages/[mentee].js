@@ -223,7 +223,7 @@ function PromptBlock({ theme, questions, slug, weekNum, blockIndex, accentColor 
 }
 
 // ─── Events section ───────────────────────────────────────────────────────────
-function EventsSection({ events, submitLabel, submitPrimary, note }) {
+function EventsSection({ events, submitLabel, submitPrimary, note, footerNote }) {
   const hasEvents = events && events.length > 0;
   if (!hasEvents && !submitLabel) return null;
   return (
@@ -261,7 +261,7 @@ function EventsSection({ events, submitLabel, submitPrimary, note }) {
             </div>
           ))}
           <p style={{ margin: "10px 0 0", fontSize: 11, color: "#9b8fcf", fontStyle: "italic" }}>
-            *Must attend a minimum of 3 virtual educational sessions by program end.
+            {footerNote || "*Must attend a minimum of 3 virtual educational sessions by program end."}
           </p>
         </>
       )}
@@ -424,11 +424,62 @@ function PasswordGate({ slug, onAuthenticated }) {
 // ─── Week 1: Welcome & Onboarding ─────────────────────────────────────────────
 function Week1({ mentee, slug, prompts, mentorUnlocked }) {
   const week = WEEKS[0];
+  const cohort = COHORTS.find((c) => c.num === mentee.cohort);
   return (
     <div>
-      <Tagline text={week.tagline} />
+      {/* Welcome banner */}
+      <div style={{
+        background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)",
+        borderRadius: 14, padding: "28px 32px", color: "#fff", marginBottom: 24,
+      }}>
+        <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 600, letterSpacing: "0.08em", opacity: 0.65, textTransform: "uppercase" }}>
+          Welcome to Uplift Summer 2026
+        </p>
+        <p style={{ margin: "0 0 14px", fontSize: 21, fontWeight: 700, lineHeight: 1.3 }}>
+          {mentee.first}, we're so excited to have you.
+        </p>
+        <p style={{ margin: "0 0 20px", fontSize: 14, lineHeight: 1.8, opacity: 0.9 }}>
+          We're thrilled you've been accepted into this program and honored to be a small part of your entrepreneurial journey. This summer is going to be big — let's make the most of it.
+        </p>
+        {cohort && (
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 18 }}>
+            <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", opacity: 0.6 }}>
+              You've been placed in Cohort {cohort.num} — {cohort.name}
+            </p>
+            <p style={{ margin: "0 0 10px", fontSize: 16, fontWeight: 700 }}>{cohort.namesake}</p>
+            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7, opacity: 0.85 }}>{cohort.why}</p>
+          </div>
+        )}
+      </div>
 
-      <EventsSection events={week.events} note={week.note} />
+      {/* Action items */}
+      <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
+        <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+          Action Items This Week
+        </p>
+        {[
+          { text: "Get acclimated — review your portal and familiarize yourself with the program." },
+          { text: "Pick one onboarding session to attend and register via Luma." },
+          { text: "Start mapping your asks, your needs, and what you're looking for from your mentor.", sub: "Please review and refine your goals below and take some time to answer the prompts before your first meeting." },
+        ].map((item, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 2 ? 12 : 0 }}>
+            <div style={{
+              width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+              background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+              color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 11, fontWeight: 700, marginTop: 1,
+            }}>
+              {i + 1}
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>{item.text}</p>
+              {item.sub && <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9b8fcf", lineHeight: 1.5, fontStyle: "italic" }}>{item.sub}</p>}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <EventsSection events={week.events} note={week.note} footerNote="*You will only receive your mentor match after attending an onboarding session." />
 
       {/* Mentor reveal status */}
       {mentorUnlocked ? (
@@ -578,16 +629,40 @@ function Week2({ mentee, slug, mentorUnlocked }) {
 
   return (
     <div>
-      {/* Blurbs first */}
-      <p style={{ margin: "0 0 6px", fontSize: 15, color: "#3d2f8a", lineHeight: 1.6 }}>
-        Use this week to connect with your mentor and plan your first session.
-      </p>
-      <p style={{ margin: "0 0 22px", fontSize: 15, color: "#3d2f8a", lineHeight: 1.6 }}>
-        You can also take the opportunity to attend some of the virtual sessions — check them out below.
-      </p>
-
-      {/* Mentor card below blurbs */}
+      {/* Mentor card */}
       <MentorCard mentee={mentee} revealed={mentorUnlocked} />
+
+      {/* Action items */}
+      <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
+        <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+          Action Items This Week
+        </p>
+        {[
+          { text: "Schedule your first meeting with your mentor." },
+          { text: "Attend one of this week's sessions — check them out below." },
+          { text: "Take some time to think about the prompts below." },
+          { text: "Host your first meeting with your mentor." },
+          { text: "Submit your first mentor meeting." },
+        ].map((item, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 4 ? 12 : 0 }}>
+            <div style={{
+              width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+              background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+              color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 11, fontWeight: 700, marginTop: 1,
+            }}>
+              {i + 1}
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>{item.text}</p>
+              {item.sub && <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9b8fcf", lineHeight: 1.5, fontStyle: "italic" }}>{item.sub}</p>}
+            </div>
+          </div>
+        ))}
+        <p style={{ margin: "14px 0 0", fontSize: 11, color: "#9b8fcf", fontStyle: "italic" }}>
+          *You must attend a minimum of 3 virtual educational sessions by the end of this program.
+        </p>
+      </div>
 
       {/* Submit meeting button */}
       <div style={{ textAlign: "center", marginBottom: 14 }}>
@@ -729,10 +804,34 @@ function WeekReflection({ weekNum, slug, prompts }) {
     );
   }
 
-  // Week 3: no questions, custom tagline with underline, just sessions
+  // Week 3: action items + tagline + sessions + prompt
   if (weekNum === 3) {
     return (
       <div>
+        {/* Action items */}
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
+          <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+            Action Items This Week
+          </p>
+          {[
+            { text: "Confirm you've had your first meeting with your mentor. If you haven't, make sure it's scheduled." },
+            { text: "If you need extra support, reach out via the Support tab — we're here." },
+            { text: "Take some time to check out this week's sessions below and register for them." },
+          ].map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 2 ? 12 : 0 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 11, fontWeight: 700, marginTop: 1,
+              }}>
+                {i + 1}
+              </div>
+              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>{item.text}</p>
+            </div>
+          ))}
+        </div>
+
         <p style={{
           background: "#f5f3ff", borderRadius: 10, padding: "14px 18px",
           fontSize: 15, lineHeight: 1.6, marginBottom: 20, fontStyle: "italic",
@@ -743,6 +842,48 @@ function WeekReflection({ weekNum, slug, prompts }) {
           . If you have not done so, this is an opportunity to catch up. If you have already done so, we encourage you to continue communication with your mentor and to attend one of this week's virtual sessions.
         </p>
         <EventsSection events={week.events} />
+
+        {/* Reflection prompt */}
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "24px 28px", marginTop: 24, borderLeft: "4px solid #5c4eb5" }}>
+          <p style={{ margin: "0 0 16px", fontSize: 13, fontWeight: 700, color: "#5c4eb5", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Reflection
+          </p>
+
+          <div style={{ marginBottom: 24 }}>
+            <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 600, color: "#1a1733", lineHeight: 1.5 }}>
+              Who do you want to build like?
+            </p>
+            <p style={{ margin: "0 0 14px", fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
+              Every founder has a company, a leader, or a story they keep coming back to — someone whose trajectory, decisions, or values feel like a north star. Who's yours, and what is it about them that resonates with where you're trying to go?
+            </p>
+            <AutoTextarea
+              storageKey={`${slug}_w3_role_model`}
+              placeholder="e.g. I think a lot about how Patagonia built a brand around values first — I want to build something with that kind of conviction…"
+              slug={slug} weekNum={3} fieldKey="role_model" rows={4}
+            />
+          </div>
+
+          <div>
+            <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 600, color: "#1a1733", lineHeight: 1.5 }}>
+              What's one thing they're doing that you could deploy this week?
+            </p>
+            <p style={{ margin: "0 0 14px", fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
+              Not eventually — this week. Look at how your north star operates and find one tactic, habit, or move you can steal and test right now.
+            </p>
+            <p style={{ margin: "0 0 14px", fontSize: 12, color: "#b0a8cc", fontStyle: "italic", lineHeight: 1.7 }}>
+              Examples: automated outreach sequences, guerrilla marketing, content-first distribution, community building before launch, radical transparency with customers, partnerships over paid ads, founder-led sales…
+            </p>
+            <AutoTextarea
+              storageKey={`${slug}_w3_deploy_tactic`}
+              placeholder="e.g. They do a weekly founder update email to their community — I'm going to start sending one to my top 20 customers this Friday…"
+              slug={slug} weekNum={3} fieldKey="deploy_tactic" rows={4}
+            />
+          </div>
+
+          <div style={{ textAlign: "right", marginTop: 14 }}>
+            <SaveButton label="Save" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -1291,6 +1432,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
   const mentee = menteeData;
   const slug = mentee.slug;
   const mentorUnlocked = mentee.mentorUnlocked;
+  const myCohortHeader = COHORTS.find((c) => c.num === mentee.cohort);
 
   useEffect(() => {
     const stored = sessionStorage.getItem(`auth_${slug}`);
@@ -1365,7 +1507,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
           <div style={{ maxWidth: 720, margin: "0 auto" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                Cohort {mentee.cohort}
+                Cohort {mentee.cohort}{myCohortHeader ? ` — ${myCohortHeader.name}` : ""}
               </div>
               <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                 Uplift Summer 2026
