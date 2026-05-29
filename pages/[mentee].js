@@ -1855,14 +1855,42 @@ function MilestoneSection({ milestones }) {
 
   return (
     <div>
-      <p style={{ margin: "0 0 6px", fontSize: 14, color: "#6b6480" }}>
+      {/* Progress summary card */}
+      <div style={{
+        background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)",
+        borderRadius: 14, padding: "22px 26px", marginBottom: 20, color: "#fff",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+          <div>
+            <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 500, opacity: 0.75 }}>
+              Overall Progress
+            </p>
+            <p style={{ margin: 0, fontSize: 32, fontWeight: 800, lineHeight: 1 }}>
+              {pct}<span style={{ fontSize: 18, fontWeight: 600, opacity: 0.8 }}>%</span>
+            </p>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 500, opacity: 0.75 }}>Completed</p>
+            <p style={{ margin: 0, fontSize: 26, fontWeight: 800, lineHeight: 1 }}>
+              {completed}<span style={{ fontSize: 14, fontWeight: 500, opacity: 0.7 }}> / {total}</span>
+            </p>
+          </div>
+        </div>
+        {/* Progress bar */}
+        <div style={{ background: "rgba(255,255,255,0.2)", borderRadius: 8, height: 10 }}>
+          <div style={{
+            background: "linear-gradient(90deg, #a78bfa, #60a5fa)",
+            height: 10, borderRadius: 8,
+            width: `${pct}%`,
+            transition: "width 0.6s ease",
+            minWidth: pct > 0 ? 10 : 0,
+          }} />
+        </div>
+      </div>
+
+      <p style={{ margin: "0 0 16px", fontSize: 13, color: "#9b8fcf" }}>
         Milestones are manually confirmed by a TechUnited team member every Tuesday. No action needed from you — they'll update automatically.
       </p>
-      {/* Progress bar */}
-      <div style={{ background: "#e8e4f5", borderRadius: 8, height: 8, marginBottom: 6 }}>
-        <div style={{ background: "linear-gradient(90deg, #5c4eb5, #2a7fd4)", height: 8, borderRadius: 8, width: `${pct}%`, transition: "width 0.4s" }} />
-      </div>
-      <p style={{ margin: "0 0 24px", fontSize: 12, color: "#9b8fcf" }}>{completed} of {total} milestones completed</p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {items.map((item) => {
