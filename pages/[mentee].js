@@ -393,15 +393,7 @@ function PasswordGate({ slug, onAuthenticated }) {
         maxWidth: 380, width: "calc(100% - 48px)",
         boxShadow: "0 4px 32px rgba(92,78,181,0.12)", textAlign: "center",
       }}>
-        <div style={{
-          width: 60, height: 60, borderRadius: "50%",
-          background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
-          margin: "0 auto 20px",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 26,
-        }}>
-          🔐
-        </div>
+        <img src="/uplift-logo.png" alt="Uplift" style={{ height: 44, margin: "0 auto 24px", display: "block" }} />
         <h1 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 700, color: "#1a1733" }}>Uplift Summer 2026</h1>
         <p style={{ margin: "0 0 28px", fontSize: 14, color: "#9b8fcf" }}>Enter your access code to continue</p>
         <form onSubmit={handleSubmit}>
