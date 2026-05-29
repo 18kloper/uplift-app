@@ -1608,7 +1608,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                     border: "1px solid #f0e8c8",
                     padding: "18px 22px", marginBottom: 12, opacity: 0.92,
                   }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <div style={{
                           width: 30, height: 30, borderRadius: "50%",
@@ -1618,14 +1618,9 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                         }}>
                           {i + 1}
                         </div>
-                        <div>
-                          <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#1a1733" }}>
-                            {m.date ? m.date : `Submitted session`}
-                          </p>
-                          <p style={{ margin: 0, fontSize: 11, color: "#9b8fcf" }}>
-                            Pending review
-                          </p>
-                        </div>
+                        <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#1a1733" }}>
+                          Session {verified.length + i + 1}
+                        </p>
                       </div>
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                         {m.sixtyMin !== null && (
@@ -1647,6 +1642,15 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                         )}
                       </div>
                     </div>
+                    {/* Date row for pending */}
+                    {m.date && (
+                      <div style={{ marginBottom: 10 }}>
+                        <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
+                          Meeting Date
+                        </p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{m.date}</p>
+                      </div>
+                    )}
                     {m.takeaways && (
                       <div style={{ marginTop: 12 }}>
                         <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#b38a00" }}>
