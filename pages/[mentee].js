@@ -103,16 +103,17 @@ const WEEKS = [
 ];
 
 const PRIMARY_TABS = [
-  { id: "journey",   label: "My Journey" },
-  { id: "milestones",label: "Milestones" },
-  { id: "goals",     label: "Goals & Reflections" },
-  { id: "meetings",  label: "Logged Mentorship Sessions" },
-  { id: "calendar",  label: "Calendar" },
-  { id: "resources", label: "Resources" },
-  { id: "profile",   label: "Cohort Directory" },
-  { id: "support",   label: "Support" },
+  { id: "journey",    label: "My Journey" },
+  { id: "milestones", label: "Milestones" },
+  { id: "goals",      label: "Goals & Reflections" },
+  { id: "meetings",   label: "Logged Mentorship Sessions" },
+  { id: "edu",        label: "Logged Educational Sessions" },
+  { id: "calendar",   label: "Calendar" },
+  { id: "resources",  label: "Resources" },
+  { id: "profile",    label: "Cohort Directory" },
+  { id: "support",    label: "Support" },
 ];
-const TAB_ROW_1 = ["journey", "milestones", "goals", "meetings"];
+const TAB_ROW_1 = ["journey", "milestones", "goals", "meetings", "edu"];
 const TAB_ROW_2 = ["calendar", "resources", "profile", "support"];
 
 // ─── Save to Google Sheets ────────────────────────────────────────────────────
@@ -1737,6 +1738,124 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
   );
 }
 
+// ─── Educational Sessions tab ─────────────────────────────────────────────────
+function EduSessionsSection({ milestones }) {
+  const REQUIRED = 3;
+  const completed = [milestones?.edu1, milestones?.edu2, milestones?.edu3].filter(Boolean).length;
+  const pct = Math.min(Math.round((completed / REQUIRED) * 100), 100);
+  const over = completed > REQUIRED ? completed - REQUIRED : 0;
+
+  // All educational events across weeks
+  const eduEvents = WEEKS.flatMap(w =>
+    (w.events || [])
+      .filter(e => e.name.includes("Expert") || e.name.includes("Industry") || e.name.includes("Peer Development"))
+      .map(e => ({ ...e, weekNum: w.num, weekLabel: w.label, dateRange: w.dateRange }))
+  );
+
+  return (
+    <div>
+      {/* Progress card */}
+      <div style={{
+        background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)",
+        borderRadius: 14, padding: "22px 26px", marginBottom: 20, color: "#fff",
+      }}>
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 12 }}>
+          <div>
+            <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 500, opacity: 0.75 }}>Verified Sessions</p>
+            <p style={{ margin: 0, fontSize: 32, fontWeight: 800, lineHeight: 1 }}>
+              {pct}<span style={{ fontSize: 18, fontWeight: 600, opacity: 0.8 }}>%</span>
+              {over > 0 && <span style={{ fontSize: 13, fontWeight: 600, opacity: 0.7, marginLeft: 6 }}>+{over} bonus</span>}
+            </p>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 500, opacity: 0.75 }}>Toward goal</p>
+            <p style={{ margin: 0, fontSize: 26, fontWeight: 800, lineHeight: 1 }}>
+              {Math.min(completed, REQUIRED)}<span style={{ fontSize: 14, fontWeight: 500, opacity: 0.7 }}> / {REQUIRED}</span>
+            </p>
+          </div>
+        </div>
+        <div style={{ position: "relative", marginBottom: 8 }}>
+          <div style={{ background: "rgba(255,255,255,0.2)", borderRadius: 8, height: 10 }}>
+            <div style={{
+              background: pct >= 100 ? "linear-gradient(90deg, #34d399, #10b981)" : "linear-gradient(90deg, #a78bfa, #60a5fa)",
+              height: 10, borderRadius: 8, width: `${pct}%`,
+              transition: "width 0.6s ease", minWidth: completed > 0 ? 10 : 0,
+            }} />
+          </div>
+          {[33, 66].map(p => (
+            <div key={p} style={{
+              position: "absolute", top: 0, left: `${p}%`,
+              width: 2, height: 10, background: "rgba(255,255,255,0.4)",
+              transform: "translateX(-1px)",
+            }} />
+          ))}
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <p style={{ margin: 0, fontSize: 11, opacity: 0.6 }}>Session 1</p>
+          <p style={{ margin: 0, fontSize: 11, opacity: 0.6 }}>Session 2</p>
+          <p style={{ margin: 0, fontSize: 11, opacity: 0.6 }}>Session 3</p>
+        </div>
+        <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.55, fontStyle: "italic", lineHeight: 1.5 }}>
+          * Educational session attendance is verified manually by the program team and updated every Tuesday. Sessions pending review are not automatically reflected here — they may take additional time to be updated.
+        </p>
+      </div>
+
+      {/* Milestone checkmarks */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
+        {[
+          { key: "edu1", label: "Educational Session 1" },
+          { key: "edu2", label: "Educational Session 2" },
+          { key: "edu3", label: "Educational Session 3" },
+        ].map(({ key, label }) => {
+          const done = !!milestones?.[key];
+          return (
+            <div key={key} style={{
+              flex: 1, background: done ? "#e8f8f0" : "#fafafa",
+              border: done ? "1px solid #b8e8d0" : "1px solid #e8e4f5",
+              borderRadius: 10, padding: "12px 14px", textAlign: "center",
+            }}>
+              <p style={{ margin: "0 0 4px", fontSize: 20 }}>{done ? "✅" : "⬜"}</p>
+              <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: done ? "#1a6e42" : "#9b8fcf" }}>{label}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Upcoming educational events */}
+      <p style={{ margin: "0 0 12px", fontSize: 15, fontWeight: 700, color: "#1a1733" }}>Program Educational Events</p>
+      <p style={{ margin: "0 0 16px", fontSize: 13, color: "#6b6480", lineHeight: 1.6 }}>
+        Attend any Expert Insight, Industry Q&amp;A, or Peer Development session to earn credit. Contact{" "}
+        <a href="mailto:uplift@techunited.co" style={{ color: "#5c4eb5", fontWeight: 600, textDecoration: "none" }}>
+          uplift@techunited.co
+        </a>{" "}
+        if your attendance isn't reflected after a Tuesday update.
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {eduEvents.map((ev, i) => (
+          <div key={i} style={{
+            background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
+            padding: "14px 20px", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap",
+          }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ margin: "0 0 2px", fontSize: 14, fontWeight: 600, color: "#1a1733" }}>{ev.name}</p>
+              <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>
+                {ev.weekLabel} · {ev.day}{ev.time ? `, ${ev.time}` : ""} · {ev.format}
+              </p>
+            </div>
+            {ev.url && (
+              <a href={ev.url} target="_blank" rel="noopener noreferrer" style={{
+                fontSize: 12, color: "#2a7fd4", fontWeight: 600, textDecoration: "none", flexShrink: 0,
+              }}>
+                Register →
+              </a>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Goals tab ────────────────────────────────────────────────────────────────
 function GoalsSection({ mentee, slug }) {
   const [responses, setResponses] = useState({});
@@ -2413,6 +2532,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} />;
       case "goals": return <GoalsSection mentee={mentee} slug={slug} />;
       case "meetings": return <MeetingsSection slug={slug} milestones={liveMilestones || mentee.milestones || {}} onMilestoneUpdate={(key) => setLiveMilestones(prev => ({ ...(prev || mentee.milestones || {}), [key]: true }))} />;
+      case "edu": return <EduSessionsSection milestones={liveMilestones || mentee.milestones || {}} />;
       case "profile": return <ProfileSection mentee={mentee} slug={slug} cohortMates={cohortMates} allCohortMembers={allCohortMembers} />;
       case "support": return (
         <div style={{ maxWidth: 520 }}>
@@ -2515,7 +2635,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
         </div>
 
         {/* Primary tab nav — personal tabs only */}
-        <div style={{ background: "#fff", borderBottom: "1px solid #e8e4f5" }}>
+        <div style={{ background: "#fff", borderBottom: "1px solid #e8e4f5", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
           <div style={{ display: "flex", maxWidth: 720, margin: "0 auto", padding: "0 24px" }}>
             {TAB_ROW_1.map(id => {
               const tab = PRIMARY_TABS.find(t => t.id === id);
