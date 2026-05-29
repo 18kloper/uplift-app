@@ -171,6 +171,19 @@ function Dashboard({ data, refreshedAt }) {
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 32px 60px" }}>
 
+        {/* Disclaimer */}
+        <div style={{
+          background: "#fffbeb", border: "1px solid #f5d97a", borderRadius: 10,
+          padding: "14px 20px", marginBottom: 24,
+          display: "flex", alignItems: "flex-start", gap: 10,
+        }}>
+          <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>⚠️</span>
+          <p style={{ margin: 0, fontSize: 13, color: "#7a5c00", lineHeight: 1.6 }}>
+            <strong>For internal use only.</strong> This dashboard is a high-level overview designed to assist the tracking and support of the Uplift program. Data is synced from Google Sheets and may not reflect the most recent manual updates.{" "}
+            <strong>Please verify against the master tracker sheet before approving, flagging, or making any program decisions.</strong>
+          </p>
+        </div>
+
         {/* Summary stat cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 28 }}>
           {[
