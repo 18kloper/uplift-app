@@ -7,8 +7,8 @@ import { PROGRAM_EMAILS, RESOURCES, COHORTS } from "../lib/program-data";
 const WEEKS = [
   {
     num: 1, label: "Week 1", title: "Welcome & Onboarding", dateRange: "Jun 1–6",
-    tagline: "Get acclimated. Pick one onboarding session to attend — register via Luma. Start mapping your asks, your needs, and what you're looking for from your mentor.",
-    note: "You only need to attend 1 session. Five options available — register through Luma.",
+    tagline: "Get acclimated. Attend your cohort's onboarding session to meet your peers — or any session if that time doesn't work. Start mapping your asks, your needs, and what you're looking for from your mentor.",
+    note: "We encourage you to attend your own cohort's session to meet your peers. If the timing doesn't work, any of the five sessions will do — just register through Luma.",
     type: "onboarding",
     events: [
       { name: "Onboarding — Edison", day: "Mon Jun 1", time: "12:30–1:15pm", format: "Virtual", url: "https://lu.ma/q2hlxrhu" },
@@ -460,7 +460,12 @@ function Week1({ mentee, slug, prompts, mentorUnlocked }) {
         </p>
         {[
           { text: "Get acclimated — review your portal and familiarize yourself with the program." },
-          { text: "Pick one onboarding session to attend and register via Luma." },
+          {
+            text: cohort
+              ? `Attend the Cohort ${cohort.num} — ${cohort.name} onboarding session to meet your peers.`
+              : "Attend your cohort's onboarding session to meet your peers.",
+            sub: "If that time doesn't work for your schedule, you're welcome to attend any of the other sessions — just register through Luma.",
+          },
           { text: "Start mapping your asks, your needs, and what you're looking for from your mentor.", sub: "Please review and refine your goals below and take some time to answer the prompts before your first meeting." },
         ].map((item, i) => (
           <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 2 ? 12 : 0 }}>
