@@ -1008,10 +1008,37 @@ function WeekReflection({ weekNum, slug, prompts }) {
     );
   }
 
-  // Week 8: tagline + big end report button, no questions
+  // Week 8: action items + tagline + end report button
   if (weekNum === 8) {
     return (
       <div>
+        {/* Action items */}
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
+          <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+            Action Items This Week
+          </p>
+          {[
+            { text: "Verify you've completed three hours of mentoring sessions and that it's reflected on your milestones." },
+            { text: "If you have outstanding meetings or educational sessions that need to be made up, contact ", link: { label: "uplift@techunited.co", href: "mailto:uplift@techunited.co" }, suffix: " immediately." },
+          ].map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 1 ? 12 : 0 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 11, fontWeight: 700, marginTop: 1,
+              }}>
+                {i + 1}
+              </div>
+              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>
+                {item.text}
+                {item.link && <a href={item.link.href} style={{ color: "#5c4eb5", fontWeight: 600 }}>{item.link.label}</a>}
+                {item.suffix}
+              </p>
+            </div>
+          ))}
+        </div>
+
         <Tagline text={week.tagline} />
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <a href="#" style={{
