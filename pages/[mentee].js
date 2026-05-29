@@ -8,13 +8,14 @@ const WEEKS = [
   {
     num: 1, label: "Week 1", title: "Welcome & Onboarding", dateRange: "Jun 1–6",
     tagline: "Get acclimated. Pick one onboarding session to attend — register via Luma. Start mapping your asks, your needs, and what you're looking for from your mentor.",
-    note: "You only need to attend 1 session. Register through Luma.",
+    note: "You only need to attend 1 session. Five options available — register through Luma.",
     type: "onboarding",
     events: [
-      { name: "Onboarding", day: "Mon Jun 1", time: "12:30–1:15pm", format: "Virtual" },
-      { name: "Onboarding", day: "Tue Jun 2", time: "5:30–6:15pm", format: "Virtual" },
-      { name: "Onboarding", day: "Thu Jun 4", time: "12:30–1:15pm", format: "Virtual" },
-      { name: "Onboarding", day: "Sat Jun 6", time: "10:00–10:45am", format: "Virtual" },
+      { name: "Onboarding — Edison", day: "Mon Jun 1", time: "12:30–1:15pm", format: "Virtual", url: "https://lu.ma/q2hlxrhu" },
+      { name: "Onboarding — Hopper", day: "Tue Jun 2", time: "5:30–6:15pm", format: "Virtual", url: "https://lu.ma/boqqrwg2" },
+      { name: "Onboarding — Bardeen", day: "Wed Jun 3", time: "12:30–1:15pm", format: "Virtual", url: "" },
+      { name: "Onboarding — Lawrence", day: "Thu Jun 4", time: "12:30–1:15pm", format: "Virtual", url: "https://lu.ma/dg4muvxk" },
+      { name: "Onboarding — Morrison", day: "Sat Jun 6", time: "10:00–10:45am", format: "Virtual", url: "https://lu.ma/p9zkhdle" },
     ],
   },
   {
@@ -24,8 +25,8 @@ const WEEKS = [
     type: "mentor-meeting",
     submitLabel: "Submit your 1st mentor meeting",
     events: [
-      { name: "Expert Insight 1", day: "Mon Jun 8", time: "12:30–1:00pm", format: "Virtual" },
-      { name: "Industry Q&A 1", day: "Fri Jun 12", time: "12:30–1:00pm", format: "Virtual" },
+      { name: "Expert Insight — Edison", day: "Mon Jun 8", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/vxnzwket" },
+      { name: "Industry Q&A — Edison", day: "Fri Jun 12", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/0dh6bt4o" },
     ],
   },
   {
@@ -33,8 +34,8 @@ const WEEKS = [
     tagline: "We know everyone's schedules look different — by this time you should have met with your mentor for at least an hour. If you have not done so, this is an opportunity to catch up. If you have already done so, we encourage you to continue communication with your mentor and to attend one of this week's virtual sessions.",
     type: "reflection",
     events: [
-      { name: "Expert Insight 2", day: "Mon Jun 15", time: "12:30–1:00pm", format: "Virtual" },
-      { name: "Peer Development 1", day: "Tue Jun 16", time: "5:30–6:00pm", format: "Virtual" },
+      { name: "Expert Insight — Hopper", day: "Mon Jun 15", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/nj4xfgv6" },
+      { name: "Peer Development — Edison", day: "Tue Jun 16", time: "5:30–6:00pm", format: "Virtual", url: "https://lu.ma/h9vhfsb2" },
     ],
   },
   {
@@ -43,8 +44,8 @@ const WEEKS = [
     taglineType: "warning",
     type: "reflection",
     events: [
-      { name: "Midpoint Meetup", day: "Tue Jun 23", time: "4:00–7:00pm", format: "In-Person", location: "Antique Lofts, Hoboken, NJ — 2 min walk from the PATH", required: true },
-      { name: "Industry Q&A 2", day: "Fri Jun 26", time: "12:30–1:00pm", format: "Virtual" },
+      { name: "Midpoint Meetup", day: "Tue Jun 23", time: "4:00–7:00pm", format: "In-Person", location: "Antique Lofts, Hoboken, NJ — 2 min walk from the PATH", required: true, url: "https://lu.ma/zfr1e2gt" },
+      { name: "Industry Q&A — Hopper", day: "Fri Jun 26", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/e0sayfyh" },
     ],
   },
   {
@@ -54,8 +55,9 @@ const WEEKS = [
     type: "reflection",
     submitLabel: "Submit your 2nd mentor meeting",
     events: [
-      { name: "Expert Insight 3", day: "Mon Jun 29", time: "12:30–1:00pm", format: "Virtual" },
-      { name: "Peer Development 2", day: "Tue Jun 30", time: "5:30–6:00pm", format: "Virtual" },
+      { name: "Expert Insight — Bardeen", day: "Mon Jun 29", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/mvcaeaiu" },
+      { name: "Peer Development — Hopper", day: "Tue Jun 30", time: "5:30–6:00pm", format: "Virtual", url: "https://lu.ma/ycu81x75" },
+      { name: "Industry Q&A — Bardeen", day: "Fri Jul 3", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/zs1dqfeq" },
     ],
   },
   {
@@ -63,8 +65,8 @@ const WEEKS = [
     tagline: "If you've fallen behind on hours with your mentor, use this week to catch up. If you're on track — keep the energy going.",
     type: "reflection",
     events: [
-      { name: "Expert Insight 4", day: "Mon Jul 6", time: "12:30–1:00pm", format: "Virtual" },
-      { name: "Peer Development 3", day: "Tue Jul 7", time: "5:30–6:00pm", format: "Virtual" },
+      { name: "Expert Insight — Lawrence", day: "Mon Jul 6", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/o20rkult" },
+      { name: "Peer Development — Bardeen", day: "Tue Jul 7", time: "5:30–6:00pm", format: "Virtual", url: "https://lu.ma/sesem19h" },
     ],
   },
   {
@@ -74,9 +76,9 @@ const WEEKS = [
     type: "reflection",
     submitLabel: "Submit your 3rd mentor meeting",
     events: [
-      { name: "Expert Insight 5", day: "Mon Jul 13", time: "12:30–1:00pm", format: "Virtual" },
-      { name: "Peer Development 4", day: "Tue Jul 14", time: "5:30–6:00pm", format: "Virtual" },
-      { name: "Industry Q&A 4", day: "Fri Jul 17", time: "12:30–1:00pm", format: "Virtual" },
+      { name: "Expert Insight — Morrison", day: "Mon Jul 13", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/oh01c8fi" },
+      { name: "Peer Development — Lawrence", day: "Tue Jul 14", time: "5:30–6:00pm", format: "Virtual", url: "https://lu.ma/jgqgpyvx" },
+      { name: "Industry Q&A — Lawrence", day: "Fri Jul 17", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/ekk5ycbt" },
     ],
   },
   {
@@ -92,7 +94,8 @@ const WEEKS = [
     tagline: "We are nearing the END — can't wait to celebrate you.",
     type: "closing",
     events: [
-      { name: "Uplift Summit & Graduation", day: "Tue Aug 4", time: null, format: "In-Person", required: true },
+      { name: "Peer Development — Morrison", day: "Tue Jul 28", time: "5:30–6:00pm", format: "Virtual", url: "https://lu.ma/uy7rs79a" },
+      { name: "Uplift Summit & Graduation", day: "Tue Aug 4", time: null, format: "In-Person", required: true, url: "https://lu.ma/c8we4c2b" },
     ],
   },
 ];
@@ -252,7 +255,7 @@ function EventsSection({ events, submitLabel, submitPrimary, note }) {
                   — {ev.day}{ev.time ? `, ${ev.time}` : ""} · {ev.format}
                 </span>
               </div>
-              <a href="#" style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>
+              <a href={ev.url || "#"} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>
                 Register on Luma →
               </a>
             </div>
@@ -708,7 +711,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
             <p style={{ margin: "0 0 14px", fontSize: 14, color: "#1a6e42", lineHeight: 1.7, fontStyle: "italic" }}>
               📍 In-person in Hoboken. This is the halfway mark — and though we LOVE your virtual faces, we can't wait to see you in person!
             </p>
-            <a href="#" style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 600, textDecoration: "none" }}>
+            <a href={midpoint.url || "#"} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 600, textDecoration: "none" }}>
               Register on Luma →
             </a>
           </div>
@@ -972,7 +975,7 @@ function CalendarSection() {
                     <span style={{ background: "#fff3e0", color: "#b35c00", borderRadius: 4, padding: "1px 6px", fontSize: 10, fontWeight: 700 }}>REQUIRED</span>
                   )}
                   <span style={{ fontSize: 12, color: "#9b8fcf" }}>{ev.day}{ev.time ? `, ${ev.time}` : ""} · {ev.format}</span>
-                  <a href="#" style={{ marginLeft: "auto", fontSize: 12, color: "#2a7fd4", fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>Register on Luma →</a>
+                  <a href={ev.url || "#"} target="_blank" rel="noopener noreferrer" style={{ marginLeft: "auto", fontSize: 12, color: "#2a7fd4", fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>Register on Luma →</a>
                 </div>
               ))}
             </div>
