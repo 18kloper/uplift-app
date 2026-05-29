@@ -40,9 +40,12 @@ export default async function handler(req, res) {
       const last     = get(answers, FIELDS.last)?.text?.trim().toLowerCase()   || "";
       const fullSlug = `${first}-${last}`.replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 
-      // Match: first name matches AND slug starts with first name and contains last
+      // Match on first name; also verify last name is in slug (unless slug has no hyphen)
       if (first !== firstName) continue;
-      if (!slug.includes(last.split(" ")[0].replace(/[^a-z]/g, ""))) continue;
+      const hasLastInSlug = slug.includes("-")
+        ? slug.includes(last.split(" ")[0].replace(/[^a-z]/g, ""))
+        : true; // single-word slug (e.g. "kennedy") — first name match is enough
+      if (!hasLastInSlug) continue;
 
       meetings.push({
         id:         item.token,
