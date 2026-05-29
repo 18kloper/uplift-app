@@ -1455,6 +1455,71 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
         </a>
       </div>
 
+      {/* Session progress tracker */}
+      {(() => {
+        const verifiedCount = meetings.filter(m => m.sixtyMin === true && m.notes?.trim()).length;
+        const REQUIRED = 3;
+        const pct = Math.min(Math.round((verifiedCount / REQUIRED) * 100), 100);
+        const over = verifiedCount > REQUIRED ? verifiedCount - REQUIRED : 0;
+        return (
+          <div style={{
+            background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)",
+            borderRadius: 14, padding: "22px 26px", marginBottom: 20, color: "#fff",
+          }}>
+            <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 12 }}>
+              <div>
+                <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 500, opacity: 0.75 }}>
+                  Verified Sessions
+                </p>
+                <p style={{ margin: 0, fontSize: 32, fontWeight: 800, lineHeight: 1 }}>
+                  {pct}<span style={{ fontSize: 18, fontWeight: 600, opacity: 0.8 }}>%</span>
+                  {over > 0 && (
+                    <span style={{ fontSize: 13, fontWeight: 600, opacity: 0.7, marginLeft: 6 }}>
+                      +{over} bonus
+                    </span>
+                  )}
+                </p>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 500, opacity: 0.75 }}>Toward goal</p>
+                <p style={{ margin: 0, fontSize: 26, fontWeight: 800, lineHeight: 1 }}>
+                  {Math.min(verifiedCount, REQUIRED)}<span style={{ fontSize: 14, fontWeight: 500, opacity: 0.7 }}> / {REQUIRED}</span>
+                </p>
+              </div>
+            </div>
+            {/* Progress bar with 3 segment markers */}
+            <div style={{ position: "relative", marginBottom: 8 }}>
+              <div style={{ background: "rgba(255,255,255,0.2)", borderRadius: 8, height: 10 }}>
+                <div style={{
+                  background: pct >= 100 ? "linear-gradient(90deg, #34d399, #10b981)" : "linear-gradient(90deg, #a78bfa, #60a5fa)",
+                  height: 10, borderRadius: 8,
+                  width: `${pct}%`,
+                  transition: "width 0.6s ease",
+                  minWidth: verifiedCount > 0 ? 10 : 0,
+                }} />
+              </div>
+              {/* Segment tick marks at 33% and 66% */}
+              {[33, 66].map(p => (
+                <div key={p} style={{
+                  position: "absolute", top: 0, left: `${p}%`,
+                  width: 2, height: 10,
+                  background: "rgba(255,255,255,0.4)",
+                  transform: "translateX(-1px)",
+                }} />
+              ))}
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <p style={{ margin: 0, fontSize: 11, opacity: 0.6 }}>Session 1</p>
+              <p style={{ margin: 0, fontSize: 11, opacity: 0.6 }}>Session 2</p>
+              <p style={{ margin: 0, fontSize: 11, opacity: 0.6 }}>Session 3</p>
+            </div>
+            <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.55, fontStyle: "italic", lineHeight: 1.5 }}>
+              * Only auto-verified sessions (60+ min with a Granola transcript) count toward this progress. Sessions pending internal review are not reflected here.
+            </p>
+          </div>
+        );
+      })()}
+
       {/* Not seeing your meeting notice — always shown */}
       <div style={{
         background: "#f7f5ff", borderRadius: 10, border: "1px solid #e0dbf5",
