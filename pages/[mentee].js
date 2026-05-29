@@ -438,6 +438,16 @@ function ParticipationWidget({ slug }) {
     localStorage.setItem(storageKey, val);
     setChoice(val);
     await persistToSheet(slug, 1, "participation", val, "Program participation confirmation");
+    // Auto-check the participation milestone in the Dashboard
+    if (val === "accepted") {
+      try {
+        await fetch("/api/update-milestone", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slug, milestone: "participation", value: true }),
+        });
+      } catch (_) {}
+    }
     setSubmitting(false);
   };
 
@@ -1297,6 +1307,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
 // ─── Milestone check section ──────────────────────────────────────────────────
 function MilestoneSection({ milestones }) {
   const items = [
+    { key: "participation",   label: "Confirmed Participation", auto: true },
     { key: "onboarding",      label: "Onboarding Session Attended" },
     { key: "mentorMatched",   label: "Matched with a Mentor" },
     { key: "edu1",            label: "Educational Session 1" },

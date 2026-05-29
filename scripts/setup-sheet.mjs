@@ -5,12 +5,14 @@ import { google } from "googleapis";
 import { MENTEES } from "../lib/mentees.js";
 
 const MILESTONE_KEYS = [
+  "participation",
   "onboarding", "mentorMatched",
   "edu1", "edu2", "edu3",
   "mentorSession1", "mentorSession2", "mentorSession3",
   "midpoint", "endSurvey", "summit", "certificate",
 ];
 const MILESTONE_LABELS = {
+  participation:  "Confirmed Participation",
   onboarding:     "Onboarding Session Attended",
   mentorMatched:  "Matched with a Mentor",
   edu1:           "Educational Session 1",
