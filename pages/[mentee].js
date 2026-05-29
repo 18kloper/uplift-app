@@ -467,10 +467,10 @@ function ParticipationWidget({ slug }) {
         padding: "20px 24px", marginBottom: 24,
       }}>
         <p style={{ margin: "0 0 3px", fontWeight: 700, fontSize: 15, color: "#1a6e42" }}>
-          ✓ You're confirmed!
+          ✓ You're all set!
         </p>
         <p style={{ margin: "0 0 10px", fontSize: 14, color: "#22a366", lineHeight: 1.6 }}>
-          Please register for your onboarding session below — we look forward to meeting you.
+          Please register for your onboarding session below. We look forward to meeting you.
         </p>
         {changeBtn(() => { localStorage.removeItem(storageKey); setChoice(null); })}
       </div>

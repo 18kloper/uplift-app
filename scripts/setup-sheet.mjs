@@ -120,9 +120,7 @@ async function run() {
 
   // 6. Write Participation tab
   console.log("Writing Participation tab…");
-  const TEST_SLUGS = new Set(["kennedy", "jackie", "aaron", "mj"]);
-  const realMentees = MENTEES
-    .filter(m => !TEST_SLUGS.has(m.slug))
+  const realMentees = [...MENTEES]
     .sort((a, b) => a.cohort - b.cohort || a.last.localeCompare(b.last));
 
   // Data starts at row 6 (index 5), so formulas reference E6:E500
