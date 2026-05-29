@@ -23,10 +23,10 @@ export default async function handler(req, res) {
     const sheets = getSheetsClient();
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
-    // Read full Dashboard — columns A through R (slug + 5 meta + 12 milestones)
+    // Read full Dashboard — A:Z covers all milestones regardless of count
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "Dashboard!A:R",
+      range: "Dashboard!A:Z",
     });
 
     const rows = response.data.values || [];

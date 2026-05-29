@@ -423,7 +423,7 @@ function PasswordGate({ slug, onAuthenticated }) {
 }
 
 // ─── Participation confirmation widget ───────────────────────────────────────
-function ParticipationWidget({ slug }) {
+function ParticipationWidget({ slug, onAccepted }) {
   const storageKey = `${slug}_participation`;
   const [choice, setChoice] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -438,7 +438,7 @@ function ParticipationWidget({ slug }) {
     localStorage.setItem(storageKey, val);
     setChoice(val);
     await persistToSheet(slug, 1, "participation", val, "Program participation confirmation");
-    // Auto-check the participation milestone in the Dashboard
+    // Auto-check the participation milestone in the Dashboard + update portal state instantly
     if (val === "accepted") {
       try {
         await fetch("/api/update-milestone", {
@@ -447,6 +447,7 @@ function ParticipationWidget({ slug }) {
           body: JSON.stringify({ slug, milestone: "participation", value: true }),
         });
       } catch (_) {}
+      if (onAccepted) onAccepted();
     }
     setSubmitting(false);
   };
@@ -540,13 +541,13 @@ function ParticipationWidget({ slug }) {
 }
 
 // ─── Week 1: Welcome & Onboarding ─────────────────────────────────────────────
-function Week1({ mentee, slug, prompts, mentorUnlocked }) {
+function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted }) {
   const week = WEEKS[0];
   const cohort = COHORTS.find((c) => c.num === mentee.cohort);
   return (
     <div>
       {/* Participation confirmation — above welcome banner */}
-      <ParticipationWidget slug={slug} />
+      <ParticipationWidget slug={slug} onAccepted={onParticipationAccepted} />
 
       {/* Welcome banner */}
       <div style={{
@@ -1799,7 +1800,8 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
     if (!week) return null;
     switch (week.type) {
       case "onboarding":
-        return <Week1 mentee={mentee} slug={slug} prompts={promptBlocks} mentorUnlocked={mentorUnlocked} />;
+        return <Week1 mentee={mentee} slug={slug} prompts={promptBlocks} mentorUnlocked={mentorUnlocked}
+          onParticipationAccepted={() => setLiveMilestones(prev => ({ ...(prev || mentee.milestones || {}), participation: true }))} />;
       case "mentor-meeting":
         return <Week2 mentee={mentee} slug={slug} mentorUnlocked={mentorUnlocked} />;
       default:
