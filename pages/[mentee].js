@@ -110,18 +110,18 @@ const PRIMARY_TABS = [
 ];
 
 // ─── Save to Google Sheets ────────────────────────────────────────────────────
-async function persistToSheet(slug, weekNum, fieldKey, value) {
+async function persistToSheet(slug, weekNum, fieldKey, value, question = "") {
   try {
     await fetch("/api/save-response", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug, weekNum, fieldKey, value }),
+      body: JSON.stringify({ slug, weekNum, fieldKey, value, question }),
     });
   } catch (_) {}
 }
 
 // ─── Autosaving textarea — syncs to Google Sheets ─────────────────────────────
-function AutoTextarea({ storageKey, placeholder, slug, weekNum, fieldKey, rows = 4 }) {
+function AutoTextarea({ storageKey, placeholder, slug, weekNum, fieldKey, rows = 4, question = "" }) {
   const [value, setValue] = useState("");
   const [status, setStatus] = useState("idle");
   const timerRef = useRef(null);
@@ -138,11 +138,11 @@ function AutoTextarea({ storageKey, placeholder, slug, weekNum, fieldKey, rows =
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       localStorage.setItem(storageKey, newVal);
-      persistToSheet(slug, weekNum, fieldKey, newVal);
+      persistToSheet(slug, weekNum, fieldKey, newVal, question);
       setStatus("saved");
       setTimeout(() => setStatus("idle"), 2000);
     }, 900);
-  }, [storageKey, slug, weekNum, fieldKey]);
+  }, [storageKey, slug, weekNum, fieldKey, question]);
 
   return (
     <div style={{ position: "relative" }}>
@@ -215,6 +215,7 @@ function PromptBlock({ theme, questions, slug, weekNum, blockIndex, accentColor 
             storageKey={`${slug}_w${weekNum}_b${blockIndex}_q${qi}`}
             placeholder="Write your thoughts here…"
             slug={slug} weekNum={weekNum} fieldKey={`b${blockIndex}_q${qi}`}
+            question={q}
           />
         </div>
       ))}
@@ -569,6 +570,7 @@ function Week1({ mentee, slug, prompts, mentorUnlocked }) {
             storageKey={`${slug}_w1_primary_refine`}
             placeholder="e.g. I want to close my first 3 paying customers and have a clear pricing model…"
             slug={slug} weekNum={1} fieldKey="primary_refine" rows={3}
+            question="What does real progress on your primary focus look like for you by August?"
           />
         </div>
 
@@ -584,6 +586,7 @@ function Week1({ mentee, slug, prompts, mentorUnlocked }) {
               storageKey={`${slug}_w1_secondary_refine`}
               placeholder="e.g. I want to have at least one investor conversation and understand what they'd need to see…"
               slug={slug} weekNum={1} fieldKey="secondary_refine" rows={3}
+              question="What's the one thing that would move the needle on your secondary focus this summer?"
             />
           </div>
         )}
@@ -709,7 +712,7 @@ function Week2({ mentee, slug, mentorUnlocked }) {
           padding: "20px 24px", marginBottom: 16, borderLeft: "4px solid #2a7fd4",
         }}>
           <p style={{ margin: "0 0 10px", fontSize: 15, fontWeight: 500, color: "#1a1733", lineHeight: 1.5 }}>{item.q}</p>
-          <AutoTextarea storageKey={`${slug}_w2_${item.key}`} placeholder="Your thoughts…" slug={slug} weekNum={2} fieldKey={item.key} />
+          <AutoTextarea storageKey={`${slug}_w2_${item.key}`} placeholder="Your thoughts…" slug={slug} weekNum={2} fieldKey={item.key} question={item.q} />
         </div>
       ))}
       <div style={{ textAlign: "right", marginBottom: 8 }}>
@@ -817,7 +820,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
           <p style={{ margin: "0 0 10px", fontSize: 15, fontWeight: 500, color: "#1a1733", lineHeight: 1.5 }}>
             If you'd like, we would love to share a quote from you on our <a href="https://techunited.org" target="_blank" rel="noopener noreferrer" style={{ color: "#5c4eb5" }}>webpage</a> — your name will be linked.
           </p>
-          <AutoTextarea storageKey={`${slug}_w9_quote`} placeholder="Share a quote about your Uplift experience…" slug={slug} weekNum={9} fieldKey="quote" rows={3} />
+          <AutoTextarea storageKey={`${slug}_w9_quote`} placeholder="Share a quote about your Uplift experience…" slug={slug} weekNum={9} fieldKey="quote" rows={3} question="Share a quote about your Uplift experience" />
         </div>
       </div>
     );
@@ -939,6 +942,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
               storageKey={`${slug}_w3_role_model`}
               placeholder="e.g. I think a lot about how Patagonia built a brand around values first — I want to build something with that kind of conviction…"
               slug={slug} weekNum={3} fieldKey="role_model" rows={4}
+              question="Who do you want to build like?"
             />
           </div>
 
@@ -956,6 +960,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
               storageKey={`${slug}_w3_deploy_tactic`}
               placeholder="e.g. They do a weekly founder update email to their community — I'm going to start sending one to my top 20 customers this Friday…"
               slug={slug} weekNum={3} fieldKey="deploy_tactic" rows={4}
+              question="What's one thing they're doing that you could deploy this week?"
             />
           </div>
 

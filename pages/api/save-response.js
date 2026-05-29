@@ -9,7 +9,7 @@ import { getSheetsClient } from "../../lib/sheets-helper";
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { slug, weekNum, fieldKey, value } = req.body;
+  const { slug, weekNum, fieldKey, value, question } = req.body;
   if (!slug || weekNum == null || !fieldKey) {
     return res.status(400).json({ error: "Missing required fields" });
   }
@@ -57,19 +57,19 @@ export default async function handler(req, res) {
       const rowNum = matchRowIndex + 1;
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `${slug}!C${rowNum}:D${rowNum}`,
+        range: `${slug}!C${rowNum}:E${rowNum}`,
         valueInputOption: "USER_ENTERED",
-        requestBody: { values: [[value || "", timestamp]] },
+        requestBody: { values: [[question || "", value || "", timestamp]] },
       });
     } else {
       // Append a new row
       await sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: `${slug}!A:D`,
+        range: `${slug}!A:E`,
         valueInputOption: "USER_ENTERED",
         insertDataOption: "INSERT_ROWS",
         requestBody: {
-          values: [[String(weekNum), fieldKey, value || "", timestamp]],
+          values: [[String(weekNum), fieldKey, question || "", value || "", timestamp]],
         },
       });
     }

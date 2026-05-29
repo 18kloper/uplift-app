@@ -133,8 +133,8 @@ export default async function handler(req, res) {
 
   // ── 7. Write headers to every mentee tab ─────────────────────────────────────
   const menteeHeaderData = MENTEES.map((m) => ({
-    range: `${m.slug}!A1:D1`,
-    values: [["Week", "Field Key", "Response", "Last Updated"]],
+    range: `${m.slug}!A1:E1`,
+    values: [["Week", "Field Key", "Question", "Response", "Last Updated"]],
   }));
   await sheets.spreadsheets.values.batchUpdate({
     spreadsheetId,
