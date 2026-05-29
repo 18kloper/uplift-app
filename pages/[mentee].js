@@ -1514,7 +1514,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
               <p style={{ margin: 0, fontSize: 11, opacity: 0.6 }}>Session 3</p>
             </div>
             <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.55, fontStyle: "italic", lineHeight: 1.5 }}>
-              * Only auto-verified sessions (60+ min with a Granola transcript) count toward this progress. Sessions pending internal review are not reflected here.
+              * Only auto-verified sessions (60+ min with a Granola transcript) count toward this progress. Sessions pending internal review are not automatically reflected here — they may take additional time to be updated.
             </p>
           </div>
         );
