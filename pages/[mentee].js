@@ -13,7 +13,7 @@ const WEEKS = [
     events: [
       { name: "Onboarding — Edison", day: "Mon Jun 1", time: "12:30–1:15pm", format: "Virtual", url: "https://lu.ma/q2hlxrhu" },
       { name: "Onboarding — Hopper", day: "Tue Jun 2", time: "5:30–6:15pm", format: "Virtual", url: "https://lu.ma/boqqrwg2" },
-      { name: "Onboarding — Bardeen", day: "Wed Jun 3", time: "12:30–1:15pm", format: "Virtual", url: "" },
+      { name: "Onboarding — Bardeen", day: "Wed Jun 3", time: "12:30–1:15pm", format: "Virtual", url: "https://luma.com/ddusqg24" },
       { name: "Onboarding — Lawrence", day: "Thu Jun 4", time: "12:30–1:15pm", format: "Virtual", url: "https://lu.ma/dg4muvxk" },
       { name: "Onboarding — Morrison", day: "Sat Jun 6", time: "10:00–10:45am", format: "Virtual", url: "https://lu.ma/p9zkhdle" },
     ],
