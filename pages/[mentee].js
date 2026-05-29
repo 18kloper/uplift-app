@@ -1855,9 +1855,22 @@ function EduSessionsSection({ milestones }) {
           }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ margin: "0 0 2px", fontSize: 14, fontWeight: 600, color: "#1a1733" }}>{ev.name}</p>
-              <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>
+              <p style={{ margin: "0 0 2px", fontSize: 12, color: "#9b8fcf" }}>
                 {ev.weekLabel} · {ev.day}{ev.time ? `, ${ev.time}` : ""} · {ev.format}
               </p>
+              {ev.speaker && (
+                <p style={{ margin: 0, fontSize: 12, color: "#6b6480" }}>
+                  Featuring:{" "}
+                  {ev.speaker.linkedin ? (
+                    <a href={ev.speaker.linkedin} target="_blank" rel="noopener noreferrer"
+                      style={{ color: "#5c4eb5", fontWeight: 600, textDecoration: "none" }}>
+                      {ev.speaker.name} ↗
+                    </a>
+                  ) : (
+                    <span style={{ fontWeight: 600, color: "#1a1733" }}>{ev.speaker.name}</span>
+                  )}
+                </p>
+              )}
             </div>
             {ev.url && (
               <a href={ev.url} target="_blank" rel="noopener noreferrer" style={{
