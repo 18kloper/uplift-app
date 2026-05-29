@@ -773,6 +773,29 @@ function WeekReflection({ weekNum, slug, prompts }) {
     const others = week.events.filter((e) => !e.required);
     return (
       <div>
+        {/* Action items */}
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
+          <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+            Action Items This Week
+          </p>
+          {[
+            { text: "Register and attend the Midpoint Meetup — it's required and in-person. Details below." },
+            { text: "Join us on Friday for a virtual session." },
+          ].map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 1 ? 12 : 0 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 11, fontWeight: 700, marginTop: 1,
+              }}>
+                {i + 1}
+              </div>
+              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>{item.text}</p>
+            </div>
+          ))}
+        </div>
+
         {midpoint && (
           <div style={{ background: "#f0faf5", borderRadius: 12, border: "2px solid #b8e8d0", padding: "24px 28px", marginBottom: 24 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
@@ -888,20 +911,38 @@ function WeekReflection({ weekNum, slug, prompts }) {
     );
   }
 
-  // Week 5: yellow box at top, progress descriptor, submit button, then sessions
+  // Week 5: action items, submit button, sessions
   if (weekNum === 5) {
     return (
       <div>
-        <p style={{
-          textAlign: "center", fontSize: 14, color: "#7a5c00",
-          background: "#fffbeb", border: "1px solid #f5d97a",
-          borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontStyle: "italic",
-        }}>
-          {week.tagline}
-        </p>
-        <p style={{ margin: "0 0 20px", fontSize: 15, color: "#3d2f8a", lineHeight: 1.7 }}>
-          You've met with your mentor, attended some sessions, and met your fellow peers in person — let's keep it going. If you haven't already, take some time to submit your 2nd mentor meeting below.
-        </p>
+        {/* Action items */}
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
+          <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+            Action Items This Week
+          </p>
+          {[
+            { text: "Have your second mentorship session with your mentor." },
+            { text: "All pairs should have met for a total of two hours by the end of this week." },
+            { text: "Submit your mentorship meeting if you have not already." },
+            { text: "Sign up for one of this week's sessions below." },
+          ].map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 3 ? 12 : 0 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 11, fontWeight: 700, marginTop: 1,
+              }}>
+                {i + 1}
+              </div>
+              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>{item.text}</p>
+            </div>
+          ))}
+          <p style={{ margin: "14px 0 0", fontSize: 11, color: "#9b8fcf", fontStyle: "italic" }}>
+            *We're over halfway through — you must attend a minimum of 3 virtual educational sessions by program end.
+          </p>
+        </div>
+
         <div style={{ textAlign: "center", marginBottom: 24 }}>
           <a href="#" style={{
             display: "inline-block", padding: "14px 36px",
@@ -917,10 +958,34 @@ function WeekReflection({ weekNum, slug, prompts }) {
     );
   }
 
-  // Week 7: standalone submit button + tagline note, no questions
+  // Week 7: action items + sessions + submit button
   if (weekNum === 7) {
     return (
       <div>
+        {/* Action items */}
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
+          <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+            Action Items This Week
+          </p>
+          {[
+            { text: "Have your third mentorship session with your mentor. We encourage you to meet more, but this is where you should be at minimum." },
+            { text: "This is the last week to complete your virtual educational sessions — you need all 3 by end of this week to participate in graduation." },
+            { text: "Submit your 3rd mentor meeting below." },
+          ].map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 2 ? 12 : 0 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 11, fontWeight: 700, marginTop: 1,
+              }}>
+                {i + 1}
+              </div>
+              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>{item.text}</p>
+            </div>
+          ))}
+        </div>
+
         <EventsSection events={week.events} />
         <div style={{ textAlign: "center", marginBottom: 12 }}>
           <a href="#" style={{
@@ -962,10 +1027,37 @@ function WeekReflection({ weekNum, slug, prompts }) {
     );
   }
 
-  // Week 6: tagline + sessions only, no prompts
+  // Week 6: action items + tagline + sessions
   if (weekNum === 6) {
     return (
       <div>
+        {/* Action items */}
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
+          <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+            Action Items This Week
+          </p>
+          {[
+            { text: "Review your milestones — make sure they're up to date and complete any outstanding items." },
+            { text: "By this time you should have met with your mentor for a minimum of two sessions." },
+            { text: "Take a look at this week's educational sessions if you haven't already." },
+          ].map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 2 ? 12 : 0 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 11, fontWeight: 700, marginTop: 1,
+              }}>
+                {i + 1}
+              </div>
+              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>{item.text}</p>
+            </div>
+          ))}
+          <p style={{ margin: "14px 0 0", fontSize: 11, color: "#9b8fcf", fontStyle: "italic" }}>
+            *Only 2 weeks until the Summit &amp; Graduation — make sure you're on track with your educational sessions.
+          </p>
+        </div>
+
         <Tagline text={week.tagline} />
         <EventsSection events={week.events} />
       </div>
