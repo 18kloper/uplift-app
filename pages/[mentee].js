@@ -978,11 +978,10 @@ function WeekReflection({ weekNum, slug, prompts }) {
           </p>
           {[
             { text: "Have your second mentorship session with your mentor." },
-            { text: "All pairs should have met for a total of two hours by the end of this week." },
-            { text: "Submit your mentorship meeting if you have not already." },
-            { text: "Sign up for one of this week's sessions below." },
+            { text: "Remember to submit your mentorship meeting." },
+            { text: "Check out the educational sessions happening this week." },
           ].map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 3 ? 12 : 0 }}>
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 2 ? 12 : 0 }}>
               <div style={{
                 width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
                 background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
@@ -995,7 +994,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
             </div>
           ))}
           <p style={{ margin: "14px 0 0", fontSize: 11, color: "#9b8fcf", fontStyle: "italic" }}>
-            *We're over halfway through — you must attend a minimum of 3 virtual educational sessions by program end.
+            *All pairs should have met for a total of two hours by the end of this week. We're over halfway through — you must attend a minimum of 3 virtual educational sessions by program end.
           </p>
         </div>
 
