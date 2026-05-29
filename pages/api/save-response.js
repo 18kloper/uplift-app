@@ -1,58 +1,96 @@
 // POST /api/save-response
 // Body: { slug, weekNum, fieldKey, value }
 //
-// Appends or updates a row in your Google Sheet.
-// Each row: [timestamp, slug, weekNum, fieldKey, value]
-//
-// Required env vars (set in Vercel dashboard or .env.local):
-//   GOOGLE_SHEET_ID       — the ID from your sheet URL
-//   GOOGLE_SERVICE_ACCOUNT_EMAIL
-//   GOOGLE_PRIVATE_KEY    — the full private key (with \n as literal backslash-n)
+// Upserts the response into the mentee's individual tab and
+// updates the "Last Active" timestamp on the Dashboard.
 
-import { google } from "googleapis";
+import { getSheetsClient } from "../../lib/sheets-helper";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  if (req.method !== "POST") return res.status(405).end();
 
   const { slug, weekNum, fieldKey, value } = req.body;
-
-  if (!slug || !weekNum || !fieldKey) {
+  if (!slug || weekNum == null || !fieldKey) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
-  // Skip if Google Sheets is not configured (graceful degradation)
+  // Graceful degradation — if env vars aren't set, skip silently
   if (
     !process.env.GOOGLE_SHEET_ID ||
     !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
     !process.env.GOOGLE_PRIVATE_KEY
   ) {
-    console.warn("Google Sheets env vars not set — skipping sheet write");
     return res.status(200).json({ ok: true, skipped: true });
   }
 
   try {
-    const auth = new google.auth.JWT({
-      email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      // Vercel stores \n as literal \\n — this restores real newlines
-      key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-    });
-
-    const sheets = google.sheets({ version: "v4", auth });
-    const sheetId = process.env.GOOGLE_SHEET_ID;
-
+    const sheets = getSheetsClient();
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID;
     const timestamp = new Date().toISOString();
-    const row = [timestamp, slug, `Week ${weekNum}`, fieldKey, value || ""];
 
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: sheetId,
-      range: "Responses!A:E",
-      valueInputOption: "USER_ENTERED",
-      insertDataOption: "INSERT_ROWS",
-      requestBody: { values: [row] },
-    });
+    // ── Read existing rows from mentee tab (columns A & B only) ───────────────
+    let existingRows = [];
+    try {
+      const read = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${slug}!A:B`,
+      });
+      existingRows = read.data.values || [];
+    } catch (_) {
+      // Tab doesn't exist yet — append will create it
+    }
+
+    // ── Find matching row (skip header at index 0) ────────────────────────────
+    let matchRowIndex = -1;
+    for (let i = 1; i < existingRows.length; i++) {
+      if (
+        String(existingRows[i][0]) === String(weekNum) &&
+        existingRows[i][1] === fieldKey
+      ) {
+        matchRowIndex = i;
+        break;
+      }
+    }
+
+    if (matchRowIndex > -1) {
+      // Update existing row — row numbers in Sheets are 1-indexed
+      const rowNum = matchRowIndex + 1;
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `${slug}!C${rowNum}:D${rowNum}`,
+        valueInputOption: "USER_ENTERED",
+        requestBody: { values: [[value || "", timestamp]] },
+      });
+    } else {
+      // Append a new row
+      await sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range: `${slug}!A:D`,
+        valueInputOption: "USER_ENTERED",
+        insertDataOption: "INSERT_ROWS",
+        requestBody: {
+          values: [[String(weekNum), fieldKey, value || "", timestamp]],
+        },
+      });
+    }
+
+    // ── Update Last Active on Dashboard ───────────────────────────────────────
+    try {
+      const dashRead = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: "Dashboard!A:A",
+      });
+      const slugCol = dashRead.data.values || [];
+      const dashRowIdx = slugCol.findIndex((row, i) => i > 0 && row[0] === slug);
+      if (dashRowIdx > -1) {
+        await sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: `Dashboard!F${dashRowIdx + 1}`,
+          valueInputOption: "USER_ENTERED",
+          requestBody: { values: [[timestamp]] },
+        });
+      }
+    } catch (_) {}
 
     return res.status(200).json({ ok: true });
   } catch (err) {

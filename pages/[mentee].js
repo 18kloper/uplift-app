@@ -1591,6 +1591,16 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState("journey");
   const [activeWeek, setActiveWeek] = useState(1);
+  const [liveMilestones, setLiveMilestones] = useState(null);
+
+  // Fetch live milestone data from Google Sheets on load
+  useEffect(() => {
+    if (!menteeData) return;
+    fetch(`/api/milestones?slug=${menteeData.slug}`)
+      .then((r) => r.json())
+      .then((data) => { if (data.milestones) setLiveMilestones(data.milestones); })
+      .catch(() => {});
+  }, [menteeData]);
 
   if (!menteeData) {
     return (
@@ -1650,7 +1660,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       case "journey": return renderWeekContent();
       case "calendar": return <CalendarSection />;
       case "resources": return <ResourcesSection />;
-      case "milestones": return <MilestoneSection milestones={mentee.milestones} />;
+      case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} />;
       case "profile": return <ProfileSection mentee={mentee} slug={slug} cohortMates={cohortMates} allCohortMembers={allCohortMembers} />;
       case "support": return (
         <div style={{ maxWidth: 520 }}>
