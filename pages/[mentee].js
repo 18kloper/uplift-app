@@ -1499,69 +1499,155 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
             After each mentor session, submit your meeting report to keep track of your progress.
           </p>
         </div>
-      ) : (
-        meetings.map((m, i) => (
-          <div key={m.id} style={{
-            background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
-            padding: "22px 26px", marginBottom: 16,
-          }}>
-            {/* Header row */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      ) : (() => {
+        const verified  = meetings.filter(m => m.sixtyMin === true && m.notes?.trim());
+        const pending   = meetings.filter(m => !(m.sixtyMin === true && m.notes?.trim()));
+        return (
+          <>
+            {/* Verified sessions */}
+            {verified.length === 0 && (
+              <div style={{
+                background: "#fafafa", borderRadius: 12, border: "1px dashed #d4d0e8",
+                padding: "28px", textAlign: "center", marginBottom: 16,
+              }}>
+                <p style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 600, color: "#6b6480" }}>
+                  No auto-verified sessions yet
+                </p>
+                <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf", lineHeight: 1.6 }}>
+                  Sessions with a Granola transcript and 60+ minutes will appear here and count toward your milestones.
+                </p>
+              </div>
+            )}
+            {verified.map((m, i) => (
+              <div key={m.id} style={{
+                background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
+                padding: "22px 26px", marginBottom: 16,
+              }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: "50%",
+                      background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+                      color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 13, fontWeight: 700, flexShrink: 0,
+                    }}>
+                      {i + 1}
+                    </div>
+                    <div>
+                      <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1a1733" }}>
+                        Session {i + 1}
+                      </p>
+                      {m.date && (
+                        <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>{m.date}</p>
+                      )}
+                    </div>
+                  </div>
+                  <span style={{
+                    background: "#e8f8f0", color: "#1a6e42",
+                    borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700,
+                  }}>
+                    ✓ Verified
+                  </span>
+                </div>
+                {m.notes && (
+                  <div style={{ marginBottom: m.takeaways ? 14 : 0 }}>
+                    <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+                      Meeting Notes
+                    </p>
+                    <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+                      {m.notes}
+                    </p>
+                  </div>
+                )}
+                {m.takeaways && (
+                  <div>
+                    <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#2a7fd4" }}>
+                      Key Takeaways
+                    </p>
+                    <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+                      {m.takeaways}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Pending review section */}
+            {pending.length > 0 && (
+              <div style={{ marginTop: verified.length > 0 ? 28 : 8 }}>
                 <div style={{
-                  width: 32, height: 32, borderRadius: "50%",
-                  background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
-                  color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 13, fontWeight: 700, flexShrink: 0,
+                  background: "#fffbeb", borderRadius: 10, border: "1px solid #f5d97a",
+                  padding: "16px 20px", marginBottom: 14,
                 }}>
-                  {i + 1}
-                </div>
-                <div>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1a1733" }}>
-                    Meeting {i + 1}
+                  <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 700, color: "#7a5c00" }}>
+                    🕐 Sessions pending internal review
                   </p>
-                  {m.date && (
-                    <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>{m.date}</p>
-                  )}
+                  <p style={{ margin: 0, fontSize: 13, color: "#9a7200", lineHeight: 1.6 }}>
+                    Don't worry if these aren't getting checked off automatically — sessions without a Granola transcript or that were under 60 minutes are reviewed internally by the program team.
+                  </p>
                 </div>
-              </div>
-              {m.sixtyMin !== null && (
-                <span style={{
-                  background: m.sixtyMin ? "#e8f8f0" : "#fff3e0",
-                  color: m.sixtyMin ? "#1a6e42" : "#b35c00",
-                  borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700,
-                }}>
-                  {m.sixtyMin ? "✓ 60+ minutes" : "Under 60 min"}
-                </span>
-              )}
-            </div>
-
-            {/* Notes */}
-            {m.notes && (
-              <div style={{ marginBottom: m.takeaways ? 14 : 0 }}>
-                <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
-                  Meeting Notes
-                </p>
-                <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
-                  {m.notes}
-                </p>
+                {pending.map((m, i) => (
+                  <div key={m.id} style={{
+                    background: "#fff", borderRadius: 12,
+                    border: "1px solid #f0e8c8",
+                    padding: "18px 22px", marginBottom: 12, opacity: 0.92,
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{
+                          width: 30, height: 30, borderRadius: "50%",
+                          background: "#f0e0a0",
+                          color: "#7a5c00", display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 12, fontWeight: 700, flexShrink: 0,
+                        }}>
+                          {i + 1}
+                        </div>
+                        <div>
+                          <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#1a1733" }}>
+                            {m.date ? m.date : `Submitted session`}
+                          </p>
+                          <p style={{ margin: 0, fontSize: 11, color: "#9b8fcf" }}>
+                            Pending review
+                          </p>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {m.sixtyMin !== null && (
+                          <span style={{
+                            background: m.sixtyMin ? "#e8f8f0" : "#fff3e0",
+                            color: m.sixtyMin ? "#1a6e42" : "#b35c00",
+                            borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700,
+                          }}>
+                            {m.sixtyMin ? "✓ 60+ min" : "Under 60 min"}
+                          </span>
+                        )}
+                        {!m.notes?.trim() && (
+                          <span style={{
+                            background: "#fef0f0", color: "#c0392b",
+                            borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700,
+                          }}>
+                            No transcript
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {m.takeaways && (
+                      <div style={{ marginTop: 12 }}>
+                        <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#b38a00" }}>
+                          Key Takeaways
+                        </p>
+                        <p style={{ margin: 0, fontSize: 13, color: "#4a4060", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                          {m.takeaways}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
-
-            {/* Takeaways */}
-            {m.takeaways && (
-              <div>
-                <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#2a7fd4" }}>
-                  Key Takeaways
-                </p>
-                <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
-                  {m.takeaways}
-                </p>
-              </div>
-            )}
-          </div>
-        ))
-      )}
+          </>
+        );
+      })()}
     </div>
   );
 }
