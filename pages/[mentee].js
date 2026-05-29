@@ -1008,6 +1008,36 @@ function WeekReflection({ weekNum, slug, prompts }) {
             <EventsSection events={others} />
           </div>
         )}
+
+        {/* Midpoint reflection prompts */}
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "24px 28px", marginTop: 24 }}>
+          <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+            Before You Go
+          </p>
+          <p style={{ margin: "0 0 20px", fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
+            Take a moment to set your intentions for the Midpoint Meetup before you walk in the door.
+          </p>
+
+          <p style={{ margin: "0 0 8px", fontSize: 14, fontWeight: 600, color: "#1a1733" }}>
+            What's the most important thing you want to walk away from the Midpoint Meetup with?
+          </p>
+          <AutoTextarea
+            storageKey={`${slug}_w4_midpoint_primary`}
+            placeholder="The one thing I most want to gain or accomplish at the meetup is…"
+            slug={slug} weekNum={4} fieldKey="midpoint_primary" rows={3}
+            question="What's the most important thing you want to walk away from the Midpoint Meetup with?"
+          />
+
+          <p style={{ margin: "20px 0 8px", fontSize: 14, fontWeight: 600, color: "#1a1733" }}>
+            Beyond that, what's a secondary goal you're bringing to the Midpoint Meetup?
+          </p>
+          <AutoTextarea
+            storageKey={`${slug}_w4_midpoint_secondary`}
+            placeholder="A secondary goal I'm hoping to accomplish is…"
+            slug={slug} weekNum={4} fieldKey="midpoint_secondary" rows={3}
+            question="Beyond that, what's a secondary goal you're bringing to the Midpoint Meetup?"
+          />
+        </div>
       </div>
     );
   }
