@@ -3,37 +3,52 @@
 
 import { getSheetsClient, MILESTONE_KEYS } from "../../lib/sheets-helper";
 
+const TEST_SLUGS = ["kennedy", "jackie", "aaron", "mj"];
+
 // Week deadline thresholds derived from My Journey program timeline
-const THRESHOLDS = [
-  { after: new Date("2026-06-14"), mentorRequired: 1, level: "needs-attention", reason: "No mentor session by end of Week 2" },
-  { after: new Date("2026-06-28"), mentorRequired: 1, level: "at-risk",         reason: "No mentor session past Week 4 deadline" },
-  { after: new Date("2026-07-05"), mentorRequired: 2, level: "needs-attention", reason: "Fewer than 2 mentor sessions by end of Week 5" },
-  { after: new Date("2026-07-19"), mentorRequired: 3, level: "needs-attention", reason: "Fewer than 3 mentor sessions by end of Week 7" },
-];
+const PROGRAM_START  = new Date("2026-06-01");
+const WEEK1_END      = new Date("2026-06-07");
+const WEEK2_END      = new Date("2026-06-14");
+const WEEK4_END      = new Date("2026-06-28");
+const WEEK5_END      = new Date("2026-07-05");
+const WEEK7_END      = new Date("2026-07-19");
 
 function computeStatus(milestones, today) {
   const mentorCount = ["mentorSession1", "mentorSession2", "mentorSession3"]
     .filter(k => milestones[k]).length;
 
+  // Before the program starts: on track if participation confirmed, otherwise just flag participation
+  if (today < PROGRAM_START) {
+    const flags = milestones.participation ? [] : ["Participation not yet confirmed"];
+    return { status: "on-track", flags };
+  }
+
   let status = "on-track";
   let flags = [];
 
-  for (const t of THRESHOLDS) {
-    if (today >= t.after && mentorCount < t.mentorRequired) {
-      if (t.level === "at-risk") {
-        status = "at-risk";
-        flags.push(t.reason);
-      } else if (status !== "at-risk") {
-        status = "needs-attention";
-        flags.push(t.reason);
-      }
-    }
+  // Session-based thresholds (only apply after their respective deadlines)
+  if (today >= WEEK4_END && mentorCount === 0) {
+    status = "at-risk";
+    flags.push("No mentor session — past Week 4 removal deadline");
+  } else if (today >= WEEK7_END && mentorCount < 3) {
+    if (status !== "at-risk") status = "needs-attention";
+    flags.push(`Only ${mentorCount}/3 mentor sessions by end of Week 7`);
+  } else if (today >= WEEK5_END && mentorCount < 2) {
+    if (status !== "at-risk") status = "needs-attention";
+    flags.push(`Only ${mentorCount}/2 mentor sessions by end of Week 5`);
+  } else if (today >= WEEK2_END && mentorCount < 1) {
+    if (status !== "at-risk") status = "needs-attention";
+    flags.push("No mentor session logged by end of Week 2");
   }
 
-  // Additional flags regardless of status
-  if (!milestones.participation)  flags.push("Participation not confirmed");
-  if (!milestones.mentorMatched)  flags.push("Mentor not yet matched");
-  if (!milestones.onboarding)     flags.push("Onboarding not attended");
+  // Participation — flag always once program has started
+  if (!milestones.participation) flags.push("Participation not confirmed");
+
+  // Onboarding — only flag after Week 1 ends
+  if (today >= WEEK1_END && !milestones.onboarding) flags.push("Onboarding not attended");
+
+  // Mentor match — only flag after Week 2 (should be matched by then)
+  if (today >= WEEK2_END && !milestones.mentorMatched) flags.push("Mentor not yet matched");
 
   return { status, flags: [...new Set(flags)] };
 }
@@ -89,6 +104,7 @@ export default async function handler(req, res) {
         slug, first, last, cohort, company, lastActive,
         milestones, milestoneCount, mentorCount, eduCount,
         status, flags,
+        isTest: TEST_SLUGS.includes(slug),
       });
     }
 

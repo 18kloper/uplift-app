@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Head from "next/head";
 
 const COHORT_NAMES = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
-const COHORTS = ["All", 1, 2, 3, 4, 5]; // filter by number, display with name
+const COHORTS = ["All", 1, 2, 3, 4, 5, "Test"]; // filter by number, display with name
 
 const STATUS_CONFIG = {
   "at-risk":         { label: "At Risk",          color: "#c0392b", bg: "#fef0f0", dot: "#e74c3c" },
@@ -128,22 +128,29 @@ function Dashboard({ data, refreshedAt }) {
   const { mentees = [] } = data;
 
   const filtered = mentees.filter(m => {
-    const cohortMatch = activeCohort === "All" || String(m.cohort) === String(activeCohort);
+    const cohortMatch = activeCohort === "All"
+      ? true
+      : activeCohort === "Test"
+        ? m.isTest
+        : !m.isTest && String(m.cohort) === String(activeCohort);
     const searchMatch = !search ||
       `${m.first} ${m.last} ${m.company}`.toLowerCase().includes(search.toLowerCase());
     return cohortMatch && searchMatch;
   });
 
+  const realMentees = mentees.filter(m => !m.isTest);
   const counts = {
-    total:     mentees.length,
-    atRisk:    mentees.filter(m => m.status === "at-risk").length,
-    attention: mentees.filter(m => m.status === "needs-attention").length,
-    onTrack:   mentees.filter(m => m.status === "on-track").length,
+    total:     realMentees.length,
+    atRisk:    realMentees.filter(m => m.status === "at-risk").length,
+    attention: realMentees.filter(m => m.status === "needs-attention").length,
+    onTrack:   realMentees.filter(m => m.status === "on-track").length,
   };
 
   const cohortCounts = {};
   COHORTS.slice(1).forEach(c => {
-    cohortCounts[c] = mentees.filter(m => String(m.cohort) === String(c)).length;
+    cohortCounts[c] = c === "Test"
+      ? mentees.filter(m => m.isTest).length
+      : mentees.filter(m => !m.isTest && String(m.cohort) === String(c)).length;
   });
 
   return (
@@ -209,7 +216,7 @@ function Dashboard({ data, refreshedAt }) {
             {COHORTS.map(c => {
               const active = activeCohort === c;
               const count = c === "All" ? mentees.length : cohortCounts[c] || 0;
-              const label = c === "All" ? "All Cohorts" : `${c} · ${COHORT_NAMES[c]}`;
+              const label = c === "All" ? "All Cohorts" : c === "Test" ? "🧪 Test Accounts" : `${c} · ${COHORT_NAMES[c]}`;
               return (
                 <button key={c} onClick={() => setActiveCohort(c)} style={{
                   padding: "7px 14px", borderRadius: 20, fontSize: 13, fontWeight: active ? 700 : 500,
@@ -239,7 +246,7 @@ function Dashboard({ data, refreshedAt }) {
         {/* Results count */}
         <p style={{ margin: "0 0 14px", fontSize: 13, color: "#9b8fcf" }}>
           Showing {filtered.length} mentee{filtered.length !== 1 ? "s" : ""}
-          {activeCohort !== "All" ? ` in Cohort ${activeCohort} · ${COHORT_NAMES[activeCohort]}` : ""}
+          {activeCohort === "Test" ? " (test accounts)" : activeCohort !== "All" ? ` in Cohort ${activeCohort} · ${COHORT_NAMES[activeCohort]}` : ""}
           {search ? ` matching "${search}"` : ""}
         </p>
 
@@ -345,8 +352,8 @@ function Dashboard({ data, refreshedAt }) {
             Cohort Breakdown
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
-            {COHORTS.slice(1).map(cohort => {
-              const group = mentees.filter(m => String(m.cohort) === String(cohort));
+            {COHORTS.slice(1).filter(c => c !== "Test").map(cohort => {
+              const group = mentees.filter(m => !m.isTest && String(m.cohort) === String(cohort));
               const atRisk    = group.filter(m => m.status === "at-risk").length;
               const attention = group.filter(m => m.status === "needs-attention").length;
               const onTrack   = group.filter(m => m.status === "on-track").length;
