@@ -461,10 +461,10 @@ function Week1({ mentee, slug, prompts, mentorUnlocked }) {
         {[
           { text: "Get acclimated — review your portal and familiarize yourself with the program." },
           {
-            text: cohort
-              ? `Attend the Cohort ${cohort.num} — ${cohort.name} onboarding session to meet your peers.`
-              : "Attend your cohort's onboarding session to meet your peers.",
-            sub: "If that time doesn't work for your schedule, you're welcome to attend any of the other sessions — just register through Luma.",
+            text: "Register and attend an onboarding session.",
+            sub: cohort
+              ? `We encourage you to attend the Cohort ${cohort.num} — ${cohort.name} session to meet your peers. If that time doesn't work, any of the five sessions will do — just register through Luma.`
+              : "We encourage you to attend your cohort's session to meet your peers. If that time doesn't work, any of the five sessions will do — just register through Luma.",
           },
           { text: "Start mapping your asks, your needs, and what you're looking for from your mentor.", sub: "Please review and refine your goals below and take some time to answer the prompts before your first meeting." },
         ].map((item, i) => (
