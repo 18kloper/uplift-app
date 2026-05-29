@@ -1426,30 +1426,51 @@ function MeetingsSection({ slug }) {
         </a>
       </div>
 
-      {meetings.length === 0 ? (
-        <div style={{
-          background: "#fafafa", borderRadius: 12, border: "1px dashed #d4d0e8",
-          padding: "40px 28px", textAlign: "center",
-        }}>
-          <p style={{ margin: "0 0 6px", fontSize: 22 }}>📋</p>
-          <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 600, color: "#6b6480" }}>
-            No meetings logged yet
-          </p>
-          <p style={{ margin: "0 0 20px", fontSize: 13, color: "#9b8fcf", lineHeight: 1.6 }}>
-            After each mentor session, submit your meeting report to keep track of your progress.
-          </p>
+      {/* Not seeing your meeting notice — always shown */}
+      <div style={{
+        background: "#f7f5ff", borderRadius: 10, border: "1px solid #e0dbf5",
+        padding: "16px 20px", marginBottom: 20,
+      }}>
+        <p style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 600, color: "#3d2f8a" }}>
+          Not seeing your meeting?
+        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <a
             href="https://form.typeform.com/to/e0L62296"
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              display: "inline-block", padding: "11px 24px",
+              display: "inline-block", padding: "8px 18px",
               background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
-              color: "#fff", borderRadius: 8, fontSize: 14, fontWeight: 700, textDecoration: "none",
+              color: "#fff", borderRadius: 7, fontSize: 13, fontWeight: 700, textDecoration: "none",
             }}
           >
-            Submit your first meeting →
+            Submit a meeting →
           </a>
+          <span style={{ fontSize: 13, color: "#6b6480" }}>
+            or contact{" "}
+            <a href="mailto:uplift@techunited.co" style={{ color: "#5c4eb5", fontWeight: 600, textDecoration: "none" }}>
+              uplift@techunited.co
+            </a>
+          </span>
+        </div>
+        <p style={{ margin: "10px 0 0", fontSize: 12, color: "#9b8fcf", fontStyle: "italic" }}>
+          *Submissions may take up to 15 minutes to appear here.
+        </p>
+      </div>
+
+      {meetings.length === 0 ? (
+        <div style={{
+          background: "#fafafa", borderRadius: 12, border: "1px dashed #d4d0e8",
+          padding: "36px 28px", textAlign: "center",
+        }}>
+          <p style={{ margin: "0 0 6px", fontSize: 22 }}>📋</p>
+          <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 600, color: "#6b6480" }}>
+            No meetings logged yet
+          </p>
+          <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf", lineHeight: 1.6 }}>
+            After each mentor session, submit your meeting report to keep track of your progress.
+          </p>
         </div>
       ) : (
         meetings.map((m, i) => (
