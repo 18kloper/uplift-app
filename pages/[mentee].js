@@ -422,6 +422,116 @@ function PasswordGate({ slug, onAuthenticated }) {
   );
 }
 
+// ─── Participation confirmation widget ───────────────────────────────────────
+function ParticipationWidget({ slug }) {
+  const storageKey = `${slug}_participation`;
+  const [choice, setChoice] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(storageKey);
+    if (saved) setChoice(saved);
+  }, [storageKey]);
+
+  const handleChoice = async (val) => {
+    setSubmitting(true);
+    localStorage.setItem(storageKey, val);
+    setChoice(val);
+    await persistToSheet(slug, 1, "participation", val, "Program participation confirmation");
+    setSubmitting(false);
+  };
+
+  if (choice === "accepted") {
+    return (
+      <div style={{
+        background: "#f0faf5", borderRadius: 12, border: "1px solid #b8e8d0",
+        padding: "20px 24px", marginBottom: 24, display: "flex", alignItems: "center", gap: 14,
+      }}>
+        <span style={{ fontSize: 26, flexShrink: 0 }}>🎉</span>
+        <div>
+          <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14, color: "#1a6e42" }}>
+            You're confirmed — we'll see you at onboarding!
+          </p>
+          <p style={{ margin: "0 0 6px", fontSize: 13, color: "#22a366", lineHeight: 1.5 }}>
+            We've recorded your participation. Welcome to Uplift Summer 2026.
+          </p>
+          <button onClick={() => { localStorage.removeItem(storageKey); setChoice(null); }} style={{
+            background: "none", border: "none", padding: 0, fontSize: 12, color: "#9b8fcf",
+            cursor: "pointer", textDecoration: "underline",
+          }}>
+            Change response
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (choice === "declined") {
+    return (
+      <div style={{
+        background: "#fff8f0", borderRadius: 12, border: "1px solid #f5d9b8",
+        padding: "20px 24px", marginBottom: 24, display: "flex", alignItems: "center", gap: 14,
+      }}>
+        <span style={{ fontSize: 26, flexShrink: 0 }}>💛</span>
+        <div>
+          <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 14, color: "#a0600a" }}>
+            We're sorry to hear that — your response has been recorded.
+          </p>
+          <p style={{ margin: "0 0 6px", fontSize: 13, color: "#c47d2a", lineHeight: 1.5 }}>
+            If anything changes, reach out to <a href="mailto:uplift@techunited.co" style={{ color: "#c47d2a" }}>uplift@techunited.co</a>.
+          </p>
+          <button onClick={() => { localStorage.removeItem(storageKey); setChoice(null); }} style={{
+            background: "none", border: "none", padding: 0, fontSize: 12, color: "#9b8fcf",
+            cursor: "pointer", textDecoration: "underline",
+          }}>
+            Change response
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      background: "#fff", borderRadius: 12, border: "2px solid #e8e4f5",
+      padding: "22px 24px", marginBottom: 24,
+    }}>
+      <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+        Confirm Your Participation
+      </p>
+      <p style={{ margin: "0 0 18px", fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>
+        Please let us know whether you'll be joining us for Uplift Summer 2026.
+      </p>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <button
+          onClick={() => handleChoice("accepted")}
+          disabled={submitting}
+          style={{
+            background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)", color: "#fff",
+            border: "none", borderRadius: 8, padding: "11px 22px",
+            fontSize: 14, fontWeight: 600, cursor: submitting ? "wait" : "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          ✓ I will be participating
+        </button>
+        <button
+          onClick={() => handleChoice("declined")}
+          disabled={submitting}
+          style={{
+            background: "#fff", color: "#9b8fcf",
+            border: "1.5px solid #d4d0e8", borderRadius: 8, padding: "11px 22px",
+            fontSize: 14, fontWeight: 500, cursor: submitting ? "wait" : "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          I'm no longer able to participate
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Week 1: Welcome & Onboarding ─────────────────────────────────────────────
 function Week1({ mentee, slug, prompts, mentorUnlocked }) {
   const week = WEEKS[0];
@@ -452,6 +562,9 @@ function Week1({ mentee, slug, prompts, mentorUnlocked }) {
           </div>
         )}
       </div>
+
+      {/* Participation confirmation */}
+      <ParticipationWidget slug={slug} />
 
       {/* Action items */}
       <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
