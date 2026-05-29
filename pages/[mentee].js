@@ -105,6 +105,7 @@ const WEEKS = [
 const PRIMARY_TABS = [
   { id: "journey", label: "My Journey" },
   { id: "milestones", label: "Milestones" },
+  { id: "goals", label: "My Goals" },
   { id: "calendar", label: "Calendar" },
   { id: "resources", label: "Resources" },
   { id: "profile", label: "Cohort Directory" },
@@ -1380,6 +1381,127 @@ function WeekReflection({ weekNum, slug, prompts }) {
   );
 }
 
+// ─── Goals tab ────────────────────────────────────────────────────────────────
+function GoalsSection({ mentee, slug }) {
+  const [responses, setResponses] = useState({});
+
+  useEffect(() => {
+    // Pull all Week 1 written responses from localStorage
+    const keys = {
+      primary_refine:    `${slug}_w1_primary_refine`,
+      secondary_refine:  `${slug}_w1_secondary_refine`,
+      prompt_q0:         `${slug}_w1_b0_q0`,
+      prompt_q1:         `${slug}_w1_b0_q1`,
+      prompt_q2:         `${slug}_w1_b0_q2`,
+    };
+    const loaded = {};
+    for (const [k, storageKey] of Object.entries(keys)) {
+      const val = localStorage.getItem(storageKey) || "";
+      if (val.trim()) loaded[k] = val.trim();
+    }
+    setResponses(loaded);
+  }, [slug]);
+
+  const hasAnyResponse = Object.keys(responses).length > 0;
+
+  return (
+    <div>
+      {/* Primary goal */}
+      <div style={{
+        background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)",
+        borderRadius: 14, padding: "28px 32px", color: "#fff", marginBottom: 20,
+      }}>
+        <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", opacity: 0.65 }}>
+          ⭐ Primary goal this summer
+        </p>
+        <p style={{ margin: "0 0 20px", fontSize: 22, fontWeight: 700, lineHeight: 1.3 }}>
+          {mentee.primaryFocus}
+        </p>
+        {mentee.secondaryFoci && mentee.secondaryFoci.length > 0 && (
+          <>
+            <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", opacity: 0.65 }}>
+              Secondary focus areas
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {mentee.secondaryFoci.map((f, i) => (
+                <span key={i} style={{
+                  background: "rgba(255,255,255,0.15)", borderRadius: 20,
+                  padding: "5px 14px", fontSize: 13, fontWeight: 500,
+                }}>
+                  {f}
+                </span>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Written goals from Week 1 */}
+      {responses.primary_refine && (
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "22px 26px", marginBottom: 16 }}>
+          <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#5c4eb5" }}>
+            What real progress looks like by August
+          </p>
+          <p style={{ margin: 0, fontSize: 15, color: "#1a1733", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+            {responses.primary_refine}
+          </p>
+        </div>
+      )}
+
+      {responses.secondary_refine && (
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "22px 26px", marginBottom: 16 }}>
+          <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#2a7fd4" }}>
+            Moving the needle on secondary focus
+          </p>
+          <p style={{ margin: 0, fontSize: 15, color: "#1a1733", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+            {responses.secondary_refine}
+          </p>
+        </div>
+      )}
+
+      {/* Prompt block responses */}
+      {(responses.prompt_q0 || responses.prompt_q1 || responses.prompt_q2) && (
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "22px 26px", marginBottom: 16 }}>
+          <p style={{ margin: "0 0 16px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
+            Week 1 Reflections
+          </p>
+          {[
+            { key: "prompt_q0", q: "Who is your ideal first customer, and why?" },
+            { key: "prompt_q1", q: "What does your current customer acquisition process look like?" },
+            { key: "prompt_q2", q: "What assumptions about your market have you not yet tested?" },
+          ].filter(item => responses[item.key]).map((item, i, arr) => (
+            <div key={item.key} style={{ marginBottom: i < arr.length - 1 ? 20 : 0 }}>
+              <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, color: "#6b6480" }}>{item.q}</p>
+              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+                {responses[item.key]}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!hasAnyResponse && (
+        <div style={{
+          background: "#fafafa", borderRadius: 12, border: "1px dashed #d4d0e8",
+          padding: "32px 28px", textAlign: "center",
+        }}>
+          <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 600, color: "#6b6480" }}>
+            No reflections yet
+          </p>
+          <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf", lineHeight: 1.6 }}>
+            Head to <strong>Week 1</strong> in My Journey to fill in your goals — they'll appear here once saved.
+          </p>
+        </div>
+      )}
+
+      <p style={{ margin: "16px 0 0", fontSize: 11, color: "#c0b8d8", fontStyle: "italic", textAlign: "right" }}>
+        Goals reflect your application responses. Reflections are pulled from Week 1.
+      </p>
+    </div>
+  );
+}
+
 // ─── Milestone check section ──────────────────────────────────────────────────
 function MilestoneSection({ milestones }) {
   const items = [
@@ -1863,6 +1985,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       case "calendar": return <CalendarSection />;
       case "resources": return <ResourcesSection />;
       case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} />;
+      case "goals": return <GoalsSection mentee={mentee} slug={slug} />;
       case "profile": return <ProfileSection mentee={mentee} slug={slug} cohortMates={cohortMates} allCohortMembers={allCohortMembers} />;
       case "support": return (
         <div style={{ maxWidth: 520 }}>
