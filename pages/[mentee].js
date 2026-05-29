@@ -1662,19 +1662,6 @@ function ProfileSection({ mentee, slug, cohortMates, allCohortMembers }) {
         </div>
       </div>
 
-      {/* Bio */}
-      <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "24px 28px", marginBottom: 28 }}>
-        <p style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 700, color: "#1a1733" }}>About Me</p>
-        <p style={{ margin: "0 0 14px", fontSize: 14, color: "#6b6480" }}>
-          Tell your cohort about yourself, your company, and what you're working on this summer.
-        </p>
-        <AutoTextarea
-          storageKey={`${slug}_profile_bio`}
-          placeholder="Hi, I'm building…"
-          slug={slug} weekNum={0} fieldKey="profile_bio" rows={5}
-        />
-      </div>
-
       {/* Cohort directory — own cohort */}
       <p style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: "#1a1733" }}>
         Cohort {mentee.cohort} — {myCohort?.name} — Your Fellow Founders
