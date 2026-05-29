@@ -2347,85 +2347,86 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
             <p style={{ margin: "0 0 16px", opacity: 0.8, fontSize: 15 }}>
               {mentee.company} · {mentee.stage} · {mentee.industry}
             </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{
-                width: 34, height: 34, borderRadius: "50%",
-                background: "rgba(255,255,255,0.2)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontWeight: 700, fontSize: 13,
-              }}>
-                {mentorUnlocked ? mentee.mentor.initials : "?"}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{
+                  width: 34, height: 34, borderRadius: "50%",
+                  background: "rgba(255,255,255,0.2)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontWeight: 700, fontSize: 13,
+                }}>
+                  {mentorUnlocked ? mentee.mentor.initials : "?"}
+                </div>
+                <div>
+                  {mentorUnlocked ? (
+                    <>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>{mentee.mentor.name}</p>
+                      <p style={{ margin: 0, fontSize: 12, opacity: 0.75 }}>{mentee.mentor.title}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Mentor TBD</p>
+                      <p style={{ margin: 0, fontSize: 12, opacity: 0.75 }}>Unlocks after orientation</p>
+                    </>
+                  )}
+                </div>
               </div>
-              <div>
-                {mentorUnlocked ? (
-                  <>
-                    <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>{mentee.mentor.name}</p>
-                    <p style={{ margin: 0, fontSize: 12, opacity: 0.75 }}>{mentee.mentor.title}</p>
-                  </>
-                ) : (
-                  <>
-                    <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Mentor TBD</p>
-                    <p style={{ margin: 0, fontSize: 12, opacity: 0.75 }}>Unlocks after orientation</p>
-                  </>
-                )}
+
+              {/* Utility nav — header links */}
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {TAB_ROW_2.map(id => {
+                  const tab = PRIMARY_TABS.find(t => t.id === id);
+                  const active = activeTab === id;
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => setActiveTab(id)}
+                      style={{
+                        padding: "5px 12px",
+                        border: "1px solid rgba(255,255,255,0.3)",
+                        borderRadius: 20,
+                        background: active ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.1)",
+                        color: "#fff",
+                        fontSize: 12, fontWeight: active ? 700 : 500,
+                        cursor: "pointer", whiteSpace: "nowrap",
+                        fontFamily: "inherit",
+                        transition: "background 0.15s",
+                        opacity: active ? 1 : 0.85,
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Primary tab nav — two rows */}
+        {/* Primary tab nav — personal tabs only */}
         <div style={{ background: "#fff", borderBottom: "1px solid #e8e4f5" }}>
-          <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 16px" }}>
-            {/* Row 1: personal tabs */}
-            <div style={{ display: "flex", borderBottom: "1px solid #f0ecff" }}>
-              {TAB_ROW_1.map(id => {
-                const tab = PRIMARY_TABS.find(t => t.id === id);
-                const active = activeTab === id;
-                return (
-                  <button
-                    key={id}
-                    onClick={() => setActiveTab(id)}
-                    style={{
-                      flex: 1, padding: "12px 6px 10px",
-                      border: "none", background: "none",
-                      borderBottom: active ? "3px solid #5c4eb5" : "3px solid transparent",
-                      color: active ? "#5c4eb5" : "#6b6480",
-                      fontWeight: active ? 700 : 500,
-                      fontSize: 13, cursor: "pointer", whiteSpace: "nowrap",
-                      fontFamily: "inherit", transition: "color 0.15s, border-color 0.15s",
-                      textAlign: "center",
-                    }}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-            {/* Row 2: program-wide tabs */}
-            <div style={{ display: "flex" }}>
-              {TAB_ROW_2.map(id => {
-                const tab = PRIMARY_TABS.find(t => t.id === id);
-                const active = activeTab === id;
-                return (
-                  <button
-                    key={id}
-                    onClick={() => setActiveTab(id)}
-                    style={{
-                      flex: 1, padding: "11px 6px 10px",
-                      border: "none", background: "none",
-                      borderBottom: active ? "3px solid #5c4eb5" : "3px solid transparent",
-                      color: active ? "#5c4eb5" : "#6b6480",
-                      fontWeight: active ? 700 : 500,
-                      fontSize: 13, cursor: "pointer", whiteSpace: "nowrap",
-                      fontFamily: "inherit", transition: "color 0.15s, border-color 0.15s",
-                      textAlign: "center",
-                    }}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
+          <div style={{ display: "flex", maxWidth: 720, margin: "0 auto", padding: "0 24px" }}>
+            {TAB_ROW_1.map(id => {
+              const tab = PRIMARY_TABS.find(t => t.id === id);
+              const active = activeTab === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => setActiveTab(id)}
+                  style={{
+                    flex: "0 0 auto", padding: "13px 14px 11px",
+                    border: "none", background: "none",
+                    borderBottom: active ? "3px solid #5c4eb5" : "3px solid transparent",
+                    color: active ? "#5c4eb5" : "#6b6480",
+                    fontWeight: active ? 700 : 500,
+                    fontSize: 13, cursor: "pointer", whiteSpace: "nowrap",
+                    fontFamily: "inherit", transition: "color 0.15s, border-color 0.15s",
+                  }}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
