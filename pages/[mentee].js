@@ -106,6 +106,7 @@ const PRIMARY_TABS = [
   { id: "journey", label: "My Journey" },
   { id: "milestones", label: "Milestones" },
   { id: "goals", label: "My Goals" },
+  { id: "meetings", label: "My Meetings" },
   { id: "calendar", label: "Calendar" },
   { id: "resources", label: "Resources" },
   { id: "profile", label: "Cohort Directory" },
@@ -1381,6 +1382,142 @@ function WeekReflection({ weekNum, slug, prompts }) {
   );
 }
 
+// ─── Meetings tab ─────────────────────────────────────────────────────────────
+function MeetingsSection({ slug }) {
+  const [meetings, setMeetings] = useState(null);
+
+  useEffect(() => {
+    fetch(`/api/meetings?slug=${slug}`)
+      .then(r => r.json())
+      .then(d => setMeetings(d.meetings || []))
+      .catch(() => setMeetings([]));
+  }, [slug]);
+
+  if (meetings === null) {
+    return (
+      <div style={{ textAlign: "center", padding: "48px 0", color: "#9b8fcf", fontSize: 14 }}>
+        Loading meetings…
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <div>
+          <p style={{ margin: "0 0 2px", fontSize: 18, fontWeight: 700, color: "#1a1733" }}>
+            My Logged Mentorship Meetings
+          </p>
+          <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>
+            {meetings.length} meeting{meetings.length !== 1 ? "s" : ""} submitted
+          </p>
+        </div>
+        <a
+          href="https://form.typeform.com/to/e0L62296"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+            color: "#fff", borderRadius: 8, padding: "10px 18px",
+            fontSize: 13, fontWeight: 700, textDecoration: "none", flexShrink: 0,
+          }}
+        >
+          + Log a meeting
+        </a>
+      </div>
+
+      {meetings.length === 0 ? (
+        <div style={{
+          background: "#fafafa", borderRadius: 12, border: "1px dashed #d4d0e8",
+          padding: "40px 28px", textAlign: "center",
+        }}>
+          <p style={{ margin: "0 0 6px", fontSize: 22 }}>📋</p>
+          <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 600, color: "#6b6480" }}>
+            No meetings logged yet
+          </p>
+          <p style={{ margin: "0 0 20px", fontSize: 13, color: "#9b8fcf", lineHeight: 1.6 }}>
+            After each mentor session, submit your meeting report to keep track of your progress.
+          </p>
+          <a
+            href="https://form.typeform.com/to/e0L62296"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-block", padding: "11px 24px",
+              background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+              color: "#fff", borderRadius: 8, fontSize: 14, fontWeight: 700, textDecoration: "none",
+            }}
+          >
+            Submit your first meeting →
+          </a>
+        </div>
+      ) : (
+        meetings.map((m, i) => (
+          <div key={m.id} style={{
+            background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
+            padding: "22px 26px", marginBottom: 16,
+          }}>
+            {/* Header row */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: "50%",
+                  background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+                  color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 13, fontWeight: 700, flexShrink: 0,
+                }}>
+                  {i + 1}
+                </div>
+                <div>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1a1733" }}>
+                    Meeting {i + 1}
+                  </p>
+                  {m.date && (
+                    <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>{m.date}</p>
+                  )}
+                </div>
+              </div>
+              {m.sixtyMin !== null && (
+                <span style={{
+                  background: m.sixtyMin ? "#e8f8f0" : "#fff3e0",
+                  color: m.sixtyMin ? "#1a6e42" : "#b35c00",
+                  borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700,
+                }}>
+                  {m.sixtyMin ? "✓ 60+ minutes" : "Under 60 min"}
+                </span>
+              )}
+            </div>
+
+            {/* Notes */}
+            {m.notes && (
+              <div style={{ marginBottom: m.takeaways ? 14 : 0 }}>
+                <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+                  Meeting Notes
+                </p>
+                <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+                  {m.notes}
+                </p>
+              </div>
+            )}
+
+            {/* Takeaways */}
+            {m.takeaways && (
+              <div>
+                <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#2a7fd4" }}>
+                  Key Takeaways
+                </p>
+                <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+                  {m.takeaways}
+                </p>
+              </div>
+            )}
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
 // ─── Goals tab ────────────────────────────────────────────────────────────────
 function GoalsSection({ mentee, slug }) {
   const [responses, setResponses] = useState({});
@@ -2028,6 +2165,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       case "resources": return <ResourcesSection />;
       case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} />;
       case "goals": return <GoalsSection mentee={mentee} slug={slug} />;
+      case "meetings": return <MeetingsSection slug={slug} />;
       case "profile": return <ProfileSection mentee={mentee} slug={slug} cohortMates={cohortMates} allCohortMembers={allCohortMembers} />;
       case "support": return (
         <div style={{ maxWidth: 520 }}>
