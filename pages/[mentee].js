@@ -268,7 +268,7 @@ function EventsSection({ events, submitLabel, submitPrimary, note, footerNote })
       )}
       {submitLabel && (
         <div style={{ marginTop: hasEvents ? 14 : 0, paddingTop: hasEvents ? 12 : 0, borderTop: hasEvents ? "1px solid #f5f3ff" : "none" }}>
-          <a href="#" style={{
+          <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{
             display: "inline-block",
             padding: submitPrimary ? "10px 22px" : "0",
             background: submitPrimary ? "#5c4eb5" : "transparent",
@@ -454,7 +454,7 @@ function ParticipationWidget({ slug }) {
   const changeBtn = (onClear) => (
     <button onClick={onClear} style={{
       background: "none", border: "none", padding: 0, fontSize: 11,
-      color: "rgba(255,255,255,0.45)", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit",
+      color: "#b0a8cc", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit",
     }}>
       Change response
     </button>
@@ -462,12 +462,15 @@ function ParticipationWidget({ slug }) {
 
   if (choice === "accepted") {
     return (
-      <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 18, marginTop: 4 }}>
-        <p style={{ margin: "0 0 3px", fontWeight: 700, fontSize: 14, color: "#7eeab4" }}>
-          ✓ You're confirmed — we'll see you at onboarding!
+      <div style={{
+        background: "#f0faf5", borderRadius: 12, border: "1px solid #b8e8d0",
+        padding: "20px 24px", marginBottom: 24,
+      }}>
+        <p style={{ margin: "0 0 3px", fontWeight: 700, fontSize: 15, color: "#1a6e42" }}>
+          ✓ You're confirmed!
         </p>
-        <p style={{ margin: "0 0 8px", fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>
-          We've recorded your participation. Welcome to Uplift Summer 2026.
+        <p style={{ margin: "0 0 10px", fontSize: 14, color: "#22a366", lineHeight: 1.6 }}>
+          Please register for your onboarding session below — we look forward to meeting you.
         </p>
         {changeBtn(() => { localStorage.removeItem(storageKey); setChoice(null); })}
       </div>
@@ -476,13 +479,16 @@ function ParticipationWidget({ slug }) {
 
   if (choice === "declined") {
     return (
-      <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 18, marginTop: 4 }}>
-        <p style={{ margin: "0 0 3px", fontWeight: 700, fontSize: 14, color: "rgba(255,255,255,0.85)" }}>
+      <div style={{
+        background: "#fff8f0", borderRadius: 12, border: "1px solid #f5d9b8",
+        padding: "20px 24px", marginBottom: 24,
+      }}>
+        <p style={{ margin: "0 0 3px", fontWeight: 700, fontSize: 15, color: "#a0600a" }}>
           Your response has been recorded.
         </p>
-        <p style={{ margin: "0 0 8px", fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
+        <p style={{ margin: "0 0 10px", fontSize: 14, color: "#c47d2a", lineHeight: 1.6 }}>
           We're sorry to hear that. If anything changes, reach out to{" "}
-          <a href="mailto:uplift@techunited.co" style={{ color: "rgba(255,255,255,0.7)" }}>uplift@techunited.co</a>.
+          <a href="mailto:uplift@techunited.co" style={{ color: "#c47d2a" }}>uplift@techunited.co</a>.
         </p>
         {changeBtn(() => { localStorage.removeItem(storageKey); setChoice(null); })}
       </div>
@@ -490,21 +496,27 @@ function ParticipationWidget({ slug }) {
   }
 
   return (
-    <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 18, marginTop: 4 }}>
-      <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)" }}>
+    <div style={{
+      background: "#fff", borderRadius: 12, border: "2px solid #5c4eb5",
+      padding: "22px 24px", marginBottom: 24,
+    }}>
+      <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
         Confirm Your Participation
       </p>
-      <p style={{ margin: "0 0 14px", fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.5 }}>
-        We need to hear from you by <strong style={{ color: "#fff" }}>Wednesday, June 3rd</strong>.
+      <p style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 600, color: "#1a1733" }}>
+        Before you begin, please confirm your participation.
+      </p>
+      <p style={{ margin: "0 0 16px", fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
+        Accepting lets us know you're moving forward with the program. We need to hear from you by <strong style={{ color: "#1a1733" }}>Wednesday, June 3rd</strong>.
       </p>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <button
           onClick={() => handleChoice("accepted")}
           disabled={submitting}
           style={{
-            background: "rgba(255,255,255,0.15)", color: "#fff",
-            border: "1px solid rgba(255,255,255,0.35)", borderRadius: 8, padding: "10px 20px",
-            fontSize: 13, fontWeight: 600, cursor: submitting ? "wait" : "pointer",
+            background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)", color: "#fff",
+            border: "none", borderRadius: 8, padding: "11px 24px",
+            fontSize: 14, fontWeight: 600, cursor: submitting ? "wait" : "pointer",
             fontFamily: "inherit",
           }}
         >
@@ -514,9 +526,9 @@ function ParticipationWidget({ slug }) {
           onClick={() => handleChoice("declined")}
           disabled={submitting}
           style={{
-            background: "transparent", color: "rgba(255,255,255,0.65)",
-            border: "1px solid rgba(255,255,255,0.25)", borderRadius: 8, padding: "10px 20px",
-            fontSize: 13, fontWeight: 500, cursor: submitting ? "wait" : "pointer",
+            background: "#fff", color: "#9b8fcf",
+            border: "1.5px solid #d4d0e8", borderRadius: 8, padding: "11px 24px",
+            fontSize: 14, fontWeight: 500, cursor: submitting ? "wait" : "pointer",
             fontFamily: "inherit",
           }}
         >
@@ -533,6 +545,9 @@ function Week1({ mentee, slug, prompts, mentorUnlocked }) {
   const cohort = COHORTS.find((c) => c.num === mentee.cohort);
   return (
     <div>
+      {/* Participation confirmation — above welcome banner */}
+      <ParticipationWidget slug={slug} />
+
       {/* Welcome banner */}
       <div style={{
         background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)",
@@ -556,7 +571,6 @@ function Week1({ mentee, slug, prompts, mentorUnlocked }) {
             <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7, opacity: 0.85 }}>{cohort.why}</p>
           </div>
         )}
-        <ParticipationWidget slug={slug} />
       </div>
 
       {/* Action items */}
@@ -1212,7 +1226,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
 
         <Tagline text={week.tagline} />
         <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <a href="#" style={{
+          <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{
             display: "inline-block", padding: "14px 36px",
             background: "#5c4eb5", color: "#fff", borderRadius: 10,
             fontSize: 16, fontWeight: 700, textDecoration: "none",
@@ -1417,7 +1431,7 @@ function CalendarSection() {
           )}
           {week.submitLabel && (
             <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #f5f3ff" }}>
-              <a href="#" style={{ fontSize: 13, fontWeight: 700, color: week.submitPrimary ? "#5c4eb5" : "#9a7200", textDecoration: "underline", textUnderlineOffset: "3px" }}>
+              <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 700, color: week.submitPrimary ? "#5c4eb5" : "#9a7200", textDecoration: "underline", textUnderlineOffset: "3px" }}>
                 {week.submitLabel} →
               </a>
             </div>
