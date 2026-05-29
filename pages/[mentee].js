@@ -103,15 +103,17 @@ const WEEKS = [
 ];
 
 const PRIMARY_TABS = [
-  { id: "journey", label: "My Journey" },
-  { id: "goals", label: "My Goals" },
-  { id: "milestones", label: "Milestones" },
-  { id: "meetings", label: "Logged Sessions" },
-  { id: "calendar", label: "Calendar" },
+  { id: "journey",   label: "My Journey" },
+  { id: "milestones",label: "Milestones" },
+  { id: "goals",     label: "My Goals" },
+  { id: "meetings",  label: "Logged Sessions" },
+  { id: "calendar",  label: "Calendar" },
   { id: "resources", label: "Resources" },
-  { id: "profile", label: "Cohort Directory" },
-  { id: "support", label: "Support" },
+  { id: "profile",   label: "Cohort Directory" },
+  { id: "support",   label: "Support" },
 ];
+const TAB_ROW_1 = ["journey", "milestones", "goals", "meetings"];
+const TAB_ROW_2 = ["calendar", "resources", "profile", "support"];
 
 // ─── Save to Google Sheets ────────────────────────────────────────────────────
 async function persistToSheet(slug, weekNum, fieldKey, value, question = "") {
@@ -2371,29 +2373,59 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
           </div>
         </div>
 
-        {/* Primary tab nav */}
-        <div style={{ background: "#fff", borderBottom: "1px solid #e8e4f5", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-          <div style={{ display: "flex", maxWidth: 720, margin: "0 auto", padding: "0 24px" }}>
-            {PRIMARY_TABS.map((tab) => {
-              const active = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  style={{
-                    flex: "0 0 auto", padding: "13px 14px 11px",
-                    border: "none", background: "none",
-                    borderBottom: active ? "3px solid #5c4eb5" : "3px solid transparent",
-                    color: active ? "#5c4eb5" : "#6b6480",
-                    fontWeight: active ? 700 : 500,
-                    fontSize: 13, cursor: "pointer", whiteSpace: "nowrap",
-                    fontFamily: "inherit", transition: "color 0.15s, border-color 0.15s",
-                  }}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
+        {/* Primary tab nav — two rows */}
+        <div style={{ background: "#fff", borderBottom: "1px solid #e8e4f5" }}>
+          <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 16px" }}>
+            {/* Row 1: personal tabs */}
+            <div style={{ display: "flex", borderBottom: "1px solid #f0ecff" }}>
+              {TAB_ROW_1.map(id => {
+                const tab = PRIMARY_TABS.find(t => t.id === id);
+                const active = activeTab === id;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setActiveTab(id)}
+                    style={{
+                      flex: 1, padding: "12px 6px 10px",
+                      border: "none", background: "none",
+                      borderBottom: active ? "3px solid #5c4eb5" : "3px solid transparent",
+                      color: active ? "#5c4eb5" : "#6b6480",
+                      fontWeight: active ? 700 : 500,
+                      fontSize: 13, cursor: "pointer", whiteSpace: "nowrap",
+                      fontFamily: "inherit", transition: "color 0.15s, border-color 0.15s",
+                      textAlign: "center",
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+            {/* Row 2: program-wide tabs */}
+            <div style={{ display: "flex" }}>
+              {TAB_ROW_2.map(id => {
+                const tab = PRIMARY_TABS.find(t => t.id === id);
+                const active = activeTab === id;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setActiveTab(id)}
+                    style={{
+                      flex: 1, padding: "11px 6px 10px",
+                      border: "none", background: "none",
+                      borderBottom: active ? "3px solid #5c4eb5" : "3px solid transparent",
+                      color: active ? "#5c4eb5" : "#6b6480",
+                      fontWeight: active ? 700 : 500,
+                      fontSize: 13, cursor: "pointer", whiteSpace: "nowrap",
+                      fontFamily: "inherit", transition: "color 0.15s, border-color 0.15s",
+                      textAlign: "center",
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
