@@ -104,8 +104,8 @@ const WEEKS = [
 
 const PRIMARY_TABS = [
   { id: "journey", label: "My Journey" },
-  { id: "milestones", label: "Milestones" },
   { id: "goals", label: "My Goals" },
+  { id: "milestones", label: "Milestones" },
   { id: "meetings", label: "Logged Sessions" },
   { id: "calendar", label: "Calendar" },
   { id: "resources", label: "Resources" },
