@@ -79,22 +79,24 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
 
     // Append any pending sessions not yet in the sheet
     const toAppend = pendingSessions.filter(m => !existingIds.has(m.id));
+    console.log(`[SessionReview] slug=${slug} menteeName="${menteeName}" pending=${pendingSessions.length} toAppend=${toAppend.length}`);
     if (toAppend.length > 0) {
       const newRows = toAppend.map(m => [
         "FALSE",
-        slug,
-        menteeName,
-        m.date || "",
+        String(slug),
+        String(menteeName),
+        String(m.date || ""),
         m.sixtyMin === true ? "Yes" : m.sixtyMin === false ? "No" : "",
         m.notes?.trim() ? "Yes" : "No",
-        m.takeaways || "",
-        m.id,
-        m.submittedAt || "",
+        String(m.takeaways || ""),
+        String(m.id || ""),
+        String(m.submittedAt || ""),
       ]);
+      console.log(`[SessionReview] writing rows:`, JSON.stringify(newRows));
       await sheets.spreadsheets.values.append({
         spreadsheetId: process.env.GOOGLE_SHEET_ID,
         range: "SessionReview!A:I",
-        valueInputOption: "RAW",
+        valueInputOption: "USER_ENTERED",
         insertDataOption: "INSERT_ROWS",
         requestBody: { values: newRows },
       });
