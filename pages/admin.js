@@ -289,6 +289,7 @@ function Dashboard({ data, refreshedAt }) {
     },
     {
       label: "Churned / Dropped Out",
+      pillLabel: "Churn",
       value: counts.churned,
       color: "#6b6480", bg: "#f0eef8",
       desc: "Marked as having left or dropped out of the program — set \"Churned\" = TRUE in the Dashboard sheet",
@@ -450,7 +451,7 @@ function Dashboard({ data, refreshedAt }) {
           <span style={{ fontSize: 11, fontWeight: 700, color: "#b0a8cc", textTransform: "uppercase", letterSpacing: "0.07em", flexShrink: 0 }}>Filter:</span>
 
           {/* Status pills */}
-          {statCards.filter(c => c.statusKey).map(({ label, color, bg, statusKey, value }) => {
+          {statCards.filter(c => c.statusKey).map(({ label, pillLabel, color, bg, statusKey }) => {
             const isActive = statusFilter === statusKey;
             return (
               <button key={statusKey} onClick={() => setStatusFilter(isActive ? null : statusKey)} style={{
@@ -462,7 +463,7 @@ function Dashboard({ data, refreshedAt }) {
                 cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s", userSelect: "none",
               }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: isActive ? "rgba(255,255,255,0.8)" : color, flexShrink: 0 }} />
-                {label}
+                {pillLabel || label}
                 {isActive && <span style={{ marginLeft: 1 }}>×</span>}
               </button>
             );
