@@ -490,6 +490,36 @@ function Dashboard({ data, refreshedAt }) {
               </button>
             );
           })}
+
+          {/* Download CSV */}
+          <button
+            onClick={() => {
+              const escape = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+              const headers = ["First Name", "Last Name", "Email", "Company", "Cohort", "Status", "Mentor", "Mentor Email"];
+              const rows = filtered.map(m => [
+                m.first, m.last, m.email, m.company,
+                `${m.cohort} · ${COHORT_NAMES[m.cohort] || m.cohort}`,
+                STATUS_CONFIG[m.status]?.label || m.status,
+                m.mentorName, m.mentorEmail,
+              ].map(escape).join(","));
+              const csv = [headers.map(escape).join(","), ...rows].join("\n");
+              const blob = new Blob([csv], { type: "text/csv" });
+              const url  = URL.createObjectURL(blob);
+              const a    = document.createElement("a");
+              a.href = url; a.download = `uplift-mentees-${new Date().toISOString().slice(0,10)}.csv`;
+              a.click(); URL.revokeObjectURL(url);
+            }}
+            style={{
+              marginLeft: "auto", display: "flex", alignItems: "center", gap: 6,
+              padding: "5px 14px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+              border: "1.5px solid #5c4eb5", background: "#fff", color: "#5c4eb5",
+              cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s", userSelect: "none",
+              flexShrink: 0,
+            }}
+          >
+            ⬇ Download emails CSV
+            <span style={{ opacity: 0.6, fontSize: 10 }}>({filtered.length})</span>
+          </button>
         </div>
 
         {/* Table — sticky header, scrollable rows */}
