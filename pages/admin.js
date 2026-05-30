@@ -337,24 +337,20 @@ function Dashboard({ data, refreshedAt }) {
 
         {/* Sessions pending review */}
         <div style={{
-          background: "#fffbeb", borderRadius: 12, border: "1px solid #f5d97a",
-          padding: "16px 22px", marginBottom: 28,
-          display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap",
+          display: "inline-flex", alignItems: "center", gap: 10,
+          background: "#fffbeb", borderRadius: 8, border: "1px solid #f5d97a",
+          padding: "8px 14px", marginBottom: 20,
         }}>
-          <div style={{ flex: 1, minWidth: 180 }}>
-            <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#7a5c00" }}>
-              🕐 Mentor Sessions Pending Internal Review
-            </p>
-            <p style={{ margin: 0, fontSize: 12, color: "#9a7200", fontStyle: "italic" }}>
-              Sessions submitted via Typeform that don't auto-qualify (under 60 min or no transcript) — awaiting admin approval in the SessionReview sheet tab.
-            </p>
-          </div>
-          <div style={{ textAlign: "right", flexShrink: 0 }}>
-            <p style={{ margin: 0, fontSize: 40, fontWeight: 800, color: "#b35c00", lineHeight: 1 }}>
-              {pendingReviewCount}
-            </p>
-            <p style={{ margin: "2px 0 0", fontSize: 11, color: "#9a7200" }}>pending</p>
-          </div>
+          <span style={{ fontSize: 13 }}>🕐</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "#7a5c00" }}>
+            Mentor Sessions Pending Internal Review
+          </span>
+          <span style={{
+            background: "#f5d97a", color: "#7a5c00",
+            borderRadius: 20, padding: "2px 10px", fontSize: 13, fontWeight: 800,
+          }}>
+            {pendingReviewCount}
+          </span>
         </div>
 
         {/* Status filter tags */}
