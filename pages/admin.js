@@ -463,7 +463,6 @@ function Dashboard({ data, refreshedAt }) {
               }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: isActive ? "rgba(255,255,255,0.8)" : color, flexShrink: 0 }} />
                 {label}
-                <span style={{ opacity: isActive ? 0.85 : 0.6, fontSize: 10 }}>({value})</span>
                 {isActive && <span style={{ marginLeft: 1 }}>×</span>}
               </button>
             );
