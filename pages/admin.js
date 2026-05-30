@@ -180,20 +180,33 @@ function AdminNote({ slug, initialValue }) {
 
 const PROGRAM_START = new Date("2026-06-01");
 
+const MILESTONE_FILTERS = [
+  { key: "mentor1",    label: "1 Mentor Session",     color: "#5c4eb5", bg: "#f0ecff", test: m => m.mentorCount >= 1 },
+  { key: "mentor2",    label: "2 Mentor Sessions",    color: "#5c4eb5", bg: "#f0ecff", test: m => m.mentorCount >= 2 },
+  { key: "edu1",       label: "1 Edu Session",        color: "#2a7fd4", bg: "#e8f4ff", test: m => m.eduCount >= 1 },
+  { key: "edu2",       label: "2 Edu Sessions",       color: "#2a7fd4", bg: "#e8f4ff", test: m => m.eduCount >= 2 },
+  { key: "edu3",       label: "3 Edu Sessions",       color: "#2a7fd4", bg: "#e8f4ff", test: m => m.eduCount >= 3 },
+  { key: "onboarding", label: "Attended Onboarding",  color: "#1a6e42", bg: "#e8f8f0", test: m => m.milestones?.onboarding === true },
+];
+
 // ─── Main dashboard ────────────────────────────────────────────────────────────
 function Dashboard({ data, refreshedAt }) {
   const [activeCohort, setActiveCohort] = useState("All");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(null);
+  const [milestoneFilter, setMilestoneFilter] = useState(null);
 
   const { mentees = [], pendingReviewCount = 0 } = data;
   const isPreProgram = new Date() < PROGRAM_START;
 
-  // Change cohort → clear status filter so they don't stack unexpectedly
+  // Change cohort → clear filters
   const handleCohortChange = (c) => {
     setActiveCohort(c);
     setStatusFilter(null);
+    setMilestoneFilter(null);
   };
+
+  const activeMilestone = MILESTONE_FILTERS.find(f => f.key === milestoneFilter);
 
   const filtered = mentees.filter(m => {
     const cohortMatch = activeCohort === "All"
@@ -203,8 +216,9 @@ function Dashboard({ data, refreshedAt }) {
         : !m.isTest && String(m.cohort) === String(activeCohort);
     const searchMatch = !search ||
       `${m.first} ${m.last} ${m.company}`.toLowerCase().includes(search.toLowerCase());
-    const statusMatch = !statusFilter || m.status === statusFilter;
-    return cohortMatch && searchMatch && statusMatch;
+    const statusMatch    = !statusFilter    || m.status === statusFilter;
+    const milestoneMatch = !activeMilestone || activeMilestone.test(m);
+    return cohortMatch && searchMatch && statusMatch && milestoneMatch;
   });
 
   const realMentees   = mentees.filter(m => !m.isTest);
@@ -355,18 +369,38 @@ function Dashboard({ data, refreshedAt }) {
           </span>
         </div>
 
-        {/* Status filter tags */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: "#9b8fcf", marginRight: 2 }}>Filter:</span>
-          {statCards.filter(c => c.statusKey).map(({ label, color, bg, statusKey, value }) => {
-            const isActive = statusFilter === statusKey;
-            return (
+        {/* Filter rows */}
+        {[
+          {
+            rowLabel: "Status",
+            pills: statCards.filter(c => c.statusKey).map(({ label, color, bg, statusKey, value }) => ({
+              key: statusKey, label, color, bg,
+              isActive: statusFilter === statusKey,
+              count: value,
+              onToggle: () => setStatusFilter(statusFilter === statusKey ? null : statusKey),
+            })),
+          },
+          {
+            rowLabel: "Milestone",
+            pills: MILESTONE_FILTERS.map(({ key, label, color, bg }) => ({
+              key, label, color, bg,
+              isActive: milestoneFilter === key,
+              count: null,
+              onToggle: () => setMilestoneFilter(milestoneFilter === key ? null : key),
+            })),
+          },
+        ].map(({ rowLabel, pills }) => (
+          <div key={rowLabel} style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap", alignItems: "center" }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#b0a8cc", textTransform: "uppercase", letterSpacing: "0.06em", minWidth: 62, flexShrink: 0 }}>
+              {rowLabel}:
+            </span>
+            {pills.map(({ key, label, color, bg, isActive, count, onToggle }) => (
               <button
-                key={statusKey}
-                onClick={() => setStatusFilter(isActive ? null : statusKey)}
+                key={key}
+                onClick={onToggle}
                 style={{
-                  display: "flex", alignItems: "center", gap: 6,
-                  padding: "5px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700,
+                  display: "flex", alignItems: "center", gap: 5,
+                  padding: "4px 11px", borderRadius: 20, fontSize: 12, fontWeight: 700,
                   border: isActive ? `2px solid ${color}` : `1.5px solid ${color}55`,
                   background: isActive ? color : bg,
                   color: isActive ? "#fff" : color,
@@ -374,18 +408,14 @@ function Dashboard({ data, refreshedAt }) {
                   userSelect: "none",
                 }}
               >
-                <span style={{
-                  width: 7, height: 7, borderRadius: "50%",
-                  background: isActive ? "rgba(255,255,255,0.8)" : color,
-                  flexShrink: 0,
-                }} />
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: isActive ? "rgba(255,255,255,0.8)" : color, flexShrink: 0 }} />
                 {label}
-                <span style={{ opacity: isActive ? 0.85 : 0.65, fontSize: 11 }}>({value})</span>
-                {isActive && <span style={{ marginLeft: 2, fontSize: 12 }}>×</span>}
+                {count !== null && <span style={{ opacity: isActive ? 0.85 : 0.6, fontSize: 11 }}>({count})</span>}
+                {isActive && <span style={{ marginLeft: 1, fontSize: 12 }}>×</span>}
               </button>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        ))}
 
         {/* Cohort filter tabs + search */}
         <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
@@ -463,6 +493,7 @@ function Dashboard({ data, refreshedAt }) {
           Showing {filtered.length} mentee{filtered.length !== 1 ? "s" : ""}
           {activeCohort === "Test" ? " (test accounts)" : activeCohort !== "All" ? ` in Cohort ${activeCohort} · ${COHORT_NAMES[activeCohort]}` : ""}
           {statusFilter ? ` · ${STATUS_CONFIG[statusFilter]?.label}` : ""}
+          {activeMilestone ? ` · ${activeMilestone.label}` : ""}
           {search ? ` matching "${search}"` : ""}
         </p>
 
