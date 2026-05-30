@@ -1,5 +1,8 @@
 // GET /api/meetings?slug=pearl-gabel
-// Fetches this mentee's submitted mentor meeting reports from Typeform.
+// Fetches this mentee's submitted mentor meeting reports from Typeform,
+// then overlays manual verifications from the ManualVerifications sheet tab.
+
+import { getSheetsClient } from "../../lib/sheets-helper";
 
 const FORM_ID = "e0L62296";
 const FIELDS  = {
@@ -11,6 +14,34 @@ const FIELDS  = {
   takeaways:  "0d816bc2-6793-4c72-b28d-5b34f48ce5b7",
 };
 
+// Fetch manually verified session IDs for a given slug from the sheet.
+// Returns a Set of session IDs (Typeform tokens).
+async function getManualVerifications(slug) {
+  const hasSheets =
+    process.env.GOOGLE_SHEET_ID &&
+    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
+    process.env.GOOGLE_PRIVATE_KEY;
+  if (!hasSheets) return new Set();
+
+  try {
+    const sheets = getSheetsClient();
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      range: "ManualVerifications!A:B",
+    });
+    const rows = res.data.values || [];
+    const ids = new Set();
+    for (const row of rows) {
+      if (row[0]?.trim().toLowerCase() === slug.toLowerCase() && row[1]?.trim()) {
+        ids.add(row[1].trim());
+      }
+    }
+    return ids;
+  } catch (_) {
+    return new Set();
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
   const { slug } = req.query;
@@ -20,17 +51,17 @@ export default async function handler(req, res) {
   if (!token) return res.status(200).json({ meetings: [] });
 
   try {
-    const response = await fetch(
-      `https://api.typeform.com/forms/${FORM_ID}/responses?page_size=1000`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    const data = await response.json();
+    const [tfResponse, manualIds] = await Promise.all([
+      fetch(
+        `https://api.typeform.com/forms/${FORM_ID}/responses?page_size=1000`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      ),
+      getManualVerifications(slug),
+    ]);
+    const data = await tfResponse.json();
 
-    // Build name → slug map from the slug itself
-    // slug is like "pearl-gabel" → first="pearl" last="gabel"
     const parts     = slug.split("-");
     const firstName = parts[0].toLowerCase();
-    // last name may be multi-word (e.g. "machado-jackler") — match on first name + slug contains last
     const get = (answers, ref) => answers?.find(a => a.field?.ref === ref);
 
     const meetings = [];
@@ -38,7 +69,6 @@ export default async function handler(req, res) {
       const answers  = item.answers || [];
       const first    = get(answers, FIELDS.first)?.text?.trim().toLowerCase()  || "";
       const last     = get(answers, FIELDS.last)?.text?.trim().toLowerCase()   || "";
-      const fullSlug = `${first}-${last}`.replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 
       // Match first name: exact OR first word only (handles "Pradeep Kumar" → "pradeep")
       const firstWord = first.split(/\s+/)[0];
@@ -51,12 +81,13 @@ export default async function handler(req, res) {
       if (!hasLastInSlug) continue;
 
       meetings.push({
-        id:         item.token,
-        date:       get(answers, FIELDS.date)?.text || get(answers, FIELDS.date)?.date || "",
-        sixtyMin:   get(answers, FIELDS.sixtyMin)?.boolean ?? null,
-        notes:      get(answers, FIELDS.notes)?.text     || "",
-        takeaways:  get(answers, FIELDS.takeaways)?.text || "",
-        submittedAt: item.submitted_at,
+        id:              item.token,
+        date:            get(answers, FIELDS.date)?.text || get(answers, FIELDS.date)?.date || "",
+        sixtyMin:        get(answers, FIELDS.sixtyMin)?.boolean ?? null,
+        notes:           get(answers, FIELDS.notes)?.text     || "",
+        takeaways:       get(answers, FIELDS.takeaways)?.text || "",
+        submittedAt:     item.submitted_at,
+        manuallyVerified: manualIds.has(item.token),
       });
     }
 

@@ -1407,8 +1407,8 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
         const list = d.meetings || [];
         setMeetings(list);
 
-        // Count qualifying sessions: 60+ min AND has Granola notes
-        const qualifying = list.filter(m => m.sixtyMin === true && m.notes && m.notes.trim());
+        // Count qualifying sessions: auto-verified (60+ min + transcript) OR manually verified
+        const qualifying = list.filter(m => (m.sixtyMin === true && m.notes && m.notes.trim()) || m.manuallyVerified);
         const count = qualifying.length;
 
         // Auto-check mentor session milestones as they're earned
@@ -1469,7 +1469,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
 
       {/* Session progress tracker */}
       {(() => {
-        const verifiedCount = meetings.filter(m => m.sixtyMin === true && m.notes?.trim()).length;
+        const verifiedCount = meetings.filter(m => (m.sixtyMin === true && m.notes?.trim()) || m.manuallyVerified).length;
         const REQUIRED = 3;
         const pct = Math.min(Math.round((verifiedCount / REQUIRED) * 100), 100);
         const over = verifiedCount > REQUIRED ? verifiedCount - REQUIRED : 0;
@@ -1526,7 +1526,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
               <p style={{ margin: 0, fontSize: 11, opacity: 0.6 }}>Session 3</p>
             </div>
             <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.55, fontStyle: "italic", lineHeight: 1.5 }}>
-              * Only auto-verified sessions (60+ min with a Granola transcript) count toward this progress. Sessions pending internal review are not automatically reflected here — they may take additional time to be updated.
+              * Auto-verified sessions (60+ min with a Granola transcript) and manually verified sessions both count toward this progress. Sessions still pending internal review are not yet reflected here.
             </p>
           </div>
         );
@@ -1579,8 +1579,9 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
           </p>
         </div>
       ) : (() => {
-        const verified  = meetings.filter(m => m.sixtyMin === true && m.notes?.trim());
-        const pending   = meetings.filter(m => !(m.sixtyMin === true && m.notes?.trim()));
+        const isVerified = m => (m.sixtyMin === true && m.notes?.trim()) || m.manuallyVerified;
+        const verified  = meetings.filter(isVerified);
+        const pending   = meetings.filter(m => !isVerified(m));
         return (
           <>
             {/* Verified sessions */}
@@ -1617,10 +1618,11 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                     </p>
                   </div>
                   <span style={{
-                    background: "#e8f8f0", color: "#1a6e42",
+                    background: m.manuallyVerified ? "#fff8e6" : "#e8f8f0",
+                    color: m.manuallyVerified ? "#7a5c00" : "#1a6e42",
                     borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700,
                   }}>
-                    ✓ Verified
+                    ✓ {m.manuallyVerified ? "Manually Verified" : "Verified"}
                   </span>
                 </div>
 
@@ -1738,6 +1740,10 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                         </p>
                       </div>
                     )}
+                    {/* Session ID for admin reference */}
+                    <p style={{ margin: "12px 0 0", fontSize: 10, color: "#c0b8d8", fontFamily: "monospace", letterSpacing: "0.03em" }}>
+                      ID: {m.id}
+                    </p>
                   </div>
                 ))}
               </div>
