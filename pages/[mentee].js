@@ -1705,7 +1705,16 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                           Session {verified.length + i + 1}
                         </p>
                       </div>
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                        {/* Primary status badge */}
+                        <span style={{
+                          background: "#fffbeb", color: "#7a5c00",
+                          borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700,
+                          border: "1px solid #f5d97a",
+                        }}>
+                          🕐 Pending Review
+                        </span>
+                        {/* Detail chips */}
                         {m.sixtyMin !== null && (
                           <span style={{
                             background: m.sixtyMin ? "#e8f8f0" : "#fff3e0",

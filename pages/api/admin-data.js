@@ -4,7 +4,7 @@
 // overlays live milestone data from Google Sheets on top.
 
 import { getSheetsClient, MILESTONE_KEYS } from "../../lib/sheets-helper";
-import { MENTEES } from "../../lib/mentees";
+import { MENTEES, MENTEE_EMAILS, MENTOR_EMAILS } from "../../lib/mentees";
 
 const TEST_SLUGS = ["kennedy", "jackie", "aaron", "mj"];
 
@@ -95,7 +95,7 @@ export default async function handler(req, res) {
         const churned     = churnedIdx >= 0 ? (row[churnedIdx] === "TRUE" || row[churnedIdx] === true) : false;
         const notes       = notesIdx >= 0 ? (row[notesIdx] || "") : "";
         const email       = emailIdx >= 0 ? (row[emailIdx] || "") : "";
-        const mentorEmail = mentorEmailIdx >= 0 ? (row[mentorEmailIdx] || "") : "";
+        const mentorEmail = (mentorEmailIdx >= 0 ? (row[mentorEmailIdx] || "") : "");
         sheetData[slug] = { milestones, churned, notes, email, mentorEmail };
       }
 
@@ -125,8 +125,8 @@ export default async function handler(req, res) {
     const milestones  = d.milestones || Object.fromEntries(MILESTONE_KEYS.map(k => [k, false]));
     const churned     = d.churned || false;
     const notes       = d.notes   || "";
-    const email       = d.email   || "";
-    const mentorEmail = d.mentorEmail || "";
+    const email       = d.email       || MENTEE_EMAILS[m.slug]  || "";
+    const mentorEmail = d.mentorEmail || MENTOR_EMAILS[m.slug]  || "";
 
     const milestoneCount = Object.values(milestones).filter(Boolean).length;
     const mentorCount    = ["mentorSession1", "mentorSession2", "mentorSession3"].filter(k => milestones[k]).length;

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 
 const COHORT_NAMES = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
-const COHORTS = ["All", 1, 2, 3, 4, 5, "Test"]; // filter by number, display with name
+const COHORTS = ["All", 1, 2, 3, 4, 5, "Test"];
 
 const STATUS_CONFIG = {
   "at-risk":         { label: "At Risk",              color: "#c0392b", bg: "#fef0f0", dot: "#e74c3c" },
@@ -42,7 +42,7 @@ function PasswordGate({ onAuthenticated }) {
           display: "flex", alignItems: "center", justifyContent: "center",
           margin: "0 auto 18px", fontSize: 24,
         }}>🔒</div>
-        <p style={{ margin: "0 0 6px", fontSize: 20, fontWeight: 800, color: "#1a1733" }}>
+        <p style={{ margin: "0 0 2px", fontSize: 20, fontWeight: 800, color: "#1a1733" }}>
           Uplift Admin
         </p>
         <p style={{ margin: "0 0 24px", fontSize: 13, color: "#9b8fcf" }}>
@@ -85,7 +85,7 @@ function PasswordGate({ onAuthenticated }) {
   );
 }
 
-// ─── Dots indicator (e.g. 2/3 filled) ─────────────────────────────────────────
+// ─── Dots indicator ────────────────────────────────────────────────────────────
 function Dots({ filled, total, color = "#5c4eb5" }) {
   return (
     <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
@@ -178,12 +178,22 @@ function AdminNote({ slug, initialValue }) {
   );
 }
 
+const PROGRAM_START = new Date("2026-06-01");
+
 // ─── Main dashboard ────────────────────────────────────────────────────────────
 function Dashboard({ data, refreshedAt }) {
   const [activeCohort, setActiveCohort] = useState("All");
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState(null);
 
   const { mentees = [], pendingReviewCount = 0 } = data;
+  const isPreProgram = new Date() < PROGRAM_START;
+
+  // Change cohort → clear status filter so they don't stack unexpectedly
+  const handleCohortChange = (c) => {
+    setActiveCohort(c);
+    setStatusFilter(null);
+  };
 
   const filtered = mentees.filter(m => {
     const cohortMatch = activeCohort === "All"
@@ -193,10 +203,11 @@ function Dashboard({ data, refreshedAt }) {
         : !m.isTest && String(m.cohort) === String(activeCohort);
     const searchMatch = !search ||
       `${m.first} ${m.last} ${m.company}`.toLowerCase().includes(search.toLowerCase());
-    return cohortMatch && searchMatch;
+    const statusMatch = !statusFilter || m.status === statusFilter;
+    return cohortMatch && searchMatch && statusMatch;
   });
 
-  const realMentees  = mentees.filter(m => !m.isTest);
+  const realMentees   = mentees.filter(m => !m.isTest);
   const activeMentees = realMentees.filter(m => m.status !== "churned");
   const counts = {
     total:     realMentees.length,
@@ -212,6 +223,64 @@ function Dashboard({ data, refreshedAt }) {
       ? mentees.filter(m => m.isTest).length
       : mentees.filter(m => !m.isTest && String(m.cohort) === String(c)).length;
   });
+
+  // Cohort breakdown — only computed when a specific numbered cohort is active
+  const cohortBreakdown = typeof activeCohort === "number" ? (() => {
+    const group  = mentees.filter(m => !m.isTest && String(m.cohort) === String(activeCohort));
+    const active = group.filter(m => m.status !== "churned");
+    return {
+      active:    active.length,
+      churned:   group.filter(m => m.status === "churned").length,
+      atRisk:    active.filter(m => m.status === "at-risk").length,
+      attention: active.filter(m => m.status === "needs-attention").length,
+      onTrack:   active.filter(m => m.status === "on-track").length,
+      avg:       active.length
+        ? Math.round(active.reduce((s, m) => s + m.milestoneCount, 0) / active.length)
+        : 0,
+    };
+  })() : null;
+
+  const statCards = [
+    {
+      label: "Total Mentees",
+      value: counts.total,
+      color: "#5c4eb5", bg: "#f3f0ff",
+      desc: "All program participants excluding test accounts",
+      statusKey: null,
+    },
+    {
+      label: "At Risk",
+      value: counts.atRisk,
+      color: "#c0392b", bg: "#fef0f0",
+      desc: "No mentor session logged past the Week 4 removal deadline, or critical requirements unmet",
+      statusKey: "at-risk",
+    },
+    {
+      label: "Needs Attention",
+      value: counts.attention,
+      color: "#b35c00", bg: "#fff3e0",
+      desc: isPreProgram
+        ? "Has not yet confirmed participation in the program"
+        : "Behind on mentor sessions or missing required milestones for their current week",
+      statusKey: "needs-attention",
+    },
+    {
+      label: "On Track",
+      value: counts.onTrack,
+      color: "#1a6e42", bg: "#e8f8f0",
+      desc: isPreProgram
+        ? "Confirmed participation in the program"
+        : "Meeting all program requirements on schedule",
+      statusKey: "on-track",
+    },
+    {
+      label: "Churned / Dropped Out",
+      value: counts.churned,
+      color: "#6b6480", bg: "#f0eef8",
+      desc: "Marked as having left or dropped out of the program — set \"Churned\" = TRUE in the Dashboard sheet",
+      statusKey: "churned",
+    },
+  ];
 
   return (
     <div style={{ minHeight: "100vh", background: "#f7f5ff", fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -252,52 +321,38 @@ function Dashboard({ data, refreshedAt }) {
           </p>
         </div>
 
-        {/* Summary stat cards */}
+        {/* Summary stat cards — filterable */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 14, marginBottom: 16 }}>
-          {[
-            {
-              label: "Total Mentees",
-              value: counts.total,
-              color: "#5c4eb5", bg: "#f3f0ff",
-              desc: "All program participants excluding test accounts",
-            },
-            {
-              label: "At Risk",
-              value: counts.atRisk,
-              color: "#c0392b", bg: "#fef0f0",
-              desc: "No mentor session logged past the Week 4 removal deadline, or critical requirements unmet",
-            },
-            {
-              label: "Needs Attention",
-              value: counts.attention,
-              color: "#b35c00", bg: "#fff3e0",
-              desc: "Behind on mentor sessions or missing required milestones for their current week",
-            },
-            {
-              label: "On Track",
-              value: counts.onTrack,
-              color: "#1a6e42", bg: "#e8f8f0",
-              desc: "Meeting all program requirements on schedule",
-            },
-            {
-              label: "Churned / Dropped Out",
-              value: counts.churned,
-              color: "#6b6480", bg: "#f0eef8",
-              desc: "Marked as having left or dropped out of the program — set \"Churned\" = TRUE in the Dashboard sheet",
-            },
-          ].map(({ label, value, color, bg, desc }) => (
-            <div key={label} style={{
-              background: bg, borderRadius: 12, padding: "18px 22px",
-              border: `1px solid ${color}22`,
-            }}>
-              <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 600, color, opacity: 0.8 }}>{label}</p>
-              <p style={{ margin: "0 0 8px", fontSize: 36, fontWeight: 800, color, lineHeight: 1 }}>{value}</p>
-              <p style={{ margin: 0, fontSize: 11, color, opacity: 0.65, fontStyle: "italic", lineHeight: 1.4 }}>{desc}</p>
-            </div>
-          ))}
+          {statCards.map(({ label, value, color, bg, desc, statusKey }) => {
+            const isActive = statusKey !== null && statusFilter === statusKey;
+            return (
+              <div
+                key={label}
+                onClick={statusKey ? () => setStatusFilter(isActive ? null : statusKey) : undefined}
+                style={{
+                  background: bg, borderRadius: 12, padding: "18px 22px",
+                  border: isActive ? `2px solid ${color}` : `1px solid ${color}22`,
+                  cursor: statusKey ? "pointer" : "default",
+                  transform: isActive ? "translateY(-2px)" : "none",
+                  boxShadow: isActive ? `0 6px 18px ${color}28` : "none",
+                  transition: "all 0.15s",
+                  userSelect: "none",
+                }}
+              >
+                <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 600, color, opacity: 0.8 }}>{label}</p>
+                <p style={{ margin: "0 0 8px", fontSize: 36, fontWeight: 800, color, lineHeight: 1 }}>{value}</p>
+                <p style={{ margin: 0, fontSize: 11, color, opacity: 0.65, fontStyle: "italic", lineHeight: 1.4 }}>{desc}</p>
+                {statusKey && (
+                  <p style={{ margin: "8px 0 0", fontSize: 10, fontWeight: 700, color, opacity: isActive ? 0.9 : 0.45 }}>
+                    {isActive ? "✕ Clear filter" : "Click to filter ↓"}
+                  </p>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        {/* Sessions pending internal review card */}
+        {/* Sessions pending review */}
         <div style={{
           background: "#fffbeb", borderRadius: 12, border: "1px solid #f5d97a",
           padding: "16px 22px", marginBottom: 28,
@@ -319,15 +374,15 @@ function Dashboard({ data, refreshedAt }) {
           </div>
         </div>
 
-        {/* Cohort filter + search */}
+        {/* Cohort filter tabs + search */}
         <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {COHORTS.map(c => {
               const active = activeCohort === c;
-              const count = c === "All" ? mentees.length : cohortCounts[c] || 0;
-              const label = c === "All" ? "All Cohorts" : c === "Test" ? "🧪 Test Accounts" : `${c} · ${COHORT_NAMES[c]}`;
+              const count  = c === "All" ? mentees.length : cohortCounts[c] || 0;
+              const label  = c === "All" ? "All Cohorts" : c === "Test" ? "🧪 Test Accounts" : `${c} · ${COHORT_NAMES[c]}`;
               return (
-                <button key={c} onClick={() => setActiveCohort(c)} style={{
+                <button key={c} onClick={() => handleCohortChange(c)} style={{
                   padding: "7px 14px", borderRadius: 20, fontSize: 13, fontWeight: active ? 700 : 500,
                   border: active ? "2px solid #5c4eb5" : "2px solid #e8e4f5",
                   background: active ? "#5c4eb5" : "#fff",
@@ -352,186 +407,200 @@ function Dashboard({ data, refreshedAt }) {
           />
         </div>
 
+        {/* Cohort breakdown card — only shown when a specific cohort tab is active */}
+        {cohortBreakdown && (
+          <div style={{
+            background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
+            padding: "16px 22px", marginBottom: 18,
+            display: "flex", alignItems: "center", gap: 32, flexWrap: "wrap",
+          }}>
+            <div>
+              <p style={{ margin: "0 0 2px", fontSize: 15, fontWeight: 700, color: "#1a1733" }}>
+                {activeCohort} · {COHORT_NAMES[activeCohort]}
+              </p>
+              <p style={{ margin: 0, fontSize: 12, color: "#6b6480" }}>
+                {cohortBreakdown.active} active
+                {cohortBreakdown.churned > 0 ? `, ${cohortBreakdown.churned} churned` : ""}
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center", flex: 1 }}>
+              {cohortBreakdown.atRisk > 0 && (
+                <span style={{ fontSize: 13, color: "#c0392b", fontWeight: 700 }}>
+                  🔴 {cohortBreakdown.atRisk} at risk
+                </span>
+              )}
+              {cohortBreakdown.attention > 0 && (
+                <span style={{ fontSize: 13, color: "#b35c00", fontWeight: 700 }}>
+                  🟡 {cohortBreakdown.attention} needs attention
+                </span>
+              )}
+              <span style={{ fontSize: 13, color: "#1a6e42", fontWeight: 700 }}>
+                🟢 {cohortBreakdown.onTrack} on track
+              </span>
+            </div>
+            <div style={{ minWidth: 200 }}>
+              <p style={{ margin: "0 0 4px", fontSize: 11, color: "#9b8fcf" }}>Avg milestones (active)</p>
+              <MiniBar value={cohortBreakdown.avg} total={13} />
+            </div>
+          </div>
+        )}
+
         {/* Results count */}
-        <p style={{ margin: "0 0 14px", fontSize: 13, color: "#9b8fcf" }}>
-          Showing {filtered.length} mentee{filtered.length !== 1 ? "s" : ""}
-          {activeCohort === "Test" ? " (test accounts)" : activeCohort !== "All" ? ` in Cohort ${activeCohort} · ${COHORT_NAMES[activeCohort]}` : ""}
-          {search ? ` matching "${search}"` : ""}
+        <p style={{ margin: "0 0 14px", fontSize: 13, color: "#9b8fcf", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <span>
+            Showing {filtered.length} mentee{filtered.length !== 1 ? "s" : ""}
+            {activeCohort === "Test" ? " (test accounts)" : activeCohort !== "All" ? ` in Cohort ${activeCohort} · ${COHORT_NAMES[activeCohort]}` : ""}
+            {search ? ` matching "${search}"` : ""}
+          </span>
+          {statusFilter && (
+            <span style={{
+              fontSize: 11, fontWeight: 700, padding: "2px 10px", borderRadius: 20,
+              background: STATUS_CONFIG[statusFilter]?.bg,
+              color: STATUS_CONFIG[statusFilter]?.color,
+              border: `1px solid ${STATUS_CONFIG[statusFilter]?.color}44`,
+              cursor: "pointer",
+            }}
+              onClick={() => setStatusFilter(null)}
+            >
+              {STATUS_CONFIG[statusFilter]?.label} ✕
+            </span>
+          )}
         </p>
 
-        {/* Table */}
+        {/* Table — sticky header, scrollable rows */}
         {(() => {
-          // Single source of truth for column widths — header and rows both reference this
           const COLS = "2fr 1.6fr 78px 118px 110px 86px 76px 1.3fr 1.9fr";
           return (
-            <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", overflow: "hidden" }}>
-              {/* Header */}
-              <div style={{
-                display: "grid", gridTemplateColumns: COLS,
-                padding: "11px 20px", background: "#f7f5ff",
-                borderBottom: "1px solid #e8e4f5",
-              }}>
-                {["Mentee", "Mentor", "Cohort", "Status", "Milestones", "Sessions", "Edu", "Flags", "Notes"].map(h => (
-                  <p key={h} style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                    {h}
-                  </p>
-                ))}
-              </div>
-
-              {/* Rows */}
-              {filtered.length === 0 ? (
-                <div style={{ padding: "40px", textAlign: "center", color: "#9b8fcf", fontSize: 14 }}>
-                  No mentees match your filters.
+            /* overflow: clip clips rounded corners without breaking position:sticky */
+            <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", overflow: "clip" }}>
+              {/* Single scroll container — header is sticky within it */}
+              <div style={{ overflowY: "auto", maxHeight: "calc(100vh - 460px)", minHeight: 240 }}>
+                {/* Sticky header */}
+                <div style={{
+                  position: "sticky", top: 0, zIndex: 10,
+                  display: "grid", gridTemplateColumns: COLS,
+                  padding: "11px 20px", background: "#f7f5ff",
+                  borderBottom: "1px solid #e8e4f5",
+                }}>
+                  {["Mentee", "Mentor", "Cohort", "Status", "Milestones", "Sessions", "Edu", "Flags", "Notes"].map(h => (
+                    <p key={h} style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      {h}
+                    </p>
+                  ))}
                 </div>
-              ) : filtered.map((m, i) => {
-                const sc = STATUS_CONFIG[m.status] || STATUS_CONFIG["on-track"];
-                return (
-                  <div key={m.slug} style={{
-                    display: "grid", gridTemplateColumns: COLS,
-                    padding: "13px 20px", alignItems: "start",
-                    borderBottom: i < filtered.length - 1 ? "1px solid #f5f3ff" : "none",
-                    background: m.status === "at-risk" ? "#fffafa" : m.status === "churned" ? "#fafafa" : "#fff",
-                    opacity: m.status === "churned" ? 0.75 : 1,
-                  }}>
 
-                    {/* Mentee — name + email + company */}
-                    <div style={{ minWidth: 0 }}>
-                      <p style={{ margin: "0 0 1px", fontSize: 13, fontWeight: 700, color: "#1a1733", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                        textDecoration: m.status === "churned" ? "line-through" : "none" }}>
-                        {m.first} {m.last}
-                      </p>
-                      {m.email && (
-                        <p style={{ margin: "0 0 1px", fontSize: 11, color: "#5c4eb5", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {m.email}
-                        </p>
-                      )}
-                      {m.company && (
-                        <p style={{ margin: 0, fontSize: 11, color: "#9b8fcf", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {m.company}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Mentor — name + email */}
-                    <div style={{ minWidth: 0 }}>
-                      {m.mentorName ? (
-                        <>
-                          <p style={{ margin: "0 0 1px", fontSize: 13, fontWeight: 600, color: "#1a1733", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {m.mentorName}
-                          </p>
-                          <p style={{ margin: 0, fontSize: 11, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                            color: m.mentorEmail ? "#5c4eb5" : "#c0b8d8", fontStyle: "italic" }}>
-                            {m.mentorEmail || "no email on file"}
-                          </p>
-                        </>
-                      ) : (
-                        <span style={{ fontSize: 11, color: "#c0b8d8" }}>—</span>
-                      )}
-                    </div>
-
-                    {/* Cohort */}
-                    <div style={{ minWidth: 0 }}>
-                      <span style={{
-                        fontSize: 10, fontWeight: 700, color: "#5c4eb5",
-                        background: "#f3f0ff", borderRadius: 4, padding: "2px 6px",
-                        display: "inline-block",
-                      }}>
-                        {m.cohort} · {COHORT_NAMES[m.cohort] || m.cohort}
-                      </span>
-                    </div>
-
-                    {/* Status */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 5, minWidth: 0 }}>
-                      <div style={{ width: 7, height: 7, borderRadius: "50%", background: sc.dot, flexShrink: 0 }} />
-                      <span style={{ fontSize: 11, fontWeight: 700, color: sc.color, whiteSpace: "nowrap" }}>
-                        {sc.label}
-                      </span>
-                    </div>
-
-                    {/* Milestones */}
-                    <MiniBar value={m.milestoneCount} total={13} />
-
-                    {/* Mentor sessions */}
-                    <Dots filled={m.mentorCount} total={3} color="#5c4eb5" />
-
-                    {/* Edu sessions */}
-                    <Dots filled={m.eduCount} total={3} color="#2a7fd4" />
-
-                    {/* Flags */}
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 3, minWidth: 0 }}>
-                      {m.flags.length === 0 ? (
-                        <span style={{ fontSize: 11, color: "#27ae60", fontWeight: 600 }}>✓ All clear</span>
-                      ) : (
-                        m.flags.slice(0, 3).map((f, fi) => (
-                          <span key={fi} style={{
-                            fontSize: 10, fontWeight: 600, lineHeight: 1.3,
-                            background: m.status === "at-risk" ? "#fef0f0" : m.status === "churned" ? "#f0eef8" : "#fff3e0",
-                            color: m.status === "at-risk" ? "#c0392b" : m.status === "churned" ? "#6b6480" : "#b35c00",
-                            borderRadius: 4, padding: "2px 5px",
-                          }}>
-                            {f}
-                          </span>
-                        ))
-                      )}
-                    </div>
-
-                    {/* Notes — inline editable */}
-                    <AdminNote slug={m.slug} initialValue={m.notes} />
+                {/* Rows */}
+                {filtered.length === 0 ? (
+                  <div style={{ padding: "40px", textAlign: "center", color: "#9b8fcf", fontSize: 14 }}>
+                    No mentees match your filters.
                   </div>
-                );
-              })}
+                ) : filtered.map((m, i) => {
+                  const sc = STATUS_CONFIG[m.status] || STATUS_CONFIG["on-track"];
+                  return (
+                    <div key={m.slug} style={{
+                      display: "grid", gridTemplateColumns: COLS,
+                      padding: "13px 20px", alignItems: "start",
+                      borderBottom: i < filtered.length - 1 ? "1px solid #f5f3ff" : "none",
+                      background: m.status === "at-risk" ? "#fffafa" : m.status === "churned" ? "#fafafa" : "#fff",
+                      opacity: m.status === "churned" ? 0.75 : 1,
+                    }}>
+
+                      {/* Mentee */}
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{
+                          margin: "0 0 1px", fontSize: 13, fontWeight: 700, color: "#1a1733",
+                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                          textDecoration: m.status === "churned" ? "line-through" : "none",
+                        }}>
+                          {m.first} {m.last}
+                        </p>
+                        {m.email && (
+                          <p style={{ margin: "0 0 1px", fontSize: 11, color: "#5c4eb5", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {m.email}
+                          </p>
+                        )}
+                        {m.company && (
+                          <p style={{ margin: 0, fontSize: 11, color: "#9b8fcf", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {m.company}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Mentor */}
+                      <div style={{ minWidth: 0 }}>
+                        {m.mentorName ? (
+                          <>
+                            <p style={{ margin: "0 0 1px", fontSize: 13, fontWeight: 600, color: "#1a1733", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {m.mentorName}
+                            </p>
+                            <p style={{
+                              margin: 0, fontSize: 11, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                              color: m.mentorEmail ? "#5c4eb5" : "#c0b8d8", fontStyle: "italic",
+                            }}>
+                              {m.mentorEmail || "no email on file"}
+                            </p>
+                          </>
+                        ) : (
+                          <span style={{ fontSize: 11, color: "#c0b8d8" }}>—</span>
+                        )}
+                      </div>
+
+                      {/* Cohort */}
+                      <div style={{ minWidth: 0 }}>
+                        <span style={{
+                          fontSize: 10, fontWeight: 700, color: "#5c4eb5",
+                          background: "#f3f0ff", borderRadius: 4, padding: "2px 6px",
+                          display: "inline-block",
+                        }}>
+                          {m.cohort} · {COHORT_NAMES[m.cohort] || m.cohort}
+                        </span>
+                      </div>
+
+                      {/* Status */}
+                      <div style={{ display: "flex", alignItems: "center", gap: 5, minWidth: 0 }}>
+                        <div style={{ width: 7, height: 7, borderRadius: "50%", background: sc.dot, flexShrink: 0 }} />
+                        <span style={{ fontSize: 11, fontWeight: 700, color: sc.color, whiteSpace: "nowrap" }}>
+                          {sc.label}
+                        </span>
+                      </div>
+
+                      {/* Milestones */}
+                      <MiniBar value={m.milestoneCount} total={13} />
+
+                      {/* Mentor sessions */}
+                      <Dots filled={m.mentorCount} total={3} color="#5c4eb5" />
+
+                      {/* Edu sessions */}
+                      <Dots filled={m.eduCount} total={3} color="#2a7fd4" />
+
+                      {/* Flags */}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 3, minWidth: 0 }}>
+                        {m.flags.length === 0 ? (
+                          <span style={{ fontSize: 11, color: "#27ae60", fontWeight: 600 }}>✓ All clear</span>
+                        ) : (
+                          m.flags.slice(0, 3).map((f, fi) => (
+                            <span key={fi} style={{
+                              fontSize: 10, fontWeight: 600, lineHeight: 1.3,
+                              background: m.status === "at-risk" ? "#fef0f0" : m.status === "churned" ? "#f0eef8" : "#fff3e0",
+                              color: m.status === "at-risk" ? "#c0392b" : m.status === "churned" ? "#6b6480" : "#b35c00",
+                              borderRadius: 4, padding: "2px 5px",
+                            }}>
+                              {f}
+                            </span>
+                          ))
+                        )}
+                      </div>
+
+                      {/* Notes */}
+                      <AdminNote slug={m.slug} initialValue={m.notes} />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           );
         })()}
 
-        {/* Cohort breakdown summary */}
-        <div style={{ marginTop: 28 }}>
-          <p style={{ margin: "0 0 14px", fontSize: 15, fontWeight: 700, color: "#1a1733" }}>
-            Cohort Breakdown
-          </p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
-            {COHORTS.slice(1).filter(c => c !== "Test").map(cohort => {
-              const group  = mentees.filter(m => !m.isTest && String(m.cohort) === String(cohort));
-              const active = group.filter(m => m.status !== "churned");
-              const atRisk    = active.filter(m => m.status === "at-risk").length;
-              const attention = active.filter(m => m.status === "needs-attention").length;
-              const onTrack   = active.filter(m => m.status === "on-track").length;
-              const churned   = group.filter(m => m.status === "churned").length;
-              const avgMilestones = active.length
-                ? Math.round(active.reduce((s, m) => s + m.milestoneCount, 0) / active.length)
-                : 0;
-              return (
-                <div key={cohort} style={{
-                  background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "16px 18px",
-                }}>
-                  <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 700, color: "#1a1733" }}>
-                    {cohort} · {COHORT_NAMES[cohort]}
-                  </p>
-                  <p style={{ margin: "0 0 10px", fontSize: 12, color: "#6b6480" }}>
-                    {active.length} active{churned > 0 ? `, ${churned} churned` : ""}
-                  </p>
-                  {atRisk > 0 && (
-                    <p style={{ margin: "0 0 2px", fontSize: 12, color: "#c0392b", fontWeight: 600 }}>
-                      🔴 {atRisk} at risk
-                    </p>
-                  )}
-                  {attention > 0 && (
-                    <p style={{ margin: "0 0 2px", fontSize: 12, color: "#b35c00", fontWeight: 600 }}>
-                      🟡 {attention} needs attention
-                    </p>
-                  )}
-                  <p style={{ margin: "0 0 8px", fontSize: 12, color: "#1a6e42", fontWeight: 600 }}>
-                    🟢 {onTrack} on track
-                  </p>
-                  <div style={{ borderTop: "1px solid #f0ecff", paddingTop: 8 }}>
-                    <p style={{ margin: "0 0 4px", fontSize: 11, color: "#9b8fcf" }}>Avg milestones (active)</p>
-                    <MiniBar value={avgMilestones} total={13} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
       </div>
     </div>
   );

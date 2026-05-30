@@ -22,12 +22,14 @@ const FIELDS  = {
 // H(7): Session ID   I(8): Submitted At
 
 async function ensureSessionReviewTab(sheets) {
-  // Create the SessionReview tab + header row if it doesn't exist yet
+  // Create the SessionReview tab + header row if needed, then apply the
+  // Pending / Approved / Denied dropdown to column A (rows 2–1000).
   try {
     const meta = await sheets.spreadsheets.get({ spreadsheetId: process.env.GOOGLE_SHEET_ID });
-    const exists = meta.data.sheets?.some(s => s.properties.title === "SessionReview");
-    if (!exists) {
-      await sheets.spreadsheets.batchUpdate({
+    let sheetInfo = meta.data.sheets?.find(s => s.properties.title === "SessionReview");
+
+    if (!sheetInfo) {
+      const addRes = await sheets.spreadsheets.batchUpdate({
         spreadsheetId: process.env.GOOGLE_SHEET_ID,
         requestBody: { requests: [{ addSheet: { properties: { title: "SessionReview" } } }] },
       });
@@ -36,6 +38,38 @@ async function ensureSessionReviewTab(sheets) {
         range: "SessionReview!A1:I1",
         valueInputOption: "RAW",
         requestBody: { values: [["Approved", "Slug", "Mentee Name", "Date", "60+ Min", "Has Transcript", "Key Takeaways", "Session ID", "Submitted At"]] },
+      });
+      sheetInfo = addRes.data.replies?.[0]?.addSheet;
+    }
+
+    const sheetId = sheetInfo?.properties?.sheetId;
+    if (sheetId != null) {
+      // (Re-)apply the dropdown validation so it's always present
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: process.env.GOOGLE_SHEET_ID,
+        requestBody: {
+          requests: [{
+            setDataValidation: {
+              range: {
+                sheetId,
+                startRowIndex: 1, endRowIndex: 1000,
+                startColumnIndex: 0, endColumnIndex: 1,
+              },
+              rule: {
+                condition: {
+                  type: "ONE_OF_LIST",
+                  values: [
+                    { userEnteredValue: "Pending" },
+                    { userEnteredValue: "Approved" },
+                    { userEnteredValue: "Denied" },
+                  ],
+                },
+                strict: false,
+                showCustomUi: true,
+              },
+            },
+          }],
+        },
       });
     }
   } catch (err) {
@@ -73,9 +107,9 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
       if (!sessionId) continue;
       existingIds.add(sessionId);
       const approved = row[0];
-      if (approved === "TRUE" || approved === true || approved === "YES") {
+      if (approved === "TRUE" || approved === true || approved === "YES" || approved === "Approved") {
         approvedIds.add(sessionId);
-      } else if (approved === "DENIED") {
+      } else if (approved === "DENIED" || approved === "Denied") {
         deniedIds.add(sessionId);
       }
     }
@@ -85,7 +119,7 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
     console.log(`[SessionReview] slug=${slug} menteeName="${menteeName}" pending=${pendingSessions.length} toAppend=${toAppend.length}`);
     if (toAppend.length > 0) {
       const newRows = toAppend.map(m => [
-        "FALSE",
+        "Pending",
         String(slug),
         String(menteeName),
         String(m.date || ""),
