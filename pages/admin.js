@@ -321,35 +321,18 @@ function Dashboard({ data, refreshedAt }) {
           </p>
         </div>
 
-        {/* Summary stat cards — filterable */}
+        {/* Summary stat cards — display only */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 14, marginBottom: 16 }}>
-          {statCards.map(({ label, value, color, bg, desc, statusKey }) => {
-            const isActive = statusKey !== null && statusFilter === statusKey;
-            return (
-              <div
-                key={label}
-                onClick={statusKey ? () => setStatusFilter(isActive ? null : statusKey) : undefined}
-                style={{
-                  background: bg, borderRadius: 12, padding: "18px 22px",
-                  border: isActive ? `2px solid ${color}` : `1px solid ${color}22`,
-                  cursor: statusKey ? "pointer" : "default",
-                  transform: isActive ? "translateY(-2px)" : "none",
-                  boxShadow: isActive ? `0 6px 18px ${color}28` : "none",
-                  transition: "all 0.15s",
-                  userSelect: "none",
-                }}
-              >
-                <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 600, color, opacity: 0.8 }}>{label}</p>
-                <p style={{ margin: "0 0 8px", fontSize: 36, fontWeight: 800, color, lineHeight: 1 }}>{value}</p>
-                <p style={{ margin: 0, fontSize: 11, color, opacity: 0.65, fontStyle: "italic", lineHeight: 1.4 }}>{desc}</p>
-                {statusKey && (
-                  <p style={{ margin: "8px 0 0", fontSize: 10, fontWeight: 700, color, opacity: isActive ? 0.9 : 0.45 }}>
-                    {isActive ? "✕ Clear filter" : "Click to filter ↓"}
-                  </p>
-                )}
-              </div>
-            );
-          })}
+          {statCards.map(({ label, value, color, bg, desc }) => (
+            <div key={label} style={{
+              background: bg, borderRadius: 12, padding: "18px 22px",
+              border: `1px solid ${color}22`,
+            }}>
+              <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 600, color, opacity: 0.8 }}>{label}</p>
+              <p style={{ margin: "0 0 8px", fontSize: 36, fontWeight: 800, color, lineHeight: 1 }}>{value}</p>
+              <p style={{ margin: 0, fontSize: 11, color, opacity: 0.65, fontStyle: "italic", lineHeight: 1.4 }}>{desc}</p>
+            </div>
+          ))}
         </div>
 
         {/* Sessions pending review */}
@@ -372,6 +355,38 @@ function Dashboard({ data, refreshedAt }) {
             </p>
             <p style={{ margin: "2px 0 0", fontSize: 11, color: "#9a7200" }}>pending</p>
           </div>
+        </div>
+
+        {/* Status filter tags */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: "#9b8fcf", marginRight: 2 }}>Filter:</span>
+          {statCards.filter(c => c.statusKey).map(({ label, color, bg, statusKey, value }) => {
+            const isActive = statusFilter === statusKey;
+            return (
+              <button
+                key={statusKey}
+                onClick={() => setStatusFilter(isActive ? null : statusKey)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  padding: "5px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700,
+                  border: isActive ? `2px solid ${color}` : `1.5px solid ${color}55`,
+                  background: isActive ? color : bg,
+                  color: isActive ? "#fff" : color,
+                  cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
+                  userSelect: "none",
+                }}
+              >
+                <span style={{
+                  width: 7, height: 7, borderRadius: "50%",
+                  background: isActive ? "rgba(255,255,255,0.8)" : color,
+                  flexShrink: 0,
+                }} />
+                {label}
+                <span style={{ opacity: isActive ? 0.85 : 0.65, fontSize: 11 }}>({value})</span>
+                {isActive && <span style={{ marginLeft: 2, fontSize: 12 }}>×</span>}
+              </button>
+            );
+          })}
         </div>
 
         {/* Cohort filter tabs + search */}
@@ -446,25 +461,11 @@ function Dashboard({ data, refreshedAt }) {
         )}
 
         {/* Results count */}
-        <p style={{ margin: "0 0 14px", fontSize: 13, color: "#9b8fcf", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          <span>
-            Showing {filtered.length} mentee{filtered.length !== 1 ? "s" : ""}
-            {activeCohort === "Test" ? " (test accounts)" : activeCohort !== "All" ? ` in Cohort ${activeCohort} · ${COHORT_NAMES[activeCohort]}` : ""}
-            {search ? ` matching "${search}"` : ""}
-          </span>
-          {statusFilter && (
-            <span style={{
-              fontSize: 11, fontWeight: 700, padding: "2px 10px", borderRadius: 20,
-              background: STATUS_CONFIG[statusFilter]?.bg,
-              color: STATUS_CONFIG[statusFilter]?.color,
-              border: `1px solid ${STATUS_CONFIG[statusFilter]?.color}44`,
-              cursor: "pointer",
-            }}
-              onClick={() => setStatusFilter(null)}
-            >
-              {STATUS_CONFIG[statusFilter]?.label} ✕
-            </span>
-          )}
+        <p style={{ margin: "0 0 14px", fontSize: 13, color: "#9b8fcf" }}>
+          Showing {filtered.length} mentee{filtered.length !== 1 ? "s" : ""}
+          {activeCohort === "Test" ? " (test accounts)" : activeCohort !== "All" ? ` in Cohort ${activeCohort} · ${COHORT_NAMES[activeCohort]}` : ""}
+          {statusFilter ? ` · ${STATUS_CONFIG[statusFilter]?.label}` : ""}
+          {search ? ` matching "${search}"` : ""}
         </p>
 
         {/* Table — sticky header, scrollable rows */}
