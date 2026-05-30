@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 
 const COHORT_NAMES = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
@@ -117,6 +117,63 @@ function MiniBar({ value, total, color = "#5c4eb5" }) {
       <span style={{ fontSize: 11, color: "#6b6480", whiteSpace: "nowrap" }}>
         {value}/{total}
       </span>
+    </div>
+  );
+}
+
+// ─── Inline note editor ────────────────────────────────────────────────────────
+function AdminNote({ slug, initialValue }) {
+  const [value, setValue] = useState(initialValue || "");
+  const [status, setStatus] = useState("idle");
+  const timerRef = useRef(null);
+
+  const handleChange = (e) => {
+    const newVal = e.target.value;
+    setValue(newVal);
+    setStatus("saving");
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(async () => {
+      try {
+        await fetch("/api/admin-save-note", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slug, note: newVal }),
+        });
+        setStatus("saved");
+        setTimeout(() => setStatus("idle"), 2000);
+      } catch (_) {
+        setStatus("idle");
+      }
+    }, 800);
+  };
+
+  return (
+    <div style={{ position: "relative" }}>
+      <textarea
+        value={value}
+        onChange={handleChange}
+        placeholder="Add notes…"
+        rows={2}
+        style={{
+          width: "100%", padding: "7px 10px", borderRadius: 6,
+          border: "1.5px solid #e8e4f5", background: "#fafafa",
+          fontSize: 12, lineHeight: 1.5, resize: "vertical",
+          fontFamily: "inherit", boxSizing: "border-box", outline: "none",
+          transition: "border-color 0.15s", color: "#1a1733",
+        }}
+        onFocus={(e) => (e.target.style.borderColor = "#5c4eb5")}
+        onBlur={(e) => (e.target.style.borderColor = "#e8e4f5")}
+      />
+      {status !== "idle" && (
+        <span style={{
+          position: "absolute", bottom: 6, right: 8, fontSize: 10,
+          color: status === "saved" ? "#22a366" : "#9b8fcf",
+          fontWeight: 500, pointerEvents: "none",
+          background: "rgba(250,250,250,0.9)", padding: "0 2px",
+        }}>
+          {status === "saving" ? "Syncing…" : "✓ Synced"}
+        </span>
+      )}
     </div>
   );
 }
@@ -302,16 +359,18 @@ function Dashboard({ data, refreshedAt }) {
           {search ? ` matching "${search}"` : ""}
         </p>
 
-        {/* Table */}
-        <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", overflow: "hidden" }}>
+        {/* Table — horizontally scrollable so columns never get squished */}
+        <div style={{ borderRadius: 14, border: "1px solid #e8e4f5", overflow: "hidden" }}>
+          <div style={{ overflowX: "auto" }}>
+          <div style={{ minWidth: 1280 }}>
           {/* Table header */}
           <div style={{
             display: "grid",
-            gridTemplateColumns: "2fr 1.6fr 80px 120px 100px 100px 100px 1fr 1fr",
+            gridTemplateColumns: "200px 180px 72px 130px 110px 100px 100px 140px 220px",
             padding: "12px 20px", background: "#f7f5ff",
             borderBottom: "1px solid #e8e4f5",
           }}>
-            {["Mentee", "Mentor", "Cohort", "Status", "Milestones", "Mentor Sessions", "Edu Sessions", "Flags", "Notes"].map(h => (
+            {["Mentee", "Mentor", "Cohort", "Status", "Milestones", "Sessions", "Edu", "Flags", "Notes"].map(h => (
               <p key={h} style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 {h}
               </p>
@@ -329,8 +388,8 @@ function Dashboard({ data, refreshedAt }) {
               return (
                 <div key={m.slug} style={{
                   display: "grid",
-                  gridTemplateColumns: "2fr 1.6fr 80px 120px 100px 100px 100px 1fr 1fr",
-                  padding: "14px 20px", alignItems: "center",
+                  gridTemplateColumns: "200px 180px 72px 130px 110px 100px 100px 140px 220px",
+                  padding: "14px 20px", alignItems: "start",
                   borderBottom: i < filtered.length - 1 ? "1px solid #f5f3ff" : "none",
                   background: m.status === "at-risk" ? "#fffafa" : m.status === "churned" ? "#fafafa" : "#fff",
                   opacity: m.status === "churned" ? 0.7 : 1,
@@ -422,15 +481,14 @@ function Dashboard({ data, refreshedAt }) {
                     )}
                   </div>
 
-                  {/* Notes */}
-                  <p style={{ margin: 0, fontSize: 12, color: "#4a4060", lineHeight: 1.5,
-                    fontStyle: m.notes ? "normal" : "italic" }}>
-                    {m.notes || <span style={{ color: "#c0b8d8" }}>—</span>}
-                  </p>
+                  {/* Notes — inline editable */}
+                  <AdminNote slug={m.slug} initialValue={m.notes} />
                 </div>
               );
             })
           )}
+          </div>{/* /minWidth */}
+          </div>{/* /overflowX */}
         </div>
 
         {/* Cohort breakdown summary */}
