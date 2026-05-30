@@ -193,8 +193,8 @@ const MILESTONE_FILTERS = [
 function Dashboard({ data, refreshedAt }) {
   const [activeCohort, setActiveCohort] = useState("All");
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState(null);
-  const [milestoneFilter, setMilestoneFilter] = useState(null);
+  const [statusFilters, setStatusFilters] = useState([]);
+  const [milestoneFilters, setMilestoneFilters] = useState([]);
 
   const { mentees = [], pendingReviewCount = 0 } = data;
   const isPreProgram = new Date() < PROGRAM_START;
@@ -202,11 +202,9 @@ function Dashboard({ data, refreshedAt }) {
   // Change cohort → clear filters
   const handleCohortChange = (c) => {
     setActiveCohort(c);
-    setStatusFilter(null);
-    setMilestoneFilter(null);
+    setStatusFilters([]);
+    setMilestoneFilters([]);
   };
-
-  const activeMilestone = MILESTONE_FILTERS.find(f => f.key === milestoneFilter);
 
   const filtered = mentees.filter(m => {
     const cohortMatch = activeCohort === "All"
@@ -216,8 +214,9 @@ function Dashboard({ data, refreshedAt }) {
         : !m.isTest && String(m.cohort) === String(activeCohort);
     const searchMatch = !search ||
       `${m.first} ${m.last} ${m.company}`.toLowerCase().includes(search.toLowerCase());
-    const statusMatch    = !statusFilter    || m.status === statusFilter;
-    const milestoneMatch = !activeMilestone || activeMilestone.test(m);
+    const statusMatch = statusFilters.length === 0 || statusFilters.includes(m.status);
+    const milestoneMatch = milestoneFilters.length === 0 ||
+      MILESTONE_FILTERS.filter(f => milestoneFilters.includes(f.key)).some(f => f.test(m));
     return cohortMatch && searchMatch && statusMatch && milestoneMatch;
   });
 
@@ -452,9 +451,9 @@ function Dashboard({ data, refreshedAt }) {
 
           {/* Status pills */}
           {statCards.filter(c => c.statusKey).map(({ label, pillLabel, color, bg, statusKey }) => {
-            const isActive = statusFilter === statusKey;
+            const isActive = statusFilters.includes(statusKey);
             return (
-              <button key={statusKey} onClick={() => setStatusFilter(isActive ? null : statusKey)} style={{
+              <button key={statusKey} onClick={() => setStatusFilters(prev => isActive ? prev.filter(k => k !== statusKey) : [...prev, statusKey])} style={{
                 display: "flex", alignItems: "center", gap: 5,
                 padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700,
                 border: isActive ? `2px solid ${color}` : `1.5px solid ${color}44`,
@@ -474,9 +473,9 @@ function Dashboard({ data, refreshedAt }) {
 
           {/* Milestone pills */}
           {MILESTONE_FILTERS.map(({ key, label, color, bg }) => {
-            const isActive = milestoneFilter === key;
+            const isActive = milestoneFilters.includes(key);
             return (
-              <button key={key} onClick={() => setMilestoneFilter(isActive ? null : key)} style={{
+              <button key={key} onClick={() => setMilestoneFilters(prev => isActive ? prev.filter(k => k !== key) : [...prev, key])} style={{
                 display: "flex", alignItems: "center", gap: 5,
                 padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700,
                 border: isActive ? `2px solid ${color}` : `1.5px solid ${color}44`,
