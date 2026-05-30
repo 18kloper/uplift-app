@@ -1783,9 +1783,9 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                   <div key={m.id} style={{
                     background: "#fff", borderRadius: 12,
                     border: "1px solid #f5c5c5",
-                    padding: "18px 22px", marginBottom: 12, opacity: 0.85,
+                    padding: "18px 22px", marginBottom: 12, opacity: 0.9,
                   }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <div style={{
                           width: 30, height: 30, borderRadius: "50%",
@@ -1795,26 +1795,66 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                         }}>
                           ✗
                         </div>
-                        <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#6b6480" }}>
+                        <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#1a1733" }}>
                           Submitted Session
                         </p>
                       </div>
-                      <span style={{
-                        background: "#fef0f0", color: "#8a1a1a",
-                        borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700,
-                      }}>
-                        ✗ Denied
-                      </span>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                        <span style={{
+                          background: "#fef0f0", color: "#8a1a1a",
+                          borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700,
+                          border: "1px solid #f5c5c5",
+                        }}>
+                          ✗ Denied
+                        </span>
+                        {m.sixtyMin !== null && (
+                          <span style={{
+                            background: m.sixtyMin ? "#e8f8f0" : "#fff3e0",
+                            color: m.sixtyMin ? "#1a6e42" : "#b35c00",
+                            borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700,
+                          }}>
+                            {m.sixtyMin ? "✓ 60+ min" : "Under 60 min"}
+                          </span>
+                        )}
+                        {!m.notes?.trim() && (
+                          <span style={{
+                            background: "#fef0f0", color: "#c0392b",
+                            borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700,
+                          }}>
+                            No transcript
+                          </span>
+                        )}
+                      </div>
                     </div>
                     {m.date && (
-                      <div style={{ marginBottom: 8 }}>
+                      <div style={{ marginBottom: 10 }}>
                         <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
                           Meeting Date
                         </p>
-                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#6b6480" }}>{fmtDate(m.date)}</p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{fmtDate(m.date)}</p>
                       </div>
                     )}
-                    <p style={{ margin: "8px 0 0", fontSize: 10, color: "#d4b8b8", fontFamily: "monospace", letterSpacing: "0.03em" }}>
+                    {m.notes?.trim() && (
+                      <div style={{ marginBottom: 10 }}>
+                        <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
+                          Meeting Notes
+                        </p>
+                        <p style={{ margin: 0, fontSize: 13, color: "#4a4060", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                          {m.notes}
+                        </p>
+                      </div>
+                    )}
+                    {m.takeaways && (
+                      <div style={{ marginTop: 10 }}>
+                        <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
+                          Key Takeaways
+                        </p>
+                        <p style={{ margin: 0, fontSize: 13, color: "#4a4060", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                          {m.takeaways}
+                        </p>
+                      </div>
+                    )}
+                    <p style={{ margin: "12px 0 0", fontSize: 10, color: "#d4b8b8", fontFamily: "monospace", letterSpacing: "0.03em" }}>
                       ID: {m.id}
                     </p>
                   </div>
