@@ -470,7 +470,7 @@ function Dashboard({ data, refreshedAt }) {
 
         {/* Table — sticky header, scrollable rows */}
         {(() => {
-          const COLS = "2fr 1.6fr 78px 118px 110px 86px 76px 1.3fr 1.9fr";
+          const COLS = "1.3fr 1.2fr 78px 118px 110px 86px 76px 1.3fr 1.9fr";
           return (
             /* overflow: clip clips rounded corners without breaking position:sticky */
             <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", overflow: "clip" }}>
