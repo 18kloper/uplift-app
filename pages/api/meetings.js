@@ -1,6 +1,8 @@
 // GET /api/meetings?slug=pearl-gabel
-// Fetches this mentee's submitted mentor meeting reports from Typeform,
-// then overlays manual verifications from the ManualVerifications sheet tab.
+// Fetches this mentee's submitted mentor meeting reports from Typeform.
+// Pending sessions (not auto-qualified) are synced to the SessionReview
+// sheet tab so admins can check them off. Checked rows are returned as
+// manuallyVerified: true and promoted to the verified stack on the portal.
 
 import { getSheetsClient } from "../../lib/sheets-helper";
 
@@ -14,30 +16,68 @@ const FIELDS  = {
   takeaways:  "0d816bc2-6793-4c72-b28d-5b34f48ce5b7",
 };
 
-// Fetch manually verified session IDs for a given slug from the sheet.
-// Returns a Set of session IDs (Typeform tokens).
-async function getManualVerifications(slug) {
+// SessionReview sheet columns (1-indexed for humans, 0-indexed in rows array):
+// A(0): Approved   B(1): Slug   C(2): Mentee Name   D(3): Date
+// E(4): 60+ Min    F(5): Has Transcript   G(6): Key Takeaways
+// H(7): Session ID   I(8): Submitted At
+
+async function syncSessionReview(slug, menteeName, pendingSessions) {
   const hasSheets =
     process.env.GOOGLE_SHEET_ID &&
     process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
     process.env.GOOGLE_PRIVATE_KEY;
-  if (!hasSheets) return new Set();
+  if (!hasSheets || pendingSessions.length === 0) return new Set();
 
   try {
     const sheets = getSheetsClient();
-    const res = await sheets.spreadsheets.values.get({
+
+    // Read existing rows to find already-tracked IDs and approved ones
+    const readRes = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: "ManualVerifications!A:B",
+      range: "SessionReview!A:I",
     });
-    const rows = res.data.values || [];
-    const ids = new Set();
-    for (const row of rows) {
-      if (row[0]?.trim().toLowerCase() === slug.toLowerCase() && row[1]?.trim()) {
-        ids.add(row[1].trim());
+    const rows = readRes.data.values || [];
+
+    const existingIds = new Set();
+    const approvedIds = new Set();
+    // Start at row 1 to skip header
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      const sessionId = row[7]?.trim();
+      if (!sessionId) continue;
+      existingIds.add(sessionId);
+      const approved = row[0];
+      if (approved === "TRUE" || approved === true || approved === "YES") {
+        approvedIds.add(sessionId);
       }
     }
-    return ids;
-  } catch (_) {
+
+    // Append any pending sessions not yet in the sheet
+    const toAppend = pendingSessions.filter(m => !existingIds.has(m.id));
+    if (toAppend.length > 0) {
+      const newRows = toAppend.map(m => [
+        "FALSE",
+        slug,
+        menteeName,
+        m.date || "",
+        m.sixtyMin === true ? "Yes" : m.sixtyMin === false ? "No" : "",
+        m.notes?.trim() ? "Yes" : "No",
+        m.takeaways || "",
+        m.id,
+        m.submittedAt || "",
+      ]);
+      await sheets.spreadsheets.values.append({
+        spreadsheetId: process.env.GOOGLE_SHEET_ID,
+        range: "SessionReview!A:I",
+        valueInputOption: "RAW",
+        insertDataOption: "INSERT_ROWS",
+        requestBody: { values: newRows },
+      });
+    }
+
+    return approvedIds;
+  } catch (err) {
+    console.error("SessionReview sync failed:", err.message);
     return new Set();
   }
 }
@@ -51,19 +91,17 @@ export default async function handler(req, res) {
   if (!token) return res.status(200).json({ meetings: [] });
 
   try {
-    const [tfResponse, manualIds] = await Promise.all([
-      fetch(
-        `https://api.typeform.com/forms/${FORM_ID}/responses?page_size=1000`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      ),
-      getManualVerifications(slug),
-    ]);
+    const tfResponse = await fetch(
+      `https://api.typeform.com/forms/${FORM_ID}/responses?page_size=1000`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
     const data = await tfResponse.json();
 
     const parts     = slug.split("-");
     const firstName = parts[0].toLowerCase();
     const get = (answers, ref) => answers?.find(a => a.field?.ref === ref);
 
+    let menteeName = "";
     const meetings = [];
     for (const item of data.items || []) {
       const answers  = item.answers || [];
@@ -80,20 +118,38 @@ export default async function handler(req, res) {
         : true;
       if (!hasLastInSlug) continue;
 
+      // Capture display name from first matching response
+      if (!menteeName) {
+        const rawFirst = get(answers, FIELDS.first)?.text?.trim() || "";
+        const rawLast  = get(answers, FIELDS.last)?.text?.trim()  || "";
+        menteeName = `${rawFirst} ${rawLast}`.trim();
+      }
+
       meetings.push({
-        id:              item.token,
-        date:            get(answers, FIELDS.date)?.text || get(answers, FIELDS.date)?.date || "",
-        sixtyMin:        get(answers, FIELDS.sixtyMin)?.boolean ?? null,
-        notes:           get(answers, FIELDS.notes)?.text     || "",
-        takeaways:       get(answers, FIELDS.takeaways)?.text || "",
-        submittedAt:     item.submitted_at,
-        manuallyVerified: manualIds.has(item.token),
+        id:          item.token,
+        date:        get(answers, FIELDS.date)?.text || get(answers, FIELDS.date)?.date || "",
+        sixtyMin:    get(answers, FIELDS.sixtyMin)?.boolean ?? null,
+        notes:       get(answers, FIELDS.notes)?.text     || "",
+        takeaways:   get(answers, FIELDS.takeaways)?.text || "",
+        submittedAt: item.submitted_at,
       });
     }
 
     // Sort newest first
     meetings.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-    return res.status(200).json({ meetings });
+
+    // Separate pending sessions and sync to SessionReview sheet
+    const autoQualifies = m => m.sixtyMin === true && m.notes?.trim();
+    const pending = meetings.filter(m => !autoQualifies(m));
+    const approvedIds = await syncSessionReview(slug, menteeName, pending);
+
+    // Flag any approved sessions as manually verified
+    const result = meetings.map(m => ({
+      ...m,
+      manuallyVerified: approvedIds.has(m.id),
+    }));
+
+    return res.status(200).json({ meetings: result });
   } catch (err) {
     console.error("Meetings fetch failed:", err.message);
     return res.status(200).json({ meetings: [] });
