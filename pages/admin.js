@@ -243,13 +243,6 @@ function Dashboard({ data, refreshedAt }) {
           />
         </div>
 
-        {/* Results count */}
-        <p style={{ margin: "0 0 14px", fontSize: 13, color: "#9b8fcf" }}>
-          Showing {filtered.length} mentee{filtered.length !== 1 ? "s" : ""}
-          {activeCohort === "Test" ? " (test accounts)" : activeCohort !== "All" ? ` in Cohort ${activeCohort} · ${COHORT_NAMES[activeCohort]}` : ""}
-          {search ? ` matching "${search}"` : ""}
-        </p>
-
         {/* Table */}
         <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", overflow: "hidden" }}>
           {/* Table header */}
@@ -366,9 +359,6 @@ function Dashboard({ data, refreshedAt }) {
                 }}>
                   <p style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 700, color: "#1a1733" }}>
                     {cohort} · {COHORT_NAMES[cohort]}
-                  </p>
-                  <p style={{ margin: "0 0 4px", fontSize: 12, color: "#6b6480" }}>
-                    {group.length} mentees
                   </p>
                   {atRisk > 0 && (
                     <p style={{ margin: "0 0 2px", fontSize: 12, color: "#c0392b", fontWeight: 600 }}>

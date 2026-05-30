@@ -2551,7 +2551,7 @@ function ProfileSection({ mentee, slug, cohortMates, allCohortMembers }) {
       <div style={{ borderTop: "2px solid #e8e4f5", paddingTop: 32 }}>
         <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "#1a1733" }}>Browse Other Cohorts</p>
         <p style={{ margin: "0 0 18px", fontSize: 13, color: "#9b8fcf" }}>
-          74 founders across 5 cohorts are building this summer across New Jersey.
+          Explore all 5 cohorts building this summer across New Jersey.
         </p>
 
         {/* Cohort tabs */}
