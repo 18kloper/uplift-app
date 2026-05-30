@@ -2197,9 +2197,53 @@ function MilestoneSection({ milestones }) {
 function CalendarSection() {
   return (
     <div>
-      <p style={{ margin: "0 0 24px", fontSize: 15, color: "#6b6480" }}>
+      <p style={{ margin: "0 0 20px", fontSize: 15, color: "#6b6480" }}>
         All program sessions and milestones across the 9-week Uplift Summer 2026 schedule.
       </p>
+
+      {/* Session format explainer */}
+      <div style={{
+        background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
+        padding: "18px 22px", marginBottom: 20,
+      }}>
+        <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 700, color: "#1a1733" }}>
+          About our session formats
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {[
+            {
+              label: "Expert Insight",
+              color: "#5c4eb5",
+              bg: "#f3f0ff",
+              desc: "A structured fireside chat or lecture centered on a specific topic. These sessions feature a guest speaker and are more presentation-driven — you can submit questions live, but the format is curated to maximize what you take away.",
+            },
+            {
+              label: "Industry Q&A",
+              color: "#2a7fd4",
+              bg: "#f0f7ff",
+              desc: "A more open and conversational session with a guest. There's still some light structure, but the emphasis is on real dialogue — you'll have a genuine opportunity to ask questions, share your perspective, and engage directly with the speaker.",
+            },
+            {
+              label: "Peer Development",
+              color: "#0f9d6e",
+              bg: "#f0faf5",
+              desc: "A hands-on workshop designed to sharpen your professional skills. These sessions may or may not feature a guest, but they always put you and your cohort at the center — expect active participation, discussion, and practical takeaways.",
+            },
+          ].map(({ label, color, bg, desc }) => (
+            <div key={label} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+              <span style={{
+                background: bg, color, borderRadius: 6,
+                padding: "3px 10px", fontSize: 11, fontWeight: 700,
+                whiteSpace: "nowrap", marginTop: 2, flexShrink: 0,
+              }}>
+                {label}
+              </span>
+              <p style={{ margin: 0, fontSize: 13, color: "#4a4060", lineHeight: 1.65 }}>{desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {WEEKS.map((week) => (
         <div key={week.num} style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
@@ -2217,14 +2261,33 @@ function CalendarSection() {
           {week.events && week.events.length > 0 ? (
             <div style={{ borderTop: "1px solid #f5f3ff", paddingTop: 10 }}>
               {week.events.map((ev, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: i < week.events.length - 1 ? "1px solid #fafafa" : "none" }}>
-                  <div style={{ width: 15, height: 15, border: "1.5px solid #c0b8d8", borderRadius: 3, flexShrink: 0 }} />
-                  <span style={{ fontWeight: 600, fontSize: 13, color: "#1a1733" }}>{ev.name}</span>
-                  {ev.required && (
-                    <span style={{ background: "#fff3e0", color: "#b35c00", borderRadius: 4, padding: "1px 6px", fontSize: 10, fontWeight: 700 }}>REQUIRED</span>
-                  )}
-                  <span style={{ fontSize: 12, color: "#9b8fcf" }}>{ev.day}{ev.time ? `, ${ev.time}` : ""} · {ev.format}</span>
-                  <a href={ev.url || "#"} target="_blank" rel="noopener noreferrer" style={{ marginLeft: "auto", fontSize: 12, color: "#2a7fd4", fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>Register on Luma →</a>
+                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "9px 0", borderBottom: i < week.events.length - 1 ? "1px solid #fafafa" : "none" }}>
+                  <div style={{ width: 15, height: 15, border: "1.5px solid #c0b8d8", borderRadius: 3, flexShrink: 0, marginTop: 2 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+                      <span style={{ fontWeight: 600, fontSize: 13, color: "#1a1733" }}>{ev.name}</span>
+                      {ev.required && (
+                        <span style={{ background: "#fff3e0", color: "#b35c00", borderRadius: 4, padding: "1px 6px", fontSize: 10, fontWeight: 700 }}>REQUIRED</span>
+                      )}
+                    </div>
+                    <p style={{ margin: "3px 0 0", fontSize: 12, color: "#9b8fcf" }}>
+                      {ev.day}{ev.time ? `, ${ev.time}` : ""} · {ev.format}
+                    </p>
+                    {ev.speaker && (
+                      <p style={{ margin: "3px 0 0", fontSize: 12, color: "#6b6480" }}>
+                        Featuring:{" "}
+                        {ev.speaker.linkedin ? (
+                          <a href={ev.speaker.linkedin} target="_blank" rel="noopener noreferrer"
+                            style={{ color: "#5c4eb5", fontWeight: 600, textDecoration: "none" }}>
+                            {ev.speaker.name} ↗
+                          </a>
+                        ) : (
+                          <span style={{ fontWeight: 600, color: "#1a1733" }}>{ev.speaker.name}</span>
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  <a href={ev.url || "#"} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#2a7fd4", fontWeight: 600, textDecoration: "none", flexShrink: 0, marginTop: 2 }}>Register on Luma →</a>
                 </div>
               ))}
             </div>
@@ -2645,9 +2708,30 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
                 Uplift Summer 2026
               </div>
             </div>
-            <h1 style={{ margin: "0 0 4px", fontSize: 28, fontWeight: 700 }}>
-              {mentee.first} {mentee.last}
-            </h1>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 4 }}>
+              {mentee.photo ? (
+                <img
+                  src={mentee.photo}
+                  alt={mentee.first}
+                  style={{
+                    width: 64, height: 64, borderRadius: "50%", objectFit: "cover",
+                    border: "3px solid rgba(255,255,255,0.4)", flexShrink: 0,
+                  }}
+                />
+              ) : (
+                <div style={{
+                  width: 64, height: 64, borderRadius: "50%", flexShrink: 0,
+                  background: "rgba(255,255,255,0.2)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 22, fontWeight: 700,
+                }}>
+                  {mentee.first[0]}{mentee.last[0]}
+                </div>
+              )}
+              <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700 }}>
+                {mentee.first} {mentee.last}
+              </h1>
+            </div>
             <p style={{ margin: "0 0 16px", opacity: 0.8, fontSize: 15 }}>
               {mentee.company} · {mentee.stage} · {mentee.industry}
             </p>
