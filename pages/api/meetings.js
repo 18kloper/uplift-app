@@ -21,6 +21,28 @@ const FIELDS  = {
 // E(4): 60+ Min    F(5): Has Transcript   G(6): Key Takeaways
 // H(7): Session ID   I(8): Submitted At
 
+async function ensureSessionReviewTab(sheets) {
+  // Create the SessionReview tab + header row if it doesn't exist yet
+  try {
+    const meta = await sheets.spreadsheets.get({ spreadsheetId: process.env.GOOGLE_SHEET_ID });
+    const exists = meta.data.sheets?.some(s => s.properties.title === "SessionReview");
+    if (!exists) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: process.env.GOOGLE_SHEET_ID,
+        requestBody: { requests: [{ addSheet: { properties: { title: "SessionReview" } } }] },
+      });
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: process.env.GOOGLE_SHEET_ID,
+        range: "SessionReview!A1:I1",
+        valueInputOption: "RAW",
+        requestBody: { values: [["Approved", "Slug", "Mentee Name", "Date", "60+ Min", "Has Transcript", "Key Takeaways", "Session ID", "Submitted At"]] },
+      });
+    }
+  } catch (err) {
+    console.error("ensureSessionReviewTab failed:", err.message);
+  }
+}
+
 async function syncSessionReview(slug, menteeName, pendingSessions) {
   const hasSheets =
     process.env.GOOGLE_SHEET_ID &&
@@ -30,6 +52,9 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
 
   try {
     const sheets = getSheetsClient();
+
+    // Auto-create tab + headers if needed
+    await ensureSessionReviewTab(sheets);
 
     // Read existing rows to find already-tracked IDs and approved ones
     const readRes = await sheets.spreadsheets.values.get({
