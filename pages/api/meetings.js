@@ -52,7 +52,7 @@ export default async function handler(req, res) {
 
       meetings.push({
         id:         item.token,
-        date:       get(answers, FIELDS.date)?.text      || "",
+        date:       get(answers, FIELDS.date)?.text || get(answers, FIELDS.date)?.date || "",
         sixtyMin:   get(answers, FIELDS.sixtyMin)?.boolean ?? null,
         notes:      get(answers, FIELDS.notes)?.text     || "",
         takeaways:  get(answers, FIELDS.takeaways)?.text || "",

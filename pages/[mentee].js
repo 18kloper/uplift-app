@@ -1386,6 +1386,17 @@ function WeekReflection({ weekNum, slug, prompts }) {
 }
 
 // ─── Meetings tab ─────────────────────────────────────────────────────────────
+function fmtDate(raw) {
+  if (!raw) return "";
+  // Handle YYYY-MM-DD from Typeform date fields
+  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) {
+    const d = new Date(Date.UTC(+iso[1], +iso[2] - 1, +iso[3]));
+    return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
+  }
+  return raw;
+}
+
 function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
   const [meetings, setMeetings] = useState(null);
 
@@ -1620,7 +1631,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                       <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
                         Confirmed Date
                       </p>
-                      <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{m.date}</p>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{fmtDate(m.date)}</p>
                     </div>
                   )}
                   <div>
@@ -1714,7 +1725,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                         <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
                           Meeting Date
                         </p>
-                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{m.date}</p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{fmtDate(m.date)}</p>
                       </div>
                     )}
                     {m.takeaways && (
