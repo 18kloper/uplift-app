@@ -25,7 +25,7 @@ const WEEKS = [
     type: "mentor-meeting",
     submitLabel: "Submit your 1st mentor meeting",
     events: [
-      { name: "Expert Insight — Edison", day: "Mon Jun 8", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/vxnzwket", speaker: { name: "Aerica Shiso Banks", linkedin: null } },
+      { name: "Expert Insight — Edison", day: "Mon Jun 8", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/vxnzwket", speaker: { name: "Aerica Shimizu Banks", linkedin: "https://www.linkedin.com/in/aericashimizubanks/" } },
       { name: "Industry Q&A — Edison", day: "Fri Jun 12", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/0dh6bt4o" },
     ],
   },
