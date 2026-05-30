@@ -369,54 +369,6 @@ function Dashboard({ data, refreshedAt }) {
           </span>
         </div>
 
-        {/* Filter rows */}
-        {[
-          {
-            rowLabel: "Status",
-            pills: statCards.filter(c => c.statusKey).map(({ label, color, bg, statusKey, value }) => ({
-              key: statusKey, label, color, bg,
-              isActive: statusFilter === statusKey,
-              count: value,
-              onToggle: () => setStatusFilter(statusFilter === statusKey ? null : statusKey),
-            })),
-          },
-          {
-            rowLabel: "Milestone",
-            pills: MILESTONE_FILTERS.map(({ key, label, color, bg }) => ({
-              key, label, color, bg,
-              isActive: milestoneFilter === key,
-              count: null,
-              onToggle: () => setMilestoneFilter(milestoneFilter === key ? null : key),
-            })),
-          },
-        ].map(({ rowLabel, pills }) => (
-          <div key={rowLabel} style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "#b0a8cc", textTransform: "uppercase", letterSpacing: "0.06em", minWidth: 62, flexShrink: 0 }}>
-              {rowLabel}:
-            </span>
-            {pills.map(({ key, label, color, bg, isActive, count, onToggle }) => (
-              <button
-                key={key}
-                onClick={onToggle}
-                style={{
-                  display: "flex", alignItems: "center", gap: 5,
-                  padding: "4px 11px", borderRadius: 20, fontSize: 12, fontWeight: 700,
-                  border: isActive ? `2px solid ${color}` : `1.5px solid ${color}55`,
-                  background: isActive ? color : bg,
-                  color: isActive ? "#fff" : color,
-                  cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
-                  userSelect: "none",
-                }}
-              >
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: isActive ? "rgba(255,255,255,0.8)" : color, flexShrink: 0 }} />
-                {label}
-                {count !== null && <span style={{ opacity: isActive ? 0.85 : 0.6, fontSize: 11 }}>({count})</span>}
-                {isActive && <span style={{ marginLeft: 1, fontSize: 12 }}>×</span>}
-              </button>
-            ))}
-          </div>
-        ))}
-
         {/* Cohort filter tabs + search */}
         <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -488,14 +440,56 @@ function Dashboard({ data, refreshedAt }) {
           </div>
         )}
 
-        {/* Results count */}
-        <p style={{ margin: "0 0 14px", fontSize: 13, color: "#9b8fcf" }}>
-          Showing {filtered.length} mentee{filtered.length !== 1 ? "s" : ""}
-          {activeCohort === "Test" ? " (test accounts)" : activeCohort !== "All" ? ` in Cohort ${activeCohort} · ${COHORT_NAMES[activeCohort]}` : ""}
-          {statusFilter ? ` · ${STATUS_CONFIG[statusFilter]?.label}` : ""}
-          {activeMilestone ? ` · ${activeMilestone.label}` : ""}
-          {search ? ` matching "${search}"` : ""}
-        </p>
+        {/* Results count + inline filters */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 13, color: "#9b8fcf", flexShrink: 0 }}>
+            Showing {filtered.length} mentee{filtered.length !== 1 ? "s" : ""}
+            {activeCohort === "Test" ? " (test accounts)" : activeCohort !== "All" ? ` in Cohort ${activeCohort} · ${COHORT_NAMES[activeCohort]}` : ""}
+            {search ? ` matching "${search}"` : ""}
+          </span>
+
+          {/* Status pills */}
+          {statCards.filter(c => c.statusKey).map(({ label, color, bg, statusKey, value }) => {
+            const isActive = statusFilter === statusKey;
+            return (
+              <button key={statusKey} onClick={() => setStatusFilter(isActive ? null : statusKey)} style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+                border: isActive ? `2px solid ${color}` : `1.5px solid ${color}44`,
+                background: isActive ? color : bg,
+                color: isActive ? "#fff" : color,
+                cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s", userSelect: "none",
+              }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: isActive ? "rgba(255,255,255,0.8)" : color, flexShrink: 0 }} />
+                {label}
+                <span style={{ opacity: isActive ? 0.85 : 0.6, fontSize: 10 }}>({value})</span>
+                {isActive && <span style={{ marginLeft: 1 }}>×</span>}
+              </button>
+            );
+          })}
+
+          {/* Divider */}
+          <span style={{ width: 1, height: 18, background: "#e0daf0", flexShrink: 0 }} />
+
+          {/* Milestone pills */}
+          {MILESTONE_FILTERS.map(({ key, label, color, bg }) => {
+            const isActive = milestoneFilter === key;
+            return (
+              <button key={key} onClick={() => setMilestoneFilter(isActive ? null : key)} style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+                border: isActive ? `2px solid ${color}` : `1.5px solid ${color}44`,
+                background: isActive ? color : bg,
+                color: isActive ? "#fff" : color,
+                cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s", userSelect: "none",
+              }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: isActive ? "rgba(255,255,255,0.8)" : color, flexShrink: 0 }} />
+                {label}
+                {isActive && <span style={{ marginLeft: 1 }}>×</span>}
+              </button>
+            );
+          })}
+        </div>
 
         {/* Table — sticky header, scrollable rows */}
         {(() => {
