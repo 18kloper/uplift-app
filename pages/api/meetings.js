@@ -92,15 +92,8 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
         String(m.id || ""),
         String(m.submittedAt || ""),
       ]);
-      console.log(`[SessionReview] first row preview:`, JSON.stringify(newRows[0]));
-      // TODO: re-enable write after confirming row format is correct
-      // await sheets.spreadsheets.values.append({
-      //   spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      //   range: "SessionReview!A:I",
-      //   valueInputOption: "USER_ENTERED",
-      //   insertDataOption: "INSERT_ROWS",
-      //   requestBody: { values: newRows },
-      // });
+      // Temporarily return debug info instead of writing
+      return { approvedIds, debugRows: newRows };
     }
 
     return approvedIds;
@@ -169,7 +162,9 @@ export default async function handler(req, res) {
     // Separate pending sessions and sync to SessionReview sheet
     const autoQualifies = m => m.sixtyMin === true && m.notes?.trim();
     const pending = meetings.filter(m => !autoQualifies(m));
-    const approvedIds = await syncSessionReview(slug, menteeName, pending);
+    const syncResult = await syncSessionReview(slug, menteeName, pending);
+    const approvedIds = syncResult instanceof Set ? syncResult : syncResult.approvedIds;
+    const debugRows  = syncResult instanceof Set ? undefined : syncResult.debugRows;
 
     // Flag any approved sessions as manually verified
     const result = meetings.map(m => ({
@@ -177,7 +172,7 @@ export default async function handler(req, res) {
       manuallyVerified: approvedIds.has(m.id),
     }));
 
-    return res.status(200).json({ meetings: result });
+    return res.status(200).json({ meetings: result, ...(debugRows ? { debugRows } : {}) });
   } catch (err) {
     console.error("Meetings fetch failed:", err.message);
     return res.status(200).json({ meetings: [] });
