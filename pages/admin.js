@@ -602,6 +602,57 @@ function Dashboard({ data, refreshedAt }) {
           );
         })()}
 
+        {/* Cohort breakdown grid — only on All Cohorts view */}
+        {activeCohort === "All" && (
+          <div style={{ marginTop: 32 }}>
+            <p style={{ margin: "0 0 14px", fontSize: 15, fontWeight: 700, color: "#1a1733" }}>
+              Cohort Breakdown
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
+              {COHORTS.slice(1).filter(c => c !== "Test").map(cohort => {
+                const group  = mentees.filter(m => !m.isTest && String(m.cohort) === String(cohort));
+                const active = group.filter(m => m.status !== "churned");
+                const atRisk    = active.filter(m => m.status === "at-risk").length;
+                const attention = active.filter(m => m.status === "needs-attention").length;
+                const onTrack   = active.filter(m => m.status === "on-track").length;
+                const churned   = group.filter(m => m.status === "churned").length;
+                const avgMilestones = active.length
+                  ? Math.round(active.reduce((s, m) => s + m.milestoneCount, 0) / active.length)
+                  : 0;
+                return (
+                  <div key={cohort} style={{
+                    background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "16px 18px",
+                  }}>
+                    <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 700, color: "#1a1733" }}>
+                      {cohort} · {COHORT_NAMES[cohort]}
+                    </p>
+                    <p style={{ margin: "0 0 10px", fontSize: 12, color: "#6b6480" }}>
+                      {active.length} active{churned > 0 ? `, ${churned} churned` : ""}
+                    </p>
+                    {atRisk > 0 && (
+                      <p style={{ margin: "0 0 2px", fontSize: 12, color: "#c0392b", fontWeight: 600 }}>
+                        🔴 {atRisk} at risk
+                      </p>
+                    )}
+                    {attention > 0 && (
+                      <p style={{ margin: "0 0 2px", fontSize: 12, color: "#b35c00", fontWeight: 600 }}>
+                        🟡 {attention} needs attention
+                      </p>
+                    )}
+                    <p style={{ margin: "0 0 8px", fontSize: 12, color: "#1a6e42", fontWeight: 600 }}>
+                      🟢 {onTrack} on track
+                    </p>
+                    <div style={{ borderTop: "1px solid #f0ecff", paddingTop: 8 }}>
+                      <p style={{ margin: "0 0 4px", fontSize: 11, color: "#9b8fcf" }}>Avg milestones (active)</p>
+                      <MiniBar value={avgMilestones} total={13} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
