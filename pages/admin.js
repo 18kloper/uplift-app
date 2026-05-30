@@ -181,12 +181,12 @@ function AdminNote({ slug, initialValue }) {
 const PROGRAM_START = new Date("2026-06-01");
 
 const MILESTONE_FILTERS = [
-  { key: "mentor1",    label: "1 Mentor Session",     color: "#5c4eb5", bg: "#f0ecff", test: m => m.mentorCount >= 1 },
-  { key: "mentor2",    label: "2 Mentor Sessions",    color: "#5c4eb5", bg: "#f0ecff", test: m => m.mentorCount >= 2 },
-  { key: "edu1",       label: "1 Edu Session",        color: "#2a7fd4", bg: "#e8f4ff", test: m => m.eduCount >= 1 },
-  { key: "edu2",       label: "2 Edu Sessions",       color: "#2a7fd4", bg: "#e8f4ff", test: m => m.eduCount >= 2 },
-  { key: "edu3",       label: "3 Edu Sessions",       color: "#2a7fd4", bg: "#e8f4ff", test: m => m.eduCount >= 3 },
-  { key: "onboarding", label: "Attended Onboarding",  color: "#1a6e42", bg: "#e8f8f0", test: m => m.milestones?.onboarding === true },
+  { key: "mentor1", label: "1 Mentor Session",  color: "#5c4eb5", bg: "#f0ecff", test: m => m.mentorCount >= 1 },
+  { key: "mentor2", label: "2 Mentor Sessions", color: "#5c4eb5", bg: "#f0ecff", test: m => m.mentorCount >= 2 },
+  { key: "mentor3", label: "3 Mentor Sessions", color: "#5c4eb5", bg: "#f0ecff", test: m => m.mentorCount >= 3 },
+  { key: "edu1",    label: "1 Edu Session",     color: "#2a7fd4", bg: "#e8f4ff", test: m => m.eduCount >= 1 },
+  { key: "edu2",    label: "2 Edu Sessions",    color: "#2a7fd4", bg: "#e8f4ff", test: m => m.eduCount >= 2 },
+  { key: "edu3",    label: "3 Edu Sessions",    color: "#2a7fd4", bg: "#e8f4ff", test: m => m.eduCount >= 3 },
 ];
 
 // ─── Main dashboard ────────────────────────────────────────────────────────────
@@ -442,6 +442,7 @@ function Dashboard({ data, refreshedAt }) {
 
         {/* Results count + inline filters */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#b0a8cc", textTransform: "uppercase", letterSpacing: "0.07em", flexShrink: 0 }}>Filter:</span>
           <span style={{ fontSize: 13, color: "#9b8fcf", flexShrink: 0 }}>
             Showing {filtered.length} mentee{filtered.length !== 1 ? "s" : ""}
             {activeCohort === "Test" ? " (test accounts)" : activeCohort !== "All" ? ` in Cohort ${activeCohort} · ${COHORT_NAMES[activeCohort]}` : ""}
