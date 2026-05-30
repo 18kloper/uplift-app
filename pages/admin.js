@@ -442,12 +442,12 @@ function Dashboard({ data, refreshedAt }) {
 
         {/* Results count + inline filters */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#b0a8cc", textTransform: "uppercase", letterSpacing: "0.07em", flexShrink: 0 }}>Filter:</span>
           <span style={{ fontSize: 13, color: "#9b8fcf", flexShrink: 0 }}>
             Showing {filtered.length} mentee{filtered.length !== 1 ? "s" : ""}
             {activeCohort === "Test" ? " (test accounts)" : activeCohort !== "All" ? ` in Cohort ${activeCohort} · ${COHORT_NAMES[activeCohort]}` : ""}
             {search ? ` matching "${search}"` : ""}
           </span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#b0a8cc", textTransform: "uppercase", letterSpacing: "0.07em", flexShrink: 0 }}>Filter:</span>
 
           {/* Status pills */}
           {statCards.filter(c => c.statusKey).map(({ label, color, bg, statusKey, value }) => {
