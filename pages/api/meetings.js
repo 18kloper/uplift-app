@@ -3,8 +3,13 @@
 // Pending sessions (not auto-qualified) are synced to the SessionReview
 // sheet tab so admins can check them off. Checked rows are returned as
 // manuallyVerified: true and promoted to the verified stack on the portal.
+//
+// After resolving approved/denied sessions, the API automatically syncs
+// mentorSession1/2/3 milestones to the Dashboard tab so approvals in the
+// SessionReview sheet are immediately reflected without requiring the mentee
+// to reload their portal.
 
-import { getSheetsClient } from "../../lib/sheets-helper";
+import { getSheetsClient, MILESTONE_KEYS } from "../../lib/sheets-helper";
 
 const FORM_ID = "e0L62296";
 const FIELDS  = {
@@ -145,6 +150,68 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
   }
 }
 
+// Dashboard columns: A(0)=Slug, B–F = name/cohort/company/email/mentorEmail,
+// then MILESTONE_KEYS starting at column G (index 6).
+const MILESTONE_COL_OFFSET = 6; // col G
+
+function colLetter(idx) {
+  let s = "";
+  let n = idx;
+  while (n >= 0) { s = String.fromCharCode((n % 26) + 65) + s; n = Math.floor(n / 26) - 1; }
+  return s;
+}
+
+async function autoSyncMentorMilestones(slug, qualifyingCount) {
+  const hasSheets =
+    process.env.GOOGLE_SHEET_ID &&
+    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
+    process.env.GOOGLE_PRIVATE_KEY;
+  if (!hasSheets) return;
+
+  try {
+    const sheets  = getSheetsClient();
+    const sheetId = process.env.GOOGLE_SHEET_ID;
+
+    // Column indices for the three session milestones (0-based)
+    const keys = ["mentorSession1", "mentorSession2", "mentorSession3"];
+    const colIdxs = keys.map(k => MILESTONE_COL_OFFSET + MILESTONE_KEYS.indexOf(k));
+
+    // Read slug column + the three milestone columns in one call
+    const maxCol = Math.max(...colIdxs);
+    const range  = `Dashboard!A:${colLetter(maxCol)}`;
+    const res    = await sheets.spreadsheets.values.get({ spreadsheetId: sheetId, range });
+    const rows   = res.data.values || [];
+
+    // Locate this mentee's row (1-based sheet row)
+    const rowIdx = rows.findIndex((r, i) => i > 0 && r[0] === slug);
+    if (rowIdx === -1) return; // slug not in Dashboard — nothing to do
+    const sheetRow = rowIdx + 1;
+    const row      = rows[rowIdx];
+
+    // Build batch updates for any milestone that should now be TRUE but isn't
+    const updates = keys
+      .map((key, i) => ({ key, colIdx: colIdxs[i], shouldBeTrue: qualifyingCount >= i + 1 }))
+      .filter(({ shouldBeTrue, colIdx }) => {
+        const current = row[colIdx];
+        return shouldBeTrue && current !== "TRUE" && current !== true;
+      })
+      .map(({ colIdx }) => ({
+        range: `Dashboard!${colLetter(colIdx)}${sheetRow}`,
+        values: [["TRUE"]],
+      }));
+
+    if (updates.length === 0) return;
+
+    await sheets.spreadsheets.values.batchUpdate({
+      spreadsheetId: sheetId,
+      requestBody: { valueInputOption: "USER_ENTERED", data: updates },
+    });
+    console.log(`[autoSyncMentorMilestones] slug=${slug} updated ${updates.map(u => u.range).join(", ")}`);
+  } catch (err) {
+    console.error("autoSyncMentorMilestones failed:", err.message);
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
   const { slug } = req.query;
@@ -212,6 +279,14 @@ export default async function handler(req, res) {
       manuallyVerified: approvedIds.has(m.id),
       denied: deniedIds.has(m.id),
     }));
+
+    // Auto-sync mentor session milestones to Dashboard whenever sessions are loaded.
+    // This ensures a manual approval in SessionReview is immediately reflected
+    // without waiting for the mentee to trigger an update from their portal.
+    const qualifyingCount = result.filter(m =>
+      !m.denied && ((m.sixtyMin === true && m.notes?.trim()) || m.manuallyVerified)
+    ).length;
+    await autoSyncMentorMilestones(slug, qualifyingCount);
 
     return res.status(200).json({ meetings: result });
   } catch (err) {
