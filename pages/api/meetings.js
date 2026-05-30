@@ -48,7 +48,7 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
     process.env.GOOGLE_SHEET_ID &&
     process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
     process.env.GOOGLE_PRIVATE_KEY;
-  if (!hasSheets || pendingSessions.length === 0) return new Set();
+  if (!hasSheets || pendingSessions.length === 0) return { approvedIds: new Set(), deniedIds: new Set() };
 
   try {
     const sheets = getSheetsClient();
@@ -65,6 +65,7 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
 
     const existingIds = new Set();
     const approvedIds = new Set();
+    const deniedIds   = new Set();
     // Start at row 1 to skip header
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
@@ -74,6 +75,8 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
       const approved = row[0];
       if (approved === "TRUE" || approved === true || approved === "YES") {
         approvedIds.add(sessionId);
+      } else if (approved === "DENIED") {
+        deniedIds.add(sessionId);
       }
     }
 
@@ -101,10 +104,10 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
       });
     }
 
-    return approvedIds;
+    return { approvedIds, deniedIds };
   } catch (err) {
     console.error("SessionReview sync failed:", err.message);
-    return new Set();
+    return { approvedIds: new Set(), deniedIds: new Set() };
   }
 }
 
@@ -167,12 +170,13 @@ export default async function handler(req, res) {
     // Separate pending sessions and sync to SessionReview sheet
     const autoQualifies = m => m.sixtyMin === true && m.notes?.trim();
     const pending = meetings.filter(m => !autoQualifies(m));
-    const approvedIds = await syncSessionReview(slug, menteeName, pending);
+    const { approvedIds, deniedIds } = await syncSessionReview(slug, menteeName, pending);
 
-    // Flag any approved sessions as manually verified
+    // Flag any approved or denied sessions
     const result = meetings.map(m => ({
       ...m,
       manuallyVerified: approvedIds.has(m.id),
+      denied: deniedIds.has(m.id),
     }));
 
     return res.status(200).json({ meetings: result });

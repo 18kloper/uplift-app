@@ -5,9 +5,10 @@ const COHORT_NAMES = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5:
 const COHORTS = ["All", 1, 2, 3, 4, 5, "Test"]; // filter by number, display with name
 
 const STATUS_CONFIG = {
-  "at-risk":         { label: "At Risk",          color: "#c0392b", bg: "#fef0f0", dot: "#e74c3c" },
-  "needs-attention": { label: "Needs Attention",  color: "#b35c00", bg: "#fff3e0", dot: "#f39c12" },
-  "on-track":        { label: "On Track",          color: "#1a6e42", bg: "#e8f8f0", dot: "#27ae60" },
+  "at-risk":         { label: "At Risk",              color: "#c0392b", bg: "#fef0f0", dot: "#e74c3c" },
+  "needs-attention": { label: "Needs Attention",      color: "#b35c00", bg: "#fff3e0", dot: "#f39c12" },
+  "on-track":        { label: "On Track",              color: "#1a6e42", bg: "#e8f8f0", dot: "#27ae60" },
+  "churned":         { label: "Churned / Dropped Out", color: "#6b6480", bg: "#f0eef8", dot: "#9b8fcf" },
 };
 
 // ─── Password gate ─────────────────────────────────────────────────────────────
@@ -125,7 +126,7 @@ function Dashboard({ data, refreshedAt }) {
   const [activeCohort, setActiveCohort] = useState("All");
   const [search, setSearch] = useState("");
 
-  const { mentees = [] } = data;
+  const { mentees = [], pendingReviewCount = 0 } = data;
 
   const filtered = mentees.filter(m => {
     const cohortMatch = activeCohort === "All"
@@ -138,12 +139,14 @@ function Dashboard({ data, refreshedAt }) {
     return cohortMatch && searchMatch;
   });
 
-  const realMentees = mentees.filter(m => !m.isTest);
+  const realMentees  = mentees.filter(m => !m.isTest);
+  const activeMentees = realMentees.filter(m => m.status !== "churned");
   const counts = {
     total:     realMentees.length,
-    atRisk:    realMentees.filter(m => m.status === "at-risk").length,
-    attention: realMentees.filter(m => m.status === "needs-attention").length,
-    onTrack:   realMentees.filter(m => m.status === "on-track").length,
+    atRisk:    activeMentees.filter(m => m.status === "at-risk").length,
+    attention: activeMentees.filter(m => m.status === "needs-attention").length,
+    onTrack:   activeMentees.filter(m => m.status === "on-track").length,
+    churned:   realMentees.filter(m => m.status === "churned").length,
   };
 
   const cohortCounts = {};
@@ -193,21 +196,70 @@ function Dashboard({ data, refreshedAt }) {
         </div>
 
         {/* Summary stat cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 28 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 14, marginBottom: 16 }}>
           {[
-            { label: "Total Mentees",    value: counts.total,     color: "#5c4eb5", bg: "#f3f0ff" },
-            { label: "At Risk",          value: counts.atRisk,    color: "#c0392b", bg: "#fef0f0" },
-            { label: "Needs Attention",  value: counts.attention, color: "#b35c00", bg: "#fff3e0" },
-            { label: "On Track",         value: counts.onTrack,   color: "#1a6e42", bg: "#e8f8f0" },
-          ].map(({ label, value, color, bg }) => (
+            {
+              label: "Total Mentees",
+              value: counts.total,
+              color: "#5c4eb5", bg: "#f3f0ff",
+              desc: "All program participants excluding test accounts",
+            },
+            {
+              label: "At Risk",
+              value: counts.atRisk,
+              color: "#c0392b", bg: "#fef0f0",
+              desc: "No mentor session logged past the Week 4 removal deadline, or critical requirements unmet",
+            },
+            {
+              label: "Needs Attention",
+              value: counts.attention,
+              color: "#b35c00", bg: "#fff3e0",
+              desc: "Behind on mentor sessions or missing required milestones for their current week",
+            },
+            {
+              label: "On Track",
+              value: counts.onTrack,
+              color: "#1a6e42", bg: "#e8f8f0",
+              desc: "Meeting all program requirements on schedule",
+            },
+            {
+              label: "Churned / Dropped Out",
+              value: counts.churned,
+              color: "#6b6480", bg: "#f0eef8",
+              desc: "Marked as having left or dropped out of the program — set \"Churned\" = TRUE in the Dashboard sheet",
+            },
+          ].map(({ label, value, color, bg, desc }) => (
             <div key={label} style={{
               background: bg, borderRadius: 12, padding: "18px 22px",
               border: `1px solid ${color}22`,
             }}>
               <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 600, color, opacity: 0.8 }}>{label}</p>
-              <p style={{ margin: 0, fontSize: 36, fontWeight: 800, color, lineHeight: 1 }}>{value}</p>
+              <p style={{ margin: "0 0 8px", fontSize: 36, fontWeight: 800, color, lineHeight: 1 }}>{value}</p>
+              <p style={{ margin: 0, fontSize: 11, color, opacity: 0.65, fontStyle: "italic", lineHeight: 1.4 }}>{desc}</p>
             </div>
           ))}
+        </div>
+
+        {/* Sessions pending internal review card */}
+        <div style={{
+          background: "#fffbeb", borderRadius: 12, border: "1px solid #f5d97a",
+          padding: "16px 22px", marginBottom: 28,
+          display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap",
+        }}>
+          <div style={{ flex: 1, minWidth: 180 }}>
+            <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#7a5c00" }}>
+              🕐 Mentor Sessions Pending Internal Review
+            </p>
+            <p style={{ margin: 0, fontSize: 12, color: "#9a7200", fontStyle: "italic" }}>
+              Sessions submitted via Typeform that don't auto-qualify (under 60 min or no transcript) — awaiting admin approval in the SessionReview sheet tab.
+            </p>
+          </div>
+          <div style={{ textAlign: "right", flexShrink: 0 }}>
+            <p style={{ margin: 0, fontSize: 40, fontWeight: 800, color: "#b35c00", lineHeight: 1 }}>
+              {pendingReviewCount}
+            </p>
+            <p style={{ margin: "2px 0 0", fontSize: 11, color: "#9a7200" }}>pending</p>
+          </div>
         </div>
 
         {/* Cohort filter + search */}
@@ -255,11 +307,11 @@ function Dashboard({ data, refreshedAt }) {
           {/* Table header */}
           <div style={{
             display: "grid",
-            gridTemplateColumns: "2fr 90px 130px 110px 110px 110px 1fr",
+            gridTemplateColumns: "2fr 90px 130px 110px 110px 110px 1fr 1.5fr",
             padding: "12px 20px", background: "#f7f5ff",
             borderBottom: "1px solid #e8e4f5",
           }}>
-            {["Mentee", "Cohort", "Status", "Milestones", "Mentor Sessions", "Edu Sessions", "Flags"].map(h => (
+            {["Mentee", "Cohort", "Status", "Milestones", "Mentor Sessions", "Edu Sessions", "Flags", "Notes"].map(h => (
               <p key={h} style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 {h}
               </p>
@@ -273,19 +325,21 @@ function Dashboard({ data, refreshedAt }) {
             </div>
           ) : (
             filtered.map((m, i) => {
-              const sc = STATUS_CONFIG[m.status];
+              const sc = STATUS_CONFIG[m.status] || STATUS_CONFIG["on-track"];
               return (
                 <div key={m.slug} style={{
                   display: "grid",
-                  gridTemplateColumns: "2fr 90px 130px 110px 110px 110px 1fr",
+                  gridTemplateColumns: "2fr 90px 130px 110px 110px 110px 1fr 1.5fr",
                   padding: "14px 20px", alignItems: "center",
                   borderBottom: i < filtered.length - 1 ? "1px solid #f5f3ff" : "none",
-                  background: m.status === "at-risk" ? "#fffafa" : "#fff",
+                  background: m.status === "at-risk" ? "#fffafa" : m.status === "churned" ? "#fafafa" : "#fff",
+                  opacity: m.status === "churned" ? 0.7 : 1,
                   transition: "background 0.15s",
                 }}>
                   {/* Name + company */}
                   <div>
-                    <p style={{ margin: "0 0 1px", fontSize: 14, fontWeight: 600, color: "#1a1733" }}>
+                    <p style={{ margin: "0 0 1px", fontSize: 14, fontWeight: 600, color: "#1a1733",
+                      textDecoration: m.status === "churned" ? "line-through" : "none" }}>
                       {m.first} {m.last}
                     </p>
                     {m.company && (
@@ -340,6 +394,12 @@ function Dashboard({ data, refreshedAt }) {
                       ))
                     )}
                   </div>
+
+                  {/* Notes */}
+                  <p style={{ margin: 0, fontSize: 12, color: "#4a4060", lineHeight: 1.5,
+                    fontStyle: m.notes ? "normal" : "italic" }}>
+                    {m.notes || <span style={{ color: "#c0b8d8" }}>—</span>}
+                  </p>
                 </div>
               );
             })
@@ -353,12 +413,14 @@ function Dashboard({ data, refreshedAt }) {
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
             {COHORTS.slice(1).filter(c => c !== "Test").map(cohort => {
-              const group = mentees.filter(m => !m.isTest && String(m.cohort) === String(cohort));
-              const atRisk    = group.filter(m => m.status === "at-risk").length;
-              const attention = group.filter(m => m.status === "needs-attention").length;
-              const onTrack   = group.filter(m => m.status === "on-track").length;
-              const avgMilestones = group.length
-                ? Math.round(group.reduce((s, m) => s + m.milestoneCount, 0) / group.length)
+              const group  = mentees.filter(m => !m.isTest && String(m.cohort) === String(cohort));
+              const active = group.filter(m => m.status !== "churned");
+              const atRisk    = active.filter(m => m.status === "at-risk").length;
+              const attention = active.filter(m => m.status === "needs-attention").length;
+              const onTrack   = active.filter(m => m.status === "on-track").length;
+              const churned   = group.filter(m => m.status === "churned").length;
+              const avgMilestones = active.length
+                ? Math.round(active.reduce((s, m) => s + m.milestoneCount, 0) / active.length)
                 : 0;
               return (
                 <div key={cohort} style={{
@@ -368,7 +430,7 @@ function Dashboard({ data, refreshedAt }) {
                     {cohort} · {COHORT_NAMES[cohort]}
                   </p>
                   <p style={{ margin: "0 0 10px", fontSize: 12, color: "#6b6480" }}>
-                    {group.length} mentees
+                    {active.length} active{churned > 0 ? `, ${churned} churned` : ""}
                   </p>
                   {atRisk > 0 && (
                     <p style={{ margin: "0 0 2px", fontSize: 12, color: "#c0392b", fontWeight: 600 }}>
@@ -384,7 +446,7 @@ function Dashboard({ data, refreshedAt }) {
                     🟢 {onTrack} on track
                   </p>
                   <div style={{ borderTop: "1px solid #f0ecff", paddingTop: 8 }}>
-                    <p style={{ margin: "0 0 4px", fontSize: 11, color: "#9b8fcf" }}>Avg milestones</p>
+                    <p style={{ margin: "0 0 4px", fontSize: 11, color: "#9b8fcf" }}>Avg milestones (active)</p>
                     <MiniBar value={avgMilestones} total={13} />
                   </div>
                 </div>

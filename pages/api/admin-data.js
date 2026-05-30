@@ -59,7 +59,8 @@ export default async function handler(req, res) {
   const today = new Date();
 
   // Fetch live milestone data from Google Sheets (best-effort)
-  let sheetMilestones = {}; // slug → milestone object
+  let sheetData = {}; // slug → { milestones, churned, notes }
+  let pendingReviewCount = 0;
 
   const hasSheets =
     process.env.GOOGLE_SHEET_ID &&
@@ -69,11 +70,17 @@ export default async function handler(req, res) {
   if (hasSheets) {
     try {
       const sheets = getSheetsClient();
-      const response = await sheets.spreadsheets.values.get({
+
+      // Read Dashboard tab
+      const dashRes = await sheets.spreadsheets.values.get({
         spreadsheetId: process.env.GOOGLE_SHEET_ID,
         range: "Dashboard!A:Z",
       });
-      const rows = response.data.values || [];
+      const rows = dashRes.data.values || [];
+      const headerRow = rows[0] || [];
+      const churnedIdx = headerRow.findIndex(h => h?.toLowerCase() === "churned");
+      const notesIdx   = headerRow.findIndex(h => h?.toLowerCase() === "notes");
+
       for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
         if (!row[0]) continue;
@@ -83,8 +90,26 @@ export default async function handler(req, res) {
           const val = row[6 + idx];
           milestones[key] = val === "TRUE" || val === true;
         });
-        sheetMilestones[slug] = milestones;
+        const churned = churnedIdx >= 0 ? (row[churnedIdx] === "TRUE" || row[churnedIdx] === true) : false;
+        const notes   = notesIdx >= 0 ? (row[notesIdx] || "") : "";
+        sheetData[slug] = { milestones, churned, notes };
       }
+
+      // Read SessionReview tab for pending count
+      try {
+        const srRes = await sheets.spreadsheets.values.get({
+          spreadsheetId: process.env.GOOGLE_SHEET_ID,
+          range: "SessionReview!A:A",
+        });
+        const srRows = srRes.data.values || [];
+        for (let i = 1; i < srRows.length; i++) {
+          const val = srRows[i]?.[0];
+          if (val !== "TRUE" && val !== "YES" && val !== "DENIED") {
+            pendingReviewCount++;
+          }
+        }
+      } catch (_) {}
+
     } catch (err) {
       console.error("Sheet read failed:", err.message);
     }
@@ -92,13 +117,18 @@ export default async function handler(req, res) {
 
   // Build mentee list from MENTEES array (always complete)
   const mentees = MENTEES.map(m => {
-    const milestones = sheetMilestones[m.slug] || Object.fromEntries(MILESTONE_KEYS.map(k => [k, false]));
+    const d = sheetData[m.slug] || {};
+    const milestones = d.milestones || Object.fromEntries(MILESTONE_KEYS.map(k => [k, false]));
+    const churned    = d.churned || false;
+    const notes      = d.notes   || "";
 
     const milestoneCount = Object.values(milestones).filter(Boolean).length;
     const mentorCount    = ["mentorSession1", "mentorSession2", "mentorSession3"].filter(k => milestones[k]).length;
     const eduCount       = ["edu1", "edu2", "edu3"].filter(k => milestones[k]).length;
 
-    const { status, flags } = computeStatus(milestones, today);
+    const { status, flags } = churned
+      ? { status: "churned", flags: ["Left program / dropped out"] }
+      : computeStatus(milestones, today);
 
     return {
       slug: m.slug,
@@ -112,16 +142,18 @@ export default async function handler(req, res) {
       eduCount,
       status,
       flags,
+      churned,
+      notes,
       isTest: TEST_SLUGS.includes(m.slug),
     };
   });
 
-  // Sort: at-risk first, then needs-attention, then on-track; alpha within group
-  const order = { "at-risk": 0, "needs-attention": 1, "on-track": 2 };
+  // Sort: at-risk first, then needs-attention, then on-track, churned last; alpha within group
+  const order = { "at-risk": 0, "needs-attention": 1, "on-track": 2, "churned": 3 };
   mentees.sort((a, b) =>
-    order[a.status] - order[b.status] ||
+    (order[a.status] ?? 2) - (order[b.status] ?? 2) ||
     a.last.localeCompare(b.last)
   );
 
-  return res.status(200).json({ mentees, generatedAt: new Date().toISOString() });
+  return res.status(200).json({ mentees, pendingReviewCount, generatedAt: new Date().toISOString() });
 }

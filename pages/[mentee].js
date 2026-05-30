@@ -736,7 +736,7 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted 
       <div style={{ marginBottom: 14 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
           <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "#3d2f8a" }}>
-            Prompts to Think About Before Your First Meeting
+            Prompts to Think About During Onboarding Week
           </p>
           <span style={{ background: "#f0ecff", color: "#9b8fcf", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
             Optional
@@ -1407,8 +1407,8 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
         const list = d.meetings || [];
         setMeetings(list);
 
-        // Count qualifying sessions: auto-verified (60+ min + transcript) OR manually verified
-        const qualifying = list.filter(m => (m.sixtyMin === true && m.notes && m.notes.trim()) || m.manuallyVerified);
+        // Count qualifying sessions: auto-verified (60+ min + transcript) OR manually verified; excluded if denied
+        const qualifying = list.filter(m => !m.denied && ((m.sixtyMin === true && m.notes && m.notes.trim()) || m.manuallyVerified));
         const count = qualifying.length;
 
         // Auto-check mentor session milestones as they're earned
@@ -1469,7 +1469,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
 
       {/* Session progress tracker */}
       {(() => {
-        const verifiedCount = meetings.filter(m => (m.sixtyMin === true && m.notes?.trim()) || m.manuallyVerified).length;
+        const verifiedCount = meetings.filter(m => !m.denied && ((m.sixtyMin === true && m.notes?.trim()) || m.manuallyVerified)).length;
         const REQUIRED = 3;
         const pct = Math.min(Math.round((verifiedCount / REQUIRED) * 100), 100);
         const over = verifiedCount > REQUIRED ? verifiedCount - REQUIRED : 0;
@@ -1579,9 +1579,10 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
           </p>
         </div>
       ) : (() => {
-        const isVerified = m => (m.sixtyMin === true && m.notes?.trim()) || m.manuallyVerified;
+        const isVerified = m => !m.denied && ((m.sixtyMin === true && m.notes?.trim()) || m.manuallyVerified);
+        const denied    = meetings.filter(m => m.denied);
         const verified  = meetings.filter(isVerified);
-        const pending   = meetings.filter(m => !isVerified(m));
+        const pending   = meetings.filter(m => !isVerified(m) && !m.denied);
         return (
           <>
             {/* Verified sessions */}
@@ -1677,8 +1678,11 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                   <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 700, color: "#7a5c00" }}>
                     🕐 Sessions pending internal review
                   </p>
-                  <p style={{ margin: 0, fontSize: 13, color: "#9a7200", lineHeight: 1.6 }}>
+                  <p style={{ margin: "0 0 4px", fontSize: 13, color: "#9a7200", lineHeight: 1.6 }}>
                     Don't worry if these aren't getting checked off automatically — sessions without a Granola transcript or that were under 60 minutes are reviewed internally by the program team.
+                  </p>
+                  <p style={{ margin: 0, fontSize: 13, color: "#9a7200", lineHeight: 1.6 }}>
+                    If we need more information we'll contact you directly.
                   </p>
                 </div>
                 {pending.map((m, i) => (
@@ -1742,6 +1746,66 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                     )}
                     {/* Session ID for admin reference */}
                     <p style={{ margin: "12px 0 0", fontSize: 10, color: "#c0b8d8", fontFamily: "monospace", letterSpacing: "0.03em" }}>
+                      ID: {m.id}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Denied sessions */}
+            {denied.length > 0 && (
+              <div style={{ marginTop: pending.length > 0 ? 20 : verified.length > 0 ? 28 : 8 }}>
+                <div style={{
+                  background: "#fef0f0", borderRadius: 10, border: "1px solid #f5c5c5",
+                  padding: "14px 18px", marginBottom: 12,
+                }}>
+                  <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#8a1a1a" }}>
+                    ✗ Sessions not approved
+                  </p>
+                  <p style={{ margin: 0, fontSize: 12, color: "#a94040", lineHeight: 1.6 }}>
+                    The following session(s) were reviewed and could not be verified. If you believe this is an error, please contact{" "}
+                    <a href="mailto:uplift@techunited.co" style={{ color: "#8a1a1a", fontWeight: 600, textDecoration: "none" }}>
+                      uplift@techunited.co
+                    </a>.
+                  </p>
+                </div>
+                {denied.map((m, i) => (
+                  <div key={m.id} style={{
+                    background: "#fff", borderRadius: 12,
+                    border: "1px solid #f5c5c5",
+                    padding: "18px 22px", marginBottom: 12, opacity: 0.85,
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{
+                          width: 30, height: 30, borderRadius: "50%",
+                          background: "#fdd8d8", color: "#8a1a1a",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 12, fontWeight: 700, flexShrink: 0,
+                        }}>
+                          ✗
+                        </div>
+                        <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#6b6480" }}>
+                          Submitted Session
+                        </p>
+                      </div>
+                      <span style={{
+                        background: "#fef0f0", color: "#8a1a1a",
+                        borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700,
+                      }}>
+                        ✗ Denied
+                      </span>
+                    </div>
+                    {m.date && (
+                      <div style={{ marginBottom: 8 }}>
+                        <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
+                          Meeting Date
+                        </p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#6b6480" }}>{fmtDate(m.date)}</p>
+                      </div>
+                    )}
+                    <p style={{ margin: "8px 0 0", fontSize: 10, color: "#d4b8b8", fontFamily: "monospace", letterSpacing: "0.03em" }}>
                       ID: {m.id}
                     </p>
                   </div>
