@@ -181,11 +181,11 @@ function AdminNote({ slug, initialValue }) {
 const PROGRAM_START = new Date("2026-06-01");
 
 const MILESTONE_FILTERS = [
-  { key: "mentor1", label: "1 Mentor Session",  color: "#5c4eb5", bg: "#f0ecff", test: m => m.mentorCount >= 1 },
-  { key: "mentor2", label: "2 Mentor Sessions", color: "#5c4eb5", bg: "#f0ecff", test: m => m.mentorCount >= 2 },
+  { key: "mentor1", label: "1 Mentor Session",  color: "#5c4eb5", bg: "#f0ecff", test: m => m.mentorCount === 1 },
+  { key: "mentor2", label: "2 Mentor Sessions", color: "#5c4eb5", bg: "#f0ecff", test: m => m.mentorCount === 2 },
   { key: "mentor3", label: "3 Mentor Sessions", color: "#5c4eb5", bg: "#f0ecff", test: m => m.mentorCount >= 3 },
-  { key: "edu1",    label: "1 Edu Session",     color: "#2a7fd4", bg: "#e8f4ff", test: m => m.eduCount >= 1 },
-  { key: "edu2",    label: "2 Edu Sessions",    color: "#2a7fd4", bg: "#e8f4ff", test: m => m.eduCount >= 2 },
+  { key: "edu1",    label: "1 Edu Session",     color: "#2a7fd4", bg: "#e8f4ff", test: m => m.eduCount === 1 },
+  { key: "edu2",    label: "2 Edu Sessions",    color: "#2a7fd4", bg: "#e8f4ff", test: m => m.eduCount === 2 },
   { key: "edu3",    label: "3 Edu Sessions",    color: "#2a7fd4", bg: "#e8f4ff", test: m => m.eduCount >= 3 },
 ];
 
