@@ -307,11 +307,11 @@ function Dashboard({ data, refreshedAt }) {
           {/* Table header */}
           <div style={{
             display: "grid",
-            gridTemplateColumns: "2fr 90px 130px 110px 110px 110px 1fr 1.5fr",
+            gridTemplateColumns: "2fr 1.6fr 80px 120px 100px 100px 100px 1fr 1fr",
             padding: "12px 20px", background: "#f7f5ff",
             borderBottom: "1px solid #e8e4f5",
           }}>
-            {["Mentee", "Cohort", "Status", "Milestones", "Mentor Sessions", "Edu Sessions", "Flags", "Notes"].map(h => (
+            {["Mentee", "Mentor", "Cohort", "Status", "Milestones", "Mentor Sessions", "Edu Sessions", "Flags", "Notes"].map(h => (
               <p key={h} style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 {h}
               </p>
@@ -329,21 +329,48 @@ function Dashboard({ data, refreshedAt }) {
               return (
                 <div key={m.slug} style={{
                   display: "grid",
-                  gridTemplateColumns: "2fr 90px 130px 110px 110px 110px 1fr 1.5fr",
+                  gridTemplateColumns: "2fr 1.6fr 80px 120px 100px 100px 100px 1fr 1fr",
                   padding: "14px 20px", alignItems: "center",
                   borderBottom: i < filtered.length - 1 ? "1px solid #f5f3ff" : "none",
                   background: m.status === "at-risk" ? "#fffafa" : m.status === "churned" ? "#fafafa" : "#fff",
                   opacity: m.status === "churned" ? 0.7 : 1,
                   transition: "background 0.15s",
                 }}>
-                  {/* Name + company */}
+                  {/* Name + email + company */}
                   <div>
                     <p style={{ margin: "0 0 1px", fontSize: 14, fontWeight: 600, color: "#1a1733",
                       textDecoration: m.status === "churned" ? "line-through" : "none" }}>
                       {m.first} {m.last}
                     </p>
+                    {m.email && (
+                      <p style={{ margin: "0 0 1px", fontSize: 11, color: "#5c4eb5", fontStyle: "italic" }}>
+                        {m.email}
+                      </p>
+                    )}
                     {m.company && (
                       <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>{m.company}</p>
+                    )}
+                  </div>
+
+                  {/* Mentor name + email */}
+                  <div>
+                    {m.mentorName ? (
+                      <>
+                        <p style={{ margin: "0 0 1px", fontSize: 13, fontWeight: 600, color: "#1a1733" }}>
+                          {m.mentorName}
+                        </p>
+                        {m.mentorEmail ? (
+                          <p style={{ margin: 0, fontSize: 11, color: "#5c4eb5", fontStyle: "italic" }}>
+                            {m.mentorEmail}
+                          </p>
+                        ) : (
+                          <p style={{ margin: 0, fontSize: 11, color: "#c0b8d8", fontStyle: "italic" }}>
+                            no email on file
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <span style={{ fontSize: 11, color: "#c0b8d8" }}>—</span>
                     )}
                   </div>
 

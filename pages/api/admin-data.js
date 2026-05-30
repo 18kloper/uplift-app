@@ -20,12 +20,12 @@ function computeStatus(milestones, today) {
   const mentorCount = ["mentorSession1", "mentorSession2", "mentorSession3"]
     .filter(k => milestones[k]).length;
 
-  // Before program starts: on track; only note missing participation
+  // Before program starts: only confirmed participants are "on track"
   if (today < PROGRAM_START) {
-    return {
-      status: "on-track",
-      flags: milestones.participation ? [] : ["Participation not yet confirmed"],
-    };
+    if (!milestones.participation) {
+      return { status: "needs-attention", flags: ["Participation not yet confirmed"] };
+    }
+    return { status: "on-track", flags: [] };
   }
 
   let status = "on-track";
@@ -78,8 +78,10 @@ export default async function handler(req, res) {
       });
       const rows = dashRes.data.values || [];
       const headerRow = rows[0] || [];
-      const churnedIdx = headerRow.findIndex(h => h?.toLowerCase() === "churned");
-      const notesIdx   = headerRow.findIndex(h => h?.toLowerCase() === "notes");
+      const churnedIdx     = headerRow.findIndex(h => h?.toLowerCase() === "churned");
+      const notesIdx       = headerRow.findIndex(h => h?.toLowerCase() === "notes");
+      const emailIdx       = headerRow.findIndex(h => h?.toLowerCase() === "email");
+      const mentorEmailIdx = headerRow.findIndex(h => h?.toLowerCase() === "mentor email");
 
       for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
@@ -90,9 +92,11 @@ export default async function handler(req, res) {
           const val = row[6 + idx];
           milestones[key] = val === "TRUE" || val === true;
         });
-        const churned = churnedIdx >= 0 ? (row[churnedIdx] === "TRUE" || row[churnedIdx] === true) : false;
-        const notes   = notesIdx >= 0 ? (row[notesIdx] || "") : "";
-        sheetData[slug] = { milestones, churned, notes };
+        const churned     = churnedIdx >= 0 ? (row[churnedIdx] === "TRUE" || row[churnedIdx] === true) : false;
+        const notes       = notesIdx >= 0 ? (row[notesIdx] || "") : "";
+        const email       = emailIdx >= 0 ? (row[emailIdx] || "") : "";
+        const mentorEmail = mentorEmailIdx >= 0 ? (row[mentorEmailIdx] || "") : "";
+        sheetData[slug] = { milestones, churned, notes, email, mentorEmail };
       }
 
       // Read SessionReview tab for pending count
@@ -118,9 +122,11 @@ export default async function handler(req, res) {
   // Build mentee list from MENTEES array (always complete)
   const mentees = MENTEES.map(m => {
     const d = sheetData[m.slug] || {};
-    const milestones = d.milestones || Object.fromEntries(MILESTONE_KEYS.map(k => [k, false]));
-    const churned    = d.churned || false;
-    const notes      = d.notes   || "";
+    const milestones  = d.milestones || Object.fromEntries(MILESTONE_KEYS.map(k => [k, false]));
+    const churned     = d.churned || false;
+    const notes       = d.notes   || "";
+    const email       = d.email   || "";
+    const mentorEmail = d.mentorEmail || "";
 
     const milestoneCount = Object.values(milestones).filter(Boolean).length;
     const mentorCount    = ["mentorSession1", "mentorSession2", "mentorSession3"].filter(k => milestones[k]).length;
@@ -144,6 +150,9 @@ export default async function handler(req, res) {
       flags,
       churned,
       notes,
+      email,
+      mentorName:  m.mentor?.name  || "",
+      mentorEmail,
       isTest: TEST_SLUGS.includes(m.slug),
     };
   });
