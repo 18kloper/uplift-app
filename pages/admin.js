@@ -325,12 +325,14 @@ function Dashboard({ data, refreshedAt }) {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 14, marginBottom: 16 }}>
           {statCards.map(({ label, value, color, bg, desc }) => (
             <div key={label} style={{
-              background: bg, borderRadius: 12, padding: "18px 22px",
+              background: bg, borderRadius: 12, padding: "14px 18px",
               border: `1px solid ${color}22`,
             }}>
-              <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 600, color, opacity: 0.8 }}>{label}</p>
-              <p style={{ margin: "0 0 8px", fontSize: 36, fontWeight: 800, color, lineHeight: 1 }}>{value}</p>
-              <p style={{ margin: 0, fontSize: 11, color, opacity: 0.65, fontStyle: "italic", lineHeight: 1.4 }}>{desc}</p>
+              <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 600, color, opacity: 0.8, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <p style={{ margin: 0, fontSize: 34, fontWeight: 800, color, lineHeight: 1, flexShrink: 0 }}>{value}</p>
+                <p style={{ margin: 0, fontSize: 11, color, opacity: 0.6, fontStyle: "italic", lineHeight: 1.4 }}>{desc}</p>
+              </div>
             </div>
           ))}
         </div>
