@@ -92,14 +92,15 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
         String(m.id || ""),
         String(m.submittedAt || ""),
       ]);
-      console.log(`[SessionReview] writing rows:`, JSON.stringify(newRows));
-      await sheets.spreadsheets.values.append({
-        spreadsheetId: process.env.GOOGLE_SHEET_ID,
-        range: "SessionReview!A:I",
-        valueInputOption: "USER_ENTERED",
-        insertDataOption: "INSERT_ROWS",
-        requestBody: { values: newRows },
-      });
+      console.log(`[SessionReview] first row preview:`, JSON.stringify(newRows[0]));
+      // TODO: re-enable write after confirming row format is correct
+      // await sheets.spreadsheets.values.append({
+      //   spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      //   range: "SessionReview!A:I",
+      //   valueInputOption: "USER_ENTERED",
+      //   insertDataOption: "INSERT_ROWS",
+      //   requestBody: { values: newRows },
+      // });
     }
 
     return approvedIds;

@@ -1,15 +1,24 @@
-// GET /api/read-session-review?clear=1  — clears data rows and returns current contents
-// GET /api/read-session-review           — just reads current contents
+// GET /api/read-session-review?reset=1  — wipes all data rows, keeps header
+// GET /api/read-session-review           — reads current contents
 import { getSheetsClient } from "../../lib/sheets-helper";
+
+const HEADER = ["Approved", "Slug", "Mentee Name", "Date", "60+ Min", "Has Transcript", "Key Takeaways", "Session ID", "Submitted At"];
 
 export default async function handler(req, res) {
   try {
     const sheets = getSheetsClient();
 
-    if (req.query.clear === "1") {
+    if (req.query.reset === "1") {
+      // Clear everything, then re-write header only
       await sheets.spreadsheets.values.clear({
         spreadsheetId: process.env.GOOGLE_SHEET_ID,
-        range: "SessionReview!A2:I",
+        range: "SessionReview!A:Z",
+      });
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: process.env.GOOGLE_SHEET_ID,
+        range: "SessionReview!A1:I1",
+        valueInputOption: "RAW",
+        requestBody: { values: [HEADER] },
       });
     }
 
