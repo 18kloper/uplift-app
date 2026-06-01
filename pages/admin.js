@@ -360,6 +360,9 @@ function PromptEngagement() {
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [insightsError, setInsightsError] = useState(null);
 
+  const CACHE_KEY = "uplift_prompt_insights";
+  const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
   const COHORT_NAMES_PE = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
 
   useEffect(() => {
@@ -369,20 +372,52 @@ function PromptEngagement() {
       .catch(() => setLoading(false));
   }, []);
 
-  const toggle = (key) => setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
+  // Auto-load insights from cache or fetch if stale (>24h)
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const age = Date.now() - new Date(parsed.generatedAt).getTime();
+        if (age < CACHE_TTL_MS) {
+          setInsights(parsed);
+          return; // cache is fresh — done
+        }
+      }
+    } catch (_) {}
+    // Cache missing or stale — auto-fetch
+    fetchInsights();
+  }, []);
 
-  const generateInsights = () => {
+  const fetchInsights = (force = false) => {
+    if (!force) {
+      // Check cache one more time before fetching (in case called directly)
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          const age = Date.now() - new Date(parsed.generatedAt).getTime();
+          if (age < CACHE_TTL_MS) { setInsights(parsed); return; }
+        }
+      } catch (_) {}
+    }
     setInsightsLoading(true);
     setInsightsError(null);
     fetch("/api/prompt-themes")
       .then(r => r.json())
       .then(d => {
-        if (d.error) { setInsightsError(d.error); }
-        else { setInsights(d); }
+        if (d.error) {
+          setInsightsError(d.error);
+        } else {
+          setInsights(d);
+          try { localStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch (_) {}
+        }
         setInsightsLoading(false);
       })
       .catch(e => { setInsightsError(e.message); setInsightsLoading(false); });
   };
+
+  const toggle = (key) => setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
 
   const THEME_ICONS = ["🔍", "⚡", "🧩", "🎯", "💡"];
   const SESSION_ICONS = ["🎤", "🛠️", "👥", "📊", "🚀"];
@@ -403,13 +438,15 @@ function PromptEngagement() {
           <div>
             <p style={{ margin: "0 0 3px", fontSize: 16, fontWeight: 800 }}>🧠 AI Insights</p>
             <p style={{ margin: 0, fontSize: 12, opacity: 0.7 }}>
-              {insights
-                ? `Top themes and session ideas from ${insights.totalResponses || "all"} responses · Generated ${new Date(insights.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`
-                : "Surface recurring themes and session ideas from founder responses"}
+              {insightsLoading
+                ? "Analyzing responses…"
+                : insights
+                ? `${insights.totalResponses || "All"} responses analyzed · Refreshed ${new Date(insights.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · Auto-updates daily`
+                : "Auto-updates daily — loading…"}
             </p>
           </div>
           <button
-            onClick={generateInsights}
+            onClick={() => fetchInsights(true)}
             disabled={insightsLoading}
             style={{
               background: insightsLoading ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.2)",
@@ -422,7 +459,7 @@ function PromptEngagement() {
               transition: "background 0.2s",
             }}
           >
-            {insightsLoading ? "Analyzing…" : insights ? "↻ Refresh" : "Generate Insights"}
+            {insightsLoading ? "Analyzing…" : "↻ Refresh"}
           </button>
         </div>
 
