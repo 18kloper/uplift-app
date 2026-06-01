@@ -2325,22 +2325,32 @@ function GoalsSection({ mentee, slug }) {
 }
 
 // ─── Milestone check section ──────────────────────────────────────────────────
-function MilestoneSection({ milestones }) {
+function parseDueDate(dueStr) {
+  if (!dueStr) return null;
+  const cleaned = dueStr.replace(/^By\s+/i, "").trim();
+  const d = new Date(`${cleaned} 2026`);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function MilestoneSection({ milestones, onNavigate }) {
   const items = [
-    { key: "participation",   label: "Confirmed Participation",        auto: true, due: "By Jun 3" },
-    { key: "onboarding",      label: "Onboarding Session Attended",                 due: "By Jun 7" },
-    { key: "mentorMatched",   label: "Matched with a Mentor",                       due: "By Jun 7" },
-    { key: "edu1",            label: "Educational Session 1",                       due: "By Aug 4" },
-    { key: "edu2",            label: "Educational Session 2",                       due: "By Aug 4" },
-    { key: "edu3",            label: "Educational Session 3",                       due: "By Aug 4" },
-    { key: "mentorSession1",  label: "Mentor Session 1",                            due: "By Jun 13" },
-    { key: "mentorSession2",  label: "Mentor Session 2",                            due: "By Jul 4" },
-    { key: "mentorSession3",  label: "Mentor Session 3",                            due: "By Jul 18" },
-    { key: "midpoint",        label: "Midpoint Meetup Attended",                    due: "Jun 23" },
-    { key: "endSurvey",       label: "End of Program Survey Completed",             due: "By Jul 25" },
-    { key: "summit",          label: "Summit & Graduation Attended",                due: "Aug 4" },
+    { key: "participation",   label: "Confirmed Participation",        auto: true, due: "By Jun 3",  week: 1 },
+    { key: "onboarding",      label: "Onboarding Session Attended",                 due: "By Jun 7",  week: 1 },
+    { key: "mentorMatched",   label: "Matched with a Mentor",                       due: "By Jun 7",  week: 2 },
+    { key: "edu1",            label: "Educational Session 1",                       due: "By Aug 4",  week: 2 },
+    { key: "edu2",            label: "Educational Session 2",                       due: "By Aug 4",  week: 3 },
+    { key: "edu3",            label: "Educational Session 3",                       due: "By Aug 4",  week: 8 },
+    { key: "mentorSession1",  label: "Mentor Session 1",                            due: "By Jun 13", week: 2 },
+    { key: "mentorSession2",  label: "Mentor Session 2",                            due: "By Jul 4",  week: 5 },
+    { key: "mentorSession3",  label: "Mentor Session 3",                            due: "By Jul 18", week: 7 },
+    { key: "midpoint",        label: "Midpoint Meetup Attended",                    due: "Jun 23",    week: 4 },
+    { key: "endSurvey",       label: "End of Program Survey Completed",             due: "By Jul 25", week: 8 },
+    { key: "summit",          label: "Summit & Graduation Attended",                due: "Aug 4",     week: 9 },
     { key: "certificate",     label: "Certificate Received" },
   ];
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   const completed = items.filter((i) => milestones[i.key]).length;
   const total = items.length;
@@ -2389,33 +2399,53 @@ function MilestoneSection({ milestones }) {
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {items.map((item) => {
           const done = !!milestones[item.key];
+          const dueDate = parseDueDate(item.due);
+          const overdue = !done && dueDate && today > dueDate;
           return (
             <div key={item.key} style={{
-              background: "#fff", borderRadius: 12,
-              border: done ? "1px solid #b8e8d0" : "1px solid #e8e4f5",
+              background: overdue ? "#fffbf5" : "#fff",
+              borderRadius: 12,
+              border: done ? "1px solid #b8e8d0" : overdue ? "1px solid #f5c97a" : "1px solid #e8e4f5",
               padding: "14px 20px",
-              display: "flex", alignItems: "center", gap: 14,
+              display: "flex", alignItems: "flex-start", gap: 14,
             }}>
               <div style={{
                 width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                background: done ? "#22a366" : "#f0ecff",
-                color: done ? "#fff" : "#c0b8d8",
-                fontSize: done ? 14 : 18,
+                background: done ? "#22a366" : overdue ? "#fef3c7" : "#f0ecff",
+                color: done ? "#fff" : overdue ? "#b45309" : "#c0b8d8",
+                fontSize: done ? 14 : overdue ? 15 : 18,
                 fontWeight: 700,
+                marginTop: 2,
               }}>
-                {done ? "✓" : "○"}
+                {done ? "✓" : overdue ? "!" : "○"}
               </div>
-              <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <span style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
                 <span style={{
                   fontSize: 15, fontWeight: done ? 600 : 400,
-                  color: done ? "#1a4a32" : "#6b6480",
+                  color: done ? "#1a4a32" : overdue ? "#92400e" : "#6b6480",
                 }}>
                   {item.label}
                 </span>
                 {item.due && (
-                  <span style={{ fontSize: 11, fontStyle: "italic", color: done ? "#6abf97" : "#b0a8cc" }}>
+                  <span style={{ fontSize: 11, fontStyle: "italic", color: done ? "#6abf97" : overdue ? "#d97706" : "#b0a8cc" }}>
                     {item.due}
+                  </span>
+                )}
+                {overdue && item.week && (
+                  <span style={{ marginTop: 4, fontSize: 12, color: "#b45309", lineHeight: 1.5 }}>
+                    ⚠️ This is past due.{" "}
+                    <button
+                      onClick={() => onNavigate && onNavigate(item.week)}
+                      style={{
+                        background: "none", border: "none", padding: 0,
+                        color: "#b45309", fontWeight: 700, fontSize: 12,
+                        cursor: "pointer", textDecoration: "underline",
+                        fontFamily: "inherit",
+                      }}
+                    >
+                      Visit Week {item.week} in My Journey →
+                    </button>
                   </span>
                 )}
               </span>
@@ -2948,7 +2978,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       case "journey": return renderWeekContent();
       case "calendar": return <CalendarSection />;
       case "resources": return <ResourcesSection />;
-      case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} />;
+      case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} onNavigate={(week) => { setActiveTab("journey"); setActiveWeek(week); }} />;
       case "goals": return <GoalsSection mentee={mentee} slug={slug} />;
       case "meetings": return <MeetingsSection slug={slug} milestones={liveMilestones || mentee.milestones || {}} onMilestoneUpdate={(key) => setLiveMilestones(prev => ({ ...(prev || mentee.milestones || {}), [key]: true }))} />;
       case "edu": return <EduSessionsSection milestones={liveMilestones || mentee.milestones || {}} />;
