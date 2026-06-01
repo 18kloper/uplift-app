@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Uplift Summer 2026 — Portal User Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #f0ecff;
+      color: #1a1733;
+      font-size: 15px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page-wrap {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* ── Cover / title ── */
+    .cover {
+      background: linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%);
+      border-radius: 16px;
+      padding: 44px 48px;
+      color: #fff;
+      margin-bottom: 40px;
+      position: relative;
+    }
+    .cover-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin-bottom: 10px;
+    }
+    .cover-title {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+    .cover-subtitle {
+      font-size: 16px;
+      opacity: 0.8;
+      line-height: 1.6;
+      margin-bottom: 0;
+    }
+    .cover-url {
+      display: inline-block;
+      margin-top: 20px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: rgba(255,255,255,0.9);
+    }
+
+    /* ── Print button ── */
+    .print-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #5c4eb5;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 4px 14px rgba(92,78,181,0.35);
+      z-index: 9999;
+      transition: background 0.15s;
+    }
+    .print-btn:hover { background: #4a3e9e; }
+
+    /* ── TOC ── */
+    .toc {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e8e4f5;
+      padding: 24px 28px;
+      margin-bottom: 40px;
+    }
+    .toc-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #9b8fcf;
+      margin-bottom: 14px;
+    }
+    .toc ol {
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .toc li { font-size: 14px; }
+    .toc a {
+      color: #5c4eb5;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .toc a:hover { text-decoration: underline; }
+
+    /* ── Sections ── */
+    .section {
+      margin-bottom: 56px;
+    }
+    .section-heading {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #e8e4f5;
+    }
+    .section-number {
+      background: linear-gradient(135deg, #5c4eb5, #3d2f8a);
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #1a0e4f;
+      border-left: 4px solid #5c4eb5;
+      padding-left: 14px;
+      line-height: 1.2;
+    }
+
+    /* ── Explanatory text ── */
+    .explain {
+      font-size: 14px;
+      color: #4a4060;
+      line-height: 1.75;
+      margin-bottom: 20px;
+    }
+    .explain + .explain { margin-top: -10px; }
+
+    /* ── Callout boxes ── */
+    .callout {
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 18px 0;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .callout-purple {
+      background: #f0ecff;
+      border: 1px solid #c8bfef;
+      color: #3d2f8a;
+    }
+    .callout-amber {
+      background: #fffbeb;
+      border: 1px solid #f5d97a;
+      color: #7a5c00;
+    }
+    .callout-green {
+      background: #f0faf5;
+      border: 1px solid #b8e8d0;
+      color: #1a6e42;
+    }
+
+    /* ── Mockup containers ── */
+    .mockup {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 4px 24px rgba(92,78,181,0.12), 0 1px 4px rgba(0,0,0,0.05);
+      overflow: hidden;
+      margin: 20px 0;
+    }
+    .mockup-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #9b8fcf;
+      margin-bottom: 8px;
+    }
+
+    /* ── Portal header mockup ── */
+    .portal-header {
+      background: linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%);
+      padding: 22px 28px 18px;
+      color: #fff;
+    }
+    .portal-header-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+    }
+    .portal-mentee-name {
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 3px;
+    }
+    .portal-mentee-sub {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-bottom: 12px;
+    }
+    .portal-pill-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .portal-pill {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+      cursor: pointer;
+    }
+    .portal-mentor-card {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      padding: 14px 16px;
+      min-width: 170px;
+      flex-shrink: 0;
+    }
+    .portal-mentor-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin-bottom: 6px;
+    }
+    .portal-mentor-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      float: left;
+      margin-right: 10px;
+    }
+    .portal-mentor-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.3;
+    }
+    .portal-mentor-co {
+      font-size: 11px;
+      opacity: 0.7;
+      line-height: 1.4;
+    }
+
+    /* Tab bar */
+    .tab-bar {
+      background: #fff;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding: 0 28px;
+      display: flex;
+      gap: 2px;
+      overflow-x: auto;
+    }
+    .tab-item {
+      padding: 12px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #9b8fcf;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      cursor: pointer;
+      position: relative;
+    }
+    .tab-item.active {
+      color: #5c4eb5;
+      border-bottom-color: #5c4eb5;
+    }
+
+    /* Tooltip mockup */
+    .tooltip-bubble {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1733;
+      color: #fff;
+      border-radius: 8px;
+      padding: 9px 13px;
+      font-size: 11px;
+      line-height: 1.55;
+      font-weight: 400;
+      width: 210px;
+      text-align: left;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.22);
+      pointer-events: none;
+      z-index: 10;
+    }
+    .tooltip-bubble::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid #1a1733;
+    }
+
+    /* Week sub-nav */
+    .week-subnav {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      padding: 14px 20px 0;
+      background: #f9f8fe;
+      border-bottom: 1px solid #e8e4f5;
+    }
+    .week-pill {
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 6px 6px 0 0;
+      color: #9b8fcf;
+      background: transparent;
+      cursor: pointer;
+    }
+    .week-pill.active {
+      background: #5c4eb5;
+      color: #fff;
+    }
+
+    /* Session card inner */
+    .session-card {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e8e4f5;
+      padding: 18px 22px;
+      margin: 10px 0;
+    }
+    .sessions-heading {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #9b8fcf;
+      margin-bottom: 12px;
+    }
+    .session-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f5f3ff;
+    }
+    .session-row:last-of-type { border-bottom: none; }
+    .session-checkbox {
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid #c0b8d8;
+      border-radius: 3px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .session-name {
+      font-weight: 600;
+      font-size: 13px;
+      color: #1a1733;
+    }
+    .session-meta {
+      font-size: 12px;
+      color: #6b6480;
+    }
+    .register-link {
+      font-size: 12px;
+      color: #2a7fd4;
+      font-weight: 600;
+      text-decoration: none;
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+
+    /* Textarea mockup */
+    .textarea-mockup {
+      border: 1.5px solid #d4d0e8;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fafafa;
+      margin: 14px 0;
+    }
+    .textarea-inner {
+      padding: 12px 14px;
+      font-size: 14px;
+      color: #9b8fcf;
+      font-style: italic;
+      line-height: 1.6;
+      min-height: 80px;
+      font-family: inherit;
+    }
+    .textarea-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 8px 12px;
+      border-top: 1px solid #ede9f8;
+      background: #f5f3ff;
+      gap: 8px;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 5px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      display: inline-block;
+    }
+    .btn-purple { background: #5c4eb5; color: #fff; }
+    .btn-saving { background: #9b8fcf; color: #fff; }
+    .btn-saved { background: #22a366; color: #fff; }
+    .btn-resubmit {
+      background: #fff;
+      color: #5c4eb5;
+      border: 1.5px solid #5c4eb5;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 6px;
+      font-family: inherit;
+      display: inline-block;
+    }
+
+    /* Save state row */
+    .save-states {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 16px 0;
+    }
+    .save-state-item {
+      flex: 1;
+      min-width: 150px;
+    }
+    .save-state-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #9b8fcf;
+      margin-bottom: 6px;
+    }
+    .save-state-demo {
+      border: 1.5px solid #d4d0e8;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fafafa;
+    }
+    .save-state-text {
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #9b8fcf;
+      font-style: italic;
+    }
+    .save-state-footer {
+      padding: 6px 10px;
+      border-top: 1px solid #ede9f8;
+      background: #f5f3ff;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    /* Saved note below textarea */
+    .saved-note {
+      font-size: 12px;
+      color: #9b8fcf;
+      font-style: italic;
+      line-height: 1.65;
+      margin-top: 6px;
+    }
+
+    /* Milestone cards */
+    .milestone-card {
+      border-radius: 12px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+    .milestone-card-completed {
+      background: #f0faf5;
+      border: 1px solid #b8e8d0;
+    }
+    .milestone-card-pending {
+      background: #fff;
+      border: 1px solid #e8e4f5;
+    }
+    .milestone-card-overdue {
+      background: #fffbf5;
+      border: 1px solid #f5c97a;
+    }
+    .milestone-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .milestone-circle-done { background: #22a366; color: #fff; }
+    .milestone-circle-pending { background: #f0ecff; color: #c0b8d8; font-size: 18px; }
+    .milestone-circle-overdue { background: #fef3c7; color: #b45309; }
+    .milestone-label { font-size: 15px; line-height: 1.4; }
+    .milestone-label-done { font-weight: 600; color: #1a4a32; }
+    .milestone-label-pending { font-weight: 400; color: #6b6480; }
+    .milestone-label-overdue { font-weight: 500; color: #92400e; }
+    .milestone-due { font-size: 11px; font-style: italic; }
+    .milestone-due-done { color: #6abf97; }
+    .milestone-due-pending { color: #b0a8cc; }
+    .milestone-due-overdue { color: #d97706; }
+    .milestone-completed-badge {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 700;
+      color: #22a366;
+      background: #f0faf5;
+      border-radius: 4px;
+      padding: 2px 8px;
+      flex-shrink: 0;
+      align-self: center;
+    }
+    .milestone-overdue-msg {
+      margin-top: 5px;
+      font-size: 12px;
+      color: #b45309;
+      line-height: 1.6;
+    }
+    .overdue-link {
+      color: #b45309;
+      font-weight: 700;
+      text-decoration: underline;
+    }
+
+    /* Progress bar card */
+    .progress-card {
+      background: linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%);
+      border-radius: 14px;
+      padding: 22px 26px;
+      color: #fff;
+      margin: 16px 0;
+    }
+    .progress-numbers {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 14px;
+    }
+    .progress-big {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .progress-big span { font-size: 18px; font-weight: 600; opacity: 0.8; }
+    .progress-label {
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0.75;
+      margin-bottom: 3px;
+    }
+    .progress-bar-wrap {
+      background: rgba(255,255,255,0.2);
+      border-radius: 8px;
+      height: 10px;
+      margin-bottom: 6px;
+    }
+    .progress-bar-fill {
+      background: linear-gradient(90deg, #a78bfa, #60a5fa);
+      height: 10px;
+      border-radius: 8px;
+    }
+    .progress-bar-fill-green {
+      background: linear-gradient(90deg, #34d399, #10b981);
+    }
+
+    /* Meeting session cards */
+    .meeting-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 12px;
+    }
+    .meeting-card-verified { border: 1px solid #e8e4f5; }
+    .meeting-card-pending { border: 1px solid #f0e8c8; }
+    .meeting-card-denied { border: 1px solid #f5c5c5; }
+
+    .badge {
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge-verified { background: #e8f8f0; color: #1a6e42; }
+    .badge-pending { background: #fffbeb; color: #7a5c00; border: 1px solid #f5d97a; }
+    .badge-denied { background: #fef0f0; color: #8a1a1a; border: 1px solid #f5c5c5; }
+    .badge-coming-soon { background: #f0ecff; color: #9b8fcf; font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+    .badge-locked { background: #f0ecff; color: #9b8fcf; font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+
+    .meeting-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .meeting-num-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .meeting-num-verified { background: linear-gradient(135deg, #5c4eb5, #3d2f8a); color: #fff; }
+    .meeting-num-pending { background: #f0e0a0; color: #7a5c00; }
+    .meeting-num-denied { background: #e74c3c; color: #fff; }
+
+    .detail-chip {
+      display: inline-block;
+    }
+    .detail-chips {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .detail-chip-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #9b8fcf;
+      margin-bottom: 2px;
+    }
+    .detail-chip-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1733;
+    }
+    .detail-chip-value-green { color: #1a6e42; }
+
+    .meeting-note-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .meeting-note-text {
+      font-size: 13px;
+      color: #4a4060;
+      line-height: 1.65;
+    }
+
+    .denied-reason {
+      background: #fff5f5;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #8a1a1a;
+      line-height: 1.65;
+      margin: 10px 0;
+      border: 1px solid #f5c5c5;
+    }
+
+    /* Edu session cards */
+    .edu-card {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e8e4f5;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 12px;
+    }
+    .edu-card-verified { border-color: #b8e8d0; background: #f8fdf9; }
+
+    /* Goals tab */
+    .goals-card {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e8e4f5;
+      padding: 22px 26px;
+      margin-bottom: 14px;
+    }
+    .goals-category {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #9b8fcf;
+      margin-bottom: 12px;
+    }
+    .goals-text {
+      font-size: 14px;
+      color: #1a1733;
+      line-height: 1.75;
+    }
+
+    /* Resources */
+    .resource-card {
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #e8e4f5;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 12px;
+      text-decoration: none;
+    }
+    .resource-card-disabled {
+      background: #fafafa;
+      border-color: #ede9f8;
+      opacity: 0.7;
+    }
+    .resource-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: #1a1733;
+      margin-bottom: 3px;
+    }
+    .resource-desc {
+      font-size: 12px;
+      color: #9b8fcf;
+    }
+    .resource-arrow { font-size: 14px; color: #5c4eb5; }
+    .resource-arrow-disabled { color: #c4b8e8; }
+
+    /* Program roadmap table */
+    .roadmap-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .roadmap-table th {
+      background: #f5f3ff;
+      color: #5c4eb5;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 10px 14px;
+      text-align: left;
+    }
+    .roadmap-table td {
+      padding: 10px 14px;
+      border-top: 1px solid #f5f3ff;
+      color: #1a1733;
+      vertical-align: top;
+    }
+    .roadmap-table tr:nth-child(even) td { background: #faf9fe; }
+    .roadmap-week-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #5c4eb5;
+      white-space: nowrap;
+    }
+    .format-virtual {
+      display: inline-block;
+      background: #f0f7ff;
+      color: #2a7fd4;
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .format-inperson {
+      display: inline-block;
+      background: #f0faf5;
+      color: #1a6e42;
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .format-required {
+      display: inline-block;
+      background: #fff3e0;
+      color: #b35c00;
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    /* Login mockup */
+    .login-mockup {
+      background: #f7f5ff;
+      border-radius: 14px;
+      padding: 32px;
+      display: flex;
+      justify-content: center;
+    }
+    .login-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 40px 44px;
+      max-width: 340px;
+      width: 100%;
+      box-shadow: 0 4px 32px rgba(92,78,181,0.12);
+      text-align: center;
+    }
+    .login-logo {
+      font-size: 20px;
+      font-weight: 800;
+      color: #3d2f8a;
+      margin-bottom: 18px;
+      letter-spacing: -0.02em;
+    }
+    .login-logo span { color: #5c4eb5; }
+    .login-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1733;
+      margin-bottom: 4px;
+    }
+    .login-sub {
+      font-size: 13px;
+      color: #9b8fcf;
+      margin-bottom: 24px;
+    }
+    .login-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1.5px solid #d4d0e8;
+      background: #fafafa;
+      font-size: 15px;
+      font-family: inherit;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+      color: #9b8fcf;
+      letter-spacing: 0.15em;
+    }
+    .login-btn {
+      width: 100%;
+      padding: 13px;
+      border-radius: 8px;
+      border: none;
+      background: #5c4eb5;
+      color: #fff;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* Dividers between sections */
+    .section-divider {
+      border: none;
+      border-top: 1px solid #e8e4f5;
+      margin: 40px 0;
+    }
+
+    /* Inline code */
+    code {
+      background: #f0ecff;
+      color: #5c4eb5;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    /* ── PRINT STYLES ── */
+    @media print {
+      .print-btn { display: none !important; }
+      body { background: #fff; }
+      .page-wrap { padding: 24px; }
+      .section { page-break-inside: avoid; }
+      .section:nth-child(3n) { page-break-after: always; }
+      .mockup { box-shadow: none; border: 1px solid #e8e4f5; }
+      .cover { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .portal-header { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .progress-card { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .section-number { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+
+    @page {
+      margin: 20mm;
+      size: A4 portrait;
+    }
+  </style>
+</head>
+<body>
+
+<button class="print-btn" onclick="
+  const btn = this;
+  btn.textContent = 'Generating…';
+  btn.disabled = true;
+  const el = document.querySelector('.page-wrap');
+  html2pdf().set({
+    margin: [10, 10, 10, 10],
+    filename: 'Uplift-2026-Portal-Guide.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css'] }
+  }).from(el).save().then(() => {
+    btn.textContent = '⬇ Download as PDF';
+    btn.disabled = false;
+  });
+">⬇ Download as PDF</button>
+
+<div class="page-wrap">
+
+  <!-- Cover -->
+  <div class="cover">
+    <div class="cover-eyebrow">User Guide</div>
+    <div class="cover-title">Uplift Summer 2026<br>Mentorship Portal</div>
+    <div class="cover-subtitle">Everything you need to know to navigate your personal portal, track your progress, and make the most of this 9-week program.</div>
+    <div class="cover-url">uplift2026.vercel.app / your-name-here</div>
+  </div>
+
+  <!-- Table of Contents -->
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <ol>
+      <li><a href="#s1">Logging In</a></li>
+      <li><a href="#s2">Your Portal at a Glance</a></li>
+      <li><a href="#s3">Tab Tooltips</a></li>
+      <li><a href="#s4">My Journey</a></li>
+      <li><a href="#s5">Milestones</a></li>
+      <li><a href="#s6">Logged Mentorship Sessions</a></li>
+      <li><a href="#s7">Logged Educational Sessions</a></li>
+      <li><a href="#s8">My Goals &amp; Reflections</a></li>
+      <li><a href="#s9">Program Roadmap</a></li>
+      <li><a href="#s10">Resources</a></li>
+    </ol>
+  </div>
+
+  <!-- ── SECTION 1: LOGGING IN ── -->
+  <div class="section" id="s1">
+    <div class="section-heading">
+      <div class="section-number">1</div>
+      <div class="section-title">Logging In</div>
+    </div>
+
+    <p class="explain">Your portal URL is unique to you — it was emailed to you when you joined Uplift. The URL looks like <code>uplift2026.vercel.app/your-first-name-here</code>. Bookmark it — you'll be coming back to it each week throughout the program.</p>
+    <p class="explain">When you visit your link for the first time (or in a new browser), you'll be asked to enter your <strong>access code</strong>. This code is also in your welcome email from TechUnited:NJ. It's the first part of your URL — your first name. It's case-insensitive, so <code>alex</code> and <code>Alex</code> both work. If you can't find it, email <a href="mailto:uplift@techunited.co" style="color:#5c4eb5;font-weight:600;">uplift@techunited.co</a> and we'll sort it out quickly.</p>
+
+    <div class="mockup login-mockup">
+      <div class="login-card">
+        <div class="login-logo">uplift<span>.</span></div>
+        <div class="login-title">Uplift Summer 2026</div>
+        <div class="login-sub">Enter your access code to continue</div>
+        <input class="login-input" type="password" value="••••••" readonly />
+        <button class="login-btn">Enter</button>
+      </div>
+    </div>
+
+    <div class="callout callout-purple">
+      <strong>Your session stays open.</strong> Once you enter your access code, your browser remembers you for the rest of the session. If you close the tab and come back, you may be asked to enter it again — this is normal. Your written responses are always saved, regardless of login state.
+    </div>
+  </div>
+
+  <!-- ── SECTION 2: PORTAL AT A GLANCE ── -->
+  <div class="section" id="s2">
+    <div class="section-heading">
+      <div class="section-number">2</div>
+      <div class="section-title">Your Portal at a Glance</div>
+    </div>
+
+    <p class="explain">Once you're in, the first thing you'll see is your program header — a dark purple gradient banner that gives you a high-level snapshot of where you are in the program. Below it sits a two-row tab bar that gives you access to every part of the portal. Here's what you're looking at:</p>
+
+    <!-- Portal header mockup -->
+    <div class="mockup">
+      <div class="portal-header">
+        <div class="portal-header-inner">
+          <div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;opacity:0.55;margin-bottom:4px;">Uplift Summer 2026</div>
+            <div class="portal-mentee-name">Alex Rivera</div>
+            <div class="portal-mentee-sub">Cohort 2 — Hopper &nbsp;·&nbsp; Acme Tech</div>
+            <div class="portal-pill-row">
+              <div class="portal-pill">Program Roadmap</div>
+              <div class="portal-pill">Cohort Directory</div>
+              <div class="portal-pill">Resources</div>
+              <div class="portal-pill">Support</div>
+            </div>
+          </div>
+          <div class="portal-mentor-card">
+            <div class="portal-mentor-label">Your Mentor</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="portal-mentor-avatar">JS</div>
+              <div>
+                <div class="portal-mentor-name">Jordan Silva</div>
+                <div class="portal-mentor-co">Founder, Clearpath Ventures</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Tab row 1 -->
+      <div class="tab-bar">
+        <div class="tab-item active">My Journey</div>
+        <div class="tab-item">My Goals &amp; Reflections</div>
+        <div class="tab-item">Milestones</div>
+        <div class="tab-item">Logged Mentorship Sessions</div>
+        <div class="tab-item">Logged Educational Sessions</div>
+      </div>
+    </div>
+
+    <p class="explain" style="margin-top:18px;">Here's what each element in the header does:</p>
+    <ul style="font-size:14px;color:#4a4060;line-height:1.9;padding-left:20px;margin-bottom:16px;">
+      <li><strong style="color:#1a1733;">Your name and cohort</strong> — top left. Your cohort name (Edison, Hopper, Bardeen, Lawrence, or Morrison) is assigned based on your application focus area.</li>
+      <li><strong style="color:#1a1733;">Your mentor card</strong> — top right. Shows your mentor's name and company. This appears after your mentor match is confirmed (following your onboarding session attendance).</li>
+      <li><strong style="color:#1a1733;">Quick-nav pills</strong> (Program Roadmap, Cohort Directory, Resources, Support) — jump to secondary sections of the portal without hunting through tabs.</li>
+      <li><strong style="color:#1a1733;">Tab row</strong> — the white bar below the header holds the five main sections: My Journey, My Goals &amp; Reflections, Milestones, Logged Mentorship Sessions, and Logged Educational Sessions.</li>
+    </ul>
+
+    <div class="callout callout-purple">
+      The tab bar scrolls horizontally on smaller screens. If you don't see all five tabs, swipe left on mobile or scroll right on desktop.
+    </div>
+  </div>
+
+  <!-- ── SECTION 3: TAB TOOLTIPS ── -->
+  <div class="section" id="s3">
+    <div class="section-heading">
+      <div class="section-number">3</div>
+      <div class="section-title">Tab Tooltips</div>
+    </div>
+
+    <p class="explain">Hover over any tab to see a short description of what's inside. This is especially helpful early in the program when you're still getting oriented. The tooltip appears just above the tab, like this:</p>
+
+    <div class="mockup">
+      <div style="background:#f9f8fe;padding:40px 28px 0;">
+        <div class="tab-bar" style="background:transparent;border:none;">
+          <div class="tab-item active" style="position:relative;">
+            My Journey
+            <div class="tooltip-bubble">Week-by-week action items for the program — follow along to see where you should be and what's coming up next.</div>
+          </div>
+          <div class="tab-item">My Goals &amp; Reflections</div>
+          <div class="tab-item">Milestones</div>
+        </div>
+      </div>
+      <div style="height:14px;background:#fff;"></div>
+    </div>
+
+    <p class="explain" style="margin-top:16px;">Here's what each of the five main tabs contains:</p>
+    <div style="display:flex;flex-direction:column;gap:8px;margin:16px 0;">
+      <div style="background:#fff;border:1px solid #e8e4f5;border-radius:10px;padding:14px 18px;">
+        <p style="font-size:13px;font-weight:700;color:#5c4eb5;margin-bottom:3px;">My Journey</p>
+        <p style="font-size:13px;color:#4a4060;margin:0;line-height:1.65;">Week-by-week action items for the program — follow along to see where you should be and what's coming up next.</p>
+      </div>
+      <div style="background:#fff;border:1px solid #e8e4f5;border-radius:10px;padding:14px 18px;">
+        <p style="font-size:13px;font-weight:700;color:#5c4eb5;margin-bottom:3px;">My Goals &amp; Reflections</p>
+        <p style="font-size:13px;color:#4a4060;margin:0;line-height:1.65;">Everything you've written in the portal lives here — your goals, reflections, and responses all in one place, building as you go.</p>
+      </div>
+      <div style="background:#fff;border:1px solid #e8e4f5;border-radius:10px;padding:14px 18px;">
+        <p style="font-size:13px;font-weight:700;color:#5c4eb5;margin-bottom:3px;">Milestones</p>
+        <p style="font-size:13px;color:#4a4060;margin:0;line-height:1.65;">A high-level overview of every task to complete in the program. See at a glance what's been checked off and what still needs to happen.</p>
+      </div>
+      <div style="background:#fff;border:1px solid #e8e4f5;border-radius:10px;padding:14px 18px;">
+        <p style="font-size:13px;font-weight:700;color:#5c4eb5;margin-bottom:3px;">Logged Mentorship Sessions</p>
+        <p style="font-size:13px;color:#4a4060;margin:0;line-height:1.65;">Track every mentor session you've submitted — view transcripts, see which sessions have been verified, monitor your progress toward the 3-session requirement, and check on any pending or denied sessions.</p>
+      </div>
+      <div style="background:#fff;border:1px solid #e8e4f5;border-radius:10px;padding:14px 18px;">
+        <p style="font-size:13px;font-weight:700;color:#5c4eb5;margin-bottom:3px;">Logged Educational Sessions</p>
+        <p style="font-size:13px;color:#4a4060;margin:0;line-height:1.65;">Track the educational sessions you've attended and browse everything that's available across the full program schedule.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 4: MY JOURNEY ── -->
+  <div class="section" id="s4">
+    <div class="section-heading">
+      <div class="section-number">4</div>
+      <div class="section-title">My Journey</div>
+    </div>
+
+    <p class="explain">The <strong>My Journey</strong> tab is your week-by-week home base. It's where you'll find the sessions happening each week, your action items, and the reflection prompts you'll complete as the program unfolds. Navigate between weeks using the pill buttons at the top — the current week is highlighted in purple.</p>
+
+    <!-- Week sub-nav mockup -->
+    <div class="mockup">
+      <div class="week-subnav">
+        <div class="week-pill">Week 1</div>
+        <div class="week-pill active">Week 2</div>
+        <div class="week-pill">Week 3</div>
+        <div class="week-pill">Week 4</div>
+        <div class="week-pill">Week 5</div>
+        <div class="week-pill">Week 6</div>
+        <div class="week-pill">Week 7</div>
+        <div class="week-pill">Week 8</div>
+        <div class="week-pill">Week 9</div>
+        <div class="week-pill">Certificate</div>
+      </div>
+      <div style="padding:20px 24px;">
+
+        <!-- Sessions card -->
+        <div class="session-card">
+          <div class="sessions-heading">This Week's Sessions</div>
+          <p style="font-size:12px;color:#9b8fcf;font-style:italic;line-height:1.65;margin-bottom:12px;">All sessions are open to every mentee. You'll notice sessions are labeled by cohort — these labels simply group participants. You are welcome to attend any and all sessions across every cohort.</p>
+
+          <div class="session-row">
+            <div class="session-checkbox"></div>
+            <div style="flex:1;">
+              <div class="session-name">Expert Insight — Edison</div>
+              <div class="session-meta">Mon Jun 8, 12:30–1:00pm · Virtual</div>
+              <div style="font-size:12px;color:#6b6480;margin-top:3px;">Featuring: <a href="#" style="color:#5c4eb5;font-weight:600;">Aerica Shimizu Banks ↗</a></div>
+            </div>
+            <a href="#" class="register-link">Register on Luma →</a>
+          </div>
+
+          <div class="session-row" style="border-bottom:none;">
+            <div class="session-checkbox"></div>
+            <div style="flex:1;">
+              <div class="session-name">Industry Q&amp;A — Edison</div>
+              <div class="session-meta">Fri Jun 12, 12:30–1:00pm · Virtual</div>
+            </div>
+            <a href="#" class="register-link">Register on Luma →</a>
+          </div>
+
+          <p style="font-size:11px;color:#9b8fcf;font-style:italic;margin-top:10px;">*Must attend a minimum of 3 virtual educational sessions by program end.</p>
+        </div>
+
+        <!-- Reflection prompt -->
+        <div style="margin-top:18px;">
+          <p style="font-size:13px;font-weight:700;color:#5c4eb5;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Pre-Meeting Reflection</p>
+          <p style="font-size:14px;font-weight:500;color:#1a1733;margin-bottom:10px;line-height:1.5;">What's the single most important thing you want your mentor to understand about your company?</p>
+          <div class="textarea-mockup">
+            <div class="textarea-inner">Write your thoughts here…</div>
+            <div class="textarea-footer">
+              <span class="btn btn-purple">Save</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <p class="explain" style="margin-top:16px;">The <strong>Save button</strong> lives inside the text area card itself. Click it after writing to record your response — it syncs automatically to our systems so the Uplift team can see your progress and tailor support if needed.</p>
+
+    <p class="explain">The button changes appearance to show you what's happening:</p>
+
+    <div class="save-states">
+      <div class="save-state-item">
+        <div class="save-state-label">Idle — ready to save</div>
+        <div class="save-state-demo">
+          <div class="save-state-text">My thoughts here…</div>
+          <div class="save-state-footer"><span class="btn btn-purple">Save</span></div>
+        </div>
+      </div>
+      <div class="save-state-item">
+        <div class="save-state-label">Saving — in progress</div>
+        <div class="save-state-demo">
+          <div class="save-state-text">My thoughts here…</div>
+          <div class="save-state-footer"><span class="btn btn-saving">Saving…</span></div>
+        </div>
+      </div>
+      <div class="save-state-item">
+        <div class="save-state-label">Saved — confirmed</div>
+        <div class="save-state-demo">
+          <div class="save-state-text">My thoughts here…</div>
+          <div class="save-state-footer"><span class="btn btn-saved">✓ Saved</span></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="explain">After a response has been saved, a note appears below the text area:</p>
+
+    <div class="mockup" style="padding:14px 20px;">
+      <p class="saved-note">Your response has been recorded. A full collection of everything you've written lives in the <strong style="font-style:normal;font-weight:600;">My Goals &amp; Reflections</strong> tab — consider it your personal journal for this program. This field stays editable, so feel free to come back and update your thinking anytime.</p>
+    </div>
+
+    <div class="callout callout-purple" style="margin-top:18px;">
+      Your responses are saved to both your browser's local storage and our backend — so they persist across devices. If you switch computers, your answers are still there because they sync to our system via your unique portal link.
+    </div>
+
+    <div class="callout callout-amber">
+      <strong>Some prompts are marked Optional.</strong> These are for your own reflection and growth — they won't be graded or required to complete the program. We encourage you to engage with them anyway. The founders who do tend to get more out of their mentor relationships.
+    </div>
+  </div>
+
+  <!-- ── SECTION 5: MILESTONES ── -->
+  <div class="section" id="s5">
+    <div class="section-heading">
+      <div class="section-number">5</div>
+      <div class="section-title">Milestones</div>
+    </div>
+
+    <p class="explain">The <strong>Milestones</strong> tab gives you a bird's-eye view of every requirement in the program — 13 items in total. You can see at a glance what you've completed, what's still ahead, and what's overdue. Milestones are updated manually by the TechUnited team every Tuesday — no action needed from you; they'll update automatically once we confirm your attendance or submission.</p>
+
+    <!-- Progress card -->
+    <div class="progress-card">
+      <div class="progress-numbers">
+        <div>
+          <div class="progress-label">Overall Progress</div>
+          <div class="progress-big">38<span>%</span></div>
+        </div>
+        <div style="text-align:right;">
+          <div class="progress-label">Completed</div>
+          <div style="font-size:26px;font-weight:800;line-height:1;">5<span style="font-size:14px;font-weight:500;opacity:0.7;"> / 13</span></div>
+        </div>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" style="width:38%;"></div>
+      </div>
+    </div>
+
+    <p class="explain">Each milestone card has one of four states. Here's what each looks like:</p>
+
+    <!-- State 1: Completed -->
+    <div class="mockup-label" style="margin-top:20px;">State 1 — Completed</div>
+    <div class="milestone-card milestone-card-completed">
+      <div class="milestone-circle milestone-circle-done">✓</div>
+      <div style="flex:1;">
+        <div class="milestone-label milestone-label-done">Onboarding Session Attended</div>
+        <div class="milestone-due milestone-due-done">By Jun 7</div>
+      </div>
+      <div class="milestone-completed-badge">COMPLETED</div>
+    </div>
+    <p class="explain">A green border and a filled green circle mean this milestone is done. The "COMPLETED" badge appears in the top right. You don't need to do anything for these — they're confirmed and locked in.</p>
+
+    <!-- State 2: Not yet due -->
+    <div class="mockup-label" style="margin-top:20px;">State 2 — Not yet due</div>
+    <div class="milestone-card milestone-card-pending">
+      <div class="milestone-circle milestone-circle-pending">○</div>
+      <div style="flex:1;">
+        <div class="milestone-label milestone-label-pending">Mentor Session 2</div>
+        <div class="milestone-due milestone-due-pending">By Jul 4</div>
+      </div>
+    </div>
+    <p class="explain">An empty circle and a light purple due date mean this milestone hasn't been completed yet but isn't overdue. Keep an eye on the due date — these will turn amber if you miss the deadline.</p>
+
+    <!-- State 3: Overdue — contact required -->
+    <div class="mockup-label" style="margin-top:20px;">State 3 — Overdue, contact required</div>
+    <div class="milestone-card milestone-card-overdue">
+      <div class="milestone-circle milestone-circle-overdue">!</div>
+      <div style="flex:1;">
+        <div class="milestone-label milestone-label-overdue">Onboarding Session Attended</div>
+        <div class="milestone-due milestone-due-overdue">By Jun 7</div>
+        <div class="milestone-overdue-msg">⚠️ This is past due. If you haven't attended an onboarding session yet, please reach out to us directly — we can help get you sorted. <a href="mailto:uplift@techunited.co" class="overdue-link">uplift@techunited.co</a></div>
+      </div>
+    </div>
+    <p class="explain">An amber card with a <strong>!</strong> icon means this milestone is past its due date and you need to contact us directly. This typically applies to things like the onboarding session or mentor match — events where we need to coordinate with you personally. Email us at <a href="mailto:uplift@techunited.co" style="color:#5c4eb5;font-weight:600;">uplift@techunited.co</a> and we'll help you catch up.</p>
+
+    <!-- State 4: Overdue — visit My Journey -->
+    <div class="mockup-label" style="margin-top:20px;">State 4 — Overdue, action in My Journey</div>
+    <div class="milestone-card milestone-card-overdue">
+      <div class="milestone-circle milestone-circle-overdue">!</div>
+      <div style="flex:1;">
+        <div class="milestone-label milestone-label-overdue">Mentor Session 1</div>
+        <div class="milestone-due milestone-due-overdue">By Jun 13</div>
+        <div class="milestone-overdue-msg">⚠️ This is past due. <a href="#" class="overdue-link">Visit Week 2 in My Journey →</a></div>
+      </div>
+    </div>
+    <p class="explain">For milestones tied to a specific week's action (like submitting a mentor meeting), the overdue message will link you directly to the relevant week in My Journey. Click the link to jump there and take action. Remember: mentor sessions are submitted through Typeform via the link on your My Journey page — they don't automatically appear from calendar events or emails.</p>
+
+    <div class="callout callout-amber">
+      <strong>Milestones update every Tuesday.</strong> If you completed something on a Wednesday, it may not be reflected until the following Tuesday. If a milestone seems wrong after a full week, contact <a href="mailto:uplift@techunited.co" style="color:#b45309;font-weight:600;">uplift@techunited.co</a>.
+    </div>
+  </div>
+
+  <!-- ── SECTION 6: LOGGED MENTORSHIP SESSIONS ── -->
+  <div class="section" id="s6">
+    <div class="section-heading">
+      <div class="section-number">6</div>
+      <div class="section-title">Logged Mentorship Sessions</div>
+    </div>
+
+    <p class="explain">The <strong>Logged Mentorship Sessions</strong> tab is where you track all the mentor sessions you've submitted. To complete the program, you need 3 verified sessions — each at least 60 minutes, ideally with a Granola AI transcript included. You can submit a session using the Typeform link in My Journey or the <strong>+ Log a meeting</strong> button in this tab.</p>
+
+    <p class="explain">At the top of the tab, a progress card tracks how far you've come:</p>
+
+    <div class="progress-card">
+      <div class="progress-numbers">
+        <div>
+          <div class="progress-label">Verified Sessions</div>
+          <div class="progress-big">50<span>%</span></div>
+        </div>
+        <div style="text-align:right;">
+          <div class="progress-label">Toward goal</div>
+          <div style="font-size:26px;font-weight:800;line-height:1;">1<span style="font-size:14px;font-weight:500;opacity:0.7;"> / 3</span></div>
+        </div>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" style="width:50%;min-width:10px;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;">
+        <span style="font-size:11px;opacity:0.6;">Session 1</span>
+        <span style="font-size:11px;opacity:0.6;">Session 2</span>
+        <span style="font-size:11px;opacity:0.6;">Session 3</span>
+      </div>
+      <p style="margin-top:10px;font-size:11px;opacity:0.55;font-style:italic;line-height:1.5;">* Auto-verified sessions (60+ min with a Granola transcript) and manually verified sessions both count toward this progress. Sessions still pending internal review are not yet reflected here.</p>
+    </div>
+
+    <p class="explain">Each session you've submitted shows up as a card. There are three possible states:</p>
+
+    <!-- Pending review -->
+    <div class="mockup-label" style="margin-top:20px;">State 1 — Pending Review</div>
+    <div class="meeting-card meeting-card-pending">
+      <div class="meeting-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="meeting-num-circle meeting-num-pending">2</div>
+          <span style="font-size:14px;font-weight:700;color:#1a1733;">Session 2</span>
+        </div>
+        <span class="badge badge-pending">🕐 Pending Review</span>
+      </div>
+      <div class="detail-chips">
+        <div>
+          <div class="detail-chip-label">Meeting Date</div>
+          <div class="detail-chip-value">June 20, 2026</div>
+        </div>
+      </div>
+      <div>
+        <div class="meeting-note-label" style="color:#b38a00;">Key Takeaways</div>
+        <div class="meeting-note-text">Discussed go-to-market sequencing and how to prioritize the first 10 customers. Mentor advised to focus on one ICP and go deep before expanding…</div>
+      </div>
+    </div>
+    <p class="explain">A yellow "Pending Review" badge means we've received your submission and it's being reviewed by the Uplift team. Sessions without a Granola transcript or that were under 60 minutes require manual review — this typically takes up to 2 business days. You don't need to do anything while a session is in this state.</p>
+
+    <!-- Verified -->
+    <div class="mockup-label" style="margin-top:20px;">State 2 — Verified</div>
+    <div class="meeting-card meeting-card-verified">
+      <div class="meeting-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="meeting-num-circle meeting-num-verified">1</div>
+          <span style="font-size:14px;font-weight:700;color:#1a1733;">Session 1</span>
+        </div>
+        <span class="badge badge-verified">✓ Verified</span>
+      </div>
+      <div class="detail-chips">
+        <div>
+          <div class="detail-chip-label">Confirmed Date</div>
+          <div class="detail-chip-value">June 11, 2026</div>
+        </div>
+        <div>
+          <div class="detail-chip-label">Confirmed Duration</div>
+          <div class="detail-chip-value detail-chip-value-green">60 minutes or more</div>
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <div class="meeting-note-label" style="color:#5c4eb5;">Meeting Notes</div>
+        <div class="meeting-note-text">Walked through the business model canvas together. Mentor challenged my assumptions about pricing — suggested I talk to 5 more potential customers before locking in…</div>
+      </div>
+      <div>
+        <div class="meeting-note-label" style="color:#2a7fd4;">Key Takeaways</div>
+        <div class="meeting-note-text">Price anchoring matters early. Need to do 5 more customer calls. Follow up next meeting on positioning.</div>
+      </div>
+    </div>
+    <p class="explain">A green "Verified" badge means this session counts toward your 3-session requirement. Verified sessions show your confirmed date, duration, meeting notes, and key takeaways from the Granola transcript you submitted. Sessions are auto-verified if they're 60+ minutes and include a transcript — otherwise they're verified manually by our team.</p>
+
+    <!-- Denied -->
+    <div class="mockup-label" style="margin-top:20px;">State 3 — Denied</div>
+    <div class="meeting-card meeting-card-denied">
+      <div class="meeting-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="meeting-num-circle meeting-num-denied">3</div>
+          <span style="font-size:14px;font-weight:700;color:#1a1733;">Session 3</span>
+        </div>
+        <span class="badge badge-denied">✗ Denied</span>
+      </div>
+      <div class="detail-chips">
+        <div>
+          <div class="detail-chip-label">Meeting Date</div>
+          <div class="detail-chip-value">July 2, 2026</div>
+        </div>
+      </div>
+      <div>
+        <div class="meeting-note-label" style="color:#9b8fcf;">Key Takeaways</div>
+        <div class="meeting-note-text">Talked through pitch deck structure and investor narratives.</div>
+      </div>
+      <div class="denied-reason">
+        Session duration does not meet the 1-hour minimum requirement. Please resubmit with a Granola transcript from a session of at least 60 minutes.
+      </div>
+      <div style="margin-top:8px;">
+        <a href="https://form.typeform.com/to/e0L62296" class="btn-resubmit" style="text-decoration:none;">Resubmit →</a>
+      </div>
+    </div>
+    <p class="explain">A red "Denied" badge means this session didn't meet the requirements — usually because it was under 60 minutes or lacked a Granola transcript. The denial reason is shown in the card. You can resubmit using the button at the bottom of the card. If you believe a denial is a mistake, email <a href="mailto:uplift@techunited.co" style="color:#5c4eb5;font-weight:600;">uplift@techunited.co</a>.</p>
+
+    <div class="callout callout-purple">
+      <strong>Granola is required.</strong> Download the <a href="https://www.granola.ai/" style="color:#3d2f8a;font-weight:600;">Granola AI note-taker</a> and run it during every mentorship session. It captures the transcript automatically. Sessions submitted with a Granola transcript that are 60+ minutes are auto-verified instantly — no waiting required.
+    </div>
+
+    <div class="callout callout-amber">
+      <strong>Submission delay.</strong> After submitting, allow up to 15 minutes for your session to appear in the portal. If it still isn't showing after that, contact us.
+    </div>
+  </div>
+
+  <!-- ── SECTION 7: LOGGED EDUCATIONAL SESSIONS ── -->
+  <div class="section" id="s7">
+    <div class="section-heading">
+      <div class="section-number">7</div>
+      <div class="section-title">Logged Educational Sessions</div>
+    </div>
+
+    <p class="explain">The <strong>Logged Educational Sessions</strong> tab tracks your attendance at program workshops and speaker sessions. You need to attend at least 3 educational sessions by program end — these include Expert Insight talks, Industry Q&amp;A sessions, and Peer Development workshops.</p>
+
+    <p class="explain">Unlike mentor meetings (which you submit yourself via Typeform), educational session attendance is <strong>verified manually by our team</strong>. We cross-reference Luma registration and attendance records. Updates happen every Tuesday — if your session isn't reflected after a full week, reach out to <a href="mailto:uplift@techunited.co" style="color:#5c4eb5;font-weight:600;">uplift@techunited.co</a>.</p>
+
+    <!-- Progress tracker -->
+    <div style="display:flex;gap:8px;margin:16px 0;">
+      <div style="flex:1;background:#fafafa;border:1px solid #e8e4f5;border-radius:10px;padding:12px 14px;text-align:center;">
+        <div style="font-size:20px;margin-bottom:4px;">⬜</div>
+        <div style="font-size:12px;font-weight:600;color:#9b8fcf;">Educational Session 1</div>
+      </div>
+      <div style="flex:1;background:#e8f8f0;border:1px solid #b8e8d0;border-radius:10px;padding:12px 14px;text-align:center;">
+        <div style="font-size:20px;margin-bottom:4px;">✅</div>
+        <div style="font-size:12px;font-weight:600;color:#1a6e42;">Educational Session 2</div>
+      </div>
+      <div style="flex:1;background:#fafafa;border:1px solid #e8e4f5;border-radius:10px;padding:12px 14px;text-align:center;">
+        <div style="font-size:20px;margin-bottom:4px;">⬜</div>
+        <div style="font-size:12px;font-weight:600;color:#9b8fcf;">Educational Session 3</div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;color:#4a4060;line-height:1.7;margin-bottom:16px;"><strong style="color:#1a1733;">1 / 3 required sessions verified.</strong> Keep attending sessions — any Expert Insight, Industry Q&amp;A, or Peer Development session counts regardless of which cohort it's labeled for.</p>
+
+    <p class="explain">Each session in your list appears as a card in one of two states:</p>
+
+    <!-- Pending verification -->
+    <div class="mockup-label" style="margin-top:20px;">State 1 — Pending Verification</div>
+    <div class="edu-card">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:#1a1733;margin-bottom:2px;">Expert Insight — Hopper</div>
+        <div style="font-size:12px;color:#9b8fcf;">Week 3 · Mon Jun 15, 12:30–1:00pm · Virtual</div>
+      </div>
+      <span class="badge" style="background:#f5f3ff;color:#9b8fcf;border:1px solid #d4cef5;font-size:11px;">PENDING</span>
+    </div>
+    <p class="explain">A grey "Pending" badge means we have a record of your registration but haven't manually confirmed attendance yet. This resolves on the next Tuesday update cycle.</p>
+
+    <!-- Verified -->
+    <div class="mockup-label" style="margin-top:20px;">State 2 — Verified</div>
+    <div class="edu-card edu-card-verified">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:#1a1733;margin-bottom:2px;">Industry Q&amp;A — Edison</div>
+        <div style="font-size:12px;color:#9b8fcf;">Week 2 · Fri Jun 12, 12:30–1:00pm · Virtual</div>
+      </div>
+      <span class="badge badge-verified" style="font-size:11px;">✓ VERIFIED</span>
+    </div>
+    <p class="explain">A green "Verified" badge means your attendance has been confirmed and this session counts toward your 3-session requirement. Once a session is verified, it also updates your Milestones tab automatically.</p>
+
+    <div class="callout callout-purple">
+      <strong>All sessions are open to everyone.</strong> You'll see sessions labeled by cohort (Edison, Hopper, Bardeen, Lawrence, Morrison) — these are just groupings to help build peer relationships. You can attend any session from any cohort and it will count toward your 3 required educational sessions.
+    </div>
+  </div>
+
+  <!-- ── SECTION 8: MY GOALS & REFLECTIONS ── -->
+  <div class="section" id="s8">
+    <div class="section-heading">
+      <div class="section-number">8</div>
+      <div class="section-title">My Goals &amp; Reflections</div>
+    </div>
+
+    <p class="explain">The <strong>My Goals &amp; Reflections</strong> tab is your running journal for the entire program. Every reflection you write in My Journey — across all 9 weeks — is collected here in one place. At the top you'll see your primary and secondary goals from your application, followed by everything you've written week by week.</p>
+
+    <p class="explain">Think of it as a record of your thinking as it evolves. At the end of the program, you'll be able to look back at what you wrote in Week 1 and compare it to where you are now. Many founders find this the most valuable part of the portal.</p>
+
+    <div class="goals-card">
+      <div class="goals-category">Week 1 Reflections — Pre-Meeting Prep</div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:600;color:#6b6480;margin-bottom:5px;">Who is your ideal first customer, and why?</div>
+        <div class="goals-text">Mid-size marketing agencies with 10–50 employees. They have budget, they're tech-forward, and they feel the pain of manual reporting every month. They'll pay if I can save them 5 hours a week. The decision-maker is usually a Director of Operations, not the CEO — so I need to sell on efficiency, not vision.</div>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#6b6480;margin-bottom:5px;">What assumptions about your market have you not yet tested?</div>
+        <div class="goals-text">I'm assuming they'll pay $499/month. I haven't tested that. I also haven't validated whether they want AI-generated summaries or just clean exports — those are very different products. Need to run 5 discovery calls before building anything else.</div>
+      </div>
+    </div>
+
+    <div class="goals-card">
+      <div class="goals-category">Week 2 — Before Your First Mentor Meeting</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#6b6480;margin-bottom:5px;">What would make this first meeting feel like a success to you?</div>
+        <div class="goals-text">Walking away with a clear next experiment to run. Even just one. I don't need a roadmap — I just need to feel like I'm testing the right thing.</div>
+      </div>
+    </div>
+
+    <div class="callout callout-green">
+      <strong>Your reflections are private to you and the Uplift team.</strong> They're not shared with your mentor, your cohort, or anyone outside the program. Write honestly — the more specific you are, the more useful these become when you look back at them.
+    </div>
+  </div>
+
+  <!-- ── SECTION 9: PROGRAM ROADMAP ── -->
+  <div class="section" id="s9">
+    <div class="section-heading">
+      <div class="section-number">9</div>
+      <div class="section-title">Program Roadmap</div>
+    </div>
+
+    <p class="explain">The <strong>Program Roadmap</strong> (accessible via the pill button in the header) gives you a complete week-by-week view of the entire 9-week program. Use it to plan ahead, check upcoming sessions, and see which weeks have required in-person events.</p>
+
+    <div class="callout callout-purple" style="margin-bottom:18px;">
+      All sessions are open to every mentee regardless of cohort label. You are welcome and encouraged to attend any and all sessions across every cohort — every one you attend counts toward your 3 required educational sessions.
+    </div>
+
+    <div class="mockup" style="padding:16px;">
+      <table class="roadmap-table">
+        <thead>
+          <tr>
+            <th>Week</th>
+            <th>Date</th>
+            <th>Session</th>
+            <th>Format</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="roadmap-week-label">Week 1</span><br><span style="font-size:11px;color:#6b6480;">Welcome &amp; Onboarding</span></td>
+            <td style="font-size:12px;color:#6b6480;white-space:nowrap;">Jun 1–6</td>
+            <td style="font-size:12px;color:#1a1733;">Onboarding — Edison &amp; Hopper &amp; Bardeen &amp; Lawrence &amp; Morrison</td>
+            <td><span class="format-virtual">Virtual</span></td>
+          </tr>
+          <tr>
+            <td><span class="roadmap-week-label">Week 2</span><br><span style="font-size:11px;color:#6b6480;">Meet Your Mentor</span></td>
+            <td style="font-size:12px;color:#6b6480;white-space:nowrap;">Jun 8–13</td>
+            <td style="font-size:12px;color:#1a1733;">Expert Insight — Edison<br>Industry Q&amp;A — Edison</td>
+            <td><span class="format-virtual">Virtual</span></td>
+          </tr>
+          <tr>
+            <td><span class="roadmap-week-label">Week 3</span><br><span style="font-size:11px;color:#6b6480;">Keep the Momentum</span></td>
+            <td style="font-size:12px;color:#6b6480;white-space:nowrap;">Jun 15–20</td>
+            <td style="font-size:12px;color:#1a1733;">Expert Insight — Hopper<br>Peer Development — Edison</td>
+            <td><span class="format-virtual">Virtual</span></td>
+          </tr>
+          <tr>
+            <td><span class="roadmap-week-label">Week 4</span><br><span style="font-size:11px;color:#6b6480;">Midpoint Meetup</span></td>
+            <td style="font-size:12px;color:#6b6480;white-space:nowrap;">Jun 22–27</td>
+            <td style="font-size:12px;color:#1a1733;"><strong>Midpoint Meetup</strong> — Tue Jun 23, 4:00–7:00pm<br><span style="font-size:11px;color:#6b6480;">Antique Lofts, Hoboken, NJ</span><br>Industry Q&amp;A — Hopper</td>
+            <td><span class="format-required">REQUIRED</span><br><br><span class="format-virtual">Virtual</span></td>
+          </tr>
+          <tr>
+            <td><span class="roadmap-week-label">Week 5</span><br><span style="font-size:11px;color:#6b6480;">Deepen the Conversation</span></td>
+            <td style="font-size:12px;color:#6b6480;white-space:nowrap;">Jun 29–Jul 4</td>
+            <td style="font-size:12px;color:#1a1733;">Expert Insight — Bardeen<br>Peer Development — Hopper<br>Industry Q&amp;A — Bardeen</td>
+            <td><span class="format-virtual">Virtual</span></td>
+          </tr>
+          <tr>
+            <td><span class="roadmap-week-label">Week 6</span><br><span style="font-size:11px;color:#6b6480;">Keep Building</span></td>
+            <td style="font-size:12px;color:#6b6480;white-space:nowrap;">Jul 6–11</td>
+            <td style="font-size:12px;color:#1a1733;">Expert Insight — Lawrence<br>Peer Development — Bardeen</td>
+            <td><span class="format-virtual">Virtual</span></td>
+          </tr>
+          <tr>
+            <td><span class="roadmap-week-label">Week 7</span><br><span style="font-size:11px;color:#6b6480;">Meet Your Mentor #3</span></td>
+            <td style="font-size:12px;color:#6b6480;white-space:nowrap;">Jul 13–18</td>
+            <td style="font-size:12px;color:#1a1733;">Expert Insight — Morrison<br>Peer Development — Lawrence<br>Industry Q&amp;A — Lawrence</td>
+            <td><span class="format-virtual">Virtual</span></td>
+          </tr>
+          <tr>
+            <td><span class="roadmap-week-label">Week 8</span><br><span style="font-size:11px;color:#6b6480;">Makeup Week + End Report</span></td>
+            <td style="font-size:12px;color:#6b6480;white-space:nowrap;">Jul 19–25</td>
+            <td style="font-size:12px;color:#1a1733;">Expert Session — Edison<br><strong>End of Program Report due</strong></td>
+            <td><span class="format-virtual">Virtual</span></td>
+          </tr>
+          <tr>
+            <td><span class="roadmap-week-label">Week 9</span><br><span style="font-size:11px;color:#6b6480;">Summit &amp; Graduation</span></td>
+            <td style="font-size:12px;color:#6b6480;white-space:nowrap;">Jul 27–Aug 4</td>
+            <td style="font-size:12px;color:#1a1733;">Peer Development — Morrison<br><strong>Uplift Summit &amp; Graduation</strong> — Tue Aug 4</td>
+            <td><span class="format-virtual">Virtual</span><br><br><span class="format-required">REQUIRED</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-amber" style="margin-top:18px;">
+      <strong>Two events are required for graduation:</strong> the Midpoint Meetup (Jun 23, in-person in Hoboken) and the Uplift Summit &amp; Graduation (Aug 4, in-person). You cannot receive your certificate without attending both. Register through Luma links on your portal.
+    </div>
+  </div>
+
+  <!-- ── SECTION 10: RESOURCES ── -->
+  <div class="section" id="s10">
+    <div class="section-heading">
+      <div class="section-number">10</div>
+      <div class="section-title">Resources</div>
+    </div>
+
+    <p class="explain">The <strong>Resources</strong> section (accessible via the pill in the header) contains a curated list of links and tools organized by category. From submission forms to investor resources to NJ ecosystem connections, everything lives here. Some items are locked until later in the program.</p>
+
+    <!-- Program Essentials -->
+    <div style="margin-bottom:24px;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:#5c4eb5;margin-bottom:10px;">Program Essentials</p>
+      <a href="https://form.typeform.com/to/e0L62296" class="resource-card" style="display:flex;text-decoration:none;">
+        <div style="flex:1;">
+          <div class="resource-title">Mentor Meeting Submission</div>
+          <div class="resource-desc">Submit your mentor meeting reports here (required)</div>
+        </div>
+        <span class="resource-arrow">→</span>
+      </a>
+      <a href="https://www.granola.ai/" class="resource-card" style="display:flex;text-decoration:none;">
+        <div style="flex:1;">
+          <div class="resource-title">Granola — AI Note Taker</div>
+          <div class="resource-desc">Required for all mentorship sessions. Free download — captures your meetings automatically.</div>
+        </div>
+        <span class="resource-arrow">→</span>
+      </a>
+      <div class="resource-card resource-card-disabled" style="display:flex;">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+            <span class="resource-title" style="color:#6b6183;">How to Submit Your Mentor Meetings</span>
+            <span class="badge-coming-soon">Coming soon</span>
+          </div>
+          <div class="resource-desc">Step-by-step guide for logging and submitting your mentor meeting reports</div>
+        </div>
+        <span class="resource-arrow resource-arrow-disabled">→</span>
+      </div>
+      <div class="resource-card resource-card-disabled" style="display:flex;">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+            <span class="resource-title" style="color:#6b6183;">End of Program Report</span>
+            <span class="badge-locked">🔒 Available Week 7</span>
+          </div>
+          <div class="resource-desc">5-minute report due during Week 8</div>
+        </div>
+        <span class="resource-arrow resource-arrow-disabled">→</span>
+      </div>
+    </div>
+
+    <!-- Fundraising -->
+    <div style="margin-bottom:24px;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:#5c4eb5;margin-bottom:10px;">Fundraising &amp; Investors</p>
+      <a href="https://www.jumpstartnj.org/" class="resource-card" style="display:flex;text-decoration:none;">
+        <div style="flex:1;">
+          <div class="resource-title">Jumpstart NJ Angel Network</div>
+          <div class="resource-desc">Angel investors focused on the NJ startup ecosystem</div>
+        </div>
+        <span class="resource-arrow">→</span>
+      </a>
+      <a href="https://www.ycombinator.com/documents" class="resource-card" style="display:flex;text-decoration:none;">
+        <div style="flex:1;">
+          <div class="resource-title">Y Combinator SAFE Note</div>
+          <div class="resource-desc">Standard SAFE agreement for early-stage fundraising</div>
+        </div>
+        <span class="resource-arrow">→</span>
+      </a>
+      <div class="resource-card resource-card-disabled" style="display:flex;">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+            <span class="resource-title" style="color:#6b6183;">Pitch Deck Template</span>
+            <span class="badge-coming-soon">Coming soon</span>
+          </div>
+          <div class="resource-desc">A standard 10-slide structure for early-stage investor decks</div>
+        </div>
+        <span class="resource-arrow resource-arrow-disabled">→</span>
+      </div>
+    </div>
+
+    <!-- NJ Ecosystem -->
+    <div style="margin-bottom:24px;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:#5c4eb5;margin-bottom:10px;">NJ Ecosystem</p>
+      <a href="https://techunited.co" class="resource-card" style="display:flex;text-decoration:none;">
+        <div style="flex:1;">
+          <div class="resource-title">TechUnited:NJ</div>
+          <div class="resource-desc">The largest tech community in New Jersey</div>
+        </div>
+        <span class="resource-arrow">→</span>
+      </a>
+      <a href="https://www.njeda.gov/" class="resource-card" style="display:flex;text-decoration:none;">
+        <div style="flex:1;">
+          <div class="resource-title">NJ EDA Funding Programs</div>
+          <div class="resource-desc">Grants, loans, and programs from the NJ Economic Development Authority</div>
+        </div>
+        <span class="resource-arrow">→</span>
+      </a>
+      <a href="https://www.techcouncilventures.com/" class="resource-card" style="display:flex;text-decoration:none;">
+        <div style="flex:1;">
+          <div class="resource-title">Tech Council Ventures</div>
+          <div class="resource-desc">Early-stage VC investing in NJ and Mid-Atlantic tech founders</div>
+        </div>
+        <span class="resource-arrow">→</span>
+      </a>
+    </div>
+
+    <div class="callout callout-purple">
+      <strong>Resources are added throughout the program.</strong> Items marked "Coming Soon" will be unlocked on the listed dates. Check back each week — the Resources section grows as the program progresses.
+    </div>
+  </div>
+
+  <!-- ── Footer ── -->
+  <div style="margin-top:48px;padding-top:24px;border-top:1px solid #e8e4f5;text-align:center;">
+    <p style="font-size:13px;color:#9b8fcf;line-height:1.9;">
+      Questions? Email the Uplift team at <a href="mailto:uplift@techunited.co" style="color:#5c4eb5;font-weight:600;">uplift@techunited.co</a><br>
+      <strong style="color:#1a1733;">Uplift Summer 2026</strong> is a program of <a href="https://techunited.co" style="color:#5c4eb5;font-weight:600;">TechUnited:NJ</a>
+    </p>
+  </div>
+
+</div>
+</body>
+</html>
