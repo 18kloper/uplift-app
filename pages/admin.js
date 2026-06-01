@@ -190,8 +190,8 @@ const MILESTONE_FILTERS = [
   { key: "edu3",    label: "3 Edu Sessions",    color: "#2a7fd4", bg: "#e8f4ff", test: m => m.eduCount >= 3 },
 ];
 
-// ─── Resource Engagement view ─────────────────────────────────────────────────
-function ResourceEngagement() {
+// ─── Click Engagement view ────────────────────────────────────────────────────
+function ClickEngagement() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -248,10 +248,10 @@ function ResourceEngagement() {
   );
 
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px" }}>
+    <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <p style={{ margin: "0 0 2px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Resource Engagement</p>
+          <p style={{ margin: "0 0 2px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Click Engagement</p>
           <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>
             {stats ? `${stats.total} total clicks recorded` : "Loading…"}
           </p>
@@ -263,16 +263,52 @@ function ResourceEngagement() {
       )}
 
       {!loading && stats && (
-        <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-          {/* This week */}
-          <div style={{ flex: 1, minWidth: 320, background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "28px 28px" }}>
-            <RankList items={stats.thisWeek} label="Top 5 — This Week" />
+        <>
+          {/* Top 5 panels — All Time first, then This Week */}
+          <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 32 }}>
+            <div style={{ flex: 1, minWidth: 320, background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "28px 28px" }}>
+              <RankList items={stats.allTime} label="Top 5 — All Time" />
+            </div>
+            <div style={{ flex: 1, minWidth: 320, background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "28px 28px" }}>
+              <RankList items={stats.thisWeek} label="Top 5 — This Week" />
+            </div>
           </div>
-          {/* All time */}
-          <div style={{ flex: 1, minWidth: 320, background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "28px 28px" }}>
-            <RankList items={stats.allTime} label="Top 5 — All Time" />
+
+          {/* Click log */}
+          <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", overflow: "hidden" }}>
+            <div style={{ padding: "18px 24px", borderBottom: "1px solid #f0ecff", display: "flex", alignItems: "center", gap: 10 }}>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#1a1733" }}>Recent Clicks</p>
+              <span style={{ fontSize: 12, color: "#9b8fcf" }}>— most recent first</span>
+            </div>
+            {!stats.recent || stats.recent.length === 0 ? (
+              <p style={{ padding: "24px", fontSize: 13, color: "#b0a8cc", fontStyle: "italic", margin: 0 }}>No click history yet.</p>
+            ) : (
+              <div style={{ maxHeight: 480, overflowY: "auto" }}>
+                {stats.recent.map((click, i) => (
+                  <div key={i} style={{
+                    display: "grid", gridTemplateColumns: "180px 1fr 1fr",
+                    padding: "11px 24px", alignItems: "center",
+                    borderBottom: i < stats.recent.length - 1 ? "1px solid #faf9ff" : "none",
+                    background: i % 2 === 0 ? "#fff" : "#faf9ff",
+                  }}>
+                    <span style={{ fontSize: 11, color: "#b0a8cc", fontVariantNumeric: "tabular-nums" }}>
+                      {click.timestamp}
+                    </span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1733", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: 16 }}>
+                      {click.name}
+                    </span>
+                    <a href={click.url || "#"} target="_blank" rel="noopener noreferrer"
+                      style={{ fontSize: 13, color: "#5c4eb5", textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                      onMouseEnter={e => e.currentTarget.style.textDecoration = "underline"}
+                      onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}>
+                      {click.title}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        </div>
+        </>
       )}
     </div>
   );
@@ -897,7 +933,7 @@ export default function AdminPage() {
         <>
           {/* Top-level admin tab bar */}
           <div style={{ background: "#1a0e4f", borderBottom: "1px solid rgba(255,255,255,0.1)", display: "flex", gap: 4, padding: "0 32px" }}>
-            {[{ key: "mentees", label: "👥 Mentees" }, { key: "resources", label: "📊 Resource Engagement" }].map(({ key, label }) => (
+            {[{ key: "mentees", label: "👥 Mentees" }, { key: "resources", label: "📊 Click Engagement" }].map(({ key, label }) => (
               <button key={key} onClick={() => setAdminTab(key)} style={{
                 background: "none", border: "none", borderBottom: adminTab === key ? "2px solid #f5c542" : "2px solid transparent",
                 color: adminTab === key ? "#fff" : "rgba(255,255,255,0.5)",
@@ -909,7 +945,7 @@ export default function AdminPage() {
             ))}
           </div>
           {adminTab === "mentees"   && <Dashboard data={data} refreshedAt={data.generatedAt} />}
-          {adminTab === "resources" && <ResourceEngagement />}
+          {adminTab === "resources" && <ClickEngagement />}
         </>
       )}
     </>

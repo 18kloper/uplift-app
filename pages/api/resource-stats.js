@@ -72,10 +72,18 @@ export default async function handler(req, res) {
         .sort((a, b) => b.count - a.count)
         .slice(0, 5);
 
+    // Recent clicks feed — last 100 rows, most recent first
+    const recent = dataRows
+      .slice()
+      .reverse()
+      .slice(0, 100)
+      .map(([timestamp, slug, name, title, url]) => ({ timestamp, slug, name: name || slug, title, url: url || "" }));
+
     return res.status(200).json({
       allTime:  toRanked(allTimeCounts),
       thisWeek: toRanked(thisWeekCounts),
       total:    dataRows.length,
+      recent,
       generatedAt: new Date().toISOString(),
     });
   } catch (err) {
