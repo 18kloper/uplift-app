@@ -657,6 +657,149 @@ function PromptEngagement() {
   );
 }
 
+// ─── Peer Connections view ────────────────────────────────────────────────────
+function PeerConnections() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const CACHE_KEY = "uplift_peer_connections";
+  const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+  const COHORT_COLORS = {
+    1: { bg: "#fff3cd", color: "#7a5700", border: "#f5c542" },
+    2: { bg: "#d4edda", color: "#1a5c2a", border: "#5cb85c" },
+    3: { bg: "#d0e8ff", color: "#0a3d6b", border: "#2a7fd4" },
+    4: { bg: "#f3d0ff", color: "#5a0d7a", border: "#9b59b6" },
+    5: { bg: "#ffe0d0", color: "#7a2d0a", border: "#e87040" },
+  };
+
+  useEffect(() => {
+    // Load from cache or auto-fetch
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const age = Date.now() - new Date(parsed.generatedAt).getTime();
+        if (age < CACHE_TTL_MS) { setData(parsed); return; }
+      }
+    } catch (_) {}
+    fetchConnections();
+  }, []);
+
+  const fetchConnections = () => {
+    setLoading(true);
+    setError(null);
+    fetch("/api/peer-connections")
+      .then(r => r.json())
+      .then(d => {
+        if (d.error) { setError(d.error); }
+        else {
+          setData(d);
+          try { localStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch (_) {}
+        }
+        setLoading(false);
+      })
+      .catch(e => { setError(e.message); setLoading(false); });
+  };
+
+  const FounderPill = ({ founder }) => {
+    const c = COHORT_COLORS[founder.cohort] || { bg: "#f3f0ff", color: "#5c4eb5", border: "#c4b8f0" };
+    return (
+      <div style={{
+        background: c.bg, border: `1px solid ${c.border}`,
+        borderRadius: 10, padding: "8px 14px", minWidth: 0,
+      }}>
+        <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{founder.name}</p>
+        <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: c.color }}>
+          Cohort {founder.cohort} · {founder.cohortName}
+        </p>
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ maxWidth: 820, margin: "0 auto", padding: "32px 24px" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 6 }}>
+        <div>
+          <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Peer Connections</p>
+          <p style={{ margin: "0 0 24px", fontSize: 13, color: "#9b8fcf" }}>
+            {data
+              ? `${data.connections?.length || 0} suggested pairings from ${data.totalFoundersAnalyzed} founders · Refreshed ${new Date(data.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · Auto-updates daily`
+              : loading ? "Analyzing responses…" : "Auto-updates daily — loading…"}
+          </p>
+        </div>
+        <button
+          onClick={fetchConnections}
+          disabled={loading}
+          style={{
+            background: loading ? "#e8e4f5" : "#5c4eb5",
+            border: "none", color: "#fff", borderRadius: 8,
+            padding: "8px 16px", fontSize: 13, fontWeight: 700,
+            cursor: loading ? "default" : "pointer",
+            fontFamily: "Inter, system-ui, sans-serif",
+            flexShrink: 0, marginTop: 2,
+          }}
+        >
+          {loading ? "Analyzing…" : "↻ Refresh"}
+        </button>
+      </div>
+
+      {error && (
+        <div style={{ background: "#fff0f0", border: "1px solid #ffcdd2", borderRadius: 10, padding: "14px 18px", marginBottom: 20 }}>
+          <p style={{ margin: 0, fontSize: 13, color: "#c00" }}>⚠️ {error}</p>
+        </div>
+      )}
+
+      {loading && !data && (
+        <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>Analyzing founder responses to find connections…</p>
+      )}
+
+      {data && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {(data.connections || []).length === 0 ? (
+            <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>No connections found yet — more responses needed.</p>
+          ) : (data.connections || []).map((conn, i) => (
+            <div key={i} style={{
+              background: "#fff", borderRadius: 14,
+              border: "1px solid #e8e4f5",
+              padding: "18px 20px",
+              boxShadow: "0 1px 4px rgba(92,78,181,0.06)",
+            }}>
+              {/* Shared theme tag */}
+              <div style={{ marginBottom: 12 }}>
+                <span style={{
+                  background: "#f3f0ff", color: "#5c4eb5",
+                  borderRadius: 6, padding: "3px 10px",
+                  fontSize: 11, fontWeight: 700, letterSpacing: "0.04em",
+                }}>
+                  🔗 {conn.sharedTheme}
+                </span>
+              </div>
+
+              {/* The two founders */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
+                <FounderPill founder={conn.founders[0]} />
+                <span style={{ fontSize: 20, color: "#c4b8f0", flexShrink: 0 }}>↔</span>
+                <FounderPill founder={conn.founders[1]} />
+              </div>
+
+              {/* Reason */}
+              <p style={{ margin: 0, fontSize: 13, color: "#4a4060", lineHeight: 1.65 }}>
+                {conn.reason}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <p style={{ margin: "28px 0 0", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
+        📋 Connections are AI-suggested based on prompt responses. Use your judgment before making introductions.
+      </p>
+    </div>
+  );
+}
+
 // ─── Portal Activity view ─────────────────────────────────────────────────────
 function PortalActivity() {
   const [data, setData] = useState(null);
@@ -1417,10 +1560,11 @@ export default function AdminPage() {
           {/* Top-level admin tab bar */}
           <div style={{ background: "#1a0e4f", borderBottom: "1px solid rgba(255,255,255,0.1)", display: "flex", gap: 4, padding: "0 32px" }}>
             {[
-              { key: "mentees",  label: "👥 Mentees" },
-              { key: "clicks",   label: "📊 Click Engagement" },
-              { key: "prompts",  label: "📝 Prompt Engagement" },
-              { key: "activity", label: "🕐 Portal Activity" },
+              { key: "mentees",     label: "👥 Mentees" },
+              { key: "clicks",      label: "📊 Click Engagement" },
+              { key: "prompts",     label: "📝 Prompt Engagement" },
+              { key: "activity",    label: "🕐 Portal Activity" },
+              { key: "connections", label: "🤝 Peer Connections" },
             ].map(({ key, label }) => (
               <button key={key} onClick={() => setAdminTab(key)} style={{
                 background: "none", border: "none", borderBottom: adminTab === key ? "2px solid #f5c542" : "2px solid transparent",
@@ -1434,8 +1578,9 @@ export default function AdminPage() {
           </div>
           {adminTab === "mentees"  && <Dashboard data={data} refreshedAt={data.generatedAt} />}
           {adminTab === "clicks"   && <ClickEngagement />}
-          {adminTab === "prompts"  && <PromptEngagement />}
-          {adminTab === "activity" && <PortalActivity />}
+          {adminTab === "prompts"     && <PromptEngagement />}
+          {adminTab === "activity"    && <PortalActivity />}
+          {adminTab === "connections" && <PeerConnections />}
         </>
       )}
     </>
