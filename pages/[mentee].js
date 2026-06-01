@@ -108,7 +108,7 @@ const PRIMARY_TABS = [
   { id: "goals",      label: "My Goals & Reflections" },
   { id: "meetings",   label: "Logged Mentorship Sessions" },
   { id: "edu",        label: "Logged Educational Sessions" },
-  { id: "calendar",   label: "Calendar" },
+  { id: "calendar",   label: "Program Roadmap" },
   { id: "resources",  label: "Resources" },
   { id: "profile",    label: "Cohort Directory" },
   { id: "support",    label: "Support" },
@@ -1668,9 +1668,10 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
               </div>
             ))}
 
-            {/* Pending review section */}
-            {pending.length > 0 && (
+            {/* Pending + Denied sessions — unified section */}
+            {(pending.length > 0 || denied.length > 0) && (
               <div style={{ marginTop: verified.length > 0 ? 28 : 8 }}>
+                {/* Always-visible yellow notice */}
                 <div style={{
                   background: "#fffbeb", borderRadius: 10, border: "1px solid #f5d97a",
                   padding: "16px 20px", marginBottom: 14,
@@ -1682,9 +1683,14 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                     Don't worry if these aren't getting checked off automatically — sessions without a Granola transcript or that were under 60 minutes are reviewed internally by the program team.
                   </p>
                   <p style={{ margin: 0, fontSize: 13, color: "#9a7200", lineHeight: 1.6 }}>
-                    If we need more information we'll contact you directly.
+                    If we need more information we'll contact you directly. If you believe a denied session is an error, contact{" "}
+                    <a href="mailto:uplift@techunited.co" style={{ color: "#7a5c00", fontWeight: 600, textDecoration: "none" }}>
+                      uplift@techunited.co
+                    </a>.
                   </p>
                 </div>
+
+                {/* Pending cards */}
                 {pending.map((m, i) => (
                   <div key={m.id} style={{
                     background: "#fff", borderRadius: 12,
@@ -1706,7 +1712,6 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                         </p>
                       </div>
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-                        {/* Primary status badge */}
                         <span style={{
                           background: "#fffbeb", color: "#7a5c00",
                           borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700,
@@ -1714,7 +1719,6 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                         }}>
                           🕐 Pending Review
                         </span>
-                        {/* Detail chips */}
                         {m.sixtyMin !== null && (
                           <span style={{
                             background: m.sixtyMin ? "#e8f8f0" : "#fff3e0",
@@ -1734,7 +1738,6 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                         )}
                       </div>
                     </div>
-                    {/* Date row for pending */}
                     {m.date && (
                       <div style={{ marginBottom: 10 }}>
                         <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
@@ -1753,32 +1756,13 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                         </p>
                       </div>
                     )}
-                    {/* Session ID for admin reference */}
                     <p style={{ margin: "12px 0 0", fontSize: 10, color: "#c0b8d8", fontFamily: "monospace", letterSpacing: "0.03em" }}>
                       ID: {m.id}
                     </p>
                   </div>
                 ))}
-              </div>
-            )}
 
-            {/* Denied sessions */}
-            {denied.length > 0 && (
-              <div style={{ marginTop: pending.length > 0 ? 20 : verified.length > 0 ? 28 : 8 }}>
-                <div style={{
-                  background: "#fef0f0", borderRadius: 10, border: "1px solid #f5c5c5",
-                  padding: "14px 18px", marginBottom: 12,
-                }}>
-                  <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#8a1a1a" }}>
-                    ✗ Sessions not approved
-                  </p>
-                  <p style={{ margin: 0, fontSize: 12, color: "#a94040", lineHeight: 1.6 }}>
-                    The following session(s) were reviewed and could not be verified. If you believe this is an error, please contact{" "}
-                    <a href="mailto:uplift@techunited.co" style={{ color: "#8a1a1a", fontWeight: 600, textDecoration: "none" }}>
-                      uplift@techunited.co
-                    </a>.
-                  </p>
-                </div>
+                {/* Denied cards — same layout, red number bubble + red badge */}
                 {denied.map((m, i) => (
                   <div key={m.id} style={{
                     background: "#fff", borderRadius: 12,
@@ -1789,14 +1773,14 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <div style={{
                           width: 30, height: 30, borderRadius: "50%",
-                          background: "#fdd8d8", color: "#8a1a1a",
+                          background: "#e74c3c", color: "#fff",
                           display: "flex", alignItems: "center", justifyContent: "center",
                           fontSize: 12, fontWeight: 700, flexShrink: 0,
                         }}>
-                          ✗
+                          {verified.length + pending.length + i + 1}
                         </div>
                         <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#1a1733" }}>
-                          Submitted Session
+                          Session {verified.length + pending.length + i + 1}
                         </p>
                       </div>
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
@@ -1864,6 +1848,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
           </>
         );
       })()}
+
     </div>
   );
 }
@@ -2777,6 +2762,29 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
   ];
 
   const renderWeekContent = () => {
+    if (activeWeek === "certificate") {
+      return (
+        <div style={{
+          background: "#fff", borderRadius: 14, border: "2px dashed #d4d0e8",
+          padding: "48px 32px", textAlign: "center", maxWidth: 520, margin: "0 auto",
+        }}>
+          <div style={{ fontSize: 52, marginBottom: 16 }}>🎓</div>
+          <p style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 700, color: "#1a1733" }}>
+            Your Certificate
+          </p>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            background: "#f0ecff", borderRadius: 20, padding: "4px 14px",
+            fontSize: 12, fontWeight: 600, color: "#5c4eb5", marginBottom: 20,
+          }}>
+            🔒 Locked
+          </div>
+          <p style={{ margin: 0, fontSize: 14, color: "#6b6480", lineHeight: 1.8 }}>
+            After completing your end-of-program report and receiving approval from the Uplift team, your certificate of completion will be available here to download.
+          </p>
+        </div>
+      );
+    }
     const week = WEEKS.find((w) => w.num === activeWeek);
     if (!week) return null;
     switch (week.type) {
@@ -2972,6 +2980,20 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
                   </button>
                 );
               })}
+              <button
+                onClick={() => setActiveWeek("certificate")}
+                style={{
+                  flex: "0 0 auto", padding: "10px 12px 8px",
+                  border: "none", background: "none",
+                  borderBottom: activeWeek === "certificate" ? "2px solid #9b8fcf" : "2px solid transparent",
+                  color: activeWeek === "certificate" ? "#5c4eb5" : "#9b8fcf",
+                  fontWeight: activeWeek === "certificate" ? 700 : 400,
+                  fontSize: 12, cursor: "pointer", whiteSpace: "nowrap",
+                  fontFamily: "inherit", transition: "color 0.15s, border-color 0.15s",
+                }}
+              >
+                🎓 Certificate
+              </button>
             </div>
           </div>
         )}
@@ -2979,7 +3001,14 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
         {/* Content */}
         <div style={{ maxWidth: 720, margin: "0 auto", padding: "28px 24px 60px" }}>
           {/* Section header */}
-          {activeTab === "journey" && activeWeekData && (
+          {activeTab === "journey" && activeWeek === "certificate" && (
+            <div style={{ marginBottom: 24 }}>
+              <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: "#1a1733" }}>
+                Certificate of Completion
+              </h2>
+            </div>
+          )}
+          {activeTab === "journey" && activeWeek !== "certificate" && activeWeekData && (
             <div style={{ marginBottom: 24 }}>
               <h2 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 700, color: "#1a1733" }}>
                 {activeWeekData.title}
