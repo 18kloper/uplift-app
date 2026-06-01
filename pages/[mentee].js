@@ -119,27 +119,41 @@ const TAB_ROW_2 = ["calendar", "profile", "resources", "support"];
 // ─── Tab tooltip wrapper ───────────────────────────────────────────────────────
 function TabTooltip({ tip, children, direction = "up" }) {
   const [visible, setVisible] = useState(false);
+  const [coords, setCoords] = useState({ x: 0, y: 0 });
+  const containerRef = useRef(null);
   if (!tip) return children;
   const isDown = direction === "down";
+
+  const handleMouseEnter = () => {
+    if (containerRef.current) {
+      const r = containerRef.current.getBoundingClientRect();
+      setCoords({ x: r.left + r.width / 2, y: isDown ? r.bottom : r.top });
+    }
+    setVisible(true);
+  };
+
   return (
     <div
+      ref={containerRef}
       style={{ position: "relative", display: "inline-flex" }}
-      onMouseEnter={() => setVisible(true)}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setVisible(false)}
     >
       {children}
       {visible && (
         <div style={{
-          position: "absolute",
-          ...(isDown ? { top: "calc(100% + 8px)" } : { bottom: "calc(100% + 8px)" }),
-          left: "50%",
-          transform: "translateX(-50%)",
+          position: "fixed",
+          left: coords.x,
+          ...(isDown
+            ? { top: coords.y + 8 }
+            : { top: coords.y - 8, transform: "translate(-50%, -100%)" }),
+          ...(isDown ? { transform: "translateX(-50%)" } : {}),
           background: "#1a1733", color: "#fff",
           borderRadius: 8, padding: "9px 13px",
           fontSize: 12, lineHeight: 1.55, fontWeight: 400,
           width: 220, textAlign: "left",
           boxShadow: "0 4px 16px rgba(0,0,0,0.22)",
-          pointerEvents: "none", zIndex: 999,
+          pointerEvents: "none", zIndex: 9999,
           whiteSpace: "normal",
         }}>
           {tip}
