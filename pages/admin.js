@@ -342,6 +342,9 @@ function ClickEngagement() {
           )}
         </>
       )}
+      <p style={{ margin: "28px 0 0", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
+        📋 To view more in depth, please go directly to the master tracker sheet.
+      </p>
     </div>
   );
 }
@@ -460,6 +463,9 @@ function PromptEngagement() {
           })}
         </div>
       )}
+      <p style={{ margin: "28px 0 0", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
+        📋 To view individual responses, please go directly to the master tracker sheet.
+      </p>
     </div>
   );
 }
@@ -584,6 +590,9 @@ function PortalActivity() {
           )}
         </>
       )}
+      <p style={{ margin: "28px 0 0", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
+        📋 For more details, please go directly to the master tracker sheet.
+      </p>
     </div>
   );
 }
