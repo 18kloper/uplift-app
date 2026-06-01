@@ -850,9 +850,6 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted 
         questions={prompts[0].questions}
         slug={slug} weekNum={1} blockIndex={0} accentColor="#5c4eb5"
       />
-      <div style={{ textAlign: "right", marginTop: -8, marginBottom: 8 }}>
-        <SaveButton label="Save" />
-      </div>
     </div>
   );
 }
@@ -951,9 +948,6 @@ function Week2({ mentee, slug, mentorUnlocked }) {
           <AutoTextarea storageKey={`${slug}_w2_${item.key}`} placeholder="Your thoughts…" slug={slug} weekNum={2} fieldKey={item.key} question={item.q} />
         </div>
       ))}
-      <div style={{ textAlign: "right", marginBottom: 8 }}>
-        <SaveButton label="Save" />
-      </div>
       <p style={{ fontSize: 12, color: "#b0a8cc", fontStyle: "italic", marginBottom: 36, lineHeight: 1.6 }}>
         *These notes are not shared with your mentor — they're intended for you to help surface what you might want to talk about in your first meeting.
       </p>
@@ -1230,9 +1224,6 @@ function WeekReflection({ weekNum, slug, prompts }) {
             />
           </div>
 
-          <div style={{ textAlign: "right", marginTop: 14 }}>
-            <SaveButton label="Save" />
-          </div>
         </div>
       </div>
     );

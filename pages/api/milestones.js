@@ -61,6 +61,24 @@ export default async function handler(req, res) {
       });
     }
 
+    // ── 3. Read Admin tab — staff override: Unlock Mentor checkbox ───────────────
+    // If checked, forces onboarding + mentorMatched = true regardless of other state.
+    try {
+      const adminRes = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: "Admin!A:B",
+      });
+      const adminRows = adminRes.data.values || [];
+      // Row 0 is header; look for matching slug in column A, check column B
+      const adminRow = adminRows.slice(1).find(row => row[0]?.trim() === slug);
+      if (adminRow && (adminRow[1] === "TRUE" || adminRow[1] === true)) {
+        milestones.onboarding = true;
+        milestones.mentorMatched = true;
+      }
+    } catch (_) {
+      // Admin tab doesn't exist yet — skip silently
+    }
+
     // If we found no row at all and participation is still false, return null
     // so the portal falls back to localStorage
     if (!menteeRow && !milestones.participation) {
