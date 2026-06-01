@@ -461,7 +461,7 @@ function PromptEngagement() {
   const SECTION_WEEK = {
     goals: 1, onboarding_block: 1,
     pre_meeting: 2,
-    week3: 3,
+    week3: 3, week3_win: 3,
     midpoint: 4,
     week5: 5,
     week6: 6,
@@ -623,7 +623,57 @@ function PromptEngagement() {
 
   return (
     <div style={{ maxWidth: 860, margin: "0 auto", padding: "32px 24px" }}>
-      <p style={{ margin: "0 0 20px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Prompt Engagement</p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <p style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Prompt Engagement</p>
+        <button
+          onClick={() => {
+            const sections = stats?.sections || [];
+            const total = stats?.total || 0;
+            const rows = sections.map(s => {
+              const pct = total > 0 ? Math.round(s.count / total * 100) : 0;
+              const names = (s.mentees || []).map(m => m.name).join(", ");
+              return `<tr>
+                <td style="padding:10px 14px;border-bottom:1px solid #e8e4f5;font-weight:600;color:#1a1733">${s.label}</td>
+                <td style="padding:10px 14px;border-bottom:1px solid #e8e4f5;text-align:center;font-weight:700;color:#5c4eb5">${pct}%</td>
+                <td style="padding:10px 14px;border-bottom:1px solid #e8e4f5;text-align:center;color:#6b6480">${s.count} / ${total}</td>
+                <td style="padding:10px 14px;border-bottom:1px solid #e8e4f5;font-size:12px;color:#6b6480">${names}</td>
+              </tr>`;
+            }).join("");
+            const html = `<!DOCTYPE html><html><head><title>Uplift Prompt Engagement — ${new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}</title>
+            <style>
+              body{font-family:Inter,system-ui,sans-serif;margin:0;padding:32px 40px;color:#1a1733;background:#fff}
+              h1{font-size:22px;font-weight:800;margin:0 0 4px}
+              .meta{font-size:13px;color:#9b8fcf;margin:0 0 28px}
+              table{width:100%;border-collapse:collapse;font-size:14px}
+              th{text-align:left;padding:10px 14px;background:#f7f5ff;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#5c4eb5;border-bottom:2px solid #e8e4f5}
+              tr:last-child td{border-bottom:none}
+              .footer{margin-top:32px;font-size:11px;color:#c0b8d8;border-top:1px solid #e8e4f5;padding-top:16px}
+            </style></head><body>
+            <h1>Prompt Engagement</h1>
+            <p class="meta">Uplift Summer 2026 · Generated ${new Date().toLocaleString("en-US",{month:"long",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"})}</p>
+            <table>
+              <thead><tr>
+                <th>Prompt Section</th><th style="text-align:center">Completion</th><th style="text-align:center">Founders</th><th>Who Completed</th>
+              </tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+            <p class="footer">Uplift Summer 2026 · TechUnited:NJ · uplift2026.vercel.app</p>
+            </body></html>`;
+            const win = window.open("", "_blank");
+            win.document.write(html);
+            win.document.close();
+            win.focus();
+            setTimeout(() => win.print(), 400);
+          }}
+          style={{
+            background: "#5c4eb5", color: "#fff", border: "none", borderRadius: 8,
+            padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer",
+            fontFamily: "Inter, system-ui, sans-serif", display: "flex", alignItems: "center", gap: 6,
+          }}
+        >
+          ⬇ Download PDF
+        </button>
+      </div>
 
       {/* Sub-tab bar */}
       <div style={{ display: "flex", gap: 0, borderBottom: "2px solid #e8e4f5", marginBottom: 28, flexWrap: "wrap" }}>

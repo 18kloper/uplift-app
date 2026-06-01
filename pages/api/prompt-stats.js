@@ -29,6 +29,11 @@ export const PROMPT_SECTIONS = [
     match: (wn, fk) => wn === 3 && ["role_model", "deploy_tactic"].includes(fk),
   },
   {
+    key: "week3_win",
+    label: "Week 3 — Shared Win",
+    match: (wn, fk) => wn === 3 && fk === "week3_win",
+  },
+  {
     key: "midpoint",
     label: "Midpoint reflection",
     match: (wn, fk) => wn === 4 && ["midpoint_primary", "midpoint_secondary"].includes(fk),

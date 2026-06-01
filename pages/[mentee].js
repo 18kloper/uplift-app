@@ -1231,6 +1231,35 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
         </div>
         <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
 
+        {/* Share a Win */}
+        <div style={{
+          background: "linear-gradient(135deg, #fef9e7 0%, #fffde7 100%)",
+          borderRadius: 14, border: "2px solid #f9d94a",
+          padding: "24px 28px", marginTop: 24,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+            <span style={{ fontSize: 22 }}>🏆</span>
+            <p style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#5a3e00" }}>
+              Share a Win
+            </p>
+            <span style={{ marginLeft: "auto", background: "#fff3b0", color: "#7a5c00", borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>
+              Shared with the group
+            </span>
+          </div>
+          <p style={{ margin: "0 0 16px", fontSize: 15, lineHeight: 1.7, color: "#5a3e00" }}>
+            We're pumped about your momentum — and we know you're putting in the work. If you've had a chance to meet with your mentor, made real progress on your company, or experienced a win — big or small — we'd love to celebrate it with you. Wins get shared with your fellow founders and mentors as a group update. Don't hold back. 🚀
+          </p>
+          <AutoTextarea
+            storageKey={`${slug}_w3_win`}
+            placeholder="e.g. I landed my first paying customer this week, closed a partnership, hit a growth milestone, had a breakthrough conversation with my mentor…"
+            slug={slug} weekNum={3} fieldKey="week3_win" rows={3}
+            question="Share a Win — this will be shared with the group"
+          />
+          <p style={{ margin: "10px 0 0", fontSize: 12, color: "#9b7a00", fontStyle: "italic" }}>
+            ✨ Your win will be highlighted in the weekly Uplift update for your cohort and mentors.
+          </p>
+        </div>
+
         {/* Reflection prompt */}
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "24px 28px", marginTop: 24, borderLeft: "4px solid #5c4eb5" }}>
           <p style={{ margin: "0 0 16px", fontSize: 13, fontWeight: 700, color: "#5c4eb5", textTransform: "uppercase", letterSpacing: "0.05em" }}>
@@ -2220,6 +2249,7 @@ function GoalsSection({ mentee, slug }) {
       // Week 3
       w3_role_model:    `${slug}_w3_role_model`,
       w3_deploy_tactic: `${slug}_w3_deploy_tactic`,
+      w3_win:           `${slug}_w3_win`,
     };
     const loaded = {};
     for (const [k, storageKey] of Object.entries(keys)) {
@@ -2325,20 +2355,32 @@ function GoalsSection({ mentee, slug }) {
       )}
 
       {/* Week 3 reflections */}
-      {(responses.w3_role_model || responses.w3_deploy_tactic) && (
-        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "22px 26px", marginBottom: 16 }}>
-          <p style={{ margin: "0 0 16px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
-            Week 3 — Building With Intention
-          </p>
-          {[
-            { key: "w3_role_model",    q: "Who do you want to build like?" },
-            { key: "w3_deploy_tactic", q: "What's one thing they're doing that you could deploy this week?" },
-          ].filter(item => responses[item.key]).map((item, i, arr) => (
-            <div key={item.key} style={{ marginBottom: i < arr.length - 1 ? 20 : 0 }}>
-              <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, color: "#6b6480" }}>{item.q}</p>
-              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{responses[item.key]}</p>
+      {(responses.w3_win || responses.w3_role_model || responses.w3_deploy_tactic) && (
+        <div style={{ borderRadius: 12, border: "1px solid #e8e4f5", overflow: "hidden", marginBottom: 16 }}>
+          {responses.w3_win && (
+            <div style={{ background: "linear-gradient(135deg, #fef9e7 0%, #fffde7 100%)", borderBottom: "1px solid #f9d94a", padding: "16px 22px" }}>
+              <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b7a00" }}>
+                🏆 Week 3 — Win Shared with the Group
+              </p>
+              <p style={{ margin: 0, fontSize: 14, color: "#5a3e00", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{responses.w3_win}</p>
             </div>
-          ))}
+          )}
+          {(responses.w3_role_model || responses.w3_deploy_tactic) && (
+            <div style={{ background: "#fff", padding: "16px 22px" }}>
+              <p style={{ margin: "0 0 16px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
+                Week 3 — Building With Intention
+              </p>
+              {[
+                { key: "w3_role_model",    q: "Who do you want to build like?" },
+                { key: "w3_deploy_tactic", q: "What's one thing they're doing that you could deploy this week?" },
+              ].filter(item => responses[item.key]).map((item, i, arr) => (
+                <div key={item.key} style={{ marginBottom: i < arr.length - 1 ? 20 : 0 }}>
+                  <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, color: "#6b6480" }}>{item.q}</p>
+                  <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{responses[item.key]}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
