@@ -1047,7 +1047,7 @@ function PeerConnections() {
                       paddingRight: 32,
                     }}
                   >
-                    <option value="">— Set status —</option>
+                    <option value="">Not reviewed yet</option>
                     {STATUS_OPTIONS.map(opt => (
                       <option key={opt.key} value={opt.key}>{opt.label}</option>
                     ))}
