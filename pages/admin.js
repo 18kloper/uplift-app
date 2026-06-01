@@ -333,12 +333,13 @@ function Dashboard({ data, refreshedAt }) {
     const group  = mentees.filter(m => !m.isTest && String(m.cohort) === String(activeCohort));
     const active = group.filter(m => m.status !== "churned");
     return {
-      active:    active.length,
-      churned:   group.filter(m => m.status === "churned").length,
-      atRisk:    active.filter(m => m.status === "at-risk").length,
-      attention: active.filter(m => m.status === "needs-attention").length,
-      onTrack:   active.filter(m => m.status === "on-track").length,
-      avg:       active.length
+      active:     active.length,
+      churned:    group.filter(m => m.status === "churned").length,
+      atRisk:     active.filter(m => m.status === "at-risk").length,
+      attention:  active.filter(m => m.status === "needs-attention").length,
+      onTrack:    active.filter(m => m.status === "on-track").length,
+      onboarding: group.filter(m => m.milestones?.onboarding).length,
+      avg:        active.length
         ? Math.round(active.reduce((s, m) => s + m.milestoneCount, 0) / active.length)
         : 0,
     };
@@ -532,6 +533,9 @@ function Dashboard({ data, refreshedAt }) {
               )}
               <span style={{ fontSize: 13, color: "#1a6e42", fontWeight: 700 }}>
                 🟢 {cohortBreakdown.onTrack} on track
+              </span>
+              <span style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 700 }}>
+                🔵 {cohortBreakdown.onboarding} onboarding complete
               </span>
             </div>
             <div style={{ minWidth: 200 }}>
@@ -774,10 +778,11 @@ function Dashboard({ data, refreshedAt }) {
               {COHORTS.slice(1).filter(c => c !== "Test").map(cohort => {
                 const group  = mentees.filter(m => !m.isTest && String(m.cohort) === String(cohort));
                 const active = group.filter(m => m.status !== "churned");
-                const atRisk    = active.filter(m => m.status === "at-risk").length;
-                const attention = active.filter(m => m.status === "needs-attention").length;
-                const onTrack   = active.filter(m => m.status === "on-track").length;
-                const churned   = group.filter(m => m.status === "churned").length;
+                const atRisk      = active.filter(m => m.status === "at-risk").length;
+                const attention   = active.filter(m => m.status === "needs-attention").length;
+                const onTrack     = active.filter(m => m.status === "on-track").length;
+                const churned     = group.filter(m => m.status === "churned").length;
+                const onboarding  = group.filter(m => m.milestones?.onboarding).length;
                 const avgMilestones = active.length
                   ? Math.round(active.reduce((s, m) => s + m.milestoneCount, 0) / active.length)
                   : 0;
@@ -801,8 +806,11 @@ function Dashboard({ data, refreshedAt }) {
                         🟡 {attention} needs attention
                       </p>
                     )}
-                    <p style={{ margin: "0 0 8px", fontSize: 12, color: "#1a6e42", fontWeight: 600 }}>
+                    <p style={{ margin: "0 0 2px", fontSize: 12, color: "#1a6e42", fontWeight: 600 }}>
                       🟢 {onTrack} on track
+                    </p>
+                    <p style={{ margin: "0 0 8px", fontSize: 12, color: "#2a7fd4", fontWeight: 600 }}>
+                      🔵 {onboarding} onboarding complete
                     </p>
                     <div style={{ borderTop: "1px solid #f0ecff", paddingTop: 8 }}>
                       <p style={{ margin: "0 0 4px", fontSize: 11, color: "#9b8fcf" }}>Avg milestones (active)</p>
