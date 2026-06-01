@@ -50,14 +50,33 @@ export default async function handler(req, res) {
     sheetIdMap[s.properties.title] = s.properties.sheetId;
   }
 
-  // ── 4. Write Dashboard headers + all mentee rows ─────────────────────────────
+  // ── 4. Write Dashboard headers + add only missing mentee rows ────────────────
   const dashHeaders = [
     "Slug", "First", "Last", "Cohort", "Company", "Last Active",
     ...MILESTONE_KEYS.map((k) => MILESTONE_LABELS[k]),
   ];
-  const dashRows = [dashHeaders];
-  for (const m of MENTEES) {
-    dashRows.push([
+
+  // Always refresh header row
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: "Dashboard!A1",
+    valueInputOption: "USER_ENTERED",
+    requestBody: { values: [dashHeaders] },
+  });
+
+  // Read existing slugs so we don't overwrite rows that already have milestone data
+  const existingDash = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: "Dashboard!A:A",
+  });
+  const existingSlugs = new Set(
+    (existingDash.data.values || []).slice(1).map(r => r[0]).filter(Boolean)
+  );
+
+  // Only append rows for mentees not yet in the sheet
+  const missingRows = MENTEES
+    .filter(m => !existingSlugs.has(m.slug))
+    .map(m => [
       m.slug,
       m.first,
       m.last,
@@ -66,13 +85,16 @@ export default async function handler(req, res) {
       "",                                    // Last Active — filled by save-response
       ...MILESTONE_KEYS.map(() => "FALSE"),  // All milestones start unchecked
     ]);
+
+  if (missingRows.length > 0) {
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: "Dashboard!A:A",
+      valueInputOption: "USER_ENTERED",
+      insertDataOption: "INSERT_ROWS",
+      requestBody: { values: missingRows },
+    });
   }
-  await sheets.spreadsheets.values.update({
-    spreadsheetId,
-    range: "Dashboard!A1",
-    valueInputOption: "USER_ENTERED",
-    requestBody: { values: dashRows },
-  });
 
   // ── 5. Apply checkbox formatting to milestone columns in Dashboard ────────────
   const dashboardSheetId = sheetIdMap["Dashboard"];
@@ -81,7 +103,7 @@ export default async function handler(req, res) {
       range: {
         sheetId: dashboardSheetId,
         startRowIndex: 1,             // skip header
-        endRowIndex: MENTEES.length + 1,
+        endRowIndex: 1000,
         startColumnIndex: 6 + idx,   // G = 6
         endColumnIndex: 7 + idx,
       },
@@ -146,6 +168,7 @@ export default async function handler(req, res) {
 
   return res.status(200).json({
     ok: true,
-    message: `Sheet initialized — Dashboard + ${MENTEES.length} mentee tabs created/updated`,
+    message: `Sheet updated — ${missingRows.length} new Dashboard rows added, ${toCreate.length} new tabs created`,
+    newRows: missingRows.map(r => r[0]),
   });
 }
