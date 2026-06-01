@@ -922,21 +922,18 @@ function PeerConnections() {
   };
 
   const updateStatus = (pairKey, status) => {
+    // status is the new value (string key or null/empty = clear)
+    const nextStatus = status || null;
     setConnections(prev => {
       const current = prev.find(c => c.pairKey === pairKey);
       const prevStatus = current ? current.status : null;
-      const nextStatus = prevStatus === status ? null : status;
 
       // Set up undo
       if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-      const opt = STATUS_OPTIONS.find(o => o.key === (nextStatus || prevStatus));
-      setUndoState({ pairKey, prevStatus, label: nextStatus ? opt?.label : "cleared" });
+      setUndoState({ pairKey, prevStatus });
       undoTimerRef.current = setTimeout(() => setUndoState(null), 5000);
 
-      const updated = prev.map(c => {
-        if (c.pairKey !== pairKey) return c;
-        return { ...c, status: nextStatus };
-      });
+      const updated = prev.map(c => c.pairKey !== pairKey ? c : { ...c, status: nextStatus });
       try { localStorage.setItem(STORE_KEY, JSON.stringify({ connections: updated, lastRunAt })); } catch (_) {}
       return updated;
     });
@@ -955,8 +952,6 @@ function PeerConnections() {
 
   const sortedConnections = [...connections].sort((a, b) => {
     if (a.isNew !== b.isNew) return a.isNew ? -1 : 1;
-    const aSkip = a.status === "skip", bSkip = b.status === "skip";
-    if (aSkip !== bSkip) return aSkip ? 1 : -1;
     return new Date(b.addedAt || 0) - new Date(a.addedAt || 0);
   });
 
@@ -1019,7 +1014,6 @@ function PeerConnections() {
               border: conn.isNew ? "1.5px solid #f5c542" : "1px solid #e8e4f5",
               padding: "18px 20px",
               boxShadow: conn.isNew ? "0 2px 8px rgba(245,197,66,0.18)" : "0 1px 4px rgba(92,78,181,0.06)",
-              opacity: conn.status === "skip" ? 0.55 : 1,
             }}>
               {/* Top row: NEW badge + shared theme + date */}
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
@@ -1048,24 +1042,34 @@ function PeerConnections() {
                 {conn.reason}
               </p>
 
-              {/* Status buttons */}
-              <div style={{ display: "flex", gap: 6 }}>
-                {STATUS_OPTIONS.map(opt => {
-                  const active = conn.status === opt.key;
-                  return (
-                    <button key={opt.key} onClick={() => updateStatus(conn.pairKey, opt.key)} style={{
-                      flex: 1, padding: "6px 8px", borderRadius: 7, fontSize: 11, fontWeight: 700,
-                      cursor: "pointer", fontFamily: "inherit", textAlign: "center",
-                      background: active ? opt.bg : "#f7f5ff",
-                      border: active ? `1.5px solid ${opt.border}` : "1.5px solid #e8e4f5",
-                      color: active ? opt.color : "#9b8fcf",
-                      transition: "all 0.12s",
-                    }}>
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
+              {/* Status dropdown */}
+              {(() => {
+                const active = STATUS_OPTIONS.find(o => o.key === conn.status);
+                return (
+                  <select
+                    value={conn.status || ""}
+                    onChange={e => updateStatus(conn.pairKey, e.target.value || null)}
+                    style={{
+                      width: "100%", padding: "8px 12px", borderRadius: 8,
+                      border: active ? `1.5px solid ${active.border}` : "1.5px solid #e8e4f5",
+                      background: active ? active.bg : "#f7f5ff",
+                      color: active ? active.color : "#9b8fcf",
+                      fontSize: 12, fontWeight: 700, cursor: "pointer",
+                      fontFamily: "inherit", outline: "none",
+                      appearance: "none",
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239b8fcf'/%3E%3C/svg%3E")`,
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "right 12px center",
+                      paddingRight: 32,
+                    }}
+                  >
+                    <option value="">— Set status —</option>
+                    {STATUS_OPTIONS.map(opt => (
+                      <option key={opt.key} value={opt.key}>{opt.label}</option>
+                    ))}
+                  </select>
+                );
+              })()}
             </div>
           ))}
         </div>
