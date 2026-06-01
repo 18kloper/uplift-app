@@ -324,9 +324,24 @@ function PromptBlock({ theme, questions, slug, weekNum, blockIndex, accentColor 
 }
 
 // ─── Events section ───────────────────────────────────────────────────────────
-function EventsSection({ events, submitLabel, submitPrimary, note, footerNote, isOnboarding }) {
+function EventsSection({ events, submitLabel, submitPrimary, note, footerNote, isOnboarding, onboardingVerified }) {
   const hasEvents = events && events.length > 0;
   if (!hasEvents && !submitLabel) return null;
+
+  // If onboarding has been verified, replace the session list with a confirmation
+  if (isOnboarding && onboardingVerified) {
+    return (
+      <div style={{ background: "#f0faf5", borderRadius: 12, border: "1px solid #b8e8d0", padding: "22px 26px", marginBottom: 24 }}>
+        <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 15, color: "#1a6e42" }}>
+          ✓ Your onboarding attendance has been verified.
+        </p>
+        <p style={{ margin: 0, fontSize: 14, color: "#2a7f5a", lineHeight: 1.65 }}>
+          Looking forward to getting started. We'll connect you with your mentor soon.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
       {note && (
@@ -722,7 +737,7 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
         ))}
       </div>
 
-      <EventsSection events={week.events} note={week.note} footerNote="*You will only receive your mentor match after attending an onboarding session." isOnboarding />
+      <EventsSection events={week.events} note={week.note} footerNote="*You will only receive your mentor match after attending an onboarding session." isOnboarding onboardingVerified={milestones?.onboarding} />
 
       {/* Mentor reveal status */}
       {mentorUnlocked ? (
