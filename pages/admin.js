@@ -181,6 +181,7 @@ function AdminNote({ slug, initialValue }) {
 const PROGRAM_START = new Date("2026-06-01");
 
 const MILESTONE_FILTERS = [
+  { key: "onboarding", label: "Completed Onboarding", color: "#1a6e42", bg: "#e8f8f0", test: m => m.milestones?.onboarding },
   { key: "mentor1", label: "1 Mentor Session",  color: "#5c4eb5", bg: "#f0ecff", test: m => m.mentorCount === 1 },
   { key: "mentor2", label: "2 Mentor Sessions", color: "#5c4eb5", bg: "#f0ecff", test: m => m.mentorCount === 2 },
   { key: "mentor3", label: "3 Mentor Sessions", color: "#5c4eb5", bg: "#f0ecff", test: m => m.mentorCount >= 3 },
