@@ -2637,6 +2637,11 @@ function ResourcesSection() {
                           Coming soon
                         </span>
                       )}
+                      {item.star && (
+                        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#b45309", background: "#fef3c7", borderRadius: 4, padding: "2px 7px" }}>
+                          ⭐ Required
+                        </span>
+                      )}
                     </div>
                     <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>{item.description}</p>
                   </div>
