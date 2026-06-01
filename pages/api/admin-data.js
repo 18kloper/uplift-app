@@ -114,6 +114,25 @@ export default async function handler(req, res) {
         sheetData[slug] = { milestones, churned, notes, email, mentorEmail };
       }
 
+      // Read Participation tab — this is the authoritative source for who has accepted.
+      // Column A = slug (starting row 6), Column E = "Accepted" or "Declined"
+      try {
+        const partRes = await sheets.spreadsheets.values.get({
+          spreadsheetId: process.env.GOOGLE_SHEET_ID,
+          range: "Participation!A6:E500",
+        });
+        const partRows = partRes.data.values || [];
+        for (const row of partRows) {
+          const slug   = row[0]?.trim();
+          const status = row[4]?.trim(); // column E
+          if (!slug) continue;
+          if (status === "Accepted") {
+            if (!sheetData[slug]) sheetData[slug] = { milestones: Object.fromEntries(MILESTONE_KEYS.map(k => [k, false])), churned: false, notes: "", email: "", mentorEmail: "" };
+            sheetData[slug].milestones.participation = true;
+          }
+        }
+      } catch (_) {}
+
       // Read SessionReview tab for pending count
       try {
         const srRes = await sheets.spreadsheets.values.get({
