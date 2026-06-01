@@ -23,29 +23,49 @@ export default async function handler(req, res) {
     const sheets = getSheetsClient();
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
-    // Read full Dashboard — A:Z covers all milestones regardless of count
+    // Start with all milestones false
+    const milestones = Object.fromEntries(MILESTONE_KEYS.map(k => [k, false]));
+
+    // ── 1. Read Participation tab — source of truth for participation ──────────
+    try {
+      const partRes = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: "Participation!A6:E500",
+      });
+      const partRows = partRes.data.values || [];
+      for (const row of partRows) {
+        if (row[0]?.trim() === slug && row[4]?.trim() === "Accepted") {
+          milestones.participation = true;
+          break;
+        }
+      }
+    } catch (_) {}
+
+    // ── 2. Read Milestone Dashboard for all other milestones ──────────────────
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: "Milestone Dashboard!A:Z",
     });
 
     const rows = response.data.values || [];
-    // Row 0 = headers, rows 1+ = mentees
     const headerRow = rows[0] || [];
     const menteeRow = rows.find((row, i) => i > 0 && row[0] === slug);
 
-    if (!menteeRow) {
-      return res.status(200).json({ milestones: null });
+    if (menteeRow) {
+      MILESTONE_KEYS.forEach((key, idx) => {
+        const byLabel = headerRow.findIndex(h => h === MILESTONE_LABELS[key]);
+        const colIdx  = byLabel !== -1 ? byLabel : 6 + idx;
+        const val     = menteeRow[colIdx];
+        // Only set to true — never override participation=true from step 1 with false
+        if (val === "TRUE" || val === true) milestones[key] = true;
+      });
     }
 
-    // Find milestone columns by header label (robust to extra columns)
-    const milestones = {};
-    MILESTONE_KEYS.forEach((key, idx) => {
-      const byLabel = headerRow.findIndex(h => h === MILESTONE_LABELS[key]);
-      const colIdx  = byLabel !== -1 ? byLabel : 6 + idx;
-      const val     = menteeRow[colIdx];
-      milestones[key] = val === "TRUE" || val === true;
-    });
+    // If we found no row at all and participation is still false, return null
+    // so the portal falls back to localStorage
+    if (!menteeRow && !milestones.participation) {
+      return res.status(200).json({ milestones: null });
+    }
 
     return res.status(200).json({ milestones });
   } catch (err) {
