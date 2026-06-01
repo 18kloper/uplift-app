@@ -450,7 +450,7 @@ function MentorCard({ mentee, revealed }) {
           Your mentor hasn't been revealed yet
         </p>
         <p style={{ margin: 0, fontSize: 14, color: "#9b8fcf", lineHeight: 1.6 }}>
-          Once we confirm your orientation attendance, your mentor will appear here automatically. No action needed from you — just attend and we'll take care of the rest.
+          We'll unlock your mentor match after we've completed onboarding sessions. No action needed from you — it will appear here automatically.
         </p>
       </div>
     );
