@@ -445,10 +445,6 @@ function PromptEngagement() {
   const [errorSun, setErrorSun]     = useState(null);
   const [errorWed, setErrorWed]     = useState(null);
 
-  const [newsletter, setNewsletter]           = useState(null);
-  const [newsletterLoading, setNewsletterLoading] = useState(false);
-  const [newsletterError, setNewsletterError] = useState(null);
-  const [showNewsletter, setShowNewsletter]   = useState(false);
 
   const [selectedHistoryKey, setSelectedHistoryKey] = useState(null);
 
@@ -509,40 +505,6 @@ function PromptEngagement() {
 
   const toggle = (key) => setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
 
-  const generateNewsletter = async () => {
-    setNewsletterLoading(true);
-    setNewsletterError(null);
-    try {
-      const weekNum = getProgramWeekNum();
-      const promptSections = (stats?.sections || []).map(s => ({
-        label: s.label,
-        count: s.count,
-        pct: Math.round(s.count / (stats.total || 1) * 100),
-      }));
-      const insightData = sunData || wedData;
-      const themes = insightData?.themes || [];
-      const sessionIdeas = insightData?.sessionIdeas || [];
-      let portalStats = null;
-      try {
-        const pr = await fetch("/api/portal-activity");
-        const pd = await pr.json();
-        if (pd && pd.counts) {
-          portalStats = { active: pd.counts.active, inactive: pd.counts.inactive, neverVisited: pd.counts.neverVisited };
-        }
-      } catch (_) {}
-      const res = await fetch("/api/newsletter", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ weekNum, promptSections, themes, sessionIdeas, portalStats }),
-      });
-      const d = await res.json();
-      if (d.error) { setNewsletterError(d.error); }
-      else { setNewsletter(d); setShowNewsletter(true); }
-    } catch (e) {
-      setNewsletterError(e.message);
-    }
-    setNewsletterLoading(false);
-  };
 
   // Completion card for one prompt section
   const SectionCard = ({ section }) => {
@@ -774,45 +736,6 @@ function PromptEngagement() {
               )}
             </div>
           ))}
-
-          {/* ── Newsletter generator ── */}
-          <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "16px 20px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-              <div>
-                <p style={{ margin: "0 0 2px", fontSize: 14, fontWeight: 700, color: "#1a1733" }}>📧 Weekly Newsletter</p>
-                <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>Generate a Friday update email from this week's themes and stats</p>
-              </div>
-              <button onClick={generateNewsletter} disabled={newsletterLoading} style={{ background: "#5c4eb5", color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: newsletterLoading ? "default" : "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
-                {newsletterLoading ? "Writing…" : "✍️ Generate Newsletter"}
-              </button>
-            </div>
-            {newsletterError && <p style={{ margin: "0 0 12px", fontSize: 12, color: "#c00" }}>⚠️ {newsletterError}</p>}
-            {showNewsletter && newsletter && (
-              <div style={{ borderTop: "1px solid #f0ecff", paddingTop: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                  <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#5c4eb5" }}>Generated Newsletter</p>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => {
-                      try { navigator.clipboard.writeText(`Subject: ${newsletter.subject}\n\n${newsletter.body}`); } catch (_) {}
-                    }} style={{ background: "#f3f0ff", color: "#5c4eb5", border: "1px solid #c4b8f0", borderRadius: 6, padding: "4px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                      Copy Email
-                    </button>
-                    <button onClick={() => setShowNewsletter(false)} style={{ background: "none", border: "1px solid #e0daf0", borderRadius: 6, padding: "4px 12px", fontSize: 12, color: "#9b8fcf", cursor: "pointer", fontFamily: "inherit" }}>
-                      Close
-                    </button>
-                  </div>
-                </div>
-                <div style={{ marginBottom: 10 }}>
-                  <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>Subject</p>
-                  <input readOnly value={newsletter.subject} style={{ width: "100%", padding: "8px 12px", fontSize: 13, border: "1.5px solid #e8e4f5", borderRadius: 6, background: "#fafafa", fontFamily: "inherit", boxSizing: "border-box", color: "#1a1733" }} onClick={e => e.target.select()} />
-                </div>
-                <div>
-                  <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>Body</p>
-                  <textarea readOnly value={newsletter.body} rows={14} style={{ width: "100%", padding: "10px 12px", fontSize: 12, lineHeight: 1.7, border: "1.5px solid #e8e4f5", borderRadius: 6, background: "#fafafa", fontFamily: "inherit", boxSizing: "border-box", resize: "vertical", color: "#1a1733" }} onClick={e => e.target.select()} />
-                </div>
-              </div>
-            )}
-          </div>
 
           {/* ── History section ── */}
           {(() => {
