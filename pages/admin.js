@@ -349,6 +349,44 @@ function ClickEngagement() {
   );
 }
 
+// Program starts June 1 2026. Returns current program week number (1–9).
+function getProgramWeekNum() {
+  const start = new Date("2026-06-01");
+  const daysSince = Math.max(0, Math.floor((Date.now() - start) / 86400000));
+  return Math.min(Math.floor(daysSince / 7) + 1, 9);
+}
+
+const INSIGHTS_HISTORY_KEY = "uplift_insights_history_v1";
+
+function saveInsightToHistory(data, dayKey) {
+  // dayKey: "sunday" | "wednesday"
+  try {
+    const stored = localStorage.getItem(INSIGHTS_HISTORY_KEY);
+    const history = stored ? JSON.parse(stored) : {};
+    const weekNum = getProgramWeekNum();
+    const key = `${weekNum}_${dayKey}`;
+    const dayLabel = dayKey === "sunday" ? "Sunday" : "Wednesday";
+    history[key] = {
+      weekNum,
+      day: dayKey,
+      label: `Week ${weekNum} · ${dayLabel}`,
+      generatedAt: data.generatedAt,
+      themes: data.themes || [],
+      weeklyThemes: data.weeklyThemes || {},
+      sessionIdeas: data.sessionIdeas || [],
+      totalResponses: data.totalResponses || 0,
+    };
+    localStorage.setItem(INSIGHTS_HISTORY_KEY, JSON.stringify(history));
+  } catch (_) {}
+}
+
+function loadInsightsHistory() {
+  try {
+    const stored = localStorage.getItem(INSIGHTS_HISTORY_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch (_) { return {}; }
+}
+
 // Returns true if AI cache should be refreshed.
 // Refreshes on Sunday (0) and Wednesday (3) nights at 9pm — or if no cache.
 function isAICacheStale(generatedAt) {
@@ -407,6 +445,13 @@ function PromptEngagement() {
   const [errorSun, setErrorSun]     = useState(null);
   const [errorWed, setErrorWed]     = useState(null);
 
+  const [newsletter, setNewsletter]           = useState(null);
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
+  const [newsletterError, setNewsletterError] = useState(null);
+  const [showNewsletter, setShowNewsletter]   = useState(false);
+
+  const [selectedHistoryKey, setSelectedHistoryKey] = useState(null);
+
   const SUN_CACHE = "uplift_insights_sun_v2";
   const WED_CACHE = "uplift_insights_wed_v2";
 
@@ -431,7 +476,7 @@ function PromptEngagement() {
   const THEME_ICONS    = ["🔍","⚡","🧩","🎯","💡"];
   const SESSION_ICONS  = ["🎤","🛠️","👥","📊","🚀"];
 
-  const fetchSnapshot = (cacheKey, isStale, setter, setLoad, setErr, force = false) => {
+  const fetchSnapshot = (cacheKey, isStale, setter, setLoad, setErr, force = false, dayKey = "sunday") => {
     if (!force) {
       try {
         const c = localStorage.getItem(cacheKey);
@@ -443,7 +488,11 @@ function PromptEngagement() {
       .then(r => r.json())
       .then(d => {
         if (d.error) { setErr(d.error); }
-        else { setter(d); try { localStorage.setItem(cacheKey, JSON.stringify(d)); } catch (_) {} }
+        else {
+          setter(d);
+          try { localStorage.setItem(cacheKey, JSON.stringify(d)); } catch (_) {}
+          saveInsightToHistory(d, dayKey);
+        }
         setLoad(false);
       })
       .catch(e => { setErr(e.message); setLoad(false); });
@@ -454,11 +503,46 @@ function PromptEngagement() {
       .then(r => r.json())
       .then(d => { setStats(d); setStatsLoading(false); })
       .catch(() => setStatsLoading(false));
-    fetchSnapshot(SUN_CACHE, isSundayCacheStale, setSunData, setLoadingSun, setErrorSun);
-    fetchSnapshot(WED_CACHE, isWednesdayCacheStale, setWedData, setLoadingWed, setErrorWed);
+    fetchSnapshot(SUN_CACHE, isSundayCacheStale, setSunData, setLoadingSun, setErrorSun, false, "sunday");
+    fetchSnapshot(WED_CACHE, isWednesdayCacheStale, setWedData, setLoadingWed, setErrorWed, false, "wednesday");
   }, []);
 
   const toggle = (key) => setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
+
+  const generateNewsletter = async () => {
+    setNewsletterLoading(true);
+    setNewsletterError(null);
+    try {
+      const weekNum = getProgramWeekNum();
+      const promptSections = (stats?.sections || []).map(s => ({
+        label: s.label,
+        count: s.count,
+        pct: Math.round(s.count / (stats.total || 1) * 100),
+      }));
+      const insightData = sunData || wedData;
+      const themes = insightData?.themes || [];
+      const sessionIdeas = insightData?.sessionIdeas || [];
+      let portalStats = null;
+      try {
+        const pr = await fetch("/api/portal-activity");
+        const pd = await pr.json();
+        if (pd && pd.counts) {
+          portalStats = { active: pd.counts.active, inactive: pd.counts.inactive, neverVisited: pd.counts.neverVisited };
+        }
+      } catch (_) {}
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ weekNum, promptSections, themes, sessionIdeas, portalStats }),
+      });
+      const d = await res.json();
+      if (d.error) { setNewsletterError(d.error); }
+      else { setNewsletter(d); setShowNewsletter(true); }
+    } catch (e) {
+      setNewsletterError(e.message);
+    }
+    setNewsletterLoading(false);
+  };
 
   // Completion card for one prompt section
   const SectionCard = ({ section }) => {
@@ -501,12 +585,12 @@ function PromptEngagement() {
   };
 
   // AI snapshot card for a set of section keys
-  const SnapshotCard = ({ data, loading, error, sectionKeys, label, emoji, cacheKey, isStale, setter, setLoad, setErr }) => (
+  const SnapshotCard = ({ data, loading, error, sectionKeys, label, emoji, cacheKey, isStale, setter, setLoad, setErr, dayKey = "sunday" }) => (
     <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "16px 18px", flex: 1, minWidth: 0 }}>
       <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
         <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#1a1733", flex: 1 }}>{emoji} {label}</p>
         {data?.generatedAt && <span style={{ fontSize: 10, color: "#9b8fcf" }}>{new Date(data.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span>}
-        <button onClick={() => fetchSnapshot(cacheKey, isStale, setter, setLoad, setErr, true)} disabled={loading}
+        <button onClick={() => fetchSnapshot(cacheKey, isStale, setter, setLoad, setErr, true, dayKey)} disabled={loading}
           style={{ background: "none", border: "none", color: "#c0b8d8", cursor: "pointer", fontSize: 12, padding: "0 0 0 8px", fontFamily: "Inter, system-ui, sans-serif" }}>↻</button>
       </div>
       {loading && <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf", fontStyle: "italic" }}>Analyzing…</p>}
@@ -581,10 +665,10 @@ function PromptEngagement() {
           <div style={{ display: "flex", gap: 12 }}>
             <SnapshotCard data={sunData} loading={loadingSun} error={errorSun} sectionKeys={WEEK_KEYS[subTab] || []}
               label="Sunday Snapshot" emoji="🌙" cacheKey={SUN_CACHE} isStale={isSundayCacheStale}
-              setter={setSunData} setLoad={setLoadingSun} setErr={setErrorSun} />
+              setter={setSunData} setLoad={setLoadingSun} setErr={setErrorSun} dayKey="sunday" />
             <SnapshotCard data={wedData} loading={loadingWed} error={errorWed} sectionKeys={WEEK_KEYS[subTab] || []}
               label="Wednesday Snapshot" emoji="📋" cacheKey={WED_CACHE} isStale={isWednesdayCacheStale}
-              setter={setWedData} setLoad={setLoadingWed} setErr={setErrorWed} />
+              setter={setWedData} setLoad={setLoadingWed} setErr={setErrorWed} dayKey="wednesday" />
           </div>
         </div>
       )}
@@ -593,9 +677,9 @@ function PromptEngagement() {
       {subTab === "ai" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {[
-            { d: sunData, loading: loadingSun, err: errorSun, label: "🌙 Sunday Overall Analysis", ck: SUN_CACHE, stale: isSundayCacheStale, set: setSunData, setL: setLoadingSun, setE: setErrorSun },
-            { d: wedData, loading: loadingWed, err: errorWed, label: "📋 Wednesday Overall Analysis", ck: WED_CACHE, stale: isWednesdayCacheStale, set: setWedData, setL: setLoadingWed, setE: setErrorWed },
-          ].map(({ d, loading, err, label, ck, stale, set, setL, setE }) => (
+            { d: sunData, loading: loadingSun, err: errorSun, label: "🌙 Sunday Overall Analysis", ck: SUN_CACHE, stale: isSundayCacheStale, set: setSunData, setL: setLoadingSun, setE: setErrorSun, dk: "sunday" },
+            { d: wedData, loading: loadingWed, err: errorWed, label: "📋 Wednesday Overall Analysis", ck: WED_CACHE, stale: isWednesdayCacheStale, set: setWedData, setL: setLoadingWed, setE: setErrorWed, dk: "wednesday" },
+          ].map(({ d, loading, err, label, ck, stale, set, setL, setE, dk }) => (
             <div key={label} style={{ background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)", borderRadius: 14, padding: "20px 24px", color: "#fff" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: d ? 18 : 0 }}>
                 <div>
@@ -604,7 +688,7 @@ function PromptEngagement() {
                     {loading ? "Analyzing…" : d ? `From ${new Date(d.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · ${d.totalResponses || 0} responses` : "Not yet generated"}
                   </p>
                 </div>
-                <button onClick={() => fetchSnapshot(ck, stale, set, setL, setE, true)} disabled={loading}
+                <button onClick={() => fetchSnapshot(ck, stale, set, setL, setE, true, dk)} disabled={loading}
                   style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", color: "#fff", borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 700, cursor: loading ? "default" : "pointer", fontFamily: "Inter, system-ui, sans-serif", flexShrink: 0, marginLeft: 16 }}>
                   {loading ? "Analyzing…" : "↻ Refresh"}
                 </button>
@@ -640,6 +724,132 @@ function PromptEngagement() {
               )}
             </div>
           ))}
+
+          {/* ── Newsletter generator ── */}
+          <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "16px 20px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+              <div>
+                <p style={{ margin: "0 0 2px", fontSize: 14, fontWeight: 700, color: "#1a1733" }}>📧 Weekly Newsletter</p>
+                <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>Generate a Friday update email from this week's themes and stats</p>
+              </div>
+              <button onClick={generateNewsletter} disabled={newsletterLoading} style={{ background: "#5c4eb5", color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 700, cursor: newsletterLoading ? "default" : "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                {newsletterLoading ? "Writing…" : "✍️ Generate Newsletter"}
+              </button>
+            </div>
+            {newsletterError && <p style={{ margin: "0 0 12px", fontSize: 12, color: "#c00" }}>⚠️ {newsletterError}</p>}
+            {showNewsletter && newsletter && (
+              <div style={{ borderTop: "1px solid #f0ecff", paddingTop: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                  <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#5c4eb5" }}>Generated Newsletter</p>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={() => {
+                      try { navigator.clipboard.writeText(`Subject: ${newsletter.subject}\n\n${newsletter.body}`); } catch (_) {}
+                    }} style={{ background: "#f3f0ff", color: "#5c4eb5", border: "1px solid #c4b8f0", borderRadius: 6, padding: "4px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                      Copy Email
+                    </button>
+                    <button onClick={() => setShowNewsletter(false)} style={{ background: "none", border: "1px solid #e0daf0", borderRadius: 6, padding: "4px 12px", fontSize: 12, color: "#9b8fcf", cursor: "pointer", fontFamily: "inherit" }}>
+                      Close
+                    </button>
+                  </div>
+                </div>
+                <div style={{ marginBottom: 10 }}>
+                  <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>Subject</p>
+                  <input readOnly value={newsletter.subject} style={{ width: "100%", padding: "8px 12px", fontSize: 13, border: "1.5px solid #e8e4f5", borderRadius: 6, background: "#fafafa", fontFamily: "inherit", boxSizing: "border-box", color: "#1a1733" }} onClick={e => e.target.select()} />
+                </div>
+                <div>
+                  <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>Body</p>
+                  <textarea readOnly value={newsletter.body} rows={14} style={{ width: "100%", padding: "10px 12px", fontSize: 12, lineHeight: 1.7, border: "1.5px solid #e8e4f5", borderRadius: 6, background: "#fafafa", fontFamily: "inherit", boxSizing: "border-box", resize: "vertical", color: "#1a1733" }} onClick={e => e.target.select()} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── History section ── */}
+          {(() => {
+            const history = loadInsightsHistory();
+            const historyEntries = Object.entries(history).sort((a, b) => {
+              const [wA, dA] = a[0].split("_");
+              const [wB, dB] = b[0].split("_");
+              if (wB !== wA) return parseInt(wB) - parseInt(wA);
+              // wednesday after sunday within same week = lower index = show sunday first? sort desc: wed > sun
+              return (dB === "wednesday" ? 1 : 0) - (dA === "wednesday" ? 1 : 0);
+            });
+            const selectedEntry = selectedHistoryKey ? history[selectedHistoryKey] : null;
+            return (
+              <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "16px 20px" }}>
+                <p style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>📅 Snapshot History</p>
+                {historyEntries.length === 0 ? (
+                  <p style={{ margin: 0, fontSize: 12, color: "#c0b8d8", fontStyle: "italic" }}>No history yet — snapshots are saved automatically each time they are generated.</p>
+                ) : (
+                  <>
+                    <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8 }}>
+                      {/* Current chip */}
+                      <button onClick={() => setSelectedHistoryKey(null)} style={{
+                        flexShrink: 0, padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                        background: !selectedHistoryKey ? "#5c4eb5" : "#f3f0ff",
+                        color: !selectedHistoryKey ? "#fff" : "#5c4eb5",
+                        border: !selectedHistoryKey ? "2px solid #5c4eb5" : "2px solid #e0d9f8",
+                      }}>
+                        Current
+                      </button>
+                      {historyEntries.map(([key, entry]) => (
+                        <button key={key} onClick={() => setSelectedHistoryKey(key)} style={{
+                          flexShrink: 0, padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                          background: selectedHistoryKey === key ? "#5c4eb5" : "#f3f0ff",
+                          color: selectedHistoryKey === key ? "#fff" : "#5c4eb5",
+                          border: selectedHistoryKey === key ? "2px solid #5c4eb5" : "2px solid #e0d9f8",
+                        }}>
+                          {entry.label}
+                          <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 500, opacity: 0.75 }}>
+                            {entry.generatedAt ? new Date(entry.generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    {selectedEntry && (
+                      <div style={{ marginTop: 16, background: "#fafafa", borderRadius: 10, border: "1.5px solid #c4b8f0", padding: "16px 18px" }}>
+                        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 14 }}>
+                          <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "#5c4eb5" }}>{selectedEntry.label}</p>
+                          <span style={{ fontSize: 11, color: "#9b8fcf" }}>
+                            {selectedEntry.generatedAt ? new Date(selectedEntry.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : ""}
+                            {selectedEntry.totalResponses ? ` · ${selectedEntry.totalResponses} responses` : ""}
+                          </span>
+                        </div>
+                        <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "#9b8fcf" }}>Top 5 Themes</p>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 14 }}>
+                          {(selectedEntry.themes || []).slice(0, 5).map((t, i) => (
+                            <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                              <span style={{ background: "#f3f0ff", color: "#5c4eb5", borderRadius: 4, padding: "1px 7px", fontSize: 10, fontWeight: 800, flexShrink: 0, marginTop: 2 }}>#{i + 1}</span>
+                              <div>
+                                <p style={{ margin: "0 0 1px", fontSize: 12, fontWeight: 700, color: "#1a1733" }}>{t.title}</p>
+                                <p style={{ margin: 0, fontSize: 11, color: "#6b6480", lineHeight: 1.55 }}>{t.description}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {(selectedEntry.sessionIdeas || []).length > 0 && (
+                          <>
+                            <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "#9b8fcf" }}>Session Ideas</p>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                              {selectedEntry.sessionIdeas.map((s, i) => (
+                                <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", borderLeft: "3px solid #c4b8f0", paddingLeft: 10 }}>
+                                  <span style={{ fontSize: 14, flexShrink: 0 }}>{SESSION_ICONS[i] || "•"}</span>
+                                  <div>
+                                    <p style={{ margin: "0 0 1px", fontSize: 12, fontWeight: 700, color: "#1a1733" }}>{s.title}</p>
+                                    <p style={{ margin: 0, fontSize: 11, color: "#6b6480", lineHeight: 1.55 }}>{s.description}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -652,11 +862,11 @@ function PromptEngagement() {
 
 // ─── Peer Connections view ────────────────────────────────────────────────────
 function PeerConnections() {
-  const [data, setData] = useState(null);
+  const [connections, setConnections] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const CACHE_KEY = "uplift_peer_connections";
+  const [lastRunAt, setLastRunAt] = useState(null);
+  const STORE_KEY = "uplift_peer_connections_v2";
 
   const COHORT_COLORS = {
     1: { bg: "#fff3cd", color: "#7a5700", border: "#f5c542" },
@@ -666,41 +876,100 @@ function PeerConnections() {
     5: { bg: "#ffe0d0", color: "#7a2d0a", border: "#e87040" },
   };
 
+  const STATUS_OPTIONS = [
+    { key: "connected", label: "✓ I connected them",    color: "#1a6e42", bg: "#e8f8f0", border: "#b8e8d0" },
+    { key: "planned",   label: "📅 Planning to connect", color: "#7a5700", bg: "#fffbe6", border: "#f5c542" },
+    { key: "skip",      label: "✕ Not connecting",       color: "#888",    bg: "#f5f5f5", border: "#ddd" },
+  ];
+
+  const isPeerStale = (runAt) => {
+    if (!runAt) return true;
+    const generated = new Date(runAt);
+    const now = new Date();
+    for (let i = 0; i < 7; i++) {
+      const b = new Date(now);
+      b.setDate(b.getDate() - i);
+      b.setHours(21, 0, 0, 0);
+      if ((b.getDay() === 0 || b.getDay() === 1) && b <= now) return generated < b;
+    }
+    return true;
+  };
+
   useEffect(() => {
-    // Load from cache or auto-fetch — refreshes Sun & Wed nights at 9pm
     try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (!isAICacheStale(parsed.generatedAt)) { setData(parsed); return; }
+      const stored = localStorage.getItem(STORE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (!isPeerStale(parsed.lastRunAt)) {
+          setConnections(parsed.connections || []);
+          setLastRunAt(parsed.lastRunAt);
+          return;
+        } else {
+          runAnalysis(parsed.connections || []);
+          return;
+        }
       }
     } catch (_) {}
-    fetchConnections();
+    runAnalysis([]);
   }, []);
 
-  const fetchConnections = () => {
+  const runAnalysis = (existingConnections) => {
     setLoading(true);
     setError(null);
     fetch("/api/peer-connections")
       .then(r => r.json())
       .then(d => {
-        if (d.error) { setError(d.error); }
-        else {
-          setData(d);
-          try { localStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch (_) {}
-        }
+        if (d.error) { setError(d.error); setLoading(false); return; }
+        const now = new Date().toISOString();
+        // Build a set of existing pair keys
+        const existingKeys = new Set(existingConnections.map(c => c.pairKey));
+        // Fresh connections from API — compute their pairKey
+        const freshConns = (d.connections || []).map(conn => {
+          const slugs = (conn.founders || []).map(f => f.slug || f.name).sort();
+          return { ...conn, pairKey: slugs.join("|") };
+        });
+        const freshKeys = new Set(freshConns.map(c => c.pairKey));
+        // Mark existing as not-new
+        const existingUpdated = existingConnections
+          .filter(c => freshKeys.has(c.pairKey))
+          .map(c => ({ ...c, isNew: false }));
+        // Find truly new pairs
+        const newOnes = freshConns
+          .filter(c => !existingKeys.has(c.pairKey))
+          .map(c => ({ ...c, isNew: true, addedAt: now, status: null }));
+        const merged = [...newOnes, ...existingUpdated];
+        setConnections(merged);
+        setLastRunAt(now);
+        try { localStorage.setItem(STORE_KEY, JSON.stringify({ connections: merged, lastRunAt: now })); } catch (_) {}
         setLoading(false);
       })
       .catch(e => { setError(e.message); setLoading(false); });
   };
 
+  const updateStatus = (pairKey, status) => {
+    setConnections(prev => {
+      const updated = prev.map(c => {
+        if (c.pairKey !== pairKey) return c;
+        return { ...c, status: c.status === status ? null : status };
+      });
+      try { localStorage.setItem(STORE_KEY, JSON.stringify({ connections: updated, lastRunAt })); } catch (_) {}
+      return updated;
+    });
+  };
+
+  const sortedConnections = [...connections].sort((a, b) => {
+    if (a.isNew !== b.isNew) return a.isNew ? -1 : 1;
+    const aSkip = a.status === "skip", bSkip = b.status === "skip";
+    if (aSkip !== bSkip) return aSkip ? 1 : -1;
+    return new Date(b.addedAt || 0) - new Date(a.addedAt || 0);
+  });
+
+  const newCount = connections.filter(c => c.isNew).length;
+
   const FounderPill = ({ founder }) => {
     const c = COHORT_COLORS[founder.cohort] || { bg: "#f3f0ff", color: "#5c4eb5", border: "#c4b8f0" };
     return (
-      <div style={{
-        background: c.bg, border: `1px solid ${c.border}`,
-        borderRadius: 10, padding: "8px 14px", minWidth: 0,
-      }}>
+      <div style={{ background: c.bg, border: `1px solid ${c.border}`, borderRadius: 10, padding: "8px 14px", minWidth: 0 }}>
         <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{founder.name}</p>
         <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: c.color }}>
           Cohort {founder.cohort} · {founder.cohortName}
@@ -715,13 +984,13 @@ function PeerConnections() {
         <div>
           <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Peer Connections</p>
           <p style={{ margin: "0 0 24px", fontSize: 13, color: "#9b8fcf" }}>
-            {data
-              ? `${data.connections?.length || 0} suggested pairings from ${data.totalFoundersAnalyzed} founders · Refreshed ${new Date(data.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · Auto-updates daily`
-              : loading ? "Analyzing responses…" : "Auto-updates Sun & Wed nights — loading…"}
+            {connections.length > 0
+              ? `${connections.length} suggested pairings${newCount > 0 ? ` · ${newCount} new` : ""} · Last analyzed ${lastRunAt ? new Date(lastRunAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—"} · Auto-updates Sun & Mon nights`
+              : loading ? "Analyzing responses…" : "Auto-updates Sun & Mon nights — loading…"}
           </p>
         </div>
         <button
-          onClick={fetchConnections}
+          onClick={() => runAnalysis(connections)}
           disabled={loading}
           style={{
             background: loading ? "#e8e4f5" : "#5c4eb5",
@@ -742,29 +1011,32 @@ function PeerConnections() {
         </div>
       )}
 
-      {loading && !data && (
+      {loading && connections.length === 0 && (
         <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>Analyzing founder responses to find connections…</p>
       )}
 
-      {data && (
+      {sortedConnections.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {(data.connections || []).length === 0 ? (
-            <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>No connections found yet — more responses needed.</p>
-          ) : (data.connections || []).map((conn, i) => (
-            <div key={i} style={{
+          {sortedConnections.map((conn, i) => (
+            <div key={conn.pairKey || i} style={{
               background: "#fff", borderRadius: 14,
-              border: "1px solid #e8e4f5",
+              border: conn.isNew ? "1.5px solid #f5c542" : "1px solid #e8e4f5",
               padding: "18px 20px",
-              boxShadow: "0 1px 4px rgba(92,78,181,0.06)",
+              boxShadow: conn.isNew ? "0 2px 8px rgba(245,197,66,0.18)" : "0 1px 4px rgba(92,78,181,0.06)",
+              opacity: conn.status === "skip" ? 0.55 : 1,
             }}>
-              {/* Shared theme tag */}
-              <div style={{ marginBottom: 12 }}>
-                <span style={{
-                  background: "#f3f0ff", color: "#5c4eb5",
-                  borderRadius: 6, padding: "3px 10px",
-                  fontSize: 11, fontWeight: 700, letterSpacing: "0.04em",
-                }}>
+              {/* Top row: NEW badge + shared theme + date */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+                {conn.isNew && (
+                  <span style={{ background: "#c0392b", color: "#fff", borderRadius: 20, padding: "2px 9px", fontSize: 10, fontWeight: 800, letterSpacing: "0.04em" }}>
+                    🆕 NEW
+                  </span>
+                )}
+                <span style={{ background: "#f3f0ff", color: "#5c4eb5", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em" }}>
                   🔗 {conn.sharedTheme}
+                </span>
+                <span style={{ marginLeft: "auto", fontSize: 10, color: "#c0b8d8", flexShrink: 0 }}>
+                  Suggested Jun 1, 2026
                 </span>
               </div>
 
@@ -776,12 +1048,35 @@ function PeerConnections() {
               </div>
 
               {/* Reason */}
-              <p style={{ margin: 0, fontSize: 13, color: "#4a4060", lineHeight: 1.65 }}>
+              <p style={{ margin: "0 0 14px", fontSize: 13, color: "#4a4060", lineHeight: 1.65 }}>
                 {conn.reason}
               </p>
+
+              {/* Status buttons */}
+              <div style={{ display: "flex", gap: 6 }}>
+                {STATUS_OPTIONS.map(opt => {
+                  const active = conn.status === opt.key;
+                  return (
+                    <button key={opt.key} onClick={() => updateStatus(conn.pairKey, opt.key)} style={{
+                      flex: 1, padding: "6px 8px", borderRadius: 7, fontSize: 11, fontWeight: 700,
+                      cursor: "pointer", fontFamily: "inherit", textAlign: "center",
+                      background: active ? opt.bg : "#f7f5ff",
+                      border: active ? `1.5px solid ${opt.border}` : "1.5px solid #e8e4f5",
+                      color: active ? opt.color : "#9b8fcf",
+                      transition: "all 0.12s",
+                    }}>
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           ))}
         </div>
+      )}
+
+      {connections.length === 0 && !loading && (
+        <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>No connections found yet — more responses needed.</p>
       )}
 
       <p style={{ margin: "28px 0 0", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
