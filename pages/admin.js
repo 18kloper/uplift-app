@@ -368,6 +368,13 @@ function Dashboard({ data, refreshedAt }) {
       statusKey: null,
     },
     {
+      label: "On Track",
+      value: counts.onTrack,
+      color: "#1a6e42", bg: "#e8f8f0",
+      desc: "Confirmed participation and meeting all program requirements",
+      statusKey: "on-track",
+    },
+    {
       label: "At Risk",
       value: counts.atRisk,
       color: "#c0392b", bg: "#fef0f0",
@@ -380,13 +387,6 @@ function Dashboard({ data, refreshedAt }) {
       color: "#b35c00", bg: "#fff3e0",
       desc: "Has not confirmed participation, or behind on required milestones",
       statusKey: "needs-attention",
-    },
-    {
-      label: "On Track",
-      value: counts.onTrack,
-      color: "#1a6e42", bg: "#e8f8f0",
-      desc: "Confirmed participation and meeting all program requirements",
-      statusKey: "on-track",
     },
     {
       label: "Churned / Dropped Out",
@@ -438,7 +438,7 @@ function Dashboard({ data, refreshedAt }) {
         </div>
 
         {/* Summary stat cards — display only */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 14, marginBottom: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 16 }}>
           {statCards.map(({ label, value, color, bg, desc }) => (
             <div key={label} style={{
               background: bg, borderRadius: 12, padding: "14px 18px",
