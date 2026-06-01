@@ -865,7 +865,7 @@ function PeerConnections() {
       const b = new Date(now);
       b.setDate(b.getDate() - i);
       b.setHours(21, 0, 0, 0);
-      if ((b.getDay() === 0 || b.getDay() === 1) && b <= now) return generated < b;
+      if ((b.getDay() === 0 || b.getDay() === 3) && b <= now) return generated < b;
     }
     return true;
   };
@@ -971,29 +971,13 @@ function PeerConnections() {
 
   return (
     <div style={{ maxWidth: 820, margin: "0 auto", padding: "32px 24px" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 6 }}>
-        <div>
-          <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Peer Connections</p>
-          <p style={{ margin: "0 0 24px", fontSize: 13, color: "#9b8fcf" }}>
-            {connections.length > 0
-              ? `${connections.length} suggested pairings${newCount > 0 ? ` · ${newCount} new` : ""} · Last analyzed ${lastRunAt ? new Date(lastRunAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—"} · Auto-updates Sun & Mon nights`
-              : loading ? "Analyzing responses…" : "Auto-updates Sun & Mon nights — loading…"}
-          </p>
-        </div>
-        <button
-          onClick={() => runAnalysis(connections)}
-          disabled={loading}
-          style={{
-            background: loading ? "#e8e4f5" : "#5c4eb5",
-            border: "none", color: "#fff", borderRadius: 8,
-            padding: "8px 16px", fontSize: 13, fontWeight: 700,
-            cursor: loading ? "default" : "pointer",
-            fontFamily: "Inter, system-ui, sans-serif",
-            flexShrink: 0, marginTop: 2,
-          }}
-        >
-          {loading ? "Analyzing…" : "↻ Refresh"}
-        </button>
+      <div style={{ marginBottom: 6 }}>
+        <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Peer Connections</p>
+        <p style={{ margin: "0 0 24px", fontSize: 13, color: "#9b8fcf" }}>
+          {connections.length > 0
+            ? `${connections.length} suggested pairings${newCount > 0 ? ` · ${newCount} new` : ""} · Last analyzed ${lastRunAt ? new Date(lastRunAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—"} · Auto-updates Sun & Wed nights`
+            : loading ? "Analyzing responses…" : "Auto-updates Sun & Wed nights — loading…"}
+        </p>
       </div>
 
       {error && (
