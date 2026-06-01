@@ -975,7 +975,7 @@ function PeerConnections() {
         <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Peer Connections</p>
         <p style={{ margin: "0 0 24px", fontSize: 13, color: "#9b8fcf" }}>
           {connections.length > 0
-            ? `${connections.length} suggested pairings${newCount > 0 ? ` · ${newCount} new` : ""} · Last analyzed ${lastRunAt ? new Date(lastRunAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—"} · Auto-updates Sun & Wed nights`
+            ? `${connections.length} suggested pairings · Last analyzed ${lastRunAt ? new Date(lastRunAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—"} · Auto-updates Sun & Wed nights`
             : loading ? "Analyzing responses…" : "Auto-updates Sun & Wed nights — loading…"}
         </p>
       </div>
@@ -995,18 +995,13 @@ function PeerConnections() {
           {sortedConnections.map((conn, i) => (
             <div key={conn.pairKey || i} style={{
               background: "#fff", borderRadius: 14,
-              border: conn.isNew ? "1.5px solid #f5c542" : "1px solid #e8e4f5",
+              border: "1px solid #e8e4f5",
               padding: "18px 20px",
-              boxShadow: conn.isNew ? "0 2px 8px rgba(245,197,66,0.18)" : "0 1px 4px rgba(92,78,181,0.06)",
+              boxShadow: "0 1px 4px rgba(92,78,181,0.06)",
             }}>
               {/* Top row: NEW badge + shared theme + date */}
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-                {conn.isNew && (
-                  <span style={{ background: "#c0392b", color: "#fff", borderRadius: 20, padding: "2px 9px", fontSize: 10, fontWeight: 800, letterSpacing: "0.04em" }}>
-                    🆕 NEW
-                  </span>
-                )}
-                <span style={{ background: "#f3f0ff", color: "#5c4eb5", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em" }}>
+<span style={{ background: "#f3f0ff", color: "#5c4eb5", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em" }}>
                   🔗 {conn.sharedTheme}
                 </span>
                 <span style={{ marginLeft: "auto", fontSize: 10, color: "#c0b8d8", flexShrink: 0 }}>
