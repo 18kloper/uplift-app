@@ -131,11 +131,12 @@ async function persistToSheet(slug, weekNum, fieldKey, value, question = "") {
 function AutoTextarea({ storageKey, placeholder, slug, weekNum, fieldKey, rows = 4, question = "" }) {
   const [value, setValue] = useState("");
   const [status, setStatus] = useState("idle");
+  const [hasSynced, setHasSynced] = useState(false);
   const timerRef = useRef(null);
 
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
-    if (saved) setValue(saved);
+    if (saved) { setValue(saved); setHasSynced(true); }
   }, [storageKey]);
 
   const handleChange = useCallback((e) => {
@@ -147,35 +148,46 @@ function AutoTextarea({ storageKey, placeholder, slug, weekNum, fieldKey, rows =
       localStorage.setItem(storageKey, newVal);
       persistToSheet(slug, weekNum, fieldKey, newVal, question);
       setStatus("saved");
+      setHasSynced(true);
       setTimeout(() => setStatus("idle"), 2000);
     }, 900);
   }, [storageKey, slug, weekNum, fieldKey, question]);
 
   return (
-    <div style={{ position: "relative" }}>
-      <textarea
-        value={value}
-        onChange={handleChange}
-        placeholder={placeholder}
-        rows={rows}
-        style={{
-          width: "100%", padding: "12px 14px", borderRadius: 8,
-          border: "1.5px solid #d4d0e8", background: "#fafafa",
-          fontSize: 15, lineHeight: 1.6, resize: "vertical",
-          fontFamily: "inherit", boxSizing: "border-box", outline: "none",
-          transition: "border-color 0.15s",
-        }}
-        onFocus={(e) => (e.target.style.borderColor = "#5c4eb5")}
-        onBlur={(e) => (e.target.style.borderColor = "#d4d0e8")}
-      />
-      {status !== "idle" && (
-        <span style={{
-          position: "absolute", bottom: 10, right: 12, fontSize: 11,
-          color: status === "saved" ? "#22a366" : "#9b8fcf",
-          fontWeight: 500, pointerEvents: "none",
+    <div>
+      <div style={{ position: "relative" }}>
+        <textarea
+          value={value}
+          onChange={handleChange}
+          placeholder={placeholder}
+          rows={rows}
+          style={{
+            width: "100%", padding: "12px 14px", borderRadius: 8,
+            border: "1.5px solid #d4d0e8", background: "#fafafa",
+            fontSize: 15, lineHeight: 1.6, resize: "vertical",
+            fontFamily: "inherit", boxSizing: "border-box", outline: "none",
+            transition: "border-color 0.15s",
+          }}
+          onFocus={(e) => (e.target.style.borderColor = "#5c4eb5")}
+          onBlur={(e) => (e.target.style.borderColor = "#d4d0e8")}
+        />
+        {status !== "idle" && (
+          <span style={{
+            position: "absolute", bottom: 10, right: 12, fontSize: 11,
+            color: status === "saved" ? "#22a366" : "#9b8fcf",
+            fontWeight: 500, pointerEvents: "none",
+          }}>
+            {status === "saving" ? "Syncing…" : "✓ Synced"}
+          </span>
+        )}
+      </div>
+      {hasSynced && (
+        <p style={{
+          margin: "7px 0 0", fontSize: 12, color: "#9b8fcf",
+          fontStyle: "italic", lineHeight: 1.6,
         }}>
-          {status === "saving" ? "Syncing…" : "✓ Synced"}
-        </span>
+          Your response has been recorded. A full collection of everything you've written lives in the <strong style={{ fontStyle: "normal", fontWeight: 600 }}>My Goals &amp; Reflections</strong> tab — consider it your personal journal for this program. This field stays editable, so feel free to come back and update your thinking anytime.
+        </p>
       )}
     </div>
   );
