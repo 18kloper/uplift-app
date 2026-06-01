@@ -349,6 +349,24 @@ function ClickEngagement() {
   );
 }
 
+// Returns true if AI cache should be refreshed.
+// Refreshes on Sunday (0) and Wednesday (3) nights at 9pm — or if no cache.
+function isAICacheStale(generatedAt) {
+  if (!generatedAt) return true;
+  const generated = new Date(generatedAt);
+  const now = new Date();
+  // Walk back up to 7 days to find the most recent Sun or Wed at 9pm
+  for (let i = 0; i < 7; i++) {
+    const boundary = new Date(now);
+    boundary.setDate(boundary.getDate() - i);
+    boundary.setHours(21, 0, 0, 0); // 9pm
+    if ((boundary.getDay() === 0 || boundary.getDay() === 3) && boundary <= now) {
+      return generated < boundary; // stale if generated before that boundary
+    }
+  }
+  return true; // fallback
+}
+
 // ─── Prompt Engagement view ───────────────────────────────────────────────────
 function PromptEngagement() {
   const [stats, setStats] = useState(null);
@@ -361,8 +379,6 @@ function PromptEngagement() {
   const [insightsError, setInsightsError] = useState(null);
 
   const CACHE_KEY = "uplift_prompt_insights";
-  const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
-
   const COHORT_NAMES_PE = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
 
   useEffect(() => {
@@ -372,32 +388,28 @@ function PromptEngagement() {
       .catch(() => setLoading(false));
   }, []);
 
-  // Auto-load insights from cache or fetch if stale (>24h)
+  // Auto-load insights — refresh on Sun/Wed nights at 9pm
   useEffect(() => {
     try {
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
         const parsed = JSON.parse(cached);
-        const age = Date.now() - new Date(parsed.generatedAt).getTime();
-        if (age < CACHE_TTL_MS) {
+        if (!isAICacheStale(parsed.generatedAt)) {
           setInsights(parsed);
-          return; // cache is fresh — done
+          return; // cache is fresh
         }
       }
     } catch (_) {}
-    // Cache missing or stale — auto-fetch
     fetchInsights();
   }, []);
 
   const fetchInsights = (force = false) => {
     if (!force) {
-      // Check cache one more time before fetching (in case called directly)
       try {
         const cached = localStorage.getItem(CACHE_KEY);
         if (cached) {
           const parsed = JSON.parse(cached);
-          const age = Date.now() - new Date(parsed.generatedAt).getTime();
-          if (age < CACHE_TTL_MS) { setInsights(parsed); return; }
+          if (!isAICacheStale(parsed.generatedAt)) { setInsights(parsed); return; }
         }
       } catch (_) {}
     }
@@ -441,8 +453,8 @@ function PromptEngagement() {
               {insightsLoading
                 ? "Analyzing responses…"
                 : insights
-                ? `${insights.totalResponses || "All"} responses analyzed · Refreshed ${new Date(insights.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · Auto-updates daily`
-                : "Auto-updates daily — loading…"}
+                ? `${insights.totalResponses || "All"} responses analyzed · Refreshed ${new Date(insights.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · Auto-updates Sun & Wed nights`
+                : "Auto-updates Sun & Wed nights — loading…"}
             </p>
           </div>
           <button
@@ -664,7 +676,6 @@ function PeerConnections() {
   const [error, setError] = useState(null);
 
   const CACHE_KEY = "uplift_peer_connections";
-  const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
   const COHORT_COLORS = {
     1: { bg: "#fff3cd", color: "#7a5700", border: "#f5c542" },
@@ -675,13 +686,12 @@ function PeerConnections() {
   };
 
   useEffect(() => {
-    // Load from cache or auto-fetch
+    // Load from cache or auto-fetch — refreshes Sun & Wed nights at 9pm
     try {
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
         const parsed = JSON.parse(cached);
-        const age = Date.now() - new Date(parsed.generatedAt).getTime();
-        if (age < CACHE_TTL_MS) { setData(parsed); return; }
+        if (!isAICacheStale(parsed.generatedAt)) { setData(parsed); return; }
       }
     } catch (_) {}
     fetchConnections();
@@ -726,7 +736,7 @@ function PeerConnections() {
           <p style={{ margin: "0 0 24px", fontSize: 13, color: "#9b8fcf" }}>
             {data
               ? `${data.connections?.length || 0} suggested pairings from ${data.totalFoundersAnalyzed} founders · Refreshed ${new Date(data.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · Auto-updates daily`
-              : loading ? "Analyzing responses…" : "Auto-updates daily — loading…"}
+              : loading ? "Analyzing responses…" : "Auto-updates Sun & Wed nights — loading…"}
           </p>
         </div>
         <button
