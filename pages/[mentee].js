@@ -117,9 +117,10 @@ const TAB_ROW_1 = ["journey", "goals", "milestones", "meetings", "edu"];
 const TAB_ROW_2 = ["calendar", "profile", "resources", "support"];
 
 // ─── Tab tooltip wrapper ───────────────────────────────────────────────────────
-function TabTooltip({ tip, children }) {
+function TabTooltip({ tip, children, direction = "up" }) {
   const [visible, setVisible] = useState(false);
   if (!tip) return children;
+  const isDown = direction === "down";
   return (
     <div
       style={{ position: "relative", display: "inline-flex" }}
@@ -129,7 +130,9 @@ function TabTooltip({ tip, children }) {
       {children}
       {visible && (
         <div style={{
-          position: "absolute", bottom: "calc(100% + 8px)", left: "50%",
+          position: "absolute",
+          ...(isDown ? { top: "calc(100% + 8px)" } : { bottom: "calc(100% + 8px)" }),
+          left: "50%",
           transform: "translateX(-50%)",
           background: "#1a1733", color: "#fff",
           borderRadius: 8, padding: "9px 13px",
@@ -141,11 +144,15 @@ function TabTooltip({ tip, children }) {
         }}>
           {tip}
           <div style={{
-            position: "absolute", top: "100%", left: "50%",
+            position: "absolute",
+            ...(isDown
+              ? { bottom: "100%", borderBottom: "6px solid #1a1733", borderTop: "none" }
+              : { top: "100%", borderTop: "6px solid #1a1733", borderBottom: "none" }
+            ),
+            left: "50%",
             transform: "translateX(-50%)",
             borderLeft: "6px solid transparent",
             borderRight: "6px solid transparent",
-            borderTop: "6px solid #1a1733",
           }} />
         </div>
       )}
@@ -3038,7 +3045,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
               const tab = PRIMARY_TABS.find(t => t.id === id);
               const active = activeTab === id;
               return (
-                <TabTooltip key={id} tip={tab.tip}>
+                <TabTooltip key={id} tip={tab.tip} direction="down">
                   <button
                     onClick={() => setActiveTab(id)}
                     style={{
