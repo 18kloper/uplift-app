@@ -1,5 +1,8 @@
 // GET /api/prompt-themes
-// Reads all prompt responses, calls Claude to surface top themes + session ideas.
+// Reads all prompt responses, calls Claude to surface:
+//   - Top 5 overall themes
+//   - Top 5 session ideas
+//   - Top 3 themes per prompt section (week-by-week)
 
 import Anthropic from "@anthropic-ai/sdk";
 import { getSheetsClient } from "../../lib/sheets-helper";
@@ -17,8 +20,8 @@ export default async function handler(req, res) {
     process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
     process.env.GOOGLE_PRIVATE_KEY;
 
-  if (!hasSheets) return res.status(200).json({ themes: [], sessionIdeas: [], error: "Sheets not configured" });
-  if (!process.env.ANTHROPIC_API_KEY) return res.status(200).json({ themes: [], sessionIdeas: [], error: "ANTHROPIC_API_KEY not configured" });
+  if (!hasSheets) return res.status(200).json({ themes: [], sessionIdeas: [], weeklyThemes: {}, error: "Sheets not configured" });
+  if (!process.env.ANTHROPIC_API_KEY) return res.status(200).json({ themes: [], sessionIdeas: [], weeklyThemes: {}, error: "ANTHROPIC_API_KEY not configured" });
 
   const realMentees = MENTEES.filter(m => !TEST_SLUGS.includes(m.slug));
   const sheets = getSheetsClient();
@@ -31,7 +34,7 @@ export default async function handler(req, res) {
     const menteesWithTabs = realMentees.filter(m => existingTabs.has(m.slug));
 
     if (menteesWithTabs.length === 0) {
-      return res.status(200).json({ themes: [], sessionIdeas: [], note: "No mentee data yet" });
+      return res.status(200).json({ themes: [], sessionIdeas: [], weeklyThemes: {}, note: "No mentee data yet" });
     }
 
     // sectionKey → array of response strings
@@ -62,49 +65,57 @@ export default async function handler(req, res) {
       });
     }
 
-    // Build the text block to send Claude
-    const blocks = [];
-    for (const section of PROMPT_SECTIONS) {
-      const responses = sectionResponses[section.key];
-      if (responses.length === 0) continue;
-      blocks.push(`\n## ${section.label} (${responses.length} responses)`);
-      // Sample up to 60 per section, truncate long responses
-      responses.slice(0, 60).forEach((r, i) => {
-        blocks.push(`${i + 1}. ${r.slice(0, 400)}`);
-      });
+    // Build text blocks — one per section, labeled with the section key
+    const sectionsWithData = PROMPT_SECTIONS.filter(s => sectionResponses[s.key].length > 0);
+
+    if (sectionsWithData.length === 0) {
+      return res.status(200).json({ themes: [], sessionIdeas: [], weeklyThemes: {}, note: "No responses saved yet" });
     }
 
-    if (blocks.length === 0) {
-      return res.status(200).json({ themes: [], sessionIdeas: [], note: "No responses saved yet" });
-    }
+    const blocks = sectionsWithData.map(section => {
+      const responses = sectionResponses[section.key];
+      const sample = responses.slice(0, 50).map((r, i) => `  ${i + 1}. ${r.slice(0, 350)}`).join("\n");
+      return `### SECTION KEY: ${section.key}\n### SECTION LABEL: ${section.label} (${responses.length} responses)\n${sample}`;
+    }).join("\n\n");
+
+    const sectionKeyList = sectionsWithData.map(s => `"${s.key}"`).join(", ");
 
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
     const message = await anthropic.messages.create({
       model: "claude-haiku-4-5",
-      max_tokens: 1200,
+      max_tokens: 3000,
       messages: [{
         role: "user",
-        content: `You are analyzing prompt responses from early-stage startup founders in a 9-week mentorship accelerator program in New Jersey. The founders span industries including AI/ML, SaaS, consumer, and social impact.
+        content: `You are analyzing prompt responses from early-stage startup founders in a 9-week mentorship accelerator in New Jersey. Founders span AI/ML, SaaS, consumer, and social impact.
 
-Here are their responses, grouped by prompt section:
-${blocks.join("\n")}
+Here are their responses organized by prompt section:
 
-Based on these responses, identify:
+${blocks}
 
-1. The TOP 5 RECURRING THEMES surfacing across founders — what are they most focused on, struggling with, or writing about?
-2. 5 SPECIFIC SESSION IDEAS that would directly address these themes — workshops, speakers, or peer formats that would be high-value for this cohort right now.
+Please analyze and return a JSON object with THREE things:
 
-Return ONLY a JSON object with this exact shape (no markdown, no explanation):
+1. "themes" — Top 5 recurring themes across ALL sections combined. What are founders most focused on, struggling with, or gravitating toward overall?
+
+2. "sessionIdeas" — 5 specific session ideas that would directly address the overall themes. Be concrete: a workshop format, speaker type, or peer activity.
+
+3. "weeklyThemes" — For each section that has responses, the top 3 themes specific to THAT section's responses. Only include sections with enough data to be meaningful.
+
+The section keys to include in weeklyThemes are: ${sectionKeyList}
+
+Return ONLY valid JSON, no markdown fences, no explanation:
 {
   "themes": [
-    { "title": "Short theme title", "description": "2 sentences on what you're seeing across responses." },
-    ...5 items...
+    { "title": "Short theme title", "description": "2 sentences on what you're seeing." }
   ],
   "sessionIdeas": [
-    { "title": "Session title", "description": "1-2 sentences on what this would cover and why it's timely for this cohort." },
-    ...5 items...
-  ]
+    { "title": "Session title", "description": "1-2 sentences on what this covers and why it's timely." }
+  ],
+  "weeklyThemes": {
+    "section_key": [
+      { "title": "Theme title", "description": "1-2 sentences." }
+    ]
+  }
 }`,
       }],
     });
@@ -112,20 +123,35 @@ Return ONLY a JSON object with this exact shape (no markdown, no explanation):
     const raw = message.content[0]?.text || "";
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error("prompt-themes: could not parse JSON from Claude:", raw.slice(0, 200));
-      return res.status(200).json({ themes: [], sessionIdeas: [], error: "Could not parse AI response" });
+      console.error("prompt-themes: could not parse JSON:", raw.slice(0, 300));
+      return res.status(200).json({ themes: [], sessionIdeas: [], weeklyThemes: {}, error: "Could not parse AI response" });
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
+    const totalResponses = Object.values(sectionResponses).reduce((s, a) => s + a.length, 0);
+
+    // Attach section labels to weeklyThemes for easy rendering
+    const weeklyThemesWithLabels = {};
+    for (const section of sectionsWithData) {
+      const themes = parsed.weeklyThemes?.[section.key];
+      if (themes && themes.length > 0) {
+        weeklyThemesWithLabels[section.key] = {
+          label: section.label,
+          themes: themes.slice(0, 3),
+          count: sectionResponses[section.key].length,
+        };
+      }
+    }
 
     return res.status(200).json({
-      themes:       parsed.themes       || [],
-      sessionIdeas: parsed.sessionIdeas || [],
-      totalResponses: Object.values(sectionResponses).reduce((s, a) => s + a.length, 0),
-      generatedAt: new Date().toISOString(),
+      themes:        parsed.themes        || [],
+      sessionIdeas:  parsed.sessionIdeas  || [],
+      weeklyThemes:  weeklyThemesWithLabels,
+      totalResponses,
+      generatedAt:   new Date().toISOString(),
     });
   } catch (err) {
     console.error("prompt-themes error:", err.message);
-    return res.status(200).json({ themes: [], sessionIdeas: [], error: err.message });
+    return res.status(200).json({ themes: [], sessionIdeas: [], weeklyThemes: {}, error: err.message });
   }
 }

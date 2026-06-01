@@ -432,9 +432,9 @@ function PromptEngagement() {
 
         {insights && !insightsLoading && (
           <div>
-            {/* Themes */}
+            {/* Overall top 5 themes */}
             <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.6 }}>
-              Top 5 Recurring Themes
+              Top 5 Overall Themes
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
               {(insights.themes || []).map((t, i) => (
@@ -473,6 +473,54 @@ function PromptEngagement() {
           </div>
         )}
       </div>
+
+      {/* ── Week-by-week themes (outside dark card, light background) ── */}
+      {insights && !insightsLoading && Object.keys(insights.weeklyThemes || {}).length > 0 && (
+        <div style={{ marginBottom: 28 }}>
+          <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 700, color: "#1a1733" }}>
+            📅 Themes by Prompt Section
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {Object.entries(insights.weeklyThemes).map(([key, section]) => (
+              <div key={key} style={{
+                background: "#fff", borderRadius: 12,
+                border: "1px solid #e8e4f5", padding: "16px 20px",
+              }}>
+                {/* Section header */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733", flex: 1 }}>
+                    {section.label}
+                  </p>
+                  <span style={{
+                    fontSize: 11, color: "#9b8fcf", background: "#f3f0ff",
+                    borderRadius: 20, padding: "2px 10px", flexShrink: 0,
+                  }}>
+                    {section.count} response{section.count !== 1 ? "s" : ""}
+                  </span>
+                </div>
+                {/* Top 3 themes */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {section.themes.map((t, i) => (
+                    <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                      <span style={{
+                        background: "#f3f0ff", color: "#5c4eb5",
+                        borderRadius: 6, padding: "2px 8px",
+                        fontSize: 11, fontWeight: 800, flexShrink: 0, marginTop: 1,
+                      }}>
+                        #{i + 1}
+                      </span>
+                      <div>
+                        <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{t.title}</p>
+                        <p style={{ margin: 0, fontSize: 12, color: "#6b6480", lineHeight: 1.6 }}>{t.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {loading && <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>Loading…</p>}
 
