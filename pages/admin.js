@@ -194,21 +194,15 @@ const MILESTONE_FILTERS = [
 function ClickEngagement() {
   const [stats, setStats] = useState(null);
   const [eventStats, setEventStats] = useState(null);
-  const [activityData, setActivityData] = useState(null);
-  const [activeOpen, setActiveOpen] = useState(false);
-  const [inactiveOpen, setInactiveOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const COHORT_NAMES_CE = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
 
   useEffect(() => {
     Promise.all([
       fetch("/api/resource-stats").then(r => r.json()),
       fetch("/api/event-stats").then(r => r.json()),
-      fetch("/api/portal-activity").then(r => r.json()),
-    ]).then(([res, evs, act]) => {
+    ]).then(([res, evs]) => {
       setStats(res);
       setEventStats(evs);
-      setActivityData(act);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
@@ -286,30 +280,6 @@ function ClickEngagement() {
     </div>
   );
 
-  const DropdownList = ({ entries, emptyText }) => (
-    <div>
-      {entries.length === 0 ? (
-        <p style={{ padding: "16px 20px", fontSize: 13, color: "#b0a8cc", fontStyle: "italic", margin: 0 }}>{emptyText}</p>
-      ) : (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, padding: "14px 20px" }}>
-          {entries.map((e, i) => (
-            <span key={i} style={{
-              fontSize: 12, fontWeight: 600, color: "#1a1733",
-              background: "#f3f0ff", border: "1px solid #e0d9f8",
-              borderRadius: 20, padding: "4px 12px",
-              display: "flex", alignItems: "center", gap: 6,
-            }}>
-              {e.name}
-              <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 500 }}>
-                {e.cohort} · {COHORT_NAMES_CE[e.cohort] || e.cohort}
-              </span>
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
@@ -323,61 +293,6 @@ function ClickEngagement() {
 
       {loading && (
         <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>Loading click data…</p>
-      )}
-
-      {/* ── Portal Activity summary ── */}
-      {!loading && activityData && (
-        <div style={{ display: "flex", gap: 14, marginBottom: 28, flexWrap: "wrap" }}>
-          {/* Active */}
-          <div style={{ flex: 1, minWidth: 260, background: "#fff", borderRadius: 12, border: "1px solid #b8e8d0", overflow: "hidden" }}>
-            <button
-              onClick={() => setActiveOpen(o => !o)}
-              style={{
-                width: "100%", background: "#f0faf5", border: "none", cursor: "pointer",
-                padding: "14px 20px", display: "flex", alignItems: "center", gap: 14,
-                fontFamily: "Inter, system-ui, sans-serif",
-              }}
-            >
-              <div style={{ textAlign: "left", flex: 1 }}>
-                <p style={{ margin: "0 0 1px", fontSize: 11, fontWeight: 700, color: "#1a6e42", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                  Logged in — last {activityData.days} days
-                </p>
-                <p style={{ margin: 0, fontSize: 30, fontWeight: 800, color: "#1a6e42", lineHeight: 1 }}>
-                  {activityData.counts.active}
-                </p>
-              </div>
-              <span style={{ fontSize: 16, color: "#1a6e42", transform: activeOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
-                ▾
-              </span>
-            </button>
-            {activeOpen && <DropdownList entries={activityData.active} emptyText="No active founders yet." />}
-          </div>
-
-          {/* Inactive */}
-          <div style={{ flex: 1, minWidth: 260, background: "#fff", borderRadius: 12, border: "1px solid #f5c6c6", overflow: "hidden" }}>
-            <button
-              onClick={() => setInactiveOpen(o => !o)}
-              style={{
-                width: "100%", background: "#fef0f0", border: "none", cursor: "pointer",
-                padding: "14px 20px", display: "flex", alignItems: "center", gap: 14,
-                fontFamily: "Inter, system-ui, sans-serif",
-              }}
-            >
-              <div style={{ textAlign: "left", flex: 1 }}>
-                <p style={{ margin: "0 0 1px", fontSize: 11, fontWeight: 700, color: "#c0392b", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                  Not logged in — last {activityData.days} days
-                </p>
-                <p style={{ margin: 0, fontSize: 30, fontWeight: 800, color: "#c0392b", lineHeight: 1 }}>
-                  {activityData.counts.inactive + activityData.counts.neverVisited}
-                </p>
-              </div>
-              <span style={{ fontSize: 16, color: "#c0392b", transform: inactiveOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
-                ▾
-              </span>
-            </button>
-            {inactiveOpen && <DropdownList entries={[...activityData.inactive, ...activityData.neverVisited]} emptyText="Everyone is active!" />}
-          </div>
-        </div>
       )}
 
       {!loading && stats && (
