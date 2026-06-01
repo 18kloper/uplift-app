@@ -314,12 +314,28 @@ function ClickEngagement() {
   );
 }
 
+const WEEK_LABELS = {
+  1: "Week 1 · Goals",
+  2: "Week 2",
+  3: "Week 3",
+  4: "Week 4 · Midpoint",
+  5: "Week 5", 6: "Week 6", 7: "Week 7", 8: "Week 8", 9: "Week 9",
+};
+
 // ─── Main dashboard ────────────────────────────────────────────────────────────
 function Dashboard({ data, refreshedAt }) {
   const [activeCohort, setActiveCohort] = useState("All");
   const [search, setSearch] = useState("");
   const [statusFilters, setStatusFilters] = useState([]);
   const [milestoneFilters, setMilestoneFilters] = useState([]);
+  const [promptStats, setPromptStats] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/prompt-stats")
+      .then(r => r.json())
+      .then(d => setPromptStats(d))
+      .catch(() => {});
+  }, []);
 
   const { mentees = [], pendingReviewCount = 0 } = data;
   const isPreProgram = new Date() < PROGRAM_START;
@@ -488,6 +504,44 @@ function Dashboard({ data, refreshedAt }) {
             </div>
           ))}
         </div>
+
+        {/* Prompt Completions */}
+        {promptStats && (
+          <div style={{
+            background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
+            padding: "16px 20px", marginBottom: 16,
+          }}>
+            <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+              Prompt Completions — founders who've saved at least one response
+            </p>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(wn => {
+                const count = promptStats.weeks?.[wn] || 0;
+                const total = promptStats.total || counts.total;
+                const pct   = total > 0 ? Math.round((count / total) * 100) : 0;
+                const hasAny = count > 0;
+                return (
+                  <div key={wn} style={{
+                    background: hasAny ? "#f3f0ff" : "#faf9ff",
+                    border: `1px solid ${hasAny ? "#c4b8f0" : "#e8e4f5"}`,
+                    borderRadius: 10, padding: "10px 14px", minWidth: 110,
+                  }}>
+                    <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", whiteSpace: "nowrap" }}>
+                      {WEEK_LABELS[wn]}
+                    </p>
+                    <p style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 800, color: hasAny ? "#5c4eb5" : "#c0b8d8", lineHeight: 1 }}>
+                      {count}
+                    </p>
+                    <div style={{ height: 4, background: "#e8e4f5", borderRadius: 2, overflow: "hidden" }}>
+                      <div style={{ width: `${pct}%`, height: "100%", background: "#5c4eb5", borderRadius: 2, transition: "width 0.4s" }} />
+                    </div>
+                    <p style={{ margin: "4px 0 0", fontSize: 10, color: "#b0a8cc" }}>{pct}% of {total}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Sessions pending review */}
         <div style={{
