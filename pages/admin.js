@@ -354,6 +354,12 @@ function PromptEngagement() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [openSections, setOpenSections] = useState({});
+
+  // AI Insights state
+  const [insights, setInsights] = useState(null);
+  const [insightsLoading, setInsightsLoading] = useState(false);
+  const [insightsError, setInsightsError] = useState(null);
+
   const COHORT_NAMES_PE = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
 
   useEffect(() => {
@@ -365,12 +371,108 @@ function PromptEngagement() {
 
   const toggle = (key) => setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
 
+  const generateInsights = () => {
+    setInsightsLoading(true);
+    setInsightsError(null);
+    fetch("/api/prompt-themes")
+      .then(r => r.json())
+      .then(d => {
+        if (d.error) { setInsightsError(d.error); }
+        else { setInsights(d); }
+        setInsightsLoading(false);
+      })
+      .catch(e => { setInsightsError(e.message); setInsightsLoading(false); });
+  };
+
+  const THEME_ICONS = ["🔍", "⚡", "🧩", "🎯", "💡"];
+  const SESSION_ICONS = ["🎤", "🛠️", "👥", "📊", "🚀"];
+
   return (
     <div style={{ maxWidth: 820, margin: "0 auto", padding: "32px 24px" }}>
       <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Prompt Engagement</p>
       <p style={{ margin: "0 0 28px", fontSize: 13, color: "#9b8fcf" }}>
         Founders who've saved at least one response per prompt section — click any row to see who
       </p>
+
+      {/* ── AI Insights panel ── */}
+      <div style={{
+        background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)",
+        borderRadius: 14, padding: "22px 26px", marginBottom: 28, color: "#fff",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: insights ? 20 : 0 }}>
+          <div>
+            <p style={{ margin: "0 0 3px", fontSize: 16, fontWeight: 800 }}>🧠 AI Insights</p>
+            <p style={{ margin: 0, fontSize: 12, opacity: 0.7 }}>
+              {insights
+                ? `Top themes and session ideas from ${insights.totalResponses || "all"} responses · Generated ${new Date(insights.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`
+                : "Surface recurring themes and session ideas from founder responses"}
+            </p>
+          </div>
+          <button
+            onClick={generateInsights}
+            disabled={insightsLoading}
+            style={{
+              background: insightsLoading ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.2)",
+              border: "1px solid rgba(255,255,255,0.3)",
+              color: "#fff", borderRadius: 8,
+              padding: "8px 16px", fontSize: 13, fontWeight: 700,
+              cursor: insightsLoading ? "default" : "pointer",
+              flexShrink: 0, marginLeft: 16,
+              fontFamily: "Inter, system-ui, sans-serif",
+              transition: "background 0.2s",
+            }}
+          >
+            {insightsLoading ? "Analyzing…" : insights ? "↻ Refresh" : "Generate Insights"}
+          </button>
+        </div>
+
+        {insightsError && (
+          <p style={{ margin: "12px 0 0", fontSize: 13, color: "#ffb3b3" }}>⚠️ {insightsError}</p>
+        )}
+
+        {insights && !insightsLoading && (
+          <div>
+            {/* Themes */}
+            <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.6 }}>
+              Top 5 Recurring Themes
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+              {(insights.themes || []).map((t, i) => (
+                <div key={i} style={{
+                  background: "rgba(255,255,255,0.1)", borderRadius: 10,
+                  padding: "12px 16px", display: "flex", gap: 12, alignItems: "flex-start",
+                }}>
+                  <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{THEME_ICONS[i] || "•"}</span>
+                  <div>
+                    <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 700 }}>{t.title}</p>
+                    <p style={{ margin: 0, fontSize: 12, opacity: 0.8, lineHeight: 1.6 }}>{t.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Session Ideas */}
+            <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.6 }}>
+              Session Ideas
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {(insights.sessionIdeas || []).map((s, i) => (
+                <div key={i} style={{
+                  background: "rgba(255,255,255,0.08)", borderRadius: 10,
+                  padding: "12px 16px", display: "flex", gap: 12, alignItems: "flex-start",
+                  borderLeft: "3px solid rgba(167,139,250,0.6)",
+                }}>
+                  <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{SESSION_ICONS[i] || "•"}</span>
+                  <div>
+                    <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 700 }}>{s.title}</p>
+                    <p style={{ margin: 0, fontSize: 12, opacity: 0.8, lineHeight: 1.6 }}>{s.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {loading && <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>Loading…</p>}
 
