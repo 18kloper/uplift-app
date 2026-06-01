@@ -72,7 +72,7 @@ export default async function handler(req, res) {
       // Row 0 is header; look for matching slug in column A, check column B
       const adminRow = adminRows.slice(1).find(row => row[0]?.trim() === slug);
       if (adminRow && (adminRow[1] === "TRUE" || adminRow[1] === true)) {
-        milestones.onboarding = true;
+        // Only unlocks mentor — onboarding must be marked separately in Milestone Dashboard
         milestones.mentorMatched = true;
       }
     } catch (_) {

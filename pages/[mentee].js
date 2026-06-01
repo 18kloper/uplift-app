@@ -2916,7 +2916,8 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
 
   const mentee = menteeData;
   const slug = mentee.slug;
-  const mentorUnlocked = mentee.mentorUnlocked;
+  // Driven by live milestones (Admin tab "Unlock Mentor" checkbox) — falls back to static data
+  const mentorUnlocked = liveMilestones?.mentorMatched ?? mentee.mentorUnlocked;
   const myCohortHeader = COHORTS.find((c) => c.num === mentee.cohort);
 
   useEffect(() => {
