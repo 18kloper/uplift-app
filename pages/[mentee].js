@@ -2413,8 +2413,8 @@ function MilestoneSection({ milestones }) {
                 }}>
                   {item.label}
                 </span>
-                {!done && item.due && (
-                  <span style={{ fontSize: 11, fontStyle: "italic", color: "#b0a8cc" }}>
+                {item.due && (
+                  <span style={{ fontSize: 11, fontStyle: "italic", color: done ? "#6abf97" : "#b0a8cc" }}>
                     {item.due}
                   </span>
                 )}
