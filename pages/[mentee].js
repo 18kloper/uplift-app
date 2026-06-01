@@ -336,7 +336,7 @@ function EventsSection({ events, submitLabel, submitPrimary, note, footerNote, i
           ✓ Your onboarding attendance has been verified.
         </p>
         <p style={{ margin: 0, fontSize: 14, color: "#2a7f5a", lineHeight: 1.65 }}>
-          Looking forward to getting started. We'll connect you with your mentor soon.
+          Looking forward to getting started. We'll connect you with your mentor soon. In the meantime, please take a moment to get into more detail about your goals below.
         </p>
       </div>
     );
