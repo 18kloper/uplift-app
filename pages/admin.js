@@ -223,11 +223,13 @@ function Dashboard({ data, refreshedAt }) {
   const realMentees   = mentees.filter(m => !m.isTest);
   const activeMentees = realMentees.filter(m => m.status !== "churned");
   const counts = {
-    total:     realMentees.length,
-    atRisk:    activeMentees.filter(m => m.status === "at-risk").length,
-    attention: activeMentees.filter(m => m.status === "needs-attention").length,
-    onTrack:   activeMentees.filter(m => m.status === "on-track").length,
-    churned:   realMentees.filter(m => m.status === "churned").length,
+    total:      realMentees.length,
+    atRisk:     activeMentees.filter(m => m.status === "at-risk").length,
+    attention:  activeMentees.filter(m => m.status === "needs-attention").length,
+    onTrack:    activeMentees.filter(m => m.status === "on-track").length,
+    churned:    realMentees.filter(m => m.status === "churned").length,
+    onboarding: realMentees.filter(m => m.milestones?.onboarding).length,
+    participated: realMentees.filter(m => m.milestones?.participation).length,
   };
 
   const cohortCounts = {};
@@ -259,6 +261,20 @@ function Dashboard({ data, refreshedAt }) {
       value: counts.total,
       color: "#5c4eb5", bg: "#f3f0ff",
       desc: "All program participants excluding test accounts",
+      statusKey: null,
+    },
+    {
+      label: "Participation Confirmed",
+      value: `${counts.participated} / ${counts.total}`,
+      color: "#1a6e42", bg: "#e8f8f0",
+      desc: "Founders who have accepted their spot in the program",
+      statusKey: null,
+    },
+    {
+      label: "Onboarding Completed",
+      value: `${counts.onboarding} / ${counts.total}`,
+      color: "#2a7fd4", bg: "#e8f4ff",
+      desc: "Founders who have attended an onboarding session",
       statusKey: null,
     },
     {
