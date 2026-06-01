@@ -2335,8 +2335,8 @@ function parseDueDate(dueStr) {
 function MilestoneSection({ milestones, onNavigate }) {
   const items = [
     { key: "participation",   label: "Confirmed Participation",        auto: true, due: "By Jun 3",  week: 1 },
-    { key: "onboarding",      label: "Onboarding Session Attended",                 due: "By Jun 7",  week: 1 },
-    { key: "mentorMatched",   label: "Matched with a Mentor",                       due: "By Jun 7",  week: 2 },
+    { key: "onboarding",      label: "Onboarding Session Attended",  due: "By Jun 7",  contactMsg: "If you haven't attended an onboarding session yet, please reach out to us directly — we can help get you sorted." },
+    { key: "mentorMatched",   label: "Matched with a Mentor",        due: "By Jun 7",  contactMsg: "If you haven't been matched with a mentor yet, it likely means we don't have you recorded for an onboarding session. Please contact us directly so we can help." },
     { key: "edu1",            label: "Educational Session 1",                       due: "By Aug 4",  week: 2 },
     { key: "edu2",            label: "Educational Session 2",                       due: "By Aug 4",  week: 3 },
     { key: "edu3",            label: "Educational Session 3",                       due: "By Aug 4",  week: 8 },
@@ -2432,20 +2432,29 @@ function MilestoneSection({ milestones, onNavigate }) {
                     {item.due}
                   </span>
                 )}
-                {overdue && item.week && (
-                  <span style={{ marginTop: 4, fontSize: 12, color: "#b45309", lineHeight: 1.5 }}>
+                {overdue && (item.week || item.contactMsg) && (
+                  <span style={{ marginTop: 4, fontSize: 12, color: "#b45309", lineHeight: 1.6 }}>
                     ⚠️ This is past due.{" "}
-                    <button
-                      onClick={() => onNavigate && onNavigate(item.week)}
-                      style={{
-                        background: "none", border: "none", padding: 0,
-                        color: "#b45309", fontWeight: 700, fontSize: 12,
-                        cursor: "pointer", textDecoration: "underline",
-                        fontFamily: "inherit",
-                      }}
-                    >
-                      Visit Week {item.week} in My Journey →
-                    </button>
+                    {item.contactMsg ? (
+                      <>
+                        {item.contactMsg}{" "}
+                        <a href="mailto:uplift@techunited.co" style={{ color: "#b45309", fontWeight: 700 }}>
+                          uplift@techunited.co
+                        </a>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => onNavigate && onNavigate(item.week)}
+                        style={{
+                          background: "none", border: "none", padding: 0,
+                          color: "#b45309", fontWeight: 700, fontSize: 12,
+                          cursor: "pointer", textDecoration: "underline",
+                          fontFamily: "inherit",
+                        }}
+                      >
+                        Visit Week {item.week} in My Journey →
+                      </button>
+                    )}
                   </span>
                 )}
               </span>
