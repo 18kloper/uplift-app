@@ -2316,6 +2316,27 @@ function CalendarSection() {
         All program sessions and milestones across the 9-week Uplift Summer 2026 schedule.
       </p>
 
+      {/* Open attendance notice */}
+      <div style={{
+        background: "linear-gradient(135deg, #f3f0ff 0%, #eef6ff 100%)",
+        borderRadius: 12, border: "1px solid #d4cef5",
+        padding: "18px 22px", marginBottom: 16,
+        display: "flex", gap: 14, alignItems: "flex-start",
+      }}>
+        <span style={{ fontSize: 22, flexShrink: 0, marginTop: 1 }}>🎟️</span>
+        <div>
+          <p style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 700, color: "#1a1733" }}>
+            All sessions are open to everyone
+          </p>
+          <p style={{ margin: 0, fontSize: 13, color: "#4a4060", lineHeight: 1.75 }}>
+            You'll notice sessions are labeled by cohort — <strong>Edison, Hopper, Bardeen, Lawrence,</strong> and <strong>Morrison</strong> — but these are simply a way to group participants and help you build closer relationships with your peers. You are welcome and encouraged to attend <em>any and all</em> sessions across every cohort.
+          </p>
+          <p style={{ margin: "8px 0 0", fontSize: 13, color: "#4a4060", lineHeight: 1.75 }}>
+            Our speakers bring a wide range of expertise that's relevant to founders at every stage and in every industry — no session is off-limits based on your cohort. We also know that schedules are unpredictable. Uplift is designed to be accessible and work around your life, which means you should never have to miss a session just because it's labeled for a different group. If a time works for you, show up.
+          </p>
+        </div>
+      </div>
+
       {/* Session format explainer */}
       <div style={{
         background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
