@@ -292,8 +292,11 @@ function EventsSection({ events, submitLabel, submitPrimary, note, footerNote })
       )}
       {hasEvents && (
         <>
-          <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
+          <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
             This Week's Sessions
+          </p>
+          <p style={{ margin: "0 0 14px", fontSize: 12, color: "#9b8fcf", fontStyle: "italic", lineHeight: 1.65 }}>
+            All sessions are open to every mentee. You'll notice sessions are labeled by cohort (Edison, Hopper, Bardeen, Lawrence, Morrison) — these labels simply group participants to help build close relationships with peers. You are welcome and encouraged to attend any and all sessions across every cohort. Our speakers bring a wide range of expertise relevant to founders at every stage and in every industry. We also know schedules are unpredictable — Uplift is designed to be accessible and work around your life. If the time works for you, show up. Every session you attend counts toward your 3 required educational sessions.
           </p>
           {events.map((ev, i) => (
             <div key={i} style={{
