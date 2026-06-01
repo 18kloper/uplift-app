@@ -11,16 +11,26 @@ export default async function handler(req, res) {
 
   const result = {};
 
-  // Dashboard header + first 5 rows
+  // List all sheet tab names
   try {
-    const r = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: "Dashboard!A1:Z10",
-    });
-    result.dashboardRows = r.data.values || [];
-    result.dashboardHeader = result.dashboardRows[0] || [];
+    const meta = await sheets.spreadsheets.get({ spreadsheetId });
+    result.sheetTabs = meta.data.sheets.map(s => s.properties.title);
   } catch (e) {
-    result.dashboardError = e.message;
+    result.sheetTabsError = e.message;
+  }
+
+  // Try common dashboard tab names
+  for (const name of ["Dashboard", "Milestone Dashboard", "Master Tracker", "Milestones", "Tracker"]) {
+    try {
+      const r = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${name}!A1:Z6`,
+      });
+      result[`tab_${name}`] = r.data.values || [];
+      break; // stop at first one that works
+    } catch (e) {
+      result[`tab_${name}_error`] = e.message;
+    }
   }
 
   // Participation tab — rows 1-10 (to see structure)

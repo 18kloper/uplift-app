@@ -71,86 +71,97 @@ export default async function handler(req, res) {
     process.env.GOOGLE_PRIVATE_KEY;
 
   if (hasSheets) {
+    const sheets = getSheetsClient();
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+
+    // ── 1. Read Participation tab (source of truth for participation milestone) ──
+    // Header is row 5, data starts row 6. Col A = slug, Col E = "Accepted"/"Declined"
     try {
-      const sheets = getSheetsClient();
-
-      // Read Dashboard tab
-      const dashRes = await sheets.spreadsheets.values.get({
-        spreadsheetId: process.env.GOOGLE_SHEET_ID,
-        range: "Dashboard!A:Z",
+      const partRes = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: "Participation!A6:E500",
       });
-      const rows = dashRes.data.values || [];
-      const headerRow = rows[0] || [];
-      const churnedIdx     = headerRow.findIndex(h => h?.toLowerCase() === "churned");
-      const notesIdx       = headerRow.findIndex(h => h?.toLowerCase() === "notes");
-      const emailIdx       = headerRow.findIndex(h => h?.toLowerCase() === "email");
-      const mentorEmailIdx = headerRow.findIndex(h => h?.toLowerCase() === "mentor email");
+      const partRows = partRes.data.values || [];
+      for (const row of partRows) {
+        const slug   = row[0]?.trim();
+        const status = row[4]?.trim();
+        if (!slug) continue;
+        if (!sheetData[slug]) {
+          sheetData[slug] = {
+            milestones: Object.fromEntries(MILESTONE_KEYS.map(k => [k, false])),
+            churned: false, notes: "", email: "", mentorEmail: "",
+          };
+        }
+        if (status === "Accepted") sheetData[slug].milestones.participation = true;
+      }
+    } catch (err) {
+      console.error("Participation tab read failed:", err.message);
+    }
 
-      // Build milestone column indices from the header row (robust to extra columns)
-      const milestoneColIdxs = {};
-      MILESTONE_KEYS.forEach(key => {
-        const label = MILESTONE_LABELS[key];
-        const idx = headerRow.findIndex(h => h === label || h?.toLowerCase() === key.toLowerCase());
-        if (idx !== -1) milestoneColIdxs[key] = idx;
-      });
-      // Fall back to offset-6 for any milestone not found by header name
-      MILESTONE_KEYS.forEach((key, i) => {
-        if (milestoneColIdxs[key] == null) milestoneColIdxs[key] = 6 + i;
-      });
-
-      for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        if (!row[0]) continue;
-        const slug = row[0];
-        const milestones = {};
-        MILESTONE_KEYS.forEach(key => {
-          const val = row[milestoneColIdxs[key]];
-          milestones[key] = val === "TRUE" || val === true;
-        });
-        const churned     = churnedIdx >= 0 ? (row[churnedIdx] === "TRUE" || row[churnedIdx] === true) : false;
-        const notes       = notesIdx >= 0 ? (row[notesIdx] || "") : "";
-        const email       = emailIdx >= 0 ? (row[emailIdx] || "") : "";
-        const mentorEmail = (mentorEmailIdx >= 0 ? (row[mentorEmailIdx] || "") : "");
-        sheetData[slug] = { milestones, churned, notes, email, mentorEmail };
+    // ── 2. Read milestone Dashboard tab (try several possible names) ───────────
+    try {
+      const DASHBOARD_NAMES = ["Dashboard", "Milestone Dashboard", "Master Tracker", "Milestones", "Tracker"];
+      let rows = [];
+      for (const name of DASHBOARD_NAMES) {
+        try {
+          const r = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${name}!A:Z` });
+          rows = r.data.values || [];
+          if (rows.length > 1) break;
+        } catch (_) {}
       }
 
-      // Read Participation tab — this is the authoritative source for who has accepted.
-      // Column A = slug (starting row 6), Column E = "Accepted" or "Declined"
-      try {
-        const partRes = await sheets.spreadsheets.values.get({
-          spreadsheetId: process.env.GOOGLE_SHEET_ID,
-          range: "Participation!A6:E500",
-        });
-        const partRows = partRes.data.values || [];
-        for (const row of partRows) {
-          const slug   = row[0]?.trim();
-          const status = row[4]?.trim(); // column E
-          if (!slug) continue;
-          if (status === "Accepted") {
-            if (!sheetData[slug]) sheetData[slug] = { milestones: Object.fromEntries(MILESTONE_KEYS.map(k => [k, false])), churned: false, notes: "", email: "", mentorEmail: "" };
-            sheetData[slug].milestones.participation = true;
-          }
-        }
-      } catch (_) {}
+      if (rows.length > 1) {
+        const headerRow = rows[0] || [];
+        const churnedIdx     = headerRow.findIndex(h => h?.toLowerCase() === "churned");
+        const notesIdx       = headerRow.findIndex(h => h?.toLowerCase() === "notes");
+        const emailIdx       = headerRow.findIndex(h => h?.toLowerCase() === "email");
+        const mentorEmailIdx = headerRow.findIndex(h => h?.toLowerCase() === "mentor email");
 
-      // Read SessionReview tab for pending count
-      try {
-        const srRes = await sheets.spreadsheets.values.get({
-          spreadsheetId: process.env.GOOGLE_SHEET_ID,
-          range: "SessionReview!A:A",
+        // Find milestone columns by header label; fall back to offset 6
+        const milestoneColIdxs = {};
+        MILESTONE_KEYS.forEach((key, i) => {
+          const byLabel = headerRow.findIndex(h => h === MILESTONE_LABELS[key]);
+          const byKey   = headerRow.findIndex(h => h?.toLowerCase() === key.toLowerCase());
+          milestoneColIdxs[key] = byLabel !== -1 ? byLabel : byKey !== -1 ? byKey : 6 + i;
         });
-        const srRows = srRes.data.values || [];
-        for (let i = 1; i < srRows.length; i++) {
-          const val = srRows[i]?.[0];
-          if (val !== "TRUE" && val !== "YES" && val !== "DENIED") {
-            pendingReviewCount++;
-          }
-        }
-      } catch (_) {}
 
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row[0]) continue;
+          const slug = row[0].trim();
+          if (!sheetData[slug]) {
+            sheetData[slug] = { milestones: Object.fromEntries(MILESTONE_KEYS.map(k => [k, false])), churned: false, notes: "", email: "", mentorEmail: "" };
+          }
+          MILESTONE_KEYS.forEach(key => {
+            const val = row[milestoneColIdxs[key]];
+            if (val === "TRUE" || val === true) sheetData[slug].milestones[key] = true;
+            // Don't overwrite participation=true set by Participation tab
+          });
+          // Participation tab already set this — don't override with FALSE from Dashboard
+          // (leave participation as-is from step 1)
+          const churned     = churnedIdx >= 0 ? (row[churnedIdx] === "TRUE" || row[churnedIdx] === true) : false;
+          const notes       = notesIdx >= 0 ? (row[notesIdx] || "") : "";
+          const email       = emailIdx >= 0 ? (row[emailIdx] || "") : "";
+          const mentorEmail = mentorEmailIdx >= 0 ? (row[mentorEmailIdx] || "") : "";
+          sheetData[slug].churned     = churned;
+          sheetData[slug].notes       = notes || sheetData[slug].notes;
+          sheetData[slug].email       = email || sheetData[slug].email;
+          sheetData[slug].mentorEmail = mentorEmail || sheetData[slug].mentorEmail;
+        }
+      }
     } catch (err) {
-      console.error("Sheet read failed:", err.message);
+      console.error("Dashboard tab read failed:", err.message);
     }
+
+    // ── 3. Read SessionReview tab for pending count ───────────────────────────
+    try {
+      const srRes = await sheets.spreadsheets.values.get({ spreadsheetId, range: "SessionReview!A:A" });
+      const srRows = srRes.data.values || [];
+      for (let i = 1; i < srRows.length; i++) {
+        const val = srRows[i]?.[0];
+        if (val !== "TRUE" && val !== "YES" && val !== "DENIED" && val !== "Approved" && val !== "Denied") pendingReviewCount++;
+      }
+    } catch (_) {}
   }
 
   // Build mentee list from MENTEES array (always complete)
