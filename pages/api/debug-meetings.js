@@ -18,7 +18,13 @@ export default async function handler(req, res) {
 
   const tfRes  = await fetch(`https://api.typeform.com/forms/${FORM_ID}/responses?page_size=50`,
     { headers: { Authorization: `Bearer ${token}` } });
+  const httpStatus = tfRes.status;
   const data   = await tfRes.json();
+
+  // If Typeform returned an error, surface it directly
+  if (!tfRes.ok || data.code || data.error) {
+    return res.status(200).json({ typeformError: true, httpStatus, response: data });
+  }
 
   const get    = (answers, ref) => answers?.find(a => a.field?.ref === ref);
   const parts  = (slug || "").split("-");
