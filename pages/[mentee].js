@@ -324,9 +324,18 @@ function PromptBlock({ theme, questions, slug, weekNum, blockIndex, accentColor 
 }
 
 // ─── Events section ───────────────────────────────────────────────────────────
-function EventsSection({ events, submitLabel, submitPrimary, note, footerNote, isOnboarding, onboardingVerified }) {
+function EventsSection({ events, submitLabel, submitPrimary, note, footerNote, isOnboarding, onboardingVerified, slug, menteeName }) {
   const hasEvents = events && events.length > 0;
   if (!hasEvents && !submitLabel) return null;
+
+  const trackEventClick = (title, url) => {
+    if (!slug) return;
+    fetch("/api/track-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, name: menteeName || slug, title, url }),
+    }).catch(() => {});
+  };
 
   // If onboarding has been verified, replace the session list with a confirmation
   if (isOnboarding && onboardingVerified) {
@@ -389,7 +398,9 @@ function EventsSection({ events, submitLabel, submitPrimary, note, footerNote, i
                   </p>
                 )}
               </div>
-              <a href={ev.url || "#"} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>
+              <a href={ev.url || "#"} target="_blank" rel="noopener noreferrer"
+                onClick={() => trackEventClick(ev.name, ev.url || "")}
+                style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>
                 Register on Luma →
               </a>
             </div>
@@ -737,7 +748,7 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
         ))}
       </div>
 
-      <EventsSection events={week.events} note={week.note} footerNote="*You will only receive your mentor match after attending an onboarding session." isOnboarding onboardingVerified={milestones?.onboarding} />
+      <EventsSection events={week.events} note={week.note} footerNote="*You will only receive your mentor match after attending an onboarding session." isOnboarding onboardingVerified={milestones?.onboarding} slug={slug} menteeName={`${mentee.first} ${mentee.last}`.trim()} />
 
       {/* Mentor reveal status */}
       {mentorUnlocked ? (
@@ -943,7 +954,7 @@ function Week2({ mentee, slug, mentorUnlocked }) {
       </div>
 
       {/* Sessions */}
-      <EventsSection events={week.events} />
+      <EventsSection events={week.events} slug={slug} menteeName={`${mentee.first} ${mentee.last}`.trim()} />
 
       {/* Pre-meeting reflection */}
       <div style={{ marginBottom: 16 }}>
@@ -987,7 +998,15 @@ function Week2({ mentee, slug, mentorUnlocked }) {
 }
 
 // ─── Generic reflection week ──────────────────────────────────────────────────
-function WeekReflection({ weekNum, slug, prompts }) {
+function WeekReflection({ weekNum, slug, prompts, menteeName }) {
+  const trackEventClick = (title, url) => {
+    if (!slug) return;
+    fetch("/api/track-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, name: menteeName || slug, title, url }),
+    }).catch(() => {});
+  };
   const week = WEEKS.find((w) => w.num === weekNum);
 
   // Week 9: closing / Summit content
@@ -1018,10 +1037,12 @@ function WeekReflection({ weekNum, slug, prompts }) {
                 </p>
                 <p style={{ margin: 0, fontSize: 14, opacity: 0.85 }}>Details and location TBD — register to stay updated.</p>
               </div>
-              <a href={summit.url || "#"} target="_blank" rel="noopener noreferrer" style={{
-                background: "#fff", color: "#3d2f8a", borderRadius: 8,
-                padding: "10px 20px", fontSize: 13, fontWeight: 700, textDecoration: "none", flexShrink: 0,
-              }}>
+              <a href={summit.url || "#"} target="_blank" rel="noopener noreferrer"
+                onClick={() => trackEventClick(summit.name || "Uplift Summit & Graduation", summit.url || "")}
+                style={{
+                  background: "#fff", color: "#3d2f8a", borderRadius: 8,
+                  padding: "10px 20px", fontSize: 13, fontWeight: 700, textDecoration: "none", flexShrink: 0,
+                }}>
                 Register on Luma →
               </a>
             </div>
@@ -1058,7 +1079,9 @@ function WeekReflection({ weekNum, slug, prompts }) {
                   <span style={{ fontWeight: 600, fontSize: 14, color: "#1a1733" }}>{ev.name}</span>
                   <span style={{ marginLeft: 6, fontSize: 13, color: "#6b6480" }}>— {ev.day}, {ev.time} · {ev.format}</span>
                 </div>
-                <a href={ev.url || "#"} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>
+                <a href={ev.url || "#"} target="_blank" rel="noopener noreferrer"
+                  onClick={() => trackEventClick(ev.name, ev.url || "")}
+                  style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>
                   Register on Luma →
                 </a>
               </div>
@@ -1119,7 +1142,9 @@ function WeekReflection({ weekNum, slug, prompts }) {
             <p style={{ margin: "0 0 14px", fontSize: 14, color: "#1a6e42", lineHeight: 1.7, fontStyle: "italic" }}>
               📍 In-person in Hoboken. This is the halfway mark — and though we LOVE your virtual faces, we can't wait to see you in person!
             </p>
-            <a href={midpoint.url || "#"} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 600, textDecoration: "none" }}>
+            <a href={midpoint.url || "#"} target="_blank" rel="noopener noreferrer"
+              onClick={() => trackEventClick(midpoint.name || "Midpoint Meetup", midpoint.url || "")}
+              style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 600, textDecoration: "none" }}>
               Register on Luma →
             </a>
           </div>
@@ -1130,7 +1155,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
             <p style={{ margin: "0 0 10px", fontSize: 15, color: "#3d2f8a", lineHeight: 1.6, fontStyle: "italic" }}>
               Take the additional opportunity to attend this virtual event:
             </p>
-            <EventsSection events={others} />
+            <EventsSection events={others} slug={slug} menteeName={menteeName} />
           </div>
         )}
 
@@ -1204,7 +1229,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
             </div>
           ))}
         </div>
-        <EventsSection events={week.events} />
+        <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
 
         {/* Reflection prompt */}
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "24px 28px", marginTop: 24, borderLeft: "4px solid #5c4eb5" }}>
@@ -1311,7 +1336,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
             {week.submitLabel} →
           </a>
         </div>
-        <EventsSection events={week.events} />
+        <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
         <LockedPrompts />
       </div>
     );
@@ -1352,7 +1377,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
         }}>
           {week.tagline}
         </p>
-        <EventsSection events={week.events} />
+        <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
         <div style={{ textAlign: "center", marginBottom: 12 }}>
           <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{
             display: "inline-block", padding: "14px 36px",
@@ -1449,7 +1474,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
           </p>
         </div>
 
-        <EventsSection events={week.events} />
+        <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
         <LockedPrompts />
       </div>
     );
@@ -1463,7 +1488,7 @@ function WeekReflection({ weekNum, slug, prompts }) {
   return (
     <div>
       {week?.tagline && <Tagline text={week.tagline} type={week.taglineType} />}
-      {week && <EventsSection events={week.events} submitLabel={week.submitLabel} submitPrimary={week.submitPrimary} />}
+      {week && <EventsSection events={week.events} submitLabel={week.submitLabel} submitPrimary={week.submitPrimary} slug={slug} menteeName={menteeName} />}
 
       <p style={{
         background: "#f5f3ff", borderRadius: 10, padding: "14px 18px",
@@ -3009,7 +3034,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       case "mentor-meeting":
         return <Week2 mentee={mentee} slug={slug} mentorUnlocked={mentorUnlocked} />;
       default:
-        return <WeekReflection weekNum={week.num} slug={slug} prompts={promptBlocks} />;
+        return <WeekReflection weekNum={week.num} slug={slug} prompts={promptBlocks} menteeName={`${mentee.first} ${mentee.last}`.trim()} />;
     }
   };
 

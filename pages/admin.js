@@ -193,16 +193,21 @@ const MILESTONE_FILTERS = [
 // ─── Click Engagement view ────────────────────────────────────────────────────
 function ClickEngagement() {
   const [stats, setStats] = useState(null);
+  const [eventStats, setEventStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/resource-stats")
-      .then(r => r.json())
-      .then(d => { setStats(d); setLoading(false); })
-      .catch(() => setLoading(false));
+    Promise.all([
+      fetch("/api/resource-stats").then(r => r.json()),
+      fetch("/api/event-stats").then(r => r.json()),
+    ]).then(([res, evs]) => {
+      setStats(res);
+      setEventStats(evs);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
-  const RankList = ({ items, label }) => (
+  const RankList = ({ items, label, accentColor = "#5c4eb5" }) => (
     <div style={{ flex: 1, minWidth: 0 }}>
       <p style={{ margin: "0 0 16px", fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
         {label}
@@ -226,13 +231,13 @@ function ClickEngagement() {
                       style={{ fontSize: 14, fontWeight: 600, color: "#1a1733", textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {item.title}
                     </a>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#5c4eb5", flexShrink: 0 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: accentColor, flexShrink: 0 }}>
                       {item.count} click{item.count !== 1 ? "s" : ""}
                     </span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
                     <div style={{ flex: 1, height: 6, background: "#ede9f8", borderRadius: 3, overflow: "hidden" }}>
-                      <div style={{ width: `${pct}%`, height: "100%", background: i === 0 ? "#5c4eb5" : "#a090e0", borderRadius: 3, transition: "width 0.4s" }} />
+                      <div style={{ width: `${pct}%`, height: "100%", background: i === 0 ? accentColor : accentColor + "88", borderRadius: 3, transition: "width 0.4s" }} />
                     </div>
                     <span style={{ fontSize: 11, color: "#b0a8cc", flexShrink: 0 }}>
                       {item.uniqueFounders} founder{item.uniqueFounders !== 1 ? "s" : ""}
@@ -247,13 +252,41 @@ function ClickEngagement() {
     </div>
   );
 
+  const ClickLog = ({ items, accentColor = "#5c4eb5" }) => (
+    <div style={{ maxHeight: 400, overflowY: "auto" }}>
+      {!items || items.length === 0 ? (
+        <p style={{ padding: "24px", fontSize: 13, color: "#b0a8cc", fontStyle: "italic", margin: 0 }}>No clicks recorded yet.</p>
+      ) : items.map((click, i) => (
+        <div key={i} style={{
+          display: "grid", gridTemplateColumns: "180px 1fr 1fr",
+          padding: "11px 24px", alignItems: "center",
+          borderBottom: i < items.length - 1 ? "1px solid #faf9ff" : "none",
+          background: i % 2 === 0 ? "#fff" : "#faf9ff",
+        }}>
+          <span style={{ fontSize: 11, color: "#b0a8cc", fontVariantNumeric: "tabular-nums" }}>
+            {click.timestamp}
+          </span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1733", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: 16 }}>
+            {click.name}
+          </span>
+          <a href={click.url || "#"} target="_blank" rel="noopener noreferrer"
+            style={{ fontSize: 13, color: accentColor, textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+            onMouseEnter={e => e.currentTarget.style.textDecoration = "underline"}
+            onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}>
+            {click.title}
+          </a>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
         <div>
           <p style={{ margin: "0 0 2px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Click Engagement</p>
           <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>
-            {stats ? `${stats.total} total clicks recorded` : "Loading…"}
+            {stats && eventStats ? `${stats.total} resource clicks · ${eventStats.total} event clicks` : "Loading…"}
           </p>
         </div>
       </div>
@@ -264,50 +297,49 @@ function ClickEngagement() {
 
       {!loading && stats && (
         <>
-          {/* Top 5 panels — All Time first, then This Week */}
-          <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 32 }}>
-            <div style={{ flex: 1, minWidth: 320, background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "28px 28px" }}>
+          {/* ── Resources ── */}
+          <p style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 700, color: "#5c4eb5", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+            📎 Resource Clicks
+          </p>
+          <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 16 }}>
+            <div style={{ flex: 1, minWidth: 320, background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "24px 28px" }}>
               <RankList items={stats.allTime} label="Top 5 — All Time" />
             </div>
-            <div style={{ flex: 1, minWidth: 320, background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "28px 28px" }}>
+            <div style={{ flex: 1, minWidth: 320, background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "24px 28px" }}>
               <RankList items={stats.thisWeek} label="Top 5 — This Week" />
             </div>
           </div>
-
-          {/* Click log */}
-          <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", overflow: "hidden" }}>
-            <div style={{ padding: "18px 24px", borderBottom: "1px solid #f0ecff", display: "flex", alignItems: "center", gap: 10 }}>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#1a1733" }}>Recent Clicks</p>
+          <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", overflow: "hidden", marginBottom: 36 }}>
+            <div style={{ padding: "14px 24px", borderBottom: "1px solid #f0ecff", display: "flex", alignItems: "center", gap: 10 }}>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>Recent Resource Clicks</p>
               <span style={{ fontSize: 12, color: "#9b8fcf" }}>— most recent first</span>
             </div>
-            {!stats.recent || stats.recent.length === 0 ? (
-              <p style={{ padding: "24px", fontSize: 13, color: "#b0a8cc", fontStyle: "italic", margin: 0 }}>No click history yet.</p>
-            ) : (
-              <div style={{ maxHeight: 480, overflowY: "auto" }}>
-                {stats.recent.map((click, i) => (
-                  <div key={i} style={{
-                    display: "grid", gridTemplateColumns: "180px 1fr 1fr",
-                    padding: "11px 24px", alignItems: "center",
-                    borderBottom: i < stats.recent.length - 1 ? "1px solid #faf9ff" : "none",
-                    background: i % 2 === 0 ? "#fff" : "#faf9ff",
-                  }}>
-                    <span style={{ fontSize: 11, color: "#b0a8cc", fontVariantNumeric: "tabular-nums" }}>
-                      {click.timestamp}
-                    </span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1733", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: 16 }}>
-                      {click.name}
-                    </span>
-                    <a href={click.url || "#"} target="_blank" rel="noopener noreferrer"
-                      style={{ fontSize: 13, color: "#5c4eb5", textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                      onMouseEnter={e => e.currentTarget.style.textDecoration = "underline"}
-                      onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}>
-                      {click.title}
-                    </a>
-                  </div>
-                ))}
-              </div>
-            )}
+            <ClickLog items={stats.recent} accentColor="#5c4eb5" />
           </div>
+
+          {/* ── Events ── */}
+          {eventStats && (
+            <>
+              <p style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 700, color: "#2a7fd4", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                📅 Event Clicks (Register on Luma)
+              </p>
+              <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 16 }}>
+                <div style={{ flex: 1, minWidth: 320, background: "#fff", borderRadius: 14, border: "1px solid #d4e9fb", padding: "24px 28px" }}>
+                  <RankList items={eventStats.allTime} label="Top 5 — All Time" accentColor="#2a7fd4" />
+                </div>
+                <div style={{ flex: 1, minWidth: 320, background: "#fff", borderRadius: 14, border: "1px solid #d4e9fb", padding: "24px 28px" }}>
+                  <RankList items={eventStats.thisWeek} label="Top 5 — This Week" accentColor="#2a7fd4" />
+                </div>
+              </div>
+              <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #d4e9fb", overflow: "hidden" }}>
+                <div style={{ padding: "14px 24px", borderBottom: "1px solid #e8f4ff", display: "flex", alignItems: "center", gap: 10 }}>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>Recent Event Clicks</p>
+                  <span style={{ fontSize: 12, color: "#9b8fcf" }}>— most recent first</span>
+                </div>
+                <ClickLog items={eventStats.recent} accentColor="#2a7fd4" />
+              </div>
+            </>
+          )}
         </>
       )}
     </div>
