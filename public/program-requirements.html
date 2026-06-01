@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Uplift Summer 2026 — Program Requirements</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #f0ecff;
+      color: #1a1733;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .download-btn {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: #5c4eb5;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      z-index: 999;
+      box-shadow: 0 2px 12px rgba(92,78,181,0.35);
+      transition: background 0.2s;
+    }
+    .download-btn:hover { background: #4a3e9e; }
+
+    .page-wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 48px 24px 64px;
+    }
+
+    /* ── Cover ── */
+    .cover {
+      background: linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%);
+      border-radius: 16px;
+      padding: 40px 44px;
+      color: #fff;
+      margin-bottom: 36px;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+    .cover-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.65;
+      margin-bottom: 12px;
+    }
+    .cover-title {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+    .cover-sub {
+      font-size: 15px;
+      opacity: 0.8;
+      line-height: 1.6;
+      max-width: 520px;
+    }
+    .cover-dates {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 20px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* ── Intro box ── */
+    .intro-box {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #d4cef5;
+      padding: 20px 24px;
+      margin-bottom: 28px;
+      font-size: 14px;
+      color: #4a4468;
+      line-height: 1.7;
+    }
+    .intro-box strong { color: #1a1733; }
+
+    /* ── Section heading ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #5c4eb5;
+      margin: 32px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e8e4f5;
+    }
+
+    /* ── Requirement card ── */
+    .req-card {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e8e4f5;
+      padding: 18px 20px 18px 18px;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .req-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5c4eb5, #7c6fd4);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+    .req-body { flex: 1; min-width: 0; }
+    .req-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1733;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .req-due {
+      font-size: 11px;
+      font-weight: 600;
+      background: #f0ecff;
+      color: #5c4eb5;
+      border-radius: 20px;
+      padding: 2px 10px;
+    }
+    .req-desc {
+      font-size: 13px;
+      color: #6b6480;
+      line-height: 1.65;
+    }
+    .req-desc strong { color: #1a1733; font-weight: 600; }
+    .req-note {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #9b8fcf;
+      font-style: italic;
+      line-height: 1.55;
+    }
+
+    /* ── How it's tracked row ── */
+    .how-tracked {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: #22a366;
+      font-weight: 600;
+    }
+    .how-tracked .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22a366;
+      flex-shrink: 0;
+    }
+
+    /* ── Callout ── */
+    .callout {
+      border-radius: 10px;
+      padding: 16px 20px;
+      font-size: 13px;
+      line-height: 1.65;
+      margin-top: 28px;
+    }
+    .callout-amber {
+      background: #fffbf0;
+      border: 1px solid #f5c97a;
+      color: #92400e;
+    }
+    .callout-green {
+      background: #f0faf5;
+      border: 1px solid #b8e8d0;
+      color: #1a4a32;
+    }
+    .callout-purple {
+      background: #f5f3ff;
+      border: 1px solid #d4cef5;
+      color: #3d2f8a;
+    }
+    .callout a { color: inherit; font-weight: 700; }
+
+    /* ── Summary table ── */
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+    .summary-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #9b8fcf;
+      padding: 8px 12px;
+      border-bottom: 1px solid #e8e4f5;
+    }
+    .summary-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f5f3ff;
+      vertical-align: top;
+      color: #4a4468;
+    }
+    .summary-table tr:last-child td { border-bottom: none; }
+    .summary-table td:first-child { font-weight: 600; color: #1a1733; }
+    .check { color: #22a366; font-weight: 700; }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid #e8e4f5;
+      text-align: center;
+      font-size: 13px;
+      color: #9b8fcf;
+      line-height: 2;
+    }
+    .footer a { color: #5c4eb5; font-weight: 600; text-decoration: none; }
+
+    @media print {
+      .download-btn { display: none !important; }
+      body { background: #fff; }
+      .page-wrap { padding: 24px; }
+      .req-card { page-break-inside: avoid; }
+      .cover { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .req-number { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+    @page { margin: 18mm; size: A4 portrait; }
+  </style>
+</head>
+<body>
+
+<button class="download-btn" onclick="
+  const btn = this;
+  btn.textContent = 'Generating…';
+  btn.disabled = true;
+  html2pdf().set({
+    margin: [8,8,8,8],
+    filename: 'Uplift-2026-Program-Requirements.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all','css'] }
+  }).from(document.querySelector('.page-wrap')).save().then(() => {
+    btn.textContent = '⬇ Download as PDF';
+    btn.disabled = false;
+  });
+">⬇ Download as PDF</button>
+
+<div class="page-wrap">
+
+  <!-- Cover -->
+  <div class="cover">
+    <div class="cover-label">Uplift Summer 2026</div>
+    <div class="cover-title">Program Requirements</div>
+    <div class="cover-sub">Everything you need to complete to graduate from Uplift, earn your certificate, and get the most out of this program.</div>
+    <div class="cover-dates">📅 Program Dates: June 1 – August 4, 2026</div>
+  </div>
+
+  <!-- Intro -->
+  <div class="intro-box">
+    There are <strong>8 requirements</strong> to complete the Uplift Summer 2026 program and receive your Certificate of Completion. Most happen naturally as you engage with the program — attend your sessions, meet with your mentor, and show up for the key events. This document outlines each one, when it's due, and how it's tracked.
+  </div>
+
+  <!-- Requirements -->
+  <div class="section-label">The 8 Requirements</div>
+
+  <!-- 1 -->
+  <div class="req-card">
+    <div class="req-number">1</div>
+    <div class="req-body">
+      <div class="req-title">
+        Confirm Your Participation
+        <span class="req-due">By Jun 3</span>
+      </div>
+      <div class="req-desc">Accept your spot in the program through your personal portal. This confirms your commitment and unlocks the rest of the program for you.</div>
+      <div class="how-tracked"><div class="dot"></div> Tracked automatically when you confirm in your portal</div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="req-card">
+    <div class="req-number">2</div>
+    <div class="req-body">
+      <div class="req-title">
+        Attend an Onboarding Session
+        <span class="req-due">By Jun 7</span>
+      </div>
+      <div class="req-desc">Attend one of the five onboarding sessions held during Week 1 (Jun 1–6). Sessions are organized by cohort but <strong>you can attend any one that fits your schedule</strong> — they all cover the same material. This is also how your mentor match is confirmed.</div>
+      <div class="req-note">Note: onboarding sessions do not count toward your 3 required educational sessions.</div>
+      <div class="how-tracked"><div class="dot"></div> Confirmed manually by the Uplift team, updated every Tuesday</div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="req-card">
+    <div class="req-number">3</div>
+    <div class="req-body">
+      <div class="req-title">
+        Attend 3 Educational Sessions
+        <span class="req-due">By Aug 4</span>
+      </div>
+      <div class="req-desc">Attend at least 3 virtual educational sessions across the 9-week program. Sessions are offered every week in a variety of formats — Expert Insights, Industry Q&As, and Peer Development. <strong>All sessions are open to every mentee</strong>, regardless of cohort label. Register through Luma and show up.</div>
+      <div class="req-note">Tip: don't wait until the end — sessions are spread across every week. Attending one every few weeks keeps you on track easily.</div>
+      <div class="how-tracked"><div class="dot"></div> Verified manually by the Uplift team, updated every Tuesday</div>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="req-card">
+    <div class="req-number">4</div>
+    <div class="req-body">
+      <div class="req-title">
+        Complete 3 Mentorship Sessions
+        <span class="req-due">Session 1 by Jun 13 · Session 2 by Jul 4 · Session 3 by Jul 18</span>
+      </div>
+      <div class="req-desc">Meet with your assigned mentor for a minimum of <strong>3 sessions of at least 1 hour each</strong> (3 hours total). Each session must be recorded using <strong>Granola</strong> (the required AI note-taker, free at granola.ai) and submitted through your portal with your key takeaways.</div>
+      <div class="req-note">Sessions submitted with a Granola transcript that are 60+ minutes are auto-verified instantly. Sessions without a transcript are reviewed manually by the team.</div>
+      <div class="how-tracked"><div class="dot"></div> Submit each session through the Logged Mentorship Sessions tab in your portal</div>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="req-card">
+    <div class="req-number">5</div>
+    <div class="req-body">
+      <div class="req-title">
+        Attend the Midpoint Meetup
+        <span class="req-due">Jun 23</span>
+      </div>
+      <div class="req-desc">Attend the in-person Midpoint Meetup on <strong>Tuesday, June 23rd, 4:00–7:00pm</strong> at Antique Lofts in Hoboken, NJ (2 min walk from the PATH). This is a required in-person event — register through Luma in advance.</div>
+      <div class="how-tracked"><div class="dot"></div> Confirmed manually by the Uplift team after the event</div>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="req-card">
+    <div class="req-number">6</div>
+    <div class="req-body">
+      <div class="req-title">
+        Complete the End of Program Survey
+        <span class="req-due">By Jul 25</span>
+      </div>
+      <div class="req-desc">Complete the 5-minute End of Program Report during Week 8. This is your final reflection on the program — your growth, your goals, and your experience. The link becomes available in your portal during Week 7.</div>
+      <div class="how-tracked"><div class="dot"></div> Tracked automatically when you submit the report</div>
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="req-card">
+    <div class="req-number">7</div>
+    <div class="req-body">
+      <div class="req-title">
+        Attend the Summit &amp; Graduation
+        <span class="req-due">Aug 4</span>
+      </div>
+      <div class="req-desc">Attend the Uplift Summit &amp; Graduation on <strong>Tuesday, August 4th</strong> — an in-person celebration of everything you've built and accomplished this summer. You must attend to receive your Certificate of Completion. Register through Luma.</div>
+      <div class="how-tracked"><div class="dot"></div> Confirmed manually by the Uplift team at the event</div>
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="req-card" style="border-color:#b8e8d0;background:#f8fefb;">
+    <div class="req-number" style="background:linear-gradient(135deg,#22a366,#34d399);">8</div>
+    <div class="req-body">
+      <div class="req-title" style="color:#1a4a32;">
+        Receive Your Certificate of Completion
+        <span class="req-due" style="background:#f0faf5;color:#22a366;">After Aug 4</span>
+      </div>
+      <div class="req-desc" style="color:#2d6a4a;">Once all 7 requirements above are verified, your Certificate of Completion is issued. It will appear in your portal under the <strong>Certificate</strong> sub-tab in My Journey. Certificates are processed and distributed following the Summit.</div>
+      <div class="how-tracked" style="color:#22a366;"><div class="dot" style="background:#22a366;"></div> Issued by the Uplift team after all requirements are confirmed</div>
+    </div>
+  </div>
+
+  <!-- Quick Reference Table -->
+  <div class="section-label" style="margin-top:40px;">Quick Reference</div>
+  <div style="background:#fff;border-radius:12px;border:1px solid #e8e4f5;overflow:hidden;">
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Requirement</th>
+          <th>Due</th>
+          <th>How to Complete</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Confirm Participation</td><td>Jun 3</td><td>Accept in your portal</td></tr>
+        <tr><td>2</td><td>Attend Onboarding Session</td><td>Jun 7</td><td>Register &amp; attend via Luma</td></tr>
+        <tr><td>3</td><td>3 Educational Sessions</td><td>Aug 4</td><td>Register &amp; attend via Luma</td></tr>
+        <tr><td>4</td><td>3 Mentorship Sessions (3 hrs)</td><td>Jun 13 / Jul 4 / Jul 18</td><td>Record w/ Granola, submit in portal</td></tr>
+        <tr><td>5</td><td>Midpoint Meetup</td><td>Jun 23</td><td>Register &amp; attend in Hoboken</td></tr>
+        <tr><td>6</td><td>End of Program Survey</td><td>Jul 25</td><td>Complete in portal (Week 8)</td></tr>
+        <tr><td>7</td><td>Summit &amp; Graduation</td><td>Aug 4</td><td>Register &amp; attend in person</td></tr>
+        <tr><td>8</td><td>Certificate of Completion</td><td>After Aug 4</td><td>Issued automatically upon completion</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Callouts -->
+  <div class="callout callout-amber" style="margin-top:24px;">
+    <strong>⚠️ Milestones update every Tuesday.</strong> The Uplift team reviews and confirms attendance and submissions weekly. If something isn't reflected in your portal after a Tuesday update, email <a href="mailto:uplift@techunited.co">uplift@techunited.co</a>.
+  </div>
+
+  <div class="callout callout-purple" style="margin-top:12px;">
+    <strong>🎙 Granola is required for mentorship sessions.</strong> Download the free AI note-taker at <a href="https://www.granola.ai">granola.ai</a> and run it during every mentor meeting. Sessions recorded with Granola and 60+ minutes are auto-verified instantly — no waiting.
+  </div>
+
+  <div class="callout callout-green" style="margin-top:12px;">
+    <strong>✅ Track your progress anytime.</strong> Your personal portal at <strong>uplift2026.vercel.app/your-name</strong> shows your live milestone status. Visit the <strong>Milestones</strong> tab to see exactly what's complete, what's pending, and what needs attention.
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Questions? Email <a href="mailto:uplift@techunited.co">uplift@techunited.co</a><br>
+    <strong style="color:#1a1733;">Uplift Summer 2026</strong> · A program of <a href="https://techunited.co">TechUnited:NJ</a>
+  </div>
+
+</div>
+</body>
+</html>
