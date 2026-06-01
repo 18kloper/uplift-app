@@ -32,7 +32,7 @@ export default async function handler(req, res) {
     // Read Dashboard header + slug column to find both the mentee row and milestone column
     const read = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "Dashboard!A1:Z1",
+      range: "Milestone Dashboard!A1:Z1",
     });
     const headerRow = (read.data.values || [[]])[0] || [];
 
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     // Find the mentee's row
     const slugRead = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "Dashboard!A:A",
+      range: "Milestone Dashboard!A:A",
     });
     const slugCol = slugRead.data.values || [];
     const rowIdx = slugCol.findIndex((row, i) => i > 0 && row[0] === slug);
@@ -58,7 +58,7 @@ export default async function handler(req, res) {
 
     await sheets.spreadsheets.values.update({
       spreadsheetId,
-      range: `Dashboard!${colLetter}${rowNum}`,
+      range: `Milestone Dashboard!${colLetter}${rowNum}`,
       valueInputOption: "USER_ENTERED",
       requestBody: { values: [[value ? "TRUE" : "FALSE"]] },
     });

@@ -78,14 +78,14 @@ export default async function handler(req, res) {
     try {
       const dashRead = await sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: "Dashboard!A:A",
+        range: "Milestone Dashboard!A:A",
       });
       const slugCol = dashRead.data.values || [];
       const dashRowIdx = slugCol.findIndex((row, i) => i > 0 && row[0] === slug);
       if (dashRowIdx > -1) {
         await sheets.spreadsheets.values.update({
           spreadsheetId,
-          range: `Dashboard!F${dashRowIdx + 1}`,
+          range: `Milestone Dashboard!F${dashRowIdx + 1}`,
           valueInputOption: "USER_ENTERED",
           requestBody: { values: [[timestamp]] },
         });

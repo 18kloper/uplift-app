@@ -173,7 +173,7 @@ async function autoSyncMentorMilestones(slug, qualifyingCount) {
     const sheetId = process.env.GOOGLE_SHEET_ID;
 
     // Read header row first to find actual milestone column positions
-    const headerRes = await sheets.spreadsheets.values.get({ spreadsheetId: sheetId, range: "Dashboard!A1:Z1" });
+    const headerRes = await sheets.spreadsheets.values.get({ spreadsheetId: sheetId, range: "Milestone Dashboard!A1:Z1" });
     const headerRow = (headerRes.data.values || [[]])[0] || [];
 
     const keys = ["mentorSession1", "mentorSession2", "mentorSession3"];
@@ -184,7 +184,7 @@ async function autoSyncMentorMilestones(slug, qualifyingCount) {
 
     // Read slug column + the three milestone columns in one call
     const maxCol = Math.max(...colIdxs);
-    const range  = `Dashboard!A:${colLetter(maxCol)}`;
+    const range  = `Milestone Dashboard!A:${colLetter(maxCol)}`;
     const res    = await sheets.spreadsheets.values.get({ spreadsheetId: sheetId, range });
     const rows   = res.data.values || [];
 
@@ -202,7 +202,7 @@ async function autoSyncMentorMilestones(slug, qualifyingCount) {
         return shouldBeTrue && current !== "TRUE" && current !== true;
       })
       .map(({ colIdx }) => ({
-        range: `Dashboard!${colLetter(colIdx)}${sheetRow}`,
+        range: `Milestone Dashboard!${colLetter(colIdx)}${sheetRow}`,
         values: [["TRUE"]],
       }));
 

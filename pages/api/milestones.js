@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     // Read full Dashboard — A:Z covers all milestones regardless of count
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: "Dashboard!A:Z",
+      range: "Milestone Dashboard!A:Z",
     });
 
     const rows = response.data.values || [];

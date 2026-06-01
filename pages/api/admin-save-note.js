@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     // Read header row to find "Notes" column index
     const headerRes = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: "Dashboard!1:1",
+      range: "Milestone Dashboard!1:1",
     });
     const headers = headerRes.data.values?.[0] || [];
     const notesColIdx = headers.findIndex(h => h?.toLowerCase() === "notes");
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     // Find the row number for this slug (column A)
     const slugRes = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: "Dashboard!A:A",
+      range: "Milestone Dashboard!A:A",
     });
     const slugRows = slugRes.data.values || [];
     const rowIdx = slugRows.findIndex((r, i) => i > 0 && r[0] === slug);
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
 
     await sheets.spreadsheets.values.update({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: `Dashboard!${col}${rowNum}`,
+      range: `Milestone Dashboard!${col}${rowNum}`,
       valueInputOption: "RAW",
       requestBody: { values: [[note || ""]] },
     });

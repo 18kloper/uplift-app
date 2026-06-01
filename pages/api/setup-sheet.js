@@ -59,7 +59,7 @@ export default async function handler(req, res) {
   // Always refresh header row
   await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: "Dashboard!A1",
+    range: "Milestone Dashboard!A1",
     valueInputOption: "USER_ENTERED",
     requestBody: { values: [dashHeaders] },
   });
@@ -67,7 +67,7 @@ export default async function handler(req, res) {
   // Read existing slugs so we don't overwrite rows that already have milestone data
   const existingDash = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: "Dashboard!A:A",
+    range: "Milestone Dashboard!A:A",
   });
   const existingSlugs = new Set(
     (existingDash.data.values || []).slice(1).map(r => r[0]).filter(Boolean)
@@ -89,7 +89,7 @@ export default async function handler(req, res) {
   if (missingRows.length > 0) {
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "Dashboard!A:A",
+      range: "Milestone Dashboard!A:A",
       valueInputOption: "USER_ENTERED",
       insertDataOption: "INSERT_ROWS",
       requestBody: { values: missingRows },
