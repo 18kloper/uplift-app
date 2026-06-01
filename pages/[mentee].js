@@ -2283,18 +2283,18 @@ function GoalsSection({ mentee, slug }) {
 // ─── Milestone check section ──────────────────────────────────────────────────
 function MilestoneSection({ milestones }) {
   const items = [
-    { key: "participation",   label: "Confirmed Participation", auto: true },
-    { key: "onboarding",      label: "Onboarding Session Attended" },
+    { key: "participation",   label: "Confirmed Participation",        auto: true, due: "By Jun 6" },
+    { key: "onboarding",      label: "Onboarding Session Attended",                 due: "By Jun 6" },
     { key: "mentorMatched",   label: "Matched with a Mentor" },
-    { key: "edu1",            label: "Educational Session 1" },
-    { key: "edu2",            label: "Educational Session 2" },
-    { key: "edu3",            label: "Educational Session 3" },
-    { key: "mentorSession1",  label: "Mentor Session 1" },
-    { key: "mentorSession2",  label: "Mentor Session 2" },
-    { key: "mentorSession3",  label: "Mentor Session 3" },
-    { key: "midpoint",        label: "Midpoint Meetup Attended" },
-    { key: "endSurvey",       label: "End of Program Survey Completed" },
-    { key: "summit",          label: "Summit & Graduation Attended" },
+    { key: "edu1",            label: "Educational Session 1",                       due: "By Aug 4" },
+    { key: "edu2",            label: "Educational Session 2",                       due: "By Aug 4" },
+    { key: "edu3",            label: "Educational Session 3",                       due: "By Aug 4" },
+    { key: "mentorSession1",  label: "Mentor Session 1",                            due: "By Jun 13" },
+    { key: "mentorSession2",  label: "Mentor Session 2",                            due: "By Jul 4" },
+    { key: "mentorSession3",  label: "Mentor Session 3",                            due: "By Jul 18" },
+    { key: "midpoint",        label: "Midpoint Meetup Attended",                    due: "Jun 23" },
+    { key: "endSurvey",       label: "End of Program Survey Completed",             due: "By Jul 25" },
+    { key: "summit",          label: "Summit & Graduation Attended",                due: "Aug 4" },
     { key: "certificate",     label: "Certificate Received" },
   ];
 
@@ -2362,15 +2362,21 @@ function MilestoneSection({ milestones }) {
               }}>
                 {done ? "✓" : "○"}
               </div>
-              <span style={{
-                fontSize: 15, fontWeight: done ? 600 : 400,
-                color: done ? "#1a4a32" : "#6b6480",
-                textDecoration: done ? "none" : "none",
-              }}>
-                {item.label}
+              <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <span style={{
+                  fontSize: 15, fontWeight: done ? 600 : 400,
+                  color: done ? "#1a4a32" : "#6b6480",
+                }}>
+                  {item.label}
+                </span>
+                {!done && item.due && (
+                  <span style={{ fontSize: 11, fontStyle: "italic", color: "#b0a8cc" }}>
+                    {item.due}
+                  </span>
+                )}
               </span>
               {done && (
-                <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 600, color: "#22a366", background: "#f0faf5", borderRadius: 4, padding: "2px 8px" }}>
+                <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 600, color: "#22a366", background: "#f0faf5", borderRadius: 4, padding: "2px 8px", flexShrink: 0 }}>
                   COMPLETED
                 </span>
               )}
