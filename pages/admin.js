@@ -916,6 +916,8 @@ function PeerConnections() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lastRunAt, setLastRunAt] = useState(null);
+  const [undoState, setUndoState] = useState(null); // { pairKey, prevStatus, label }
+  const undoTimerRef = useRef(null);
   const STORE_KEY = "uplift_peer_connections_v2";
 
   const COHORT_COLORS = {
@@ -998,13 +1000,34 @@ function PeerConnections() {
 
   const updateStatus = (pairKey, status) => {
     setConnections(prev => {
+      const current = prev.find(c => c.pairKey === pairKey);
+      const prevStatus = current ? current.status : null;
+      const nextStatus = prevStatus === status ? null : status;
+
+      // Set up undo
+      if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+      const opt = STATUS_OPTIONS.find(o => o.key === (nextStatus || prevStatus));
+      setUndoState({ pairKey, prevStatus, label: nextStatus ? opt?.label : "cleared" });
+      undoTimerRef.current = setTimeout(() => setUndoState(null), 5000);
+
       const updated = prev.map(c => {
         if (c.pairKey !== pairKey) return c;
-        return { ...c, status: c.status === status ? null : status };
+        return { ...c, status: nextStatus };
       });
       try { localStorage.setItem(STORE_KEY, JSON.stringify({ connections: updated, lastRunAt })); } catch (_) {}
       return updated;
     });
+  };
+
+  const handleUndo = () => {
+    if (!undoState) return;
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    setConnections(prev => {
+      const updated = prev.map(c => c.pairKey === undoState.pairKey ? { ...c, status: undoState.prevStatus } : c);
+      try { localStorage.setItem(STORE_KEY, JSON.stringify({ connections: updated, lastRunAt })); } catch (_) {}
+      return updated;
+    });
+    setUndoState(null);
   };
 
   const sortedConnections = [...connections].sort((a, b) => {
@@ -1132,6 +1155,40 @@ function PeerConnections() {
       <p style={{ margin: "28px 0 0", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
         📋 Connections are AI-suggested based on prompt responses. Use your judgment before making introductions.
       </p>
+
+      {/* Undo toast */}
+      {undoState && (
+        <div style={{
+          position: "fixed", bottom: 28, left: "50%", transform: "translateX(-50%)",
+          background: "#1a1733", color: "#fff", borderRadius: 10,
+          padding: "12px 18px", display: "flex", alignItems: "center", gap: 14,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.28)", zIndex: 9999,
+          fontSize: 13, fontWeight: 500, whiteSpace: "nowrap",
+          animation: "slideUp 0.2s ease",
+        }}>
+          <style>{`@keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(12px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }`}</style>
+          <span>Status updated</span>
+          <button
+            onClick={handleUndo}
+            style={{
+              background: "#5c4eb5", border: "none", color: "#fff",
+              borderRadius: 6, padding: "5px 14px", fontSize: 12, fontWeight: 700,
+              cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            Undo
+          </button>
+          <button
+            onClick={() => setUndoState(null)}
+            style={{
+              background: "none", border: "none", color: "rgba(255,255,255,0.45)",
+              fontSize: 16, cursor: "pointer", padding: "0 2px", lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
     </div>
   );
 }
