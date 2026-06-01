@@ -2622,7 +2622,16 @@ function CalendarSection() {
 }
 
 // ─── Resources section ────────────────────────────────────────────────────────
-function ResourcesSection() {
+function ResourcesSection({ slug, menteeName }) {
+  const trackClick = (title, url) => {
+    // Fire-and-forget — never blocks navigation
+    fetch("/api/track-resource", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, name: menteeName, title, url }),
+    }).catch(() => {});
+  };
+
   return (
     <div>
       {RESOURCES.map((cat, ci) => (
@@ -2636,7 +2645,9 @@ function ResourcesSection() {
               const Tag = isDisabled ? "div" : "a";
               const extraProps = isDisabled ? {} : { href: item.url, target: "_blank", rel: "noopener noreferrer" };
               return (
-                <Tag key={i} {...extraProps} style={{
+                <Tag key={i} {...extraProps}
+                  onClick={isDisabled ? undefined : () => trackClick(item.title, item.url)}
+                  style={{
                   background: isDisabled ? "#fafafa" : "#fff",
                   borderRadius: 10,
                   border: `1px solid ${isDisabled ? "#ede9f8" : "#e8e4f5"}`,
@@ -3006,7 +3017,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
     switch (activeTab) {
       case "journey": return renderWeekContent();
       case "calendar": return <CalendarSection />;
-      case "resources": return <ResourcesSection />;
+      case "resources": return <ResourcesSection slug={slug} menteeName={`${mentee.first} ${mentee.last}`.trim()} />;
       case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} onNavigate={(week) => { setActiveTab("journey"); setActiveWeek(week); }} />;
       case "goals": return <GoalsSection mentee={mentee} slug={slug} />;
       case "meetings": return <MeetingsSection slug={slug} milestones={liveMilestones || mentee.milestones || {}} onMilestoneUpdate={(key) => setLiveMilestones(prev => ({ ...(prev || mentee.milestones || {}), [key]: true }))} />;
