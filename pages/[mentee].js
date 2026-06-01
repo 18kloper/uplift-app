@@ -2512,7 +2512,18 @@ function MilestoneSection({ milestones, onNavigate }) {
 }
 
 // ─── Calendar section ─────────────────────────────────────────────────────────
-function CalendarSection() {
+function CalendarSection({ milestones = {} }) {
+  // Map week number → the milestone key that marks it "done"
+  const WEEK_MILESTONE = {
+    1: "onboarding",
+    2: "mentorSession1",
+    4: "midpoint",
+    5: "mentorSession2",
+    7: "mentorSession3",
+    8: "endSurvey",
+    9: "summit",
+  };
+
   return (
     <div>
       <p style={{ margin: "0 0 20px", fontSize: 15, color: "#6b6480" }}>
@@ -2583,14 +2594,34 @@ function CalendarSection() {
         </div>
       </div>
 
-      {WEEKS.map((week) => (
-        <div key={week.num} style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 14 }}>
+      {WEEKS.map((week) => {
+        const milestoneKey = WEEK_MILESTONE[week.num];
+        const isCompleted = milestoneKey && !!milestones[milestoneKey];
+        return (
+        <div key={week.num} style={{
+          background: "#fff", borderRadius: 12,
+          border: isCompleted ? "1px solid #b8e8d0" : "1px solid #e8e4f5",
+          padding: "20px 24px", marginBottom: 14,
+          position: "relative",
+        }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
               WEEK {week.num} · {week.dateRange}
             </span>
             {week.taglineType === "warning" && (
               <span style={{ background: "#fff0f0", color: "#c00", borderRadius: 4, padding: "1px 7px", fontSize: 10, fontWeight: 700 }}>IMPORTANT</span>
+            )}
+            {isCompleted && (
+              <span style={{
+                marginLeft: "auto",
+                background: "#e6f9ef", color: "#1a7a4a",
+                borderRadius: 6, padding: "3px 10px",
+                fontSize: 11, fontWeight: 700, letterSpacing: "0.04em",
+                display: "flex", alignItems: "center", gap: 4,
+                flexShrink: 0,
+              }}>
+                ✓ Completed
+              </span>
             )}
           </div>
           <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: 16, color: "#1a1733" }}>{week.title}</p>
@@ -2641,7 +2672,8 @@ function CalendarSection() {
             </div>
           )}
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -3054,7 +3086,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
   const renderTabContent = () => {
     switch (activeTab) {
       case "journey": return renderWeekContent();
-      case "calendar": return <CalendarSection />;
+      case "calendar": return <CalendarSection milestones={liveMilestones || mentee.milestones || {}} />;
       case "resources": return <ResourcesSection slug={slug} menteeName={`${mentee.first} ${mentee.last}`.trim()} />;
       case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} onNavigate={(week) => { setActiveTab("journey"); setActiveWeek(week); }} />;
       case "goals": return <GoalsSection mentee={mentee} slug={slug} />;
