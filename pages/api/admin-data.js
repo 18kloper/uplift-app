@@ -3,7 +3,7 @@
 // Uses MENTEES array as the guaranteed source of all people;
 // overlays live milestone data from Google Sheets on top.
 
-import { getSheetsClient, MILESTONE_KEYS } from "../../lib/sheets-helper";
+import { getSheetsClient, MILESTONE_KEYS, MILESTONE_LABELS } from "../../lib/sheets-helper";
 import { MENTEES, MENTEE_EMAILS, MENTOR_EMAILS } from "../../lib/mentees";
 
 const TEST_SLUGS = ["kennedy", "jackie", "aaron", "mj"];
@@ -86,13 +86,25 @@ export default async function handler(req, res) {
       const emailIdx       = headerRow.findIndex(h => h?.toLowerCase() === "email");
       const mentorEmailIdx = headerRow.findIndex(h => h?.toLowerCase() === "mentor email");
 
+      // Build milestone column indices from the header row (robust to extra columns)
+      const milestoneColIdxs = {};
+      MILESTONE_KEYS.forEach(key => {
+        const label = MILESTONE_LABELS[key];
+        const idx = headerRow.findIndex(h => h === label || h?.toLowerCase() === key.toLowerCase());
+        if (idx !== -1) milestoneColIdxs[key] = idx;
+      });
+      // Fall back to offset-6 for any milestone not found by header name
+      MILESTONE_KEYS.forEach((key, i) => {
+        if (milestoneColIdxs[key] == null) milestoneColIdxs[key] = 6 + i;
+      });
+
       for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
         if (!row[0]) continue;
         const slug = row[0];
         const milestones = {};
-        MILESTONE_KEYS.forEach((key, idx) => {
-          const val = row[6 + idx];
+        MILESTONE_KEYS.forEach(key => {
+          const val = row[milestoneColIdxs[key]];
           milestones[key] = val === "TRUE" || val === true;
         });
         const churned     = churnedIdx >= 0 ? (row[churnedIdx] === "TRUE" || row[churnedIdx] === true) : false;

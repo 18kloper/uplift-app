@@ -2,7 +2,7 @@
 // Body: { slug, milestone, value }
 // Sets a single milestone checkbox in the Dashboard tab.
 
-import { getSheetsClient, MILESTONE_KEYS } from "../../lib/sheets-helper";
+import { getSheetsClient, MILESTONE_KEYS, MILESTONE_LABELS } from "../../lib/sheets-helper";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
@@ -29,20 +29,30 @@ export default async function handler(req, res) {
     const sheets = getSheetsClient();
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
-    // Find the mentee's row in the Dashboard (column A = slugs)
+    // Read Dashboard header + slug column to find both the mentee row and milestone column
     const read = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "Dashboard!A1:Z1",
+    });
+    const headerRow = (read.data.values || [[]])[0] || [];
+
+    // Find milestone column by its header label (robust to extra columns)
+    const milestoneLabel = MILESTONE_LABELS[milestone];
+    let colIndex = headerRow.findIndex(h => h === milestoneLabel);
+    if (colIndex === -1) colIndex = 6 + milestoneIdx; // fallback to hardcoded offset
+
+    // Find the mentee's row
+    const slugRead = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: "Dashboard!A:A",
     });
-    const slugCol = read.data.values || [];
+    const slugCol = slugRead.data.values || [];
     const rowIdx = slugCol.findIndex((row, i) => i > 0 && row[0] === slug);
 
     if (rowIdx === -1) {
       return res.status(404).json({ error: `Mentee ${slug} not found in Dashboard` });
     }
 
-    // Column G (index 6) is the first milestone column
-    const colIndex = 6 + milestoneIdx; // 0-based
     const colLetter = colIndexToLetter(colIndex);
     const rowNum = rowIdx + 1; // 1-based sheet row
 

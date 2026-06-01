@@ -3,7 +3,7 @@
 // Reads the Dashboard tab and returns live milestone status for one mentee.
 // The admin checks/unchecks boxes in the Dashboard tab → portal reflects it instantly.
 
-import { getSheetsClient, MILESTONE_KEYS } from "../../lib/sheets-helper";
+import { getSheetsClient, MILESTONE_KEYS, MILESTONE_LABELS } from "../../lib/sheets-helper";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
@@ -31,16 +31,19 @@ export default async function handler(req, res) {
 
     const rows = response.data.values || [];
     // Row 0 = headers, rows 1+ = mentees
+    const headerRow = rows[0] || [];
     const menteeRow = rows.find((row, i) => i > 0 && row[0] === slug);
 
     if (!menteeRow) {
       return res.status(200).json({ milestones: null });
     }
 
-    // Columns G onward (index 6+) are the milestone checkboxes
+    // Find milestone columns by header label (robust to extra columns)
     const milestones = {};
     MILESTONE_KEYS.forEach((key, idx) => {
-      const val = menteeRow[6 + idx];
+      const byLabel = headerRow.findIndex(h => h === MILESTONE_LABELS[key]);
+      const colIdx  = byLabel !== -1 ? byLabel : 6 + idx;
+      const val     = menteeRow[colIdx];
       milestones[key] = val === "TRUE" || val === true;
     });
 

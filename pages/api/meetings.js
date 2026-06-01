@@ -9,7 +9,7 @@
 // SessionReview sheet are immediately reflected without requiring the mentee
 // to reload their portal.
 
-import { getSheetsClient, MILESTONE_KEYS } from "../../lib/sheets-helper";
+import { getSheetsClient, MILESTONE_KEYS, MILESTONE_LABELS } from "../../lib/sheets-helper";
 
 const FORM_ID = "e0L62296";
 const FIELDS  = {
@@ -172,9 +172,15 @@ async function autoSyncMentorMilestones(slug, qualifyingCount) {
     const sheets  = getSheetsClient();
     const sheetId = process.env.GOOGLE_SHEET_ID;
 
-    // Column indices for the three session milestones (0-based)
+    // Read header row first to find actual milestone column positions
+    const headerRes = await sheets.spreadsheets.values.get({ spreadsheetId: sheetId, range: "Dashboard!A1:Z1" });
+    const headerRow = (headerRes.data.values || [[]])[0] || [];
+
     const keys = ["mentorSession1", "mentorSession2", "mentorSession3"];
-    const colIdxs = keys.map(k => MILESTONE_COL_OFFSET + MILESTONE_KEYS.indexOf(k));
+    const colIdxs = keys.map(k => {
+      const byLabel = headerRow.findIndex(h => h === MILESTONE_LABELS[k]);
+      return byLabel !== -1 ? byLabel : MILESTONE_COL_OFFSET + MILESTONE_KEYS.indexOf(k);
+    });
 
     // Read slug column + the three milestone columns in one call
     const maxCol = Math.max(...colIdxs);
