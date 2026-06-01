@@ -197,33 +197,56 @@ function AutoTextarea({ storageKey, placeholder, slug, weekNum, fieldKey, rows =
     }, 900);
   }, [storageKey, slug, weekNum, fieldKey, question]);
 
+  const saveNow = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    localStorage.setItem(storageKey, value);
+    persistToSheet(slug, weekNum, fieldKey, value, question);
+    setStatus("saved");
+    setHasSynced(true);
+    setTimeout(() => setStatus("idle"), 2000);
+  }, [storageKey, slug, weekNum, fieldKey, question, value]);
+
   return (
     <div>
-      <div style={{ position: "relative" }}>
+      <div style={{
+        border: "1.5px solid #d4d0e8", borderRadius: 8,
+        background: "#fafafa", overflow: "hidden",
+        transition: "border-color 0.15s",
+      }}
+        onFocus={(e) => e.currentTarget.style.borderColor = "#5c4eb5"}
+        onBlur={(e) => e.currentTarget.style.borderColor = "#d4d0e8"}
+      >
         <textarea
           value={value}
           onChange={handleChange}
           placeholder={placeholder}
           rows={rows}
           style={{
-            width: "100%", padding: "12px 14px", borderRadius: 8,
-            border: "1.5px solid #d4d0e8", background: "#fafafa",
+            width: "100%", padding: "12px 14px",
+            border: "none", background: "transparent",
             fontSize: 15, lineHeight: 1.6, resize: "vertical",
             fontFamily: "inherit", boxSizing: "border-box", outline: "none",
-            transition: "border-color 0.15s",
+            display: "block",
           }}
-          onFocus={(e) => (e.target.style.borderColor = "#5c4eb5")}
-          onBlur={(e) => (e.target.style.borderColor = "#d4d0e8")}
         />
-        {status !== "idle" && (
-          <span style={{
-            position: "absolute", bottom: 10, right: 12, fontSize: 11,
-            color: status === "saved" ? "#22a366" : "#9b8fcf",
-            fontWeight: 500, pointerEvents: "none",
-          }}>
-            {status === "saving" ? "Syncing…" : "✓ Synced"}
-          </span>
-        )}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "flex-end",
+          padding: "8px 12px", borderTop: "1px solid #ede9f8",
+          background: "#f5f3ff",
+        }}>
+          <button
+            onClick={saveNow}
+            style={{
+              padding: "5px 16px", fontSize: 12, fontWeight: 700,
+              borderRadius: 6, border: "none", cursor: "pointer",
+              fontFamily: "inherit", transition: "background 0.2s, color 0.2s",
+              background: status === "saved" ? "#22a366" : "#5c4eb5",
+              color: "#fff",
+            }}
+          >
+            {status === "saving" ? "Saving…" : status === "saved" ? "✓ Saved" : "Save"}
+          </button>
+        </div>
       </div>
       {hasSynced && (
         <p style={{
@@ -2290,9 +2313,9 @@ function GoalsSection({ mentee, slug }) {
 // ─── Milestone check section ──────────────────────────────────────────────────
 function MilestoneSection({ milestones }) {
   const items = [
-    { key: "participation",   label: "Confirmed Participation",        auto: true, due: "By Jun 6" },
-    { key: "onboarding",      label: "Onboarding Session Attended",                 due: "By Jun 6" },
-    { key: "mentorMatched",   label: "Matched with a Mentor" },
+    { key: "participation",   label: "Confirmed Participation",        auto: true, due: "By Jun 3" },
+    { key: "onboarding",      label: "Onboarding Session Attended",                 due: "By Jun 7" },
+    { key: "mentorMatched",   label: "Matched with a Mentor",                       due: "By Jun 7" },
     { key: "edu1",            label: "Educational Session 1",                       due: "By Aug 4" },
     { key: "edu2",            label: "Educational Session 2",                       due: "By Aug 4" },
     { key: "edu3",            label: "Educational Session 3",                       due: "By Aug 4" },
