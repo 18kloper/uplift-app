@@ -346,13 +346,193 @@ function ClickEngagement() {
   );
 }
 
-const WEEK_LABELS = {
-  1: "Week 1 · Goals",
-  2: "Week 2",
-  3: "Week 3",
-  4: "Week 4 · Midpoint",
-  5: "Week 5", 6: "Week 6", 7: "Week 7", 8: "Week 8", 9: "Week 9",
-};
+// ─── Prompt Engagement view ───────────────────────────────────────────────────
+function PromptEngagement() {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/prompt-stats")
+      .then(r => r.json())
+      .then(d => { setStats(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  return (
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
+      <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Prompt Engagement</p>
+      <p style={{ margin: "0 0 28px", fontSize: 13, color: "#9b8fcf" }}>
+        Founders who've saved at least one response per prompt section
+      </p>
+
+      {loading && <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>Loading…</p>}
+
+      {!loading && stats && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {(stats.sections || []).map(section => {
+            const total = stats.total || 1;
+            const pct   = Math.round((section.count / total) * 100);
+            const hasAny = section.count > 0;
+            return (
+              <div key={section.key} style={{
+                background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
+                padding: "16px 22px", display: "flex", alignItems: "center", gap: 20,
+              }}>
+                <p style={{
+                  margin: 0, fontSize: 22, fontWeight: 800, lineHeight: 1, flexShrink: 0, minWidth: 48,
+                  color: hasAny ? "#5c4eb5" : "#c0b8d8",
+                }}>
+                  {section.count}
+                </p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 600, color: "#1a1733" }}>
+                    {section.label}
+                  </p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ flex: 1, height: 6, background: "#e8e4f5", borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{
+                        width: `${pct}%`, height: "100%",
+                        background: hasAny ? "#5c4eb5" : "#e8e4f5",
+                        borderRadius: 3, transition: "width 0.4s",
+                      }} />
+                    </div>
+                    <span style={{ fontSize: 12, color: "#9b8fcf", flexShrink: 0 }}>
+                      {pct}% of {total}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Portal Activity view ─────────────────────────────────────────────────────
+function PortalActivity() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const COHORT_NAMES_LOCAL = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
+
+  useEffect(() => {
+    fetch("/api/portal-activity")
+      .then(r => r.json())
+      .then(d => { setData(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const MenteeRow = ({ entry, showDate = true }) => (
+    <div style={{
+      display: "grid", gridTemplateColumns: "1fr 100px 180px",
+      padding: "10px 20px", alignItems: "center",
+      borderBottom: "1px solid #faf9ff",
+    }}>
+      <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{entry.name}</span>
+      <span style={{
+        fontSize: 11, fontWeight: 700,
+        background: "#f3f0ff", color: "#5c4eb5",
+        borderRadius: 4, padding: "2px 6px", display: "inline-block", width: "fit-content",
+      }}>
+        {entry.cohort} · {COHORT_NAMES_LOCAL[entry.cohort] || entry.cohort}
+      </span>
+      <span style={{ fontSize: 12, color: "#9b8fcf", fontStyle: showDate && !entry.lastSeen ? "italic" : "normal" }}>
+        {entry.lastSeen || "Never visited"}
+      </span>
+    </div>
+  );
+
+  return (
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
+      <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Portal Activity</p>
+      <p style={{ margin: "0 0 28px", fontSize: 13, color: "#9b8fcf" }}>
+        {data ? `Last updated ${new Date(data.generatedAt).toLocaleTimeString()} · tracks when each founder last opened their portal` : "Loading…"}
+      </p>
+
+      {loading && <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>Loading activity data…</p>}
+
+      {!loading && data && (
+        <>
+          {/* Summary cards */}
+          <div style={{ display: "flex", gap: 16, marginBottom: 28, flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 160, background: "#e8f8f0", border: "1px solid #b8e8d0", borderRadius: 12, padding: "18px 22px" }}>
+              <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#1a6e42", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                Active last {data.days} days
+              </p>
+              <p style={{ margin: 0, fontSize: 40, fontWeight: 800, color: "#1a6e42", lineHeight: 1 }}>
+                {data.counts.active}
+              </p>
+            </div>
+            <div style={{ flex: 1, minWidth: 160, background: "#fff3e0", border: "1px solid #f5d97a", borderRadius: 12, padding: "18px 22px" }}>
+              <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#b35c00", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                Not visited in {data.days} days
+              </p>
+              <p style={{ margin: 0, fontSize: 40, fontWeight: 800, color: "#b35c00", lineHeight: 1 }}>
+                {data.counts.inactive}
+              </p>
+            </div>
+            <div style={{ flex: 1, minWidth: 160, background: "#fef0f0", border: "1px solid #f5c6c6", borderRadius: 12, padding: "18px 22px" }}>
+              <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#c0392b", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                Never visited
+              </p>
+              <p style={{ margin: 0, fontSize: 40, fontWeight: 800, color: "#c0392b", lineHeight: 1 }}>
+                {data.counts.neverVisited}
+              </p>
+            </div>
+          </div>
+
+          {/* Not visited / never visited — most urgent, shown first */}
+          {(data.inactive.length > 0 || data.neverVisited.length > 0) && (
+            <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #f5d97a", overflow: "hidden", marginBottom: 24 }}>
+              <div style={{ padding: "14px 20px", background: "#fffbeb", borderBottom: "1px solid #f5d97a", display: "flex", alignItems: "center", gap: 10 }}>
+                <span>⚠️</span>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#7a5c00" }}>
+                  Needs Outreach — not active in the last {data.days} days
+                </p>
+                <span style={{ marginLeft: "auto", fontSize: 12, fontWeight: 700, color: "#b35c00" }}>
+                  {data.inactive.length + data.neverVisited.length} founders
+                </span>
+              </div>
+              <div style={{ padding: "8px 20px 4px", background: "#f7f5ff", borderBottom: "1px solid #e8e4f5", display: "grid", gridTemplateColumns: "1fr 100px 180px" }}>
+                {["Name", "Cohort", "Last Seen"].map(h => (
+                  <span key={h} style={{ fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</span>
+                ))}
+              </div>
+              <div style={{ maxHeight: 360, overflowY: "auto" }}>
+                {data.neverVisited.map((e, i) => <MenteeRow key={i} entry={e} />)}
+                {data.inactive.map((e, i) => <MenteeRow key={i} entry={e} />)}
+              </div>
+            </div>
+          )}
+
+          {/* Active list */}
+          {data.active.length > 0 && (
+            <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #b8e8d0", overflow: "hidden" }}>
+              <div style={{ padding: "14px 20px", background: "#f0faf5", borderBottom: "1px solid #b8e8d0", display: "flex", alignItems: "center", gap: 10 }}>
+                <span>✅</span>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a6e42" }}>
+                  Active — visited in the last {data.days} days
+                </p>
+                <span style={{ marginLeft: "auto", fontSize: 12, fontWeight: 700, color: "#1a6e42" }}>
+                  {data.active.length} founders
+                </span>
+              </div>
+              <div style={{ padding: "8px 20px 4px", background: "#f7f5ff", borderBottom: "1px solid #e8e4f5", display: "grid", gridTemplateColumns: "1fr 100px 180px" }}>
+                {["Name", "Cohort", "Last Seen"].map(h => (
+                  <span key={h} style={{ fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</span>
+                ))}
+              </div>
+              <div style={{ maxHeight: 360, overflowY: "auto" }}>
+                {data.active.map((e, i) => <MenteeRow key={i} entry={e} />)}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
 
 // ─── Main dashboard ────────────────────────────────────────────────────────────
 function Dashboard({ data, refreshedAt }) {
@@ -360,14 +540,6 @@ function Dashboard({ data, refreshedAt }) {
   const [search, setSearch] = useState("");
   const [statusFilters, setStatusFilters] = useState([]);
   const [milestoneFilters, setMilestoneFilters] = useState([]);
-  const [promptStats, setPromptStats] = useState(null);
-
-  useEffect(() => {
-    fetch("/api/prompt-stats")
-      .then(r => r.json())
-      .then(d => setPromptStats(d))
-      .catch(() => {});
-  }, []);
 
   const { mentees = [], pendingReviewCount = 0 } = data;
   const isPreProgram = new Date() < PROGRAM_START;
@@ -536,44 +708,6 @@ function Dashboard({ data, refreshedAt }) {
             </div>
           ))}
         </div>
-
-        {/* Prompt Completions */}
-        {promptStats && (
-          <div style={{
-            background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
-            padding: "16px 20px", marginBottom: 16,
-          }}>
-            <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.07em" }}>
-              Prompt Completions — founders who've saved at least one response
-            </p>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(wn => {
-                const count = promptStats.weeks?.[wn] || 0;
-                const total = promptStats.total || counts.total;
-                const pct   = total > 0 ? Math.round((count / total) * 100) : 0;
-                const hasAny = count > 0;
-                return (
-                  <div key={wn} style={{
-                    background: hasAny ? "#f3f0ff" : "#faf9ff",
-                    border: `1px solid ${hasAny ? "#c4b8f0" : "#e8e4f5"}`,
-                    borderRadius: 10, padding: "10px 14px", minWidth: 110,
-                  }}>
-                    <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", whiteSpace: "nowrap" }}>
-                      {WEEK_LABELS[wn]}
-                    </p>
-                    <p style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 800, color: hasAny ? "#5c4eb5" : "#c0b8d8", lineHeight: 1 }}>
-                      {count}
-                    </p>
-                    <div style={{ height: 4, background: "#e8e4f5", borderRadius: 2, overflow: "hidden" }}>
-                      <div style={{ width: `${pct}%`, height: "100%", background: "#5c4eb5", borderRadius: 2, transition: "width 0.4s" }} />
-                    </div>
-                    <p style={{ margin: "4px 0 0", fontSize: 10, color: "#b0a8cc" }}>{pct}% of {total}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {/* Sessions pending review */}
         <div style={{
@@ -1019,7 +1153,12 @@ export default function AdminPage() {
         <>
           {/* Top-level admin tab bar */}
           <div style={{ background: "#1a0e4f", borderBottom: "1px solid rgba(255,255,255,0.1)", display: "flex", gap: 4, padding: "0 32px" }}>
-            {[{ key: "mentees", label: "👥 Mentees" }, { key: "resources", label: "📊 Click Engagement" }].map(({ key, label }) => (
+            {[
+              { key: "mentees",  label: "👥 Mentees" },
+              { key: "clicks",   label: "📊 Click Engagement" },
+              { key: "prompts",  label: "📝 Prompt Engagement" },
+              { key: "activity", label: "🕐 Portal Activity" },
+            ].map(({ key, label }) => (
               <button key={key} onClick={() => setAdminTab(key)} style={{
                 background: "none", border: "none", borderBottom: adminTab === key ? "2px solid #f5c542" : "2px solid transparent",
                 color: adminTab === key ? "#fff" : "rgba(255,255,255,0.5)",
@@ -1030,8 +1169,10 @@ export default function AdminPage() {
               </button>
             ))}
           </div>
-          {adminTab === "mentees"   && <Dashboard data={data} refreshedAt={data.generatedAt} />}
-          {adminTab === "resources" && <ClickEngagement />}
+          {adminTab === "mentees"  && <Dashboard data={data} refreshedAt={data.generatedAt} />}
+          {adminTab === "clicks"   && <ClickEngagement />}
+          {adminTab === "prompts"  && <PromptEngagement />}
+          {adminTab === "activity" && <PortalActivity />}
         </>
       )}
     </>

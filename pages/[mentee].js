@@ -2982,6 +2982,19 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
     if (stored) setIsAuthenticated(true);
   }, [slug]);
 
+  // Track portal visit once per browser session (fire-and-forget)
+  useEffect(() => {
+    if (!isAuthenticated || !slug) return;
+    const trackKey = `visit_tracked_${slug}`;
+    if (sessionStorage.getItem(trackKey)) return;
+    sessionStorage.setItem(trackKey, "1");
+    fetch("/api/track-visit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, name: `${mentee.first} ${mentee.last}`.trim() }),
+    }).catch(() => {});
+  }, [isAuthenticated, slug]);
+
   if (!isAuthenticated) {
     return <PasswordGate slug={slug} onAuthenticated={() => setIsAuthenticated(true)} />;
   }
