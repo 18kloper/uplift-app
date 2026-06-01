@@ -474,6 +474,7 @@ function PromptEngagement() {
 function PortalActivity() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({ active: true, inactive: true, neverVisited: true });
   const COHORT_NAMES_LOCAL = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
 
   useEffect(() => {
@@ -483,111 +484,123 @@ function PortalActivity() {
       .catch(() => setLoading(false));
   }, []);
 
-  const MenteeRow = ({ entry, showDate = true }) => (
-    <div style={{
-      display: "grid", gridTemplateColumns: "1fr 100px 180px",
-      padding: "10px 20px", alignItems: "center",
-      borderBottom: "1px solid #faf9ff",
-    }}>
-      <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{entry.name}</span>
-      <span style={{
-        fontSize: 11, fontWeight: 700,
-        background: "#f3f0ff", color: "#5c4eb5",
-        borderRadius: 4, padding: "2px 6px", display: "inline-block", width: "fit-content",
-      }}>
-        {entry.cohort} · {COHORT_NAMES_LOCAL[entry.cohort] || entry.cohort}
-      </span>
-      <span style={{ fontSize: 12, color: "#9b8fcf", fontStyle: showDate && !entry.lastSeen ? "italic" : "normal" }}>
-        {entry.lastSeen || "Never visited"}
-      </span>
-    </div>
-  );
+  const toggle = (key) => setFilters(prev => ({ ...prev, [key]: !prev[key] }));
+
+  const CARD_CONFIG = [
+    { key: "active",       label: (d) => `Active — last ${d.days} days`,      color: "#1a6e42", bg: "#e8f8f0", border: "#b8e8d0", count: (d) => d.counts.active },
+    { key: "inactive",     label: (d) => `Not visited — last ${d.days} days`,  color: "#b35c00", bg: "#fff3e0", border: "#f5d97a", count: (d) => d.counts.inactive },
+    { key: "neverVisited", label: () => "Never visited",                        color: "#c0392b", bg: "#fef0f0", border: "#f5c6c6", count: (d) => d.counts.neverVisited },
+  ];
+
+  const filteredRows = !data ? [] : [
+    ...(filters.neverVisited ? data.neverVisited.map(e => ({ ...e, group: "neverVisited" })) : []),
+    ...(filters.inactive     ? data.inactive.map(e => ({ ...e, group: "inactive" }))         : []),
+    ...(filters.active       ? data.active.map(e => ({ ...e, group: "active" }))             : []),
+  ];
+
+  const GROUP_DOT = { active: "#27ae60", inactive: "#f39c12", neverVisited: "#e74c3c" };
 
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
       <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Portal Activity</p>
       <p style={{ margin: "0 0 28px", fontSize: 13, color: "#9b8fcf" }}>
-        {data ? `Last updated ${new Date(data.generatedAt).toLocaleTimeString()} · tracks when each founder last opened their portal` : "Loading…"}
+        {data
+          ? `Last updated ${new Date(data.generatedAt).toLocaleTimeString()} · tracks when each founder last opened their portal`
+          : "Loading…"}
       </p>
 
       {loading && <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>Loading activity data…</p>}
 
       {!loading && data && (
         <>
-          {/* Summary cards */}
-          <div style={{ display: "flex", gap: 16, marginBottom: 28, flexWrap: "wrap" }}>
-            <div style={{ flex: 1, minWidth: 160, background: "#e8f8f0", border: "1px solid #b8e8d0", borderRadius: 12, padding: "18px 22px" }}>
-              <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#1a6e42", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                Active last {data.days} days
-              </p>
-              <p style={{ margin: 0, fontSize: 40, fontWeight: 800, color: "#1a6e42", lineHeight: 1 }}>
-                {data.counts.active}
-              </p>
-            </div>
-            <div style={{ flex: 1, minWidth: 160, background: "#fff3e0", border: "1px solid #f5d97a", borderRadius: 12, padding: "18px 22px" }}>
-              <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#b35c00", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                Not visited in {data.days} days
-              </p>
-              <p style={{ margin: 0, fontSize: 40, fontWeight: 800, color: "#b35c00", lineHeight: 1 }}>
-                {data.counts.inactive}
-              </p>
-            </div>
-            <div style={{ flex: 1, minWidth: 160, background: "#fef0f0", border: "1px solid #f5c6c6", borderRadius: 12, padding: "18px 22px" }}>
-              <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#c0392b", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                Never visited
-              </p>
-              <p style={{ margin: 0, fontSize: 40, fontWeight: 800, color: "#c0392b", lineHeight: 1 }}>
-                {data.counts.neverVisited}
-              </p>
-            </div>
+          {/* Filter cards — toggle on/off */}
+          <div style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}>
+            {CARD_CONFIG.map(({ key, label, color, bg, border, count }) => {
+              const on = filters[key];
+              return (
+                <button
+                  key={key}
+                  onClick={() => toggle(key)}
+                  style={{
+                    flex: 1, minWidth: 160, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif",
+                    background: on ? bg : "#f7f5ff",
+                    border: `2px solid ${on ? border : "#e8e4f5"}`,
+                    borderRadius: 12, padding: "16px 20px", textAlign: "left",
+                    opacity: on ? 1 : 0.5,
+                    transition: "all 0.15s",
+                    position: "relative",
+                  }}
+                >
+                  <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: on ? color : "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    {label(data)}
+                  </p>
+                  <p style={{ margin: 0, fontSize: 36, fontWeight: 800, color: on ? color : "#c0b8d8", lineHeight: 1 }}>
+                    {count(data)}
+                  </p>
+                  <span style={{
+                    position: "absolute", top: 10, right: 12,
+                    fontSize: 11, fontWeight: 700,
+                    color: on ? color : "#b0a8cc",
+                    background: on ? "rgba(255,255,255,0.6)" : "transparent",
+                    borderRadius: 4, padding: "2px 6px",
+                  }}>
+                    {on ? "✓ on" : "off"}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
-          {/* Not visited / never visited — most urgent, shown first */}
-          {(data.inactive.length > 0 || data.neverVisited.length > 0) && (
-            <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #f5d97a", overflow: "hidden", marginBottom: 24 }}>
-              <div style={{ padding: "14px 20px", background: "#fffbeb", borderBottom: "1px solid #f5d97a", display: "flex", alignItems: "center", gap: 10 }}>
-                <span>⚠️</span>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#7a5c00" }}>
-                  Needs Outreach — not active in the last {data.days} days
-                </p>
-                <span style={{ marginLeft: "auto", fontSize: 12, fontWeight: 700, color: "#b35c00" }}>
-                  {data.inactive.length + data.neverVisited.length} founders
-                </span>
-              </div>
-              <div style={{ padding: "8px 20px 4px", background: "#f7f5ff", borderBottom: "1px solid #e8e4f5", display: "grid", gridTemplateColumns: "1fr 100px 180px" }}>
-                {["Name", "Cohort", "Last Seen"].map(h => (
-                  <span key={h} style={{ fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</span>
-                ))}
-              </div>
-              <div style={{ maxHeight: 360, overflowY: "auto" }}>
-                {data.neverVisited.map((e, i) => <MenteeRow key={i} entry={e} />)}
-                {data.inactive.map((e, i) => <MenteeRow key={i} entry={e} />)}
-              </div>
+          {/* Unified table */}
+          <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", overflow: "hidden" }}>
+            {/* Column headers */}
+            <div style={{ padding: "10px 20px", background: "#f7f5ff", borderBottom: "1px solid #e8e4f5", display: "grid", gridTemplateColumns: "12px 1fr 130px 180px", gap: 12, alignItems: "center" }}>
+              <span />
+              {["Name", "Cohort", "Last Seen"].map(h => (
+                <span key={h} style={{ fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</span>
+              ))}
             </div>
-          )}
 
-          {/* Active list */}
-          {data.active.length > 0 && (
-            <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #b8e8d0", overflow: "hidden" }}>
-              <div style={{ padding: "14px 20px", background: "#f0faf5", borderBottom: "1px solid #b8e8d0", display: "flex", alignItems: "center", gap: 10 }}>
-                <span>✅</span>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a6e42" }}>
-                  Active — visited in the last {data.days} days
-                </p>
-                <span style={{ marginLeft: "auto", fontSize: 12, fontWeight: 700, color: "#1a6e42" }}>
-                  {data.active.length} founders
-                </span>
-              </div>
-              <div style={{ padding: "8px 20px 4px", background: "#f7f5ff", borderBottom: "1px solid #e8e4f5", display: "grid", gridTemplateColumns: "1fr 100px 180px" }}>
-                {["Name", "Cohort", "Last Seen"].map(h => (
-                  <span key={h} style={{ fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</span>
+            {filteredRows.length === 0 ? (
+              <p style={{ padding: "28px 20px", margin: 0, fontSize: 13, color: "#b0a8cc", fontStyle: "italic" }}>
+                {Object.values(filters).every(v => !v) ? "All filters off — toggle one above to see founders." : "No founders in the selected groups."}
+              </p>
+            ) : (
+              <div style={{ maxHeight: 520, overflowY: "auto" }}>
+                {filteredRows.map((e, i) => (
+                  <div key={i} style={{
+                    display: "grid", gridTemplateColumns: "12px 1fr 130px 180px", gap: 12,
+                    padding: "10px 20px", alignItems: "center",
+                    borderBottom: i < filteredRows.length - 1 ? "1px solid #faf9ff" : "none",
+                    background: i % 2 === 0 ? "#fff" : "#fdfcff",
+                  }}>
+                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: GROUP_DOT[e.group], flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{e.name}</span>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700,
+                      background: "#f3f0ff", color: "#5c4eb5",
+                      borderRadius: 4, padding: "2px 6px", display: "inline-block", width: "fit-content",
+                    }}>
+                      {e.cohort} · {COHORT_NAMES_LOCAL[e.cohort] || e.cohort}
+                    </span>
+                    <span style={{ fontSize: 12, color: "#9b8fcf", fontStyle: !e.lastSeen ? "italic" : "normal" }}>
+                      {e.lastSeen || "Never visited"}
+                    </span>
+                  </div>
                 ))}
               </div>
-              <div style={{ maxHeight: 360, overflowY: "auto" }}>
-                {data.active.map((e, i) => <MenteeRow key={i} entry={e} />)}
-              </div>
-            </div>
-          )}
+            )}
+          </div>
+
+          <p style={{ margin: "10px 0 0", fontSize: 11, color: "#b0a8cc" }}>
+            Showing {filteredRows.length} founder{filteredRows.length !== 1 ? "s" : ""}
+            {" · "}
+            <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#27ae60", verticalAlign: "middle" }} /> active
+            {" "}
+            <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#f39c12", verticalAlign: "middle", marginLeft: 6 }} /> not visited recently
+            {" "}
+            <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#e74c3c", verticalAlign: "middle", marginLeft: 6 }} /> never visited
+          </p>
         </>
       )}
       <p style={{ margin: "28px 0 0", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
