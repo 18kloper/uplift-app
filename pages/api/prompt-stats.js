@@ -83,6 +83,11 @@ export default async function handler(req, res) {
       });
     }
 
+    // Build slug → mentee lookup for name/cohort
+    const menteeBySlug = Object.fromEntries(
+      realMentees.map(m => [m.slug, { name: `${m.first} ${m.last}`, cohort: m.cohort }])
+    );
+
     // Step 2: Batch-read all tabs (cols A=weekNum, B=fieldKey, D=value)
     const CHUNK = 100;
     // sectionKey → Set of slugs
@@ -113,11 +118,18 @@ export default async function handler(req, res) {
       });
     }
 
-    const sections = PROMPT_SECTIONS.map(s => ({
-      key:   s.key,
-      label: s.label,
-      count: sectionCompletions[s.key].size,
-    }));
+    const sections = PROMPT_SECTIONS.map(s => {
+      const slugs = [...sectionCompletions[s.key]];
+      return {
+        key:     s.key,
+        label:   s.label,
+        count:   slugs.length,
+        mentees: slugs
+          .map(slug => ({ slug, ...menteeBySlug[slug] }))
+          .filter(m => m.name)
+          .sort((a, b) => a.name.localeCompare(b.name)),
+      };
+    });
 
     return res.status(200).json({
       sections,

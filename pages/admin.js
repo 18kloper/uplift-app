@@ -435,6 +435,8 @@ function ClickEngagement() {
 function PromptEngagement() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [openSections, setOpenSections] = useState({});
+  const COHORT_NAMES_PE = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
 
   useEffect(() => {
     fetch("/api/prompt-stats")
@@ -443,49 +445,101 @@ function PromptEngagement() {
       .catch(() => setLoading(false));
   }, []);
 
+  const toggle = (key) => setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
+
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
+    <div style={{ maxWidth: 820, margin: "0 auto", padding: "32px 24px" }}>
       <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Prompt Engagement</p>
       <p style={{ margin: "0 0 28px", fontSize: 13, color: "#9b8fcf" }}>
-        Founders who've saved at least one response per prompt section
+        Founders who've saved at least one response per prompt section — click any row to see who
       </p>
 
       {loading && <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>Loading…</p>}
 
       {!loading && stats && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {(stats.sections || []).map(section => {
-            const total = stats.total || 1;
-            const pct   = Math.round((section.count / total) * 100);
+            const total  = stats.total || 1;
+            const pct    = total > 0 ? Math.round((section.count / total) * 100) : 0;
             const hasAny = section.count > 0;
+            const isOpen = !!openSections[section.key];
             return (
               <div key={section.key} style={{
-                background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
-                padding: "16px 22px", display: "flex", alignItems: "center", gap: 20,
+                background: "#fff", borderRadius: 12,
+                border: `1px solid ${isOpen ? "#c4b8f0" : "#e8e4f5"}`,
+                overflow: "hidden",
+                boxShadow: isOpen ? "0 2px 12px rgba(92,78,181,0.08)" : "none",
               }}>
-                <p style={{
-                  margin: 0, fontSize: 22, fontWeight: 800, lineHeight: 1, flexShrink: 0, minWidth: 48,
-                  color: hasAny ? "#5c4eb5" : "#c0b8d8",
-                }}>
-                  {section.count}
-                </p>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 600, color: "#1a1733" }}>
-                    {section.label}
-                  </p>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ flex: 1, height: 6, background: "#e8e4f5", borderRadius: 3, overflow: "hidden" }}>
-                      <div style={{
-                        width: `${pct}%`, height: "100%",
-                        background: hasAny ? "#5c4eb5" : "#e8e4f5",
-                        borderRadius: 3, transition: "width 0.4s",
-                      }} />
+                {/* Header row — clickable */}
+                <button
+                  onClick={() => toggle(section.key)}
+                  style={{
+                    width: "100%", background: "none", border: "none", cursor: "pointer",
+                    padding: "15px 20px", display: "flex", alignItems: "center", gap: 16,
+                    fontFamily: "Inter, system-ui, sans-serif", textAlign: "left",
+                  }}
+                >
+                  {/* Percentage pill */}
+                  <span style={{
+                    fontSize: 18, fontWeight: 800, lineHeight: 1, flexShrink: 0, minWidth: 52,
+                    color: hasAny ? "#5c4eb5" : "#c0b8d8",
+                  }}>
+                    {pct}%
+                  </span>
+
+                  {/* Label + mini bar */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: "0 0 5px", fontSize: 14, fontWeight: 600, color: "#1a1733" }}>
+                      {section.label}
+                    </p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ flex: 1, height: 5, background: "#e8e4f5", borderRadius: 3, overflow: "hidden", maxWidth: 260 }}>
+                        <div style={{
+                          width: `${pct}%`, height: "100%",
+                          background: hasAny ? "#5c4eb5" : "#e8e4f5",
+                          borderRadius: 3, transition: "width 0.4s",
+                        }} />
+                      </div>
+                      <span style={{ fontSize: 11, color: "#9b8fcf", flexShrink: 0 }}>
+                        {section.count} founder{section.count !== 1 ? "s" : ""}
+                      </span>
                     </div>
-                    <span style={{ fontSize: 12, color: "#9b8fcf", flexShrink: 0 }}>
-                      {pct}% of {total}
-                    </span>
                   </div>
-                </div>
+
+                  {/* Chevron */}
+                  <span style={{
+                    fontSize: 14, color: "#9b8fcf", flexShrink: 0,
+                    transform: isOpen ? "rotate(180deg)" : "none",
+                    transition: "transform 0.2s",
+                  }}>▾</span>
+                </button>
+
+                {/* Dropdown — who completed */}
+                {isOpen && (
+                  <div style={{ borderTop: "1px solid #f0ecff", padding: "14px 20px" }}>
+                    {section.mentees.length === 0 ? (
+                      <p style={{ margin: 0, fontSize: 13, color: "#b0a8cc", fontStyle: "italic" }}>
+                        No responses saved yet.
+                      </p>
+                    ) : (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                        {section.mentees.map((m, i) => (
+                          <span key={i} style={{
+                            fontSize: 12, fontWeight: 600, color: "#1a1733",
+                            background: "#f3f0ff", border: "1px solid #e0d9f8",
+                            borderRadius: 20, padding: "4px 12px",
+                            display: "flex", alignItems: "center", gap: 6,
+                          }}>
+                            {m.name}
+                            <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 500 }}>
+                              {m.cohort} · {COHORT_NAMES_PE[m.cohort] || m.cohort}
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
