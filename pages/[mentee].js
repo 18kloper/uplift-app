@@ -764,7 +764,7 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
             🔒 Your mentor reveal is pending
           </p>
           <p style={{ margin: 0, fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
-            After you attend one of the orientation sessions above, we'll confirm your attendance and unlock your mentor match. It will appear automatically in <strong>Week 2</strong> — no action needed from you.
+            We'll unlock your mentor match after we've completed onboarding sessions. It will appear automatically in <strong>Week 2</strong> — no action needed from you.
           </p>
         </div>
       )}
