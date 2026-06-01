@@ -103,18 +103,55 @@ const WEEKS = [
 ];
 
 const PRIMARY_TABS = [
-  { id: "journey",    label: "My Journey" },
-  { id: "milestones", label: "Milestones" },
-  { id: "goals",      label: "My Goals & Reflections" },
-  { id: "meetings",   label: "Logged Mentorship Sessions" },
-  { id: "edu",        label: "Logged Educational Sessions" },
-  { id: "calendar",   label: "Program Roadmap" },
-  { id: "resources",  label: "Resources" },
-  { id: "profile",    label: "Cohort Directory" },
-  { id: "support",    label: "Support" },
+  { id: "journey",    label: "My Journey",                   tip: "Week-by-week action items for the program — follow along to see where you should be and what's coming up next." },
+  { id: "milestones", label: "Milestones",                   tip: "A high-level overview of every task to complete in the program. See at a glance what's been checked off and what still needs to happen." },
+  { id: "goals",      label: "My Goals & Reflections",       tip: "Everything you've written in the portal lives here — your goals, reflections, and responses all in one place, building as you go." },
+  { id: "meetings",   label: "Logged Mentorship Sessions",   tip: "Track every mentor session you've submitted — view transcripts, see which sessions have been verified, monitor your progress toward the 3-hour requirement, and check on any pending or denied sessions." },
+  { id: "edu",        label: "Logged Educational Sessions",  tip: "Track the educational sessions you've attended and browse everything that's available across the full program schedule." },
+  { id: "calendar",   label: "Program Roadmap",              tip: "A high-level view of the entire 9-week program — all sessions, milestones, and key dates in one place." },
+  { id: "resources",  label: "Resources",                    tip: "External links, tools, and resources curated for you — things you should know about as a founder in this program." },
+  { id: "profile",    label: "Cohort Directory",             tip: "See who's in your cohort and explore the other cohorts too — get to know your fellow founders." },
+  { id: "support",    label: "Support",                      tip: "Having trouble with something? Find out how to reach the Uplift team here." },
 ];
 const TAB_ROW_1 = ["journey", "goals", "milestones", "meetings", "edu"];
 const TAB_ROW_2 = ["calendar", "profile", "resources", "support"];
+
+// ─── Tab tooltip wrapper ───────────────────────────────────────────────────────
+function TabTooltip({ tip, children }) {
+  const [visible, setVisible] = useState(false);
+  if (!tip) return children;
+  return (
+    <div
+      style={{ position: "relative", display: "inline-flex" }}
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+    >
+      {children}
+      {visible && (
+        <div style={{
+          position: "absolute", bottom: "calc(100% + 8px)", left: "50%",
+          transform: "translateX(-50%)",
+          background: "#1a1733", color: "#fff",
+          borderRadius: 8, padding: "9px 13px",
+          fontSize: 12, lineHeight: 1.55, fontWeight: 400,
+          width: 220, textAlign: "left",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.22)",
+          pointerEvents: "none", zIndex: 999,
+          whiteSpace: "normal",
+        }}>
+          {tip}
+          <div style={{
+            position: "absolute", top: "100%", left: "50%",
+            transform: "translateX(-50%)",
+            borderLeft: "6px solid transparent",
+            borderRight: "6px solid transparent",
+            borderTop: "6px solid #1a1733",
+          }} />
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─── Save to Google Sheets ────────────────────────────────────────────────────
 async function persistToSheet(slug, weekNum, fieldKey, value, question = "") {
@@ -2298,7 +2335,8 @@ function MilestoneSection({ milestones }) {
       </div>
 
       <p style={{ margin: "0 0 16px", fontSize: 13, color: "#9b8fcf" }}>
-        Milestones are manually confirmed by a TechUnited team member every Tuesday. No action needed from you — they'll update automatically.
+        Milestones are manually confirmed by a TechUnited team member every Tuesday. No action needed from you — they'll update automatically. If something seems wrong here, please contact{" "}
+        <a href="mailto:uplift@techunited.co" style={{ color: "#9b8fcf", fontWeight: 600 }}>uplift@techunited.co</a>.
       </p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -2958,24 +2996,25 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
                   const tab = PRIMARY_TABS.find(t => t.id === id);
                   const active = activeTab === id;
                   return (
-                    <button
-                      key={id}
-                      onClick={() => setActiveTab(id)}
-                      style={{
-                        padding: "5px 12px",
-                        border: "1px solid rgba(255,255,255,0.3)",
-                        borderRadius: 20,
-                        background: active ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.1)",
-                        color: "#fff",
-                        fontSize: 12, fontWeight: active ? 700 : 500,
-                        cursor: "pointer", whiteSpace: "nowrap",
-                        fontFamily: "inherit",
-                        transition: "background 0.15s",
-                        opacity: active ? 1 : 0.85,
-                      }}
-                    >
-                      {tab.label}
-                    </button>
+                    <TabTooltip key={id} tip={tab.tip}>
+                      <button
+                        onClick={() => setActiveTab(id)}
+                        style={{
+                          padding: "5px 12px",
+                          border: "1px solid rgba(255,255,255,0.3)",
+                          borderRadius: 20,
+                          background: active ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.1)",
+                          color: "#fff",
+                          fontSize: 12, fontWeight: active ? 700 : 500,
+                          cursor: "pointer", whiteSpace: "nowrap",
+                          fontFamily: "inherit",
+                          transition: "background 0.15s",
+                          opacity: active ? 1 : 0.85,
+                        }}
+                      >
+                        {tab.label}
+                      </button>
+                    </TabTooltip>
                   );
                 })}
               </div>
@@ -2990,21 +3029,22 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
               const tab = PRIMARY_TABS.find(t => t.id === id);
               const active = activeTab === id;
               return (
-                <button
-                  key={id}
-                  onClick={() => setActiveTab(id)}
-                  style={{
-                    flex: "0 0 auto", padding: "13px 14px 11px",
-                    border: "none", background: "none",
-                    borderBottom: active ? "3px solid #5c4eb5" : "3px solid transparent",
-                    color: active ? "#5c4eb5" : "#6b6480",
-                    fontWeight: active ? 700 : 500,
-                    fontSize: 13, cursor: "pointer", whiteSpace: "nowrap",
-                    fontFamily: "inherit", transition: "color 0.15s, border-color 0.15s",
-                  }}
-                >
-                  {tab.label}
-                </button>
+                <TabTooltip key={id} tip={tab.tip}>
+                  <button
+                    onClick={() => setActiveTab(id)}
+                    style={{
+                      flex: "0 0 auto", padding: "13px 14px 11px",
+                      border: "none", background: "none",
+                      borderBottom: active ? "3px solid #5c4eb5" : "3px solid transparent",
+                      color: active ? "#5c4eb5" : "#6b6480",
+                      fontWeight: active ? 700 : 500,
+                      fontSize: 13, cursor: "pointer", whiteSpace: "nowrap",
+                      fontFamily: "inherit", transition: "color 0.15s, border-color 0.15s",
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                </TabTooltip>
               );
             })}
           </div>
