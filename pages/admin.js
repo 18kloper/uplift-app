@@ -272,18 +272,14 @@ function Dashboard({ data, refreshedAt }) {
       label: "Needs Attention",
       value: counts.attention,
       color: "#b35c00", bg: "#fff3e0",
-      desc: isPreProgram
-        ? "Has not yet confirmed participation in the program"
-        : "Behind on mentor sessions or missing required milestones for their current week",
+      desc: "Has not confirmed participation, or behind on required milestones",
       statusKey: "needs-attention",
     },
     {
       label: "On Track",
       value: counts.onTrack,
       color: "#1a6e42", bg: "#e8f8f0",
-      desc: isPreProgram
-        ? "Confirmed participation in the program"
-        : "Meeting all program requirements on schedule",
+      desc: "Confirmed participation and meeting all program requirements",
       statusKey: "on-track",
     },
     {

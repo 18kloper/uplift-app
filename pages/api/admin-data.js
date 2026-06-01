@@ -46,7 +46,10 @@ function computeStatus(milestones, today) {
     flags.push("No mentor session logged by end of Week 2");
   }
 
-  if (!milestones.participation)                          flags.push("Participation not confirmed");
+  if (!milestones.participation) {
+    flags.push("Participation not confirmed");
+    if (status !== "at-risk") status = "needs-attention";
+  }
   if (today >= WEEK1_END && !milestones.onboarding)       flags.push("Onboarding not attended");
   if (today >= WEEK2_END && !milestones.mentorMatched)    flags.push("Mentor not yet matched");
 
