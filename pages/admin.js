@@ -367,301 +367,282 @@ function isAICacheStale(generatedAt) {
   return true; // fallback
 }
 
+function isSundayCacheStale(generatedAt) {
+  if (!generatedAt) return true;
+  const generated = new Date(generatedAt);
+  const now = new Date();
+  for (let i = 0; i < 7; i++) {
+    const b = new Date(now);
+    b.setDate(b.getDate() - i);
+    b.setHours(21, 0, 0, 0);
+    if (b.getDay() === 0 && b <= now) return generated < b;
+  }
+  return true;
+}
+
+function isWednesdayCacheStale(generatedAt) {
+  if (!generatedAt) return true;
+  const generated = new Date(generatedAt);
+  const now = new Date();
+  for (let i = 0; i < 7; i++) {
+    const b = new Date(now);
+    b.setDate(b.getDate() - i);
+    b.setHours(21, 0, 0, 0);
+    if (b.getDay() === 3 && b <= now) return generated < b;
+  }
+  return true;
+}
+
 // ─── Prompt Engagement view ───────────────────────────────────────────────────
 function PromptEngagement() {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats]           = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [openSections, setOpenSections] = useState({});
+  const [subTab, setSubTab]         = useState(1); // week number or "ai"
 
-  // AI Insights state
-  const [insights, setInsights] = useState(null);
-  const [insightsLoading, setInsightsLoading] = useState(false);
-  const [insightsError, setInsightsError] = useState(null);
+  const [sunData, setSunData]       = useState(null);
+  const [wedData, setWedData]       = useState(null);
+  const [loadingSun, setLoadingSun] = useState(false);
+  const [loadingWed, setLoadingWed] = useState(false);
+  const [errorSun, setErrorSun]     = useState(null);
+  const [errorWed, setErrorWed]     = useState(null);
 
-  const CACHE_KEY = "uplift_prompt_insights";
+  const SUN_CACHE = "uplift_insights_sun_v2";
+  const WED_CACHE = "uplift_insights_wed_v2";
+
   const COHORT_NAMES_PE = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
+
+  // Which prompt-section keys belong to each week
+  const SECTION_WEEK = {
+    goals: 1, onboarding_block: 1,
+    pre_meeting: 2,
+    week3: 3,
+    midpoint: 4,
+    week5: 5,
+    week6: 6,
+    week7: 7,
+    quote: 9,
+  };
+  const WEEK_KEYS = {};
+  for (const [k, w] of Object.entries(SECTION_WEEK)) {
+    WEEK_KEYS[w] = [...(WEEK_KEYS[w] || []), k];
+  }
+  const ACTIVE_WEEKS = [1, 2, 3, 4, 5, 6, 7, 9];
+  const THEME_ICONS    = ["🔍","⚡","🧩","🎯","💡"];
+  const SESSION_ICONS  = ["🎤","🛠️","👥","📊","🚀"];
+
+  const fetchSnapshot = (cacheKey, isStale, setter, setLoad, setErr, force = false) => {
+    if (!force) {
+      try {
+        const c = localStorage.getItem(cacheKey);
+        if (c) { const p = JSON.parse(c); if (!isStale(p.generatedAt)) { setter(p); return; } }
+      } catch (_) {}
+    }
+    setLoad(true); setErr(null);
+    fetch("/api/prompt-themes")
+      .then(r => r.json())
+      .then(d => {
+        if (d.error) { setErr(d.error); }
+        else { setter(d); try { localStorage.setItem(cacheKey, JSON.stringify(d)); } catch (_) {} }
+        setLoad(false);
+      })
+      .catch(e => { setErr(e.message); setLoad(false); });
+  };
 
   useEffect(() => {
     fetch("/api/prompt-stats")
       .then(r => r.json())
-      .then(d => { setStats(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then(d => { setStats(d); setStatsLoading(false); })
+      .catch(() => setStatsLoading(false));
+    fetchSnapshot(SUN_CACHE, isSundayCacheStale, setSunData, setLoadingSun, setErrorSun);
+    fetchSnapshot(WED_CACHE, isWednesdayCacheStale, setWedData, setLoadingWed, setErrorWed);
   }, []);
-
-  // Auto-load insights — refresh on Sun/Wed nights at 9pm
-  useEffect(() => {
-    try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (!isAICacheStale(parsed.generatedAt)) {
-          setInsights(parsed);
-          return; // cache is fresh
-        }
-      }
-    } catch (_) {}
-    fetchInsights();
-  }, []);
-
-  const fetchInsights = (force = false) => {
-    if (!force) {
-      try {
-        const cached = localStorage.getItem(CACHE_KEY);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (!isAICacheStale(parsed.generatedAt)) { setInsights(parsed); return; }
-        }
-      } catch (_) {}
-    }
-    setInsightsLoading(true);
-    setInsightsError(null);
-    fetch("/api/prompt-themes")
-      .then(r => r.json())
-      .then(d => {
-        if (d.error) {
-          setInsightsError(d.error);
-        } else {
-          setInsights(d);
-          try { localStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch (_) {}
-        }
-        setInsightsLoading(false);
-      })
-      .catch(e => { setInsightsError(e.message); setInsightsLoading(false); });
-  };
 
   const toggle = (key) => setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
 
-  const THEME_ICONS = ["🔍", "⚡", "🧩", "🎯", "💡"];
-  const SESSION_ICONS = ["🎤", "🛠️", "👥", "📊", "🚀"];
-
-  return (
-    <div style={{ maxWidth: 820, margin: "0 auto", padding: "32px 24px" }}>
-      <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Prompt Engagement</p>
-      <p style={{ margin: "0 0 28px", fontSize: 13, color: "#9b8fcf" }}>
-        Founders who've saved at least one response per prompt section — click any row to see who
-      </p>
-
-      {/* ── AI Insights panel ── */}
-      <div style={{
-        background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)",
-        borderRadius: 14, padding: "22px 26px", marginBottom: 28, color: "#fff",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: insights ? 20 : 0 }}>
-          <div>
-            <p style={{ margin: "0 0 3px", fontSize: 16, fontWeight: 800 }}>🧠 AI Insights</p>
-            <p style={{ margin: 0, fontSize: 12, opacity: 0.7 }}>
-              {insightsLoading
-                ? "Analyzing responses…"
-                : insights
-                ? `${insights.totalResponses || "All"} responses analyzed · Refreshed ${new Date(insights.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · Auto-updates Sun & Wed nights`
-                : "Auto-updates Sun & Wed nights — loading…"}
-            </p>
+  // Completion card for one prompt section
+  const SectionCard = ({ section }) => {
+    const total  = stats?.total || 1;
+    const pct    = total > 0 ? Math.round((section.count / total) * 100) : 0;
+    const hasAny = section.count > 0;
+    const isOpen = !!openSections[section.key];
+    return (
+      <div style={{ background: "#fff", borderRadius: 12, border: `1px solid ${isOpen ? "#c4b8f0" : "#e8e4f5"}`, overflow: "hidden", boxShadow: isOpen ? "0 2px 12px rgba(92,78,181,0.08)" : "none" }}>
+        <button onClick={() => toggle(section.key)} style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: "15px 20px", display: "flex", alignItems: "center", gap: 16, fontFamily: "Inter, system-ui, sans-serif", textAlign: "left" }}>
+          <span style={{ fontSize: 18, fontWeight: 800, lineHeight: 1, flexShrink: 0, minWidth: 52, color: hasAny ? "#5c4eb5" : "#c0b8d8" }}>{pct}%</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: "0 0 5px", fontSize: 14, fontWeight: 600, color: "#1a1733" }}>{section.label}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ flex: 1, height: 5, background: "#e8e4f5", borderRadius: 3, overflow: "hidden", maxWidth: 260 }}>
+                <div style={{ width: `${pct}%`, height: "100%", background: hasAny ? "#5c4eb5" : "#e8e4f5", borderRadius: 3, transition: "width 0.4s" }} />
+              </div>
+              <span style={{ fontSize: 11, color: "#9b8fcf", flexShrink: 0 }}>{section.count} founder{section.count !== 1 ? "s" : ""}</span>
+            </div>
           </div>
-          <button
-            onClick={() => fetchInsights(true)}
-            disabled={insightsLoading}
-            style={{
-              background: insightsLoading ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.2)",
-              border: "1px solid rgba(255,255,255,0.3)",
-              color: "#fff", borderRadius: 8,
-              padding: "8px 16px", fontSize: 13, fontWeight: 700,
-              cursor: insightsLoading ? "default" : "pointer",
-              flexShrink: 0, marginLeft: 16,
-              fontFamily: "Inter, system-ui, sans-serif",
-              transition: "background 0.2s",
-            }}
-          >
-            {insightsLoading ? "Analyzing…" : "↻ Refresh"}
-          </button>
-        </div>
-
-        {insightsError && (
-          <p style={{ margin: "12px 0 0", fontSize: 13, color: "#ffb3b3" }}>⚠️ {insightsError}</p>
-        )}
-
-        {insights && !insightsLoading && (
-          <div>
-            {/* Overall top 5 themes */}
-            <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.6 }}>
-              Top 5 Overall Themes
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
-              {(insights.themes || []).map((t, i) => (
-                <div key={i} style={{
-                  background: "rgba(255,255,255,0.1)", borderRadius: 10,
-                  padding: "12px 16px", display: "flex", gap: 12, alignItems: "flex-start",
-                }}>
-                  <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{THEME_ICONS[i] || "•"}</span>
-                  <div>
-                    <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 700 }}>{t.title}</p>
-                    <p style={{ margin: 0, fontSize: 12, opacity: 0.8, lineHeight: 1.6 }}>{t.description}</p>
-                  </div>
+          <span style={{ fontSize: 14, color: "#9b8fcf", flexShrink: 0, transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
+        </button>
+        {isOpen && (
+          <div style={{ borderTop: "1px solid #f0ecff", padding: "14px 20px" }}>
+            {section.mentees.length === 0
+              ? <p style={{ margin: 0, fontSize: 13, color: "#b0a8cc", fontStyle: "italic" }}>No responses saved yet.</p>
+              : <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {section.mentees.map((m, i) => (
+                    <span key={i} style={{ fontSize: 12, fontWeight: 600, color: "#1a1733", background: "#f3f0ff", border: "1px solid #e0d9f8", borderRadius: 20, padding: "4px 12px", display: "flex", alignItems: "center", gap: 6 }}>
+                      {m.name}
+                      <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 500 }}>{m.cohort} · {COHORT_NAMES_PE[m.cohort] || m.cohort}</span>
+                    </span>
+                  ))}
                 </div>
-              ))}
-            </div>
-
-            {/* Session Ideas */}
-            <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.6 }}>
-              Session Ideas
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {(insights.sessionIdeas || []).map((s, i) => (
-                <div key={i} style={{
-                  background: "rgba(255,255,255,0.08)", borderRadius: 10,
-                  padding: "12px 16px", display: "flex", gap: 12, alignItems: "flex-start",
-                  borderLeft: "3px solid rgba(167,139,250,0.6)",
-                }}>
-                  <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{SESSION_ICONS[i] || "•"}</span>
-                  <div>
-                    <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 700 }}>{s.title}</p>
-                    <p style={{ margin: 0, fontSize: 12, opacity: 0.8, lineHeight: 1.6 }}>{s.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            }
           </div>
         )}
       </div>
+    );
+  };
 
-      {/* ── Week-by-week themes (outside dark card, light background) ── */}
-      {insights && !insightsLoading && Object.keys(insights.weeklyThemes || {}).length > 0 && (
-        <div style={{ marginBottom: 28 }}>
-          <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 700, color: "#1a1733" }}>
-            📅 Themes by Prompt Section
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {Object.entries(insights.weeklyThemes).map(([key, section]) => (
-              <div key={key} style={{
-                background: "#fff", borderRadius: 12,
-                border: "1px solid #e8e4f5", padding: "16px 20px",
-              }}>
-                {/* Section header */}
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733", flex: 1 }}>
-                    {section.label}
-                  </p>
-                  <span style={{
-                    fontSize: 11, color: "#9b8fcf", background: "#f3f0ff",
-                    borderRadius: 20, padding: "2px 10px", flexShrink: 0,
-                  }}>
-                    {section.count} response{section.count !== 1 ? "s" : ""}
-                  </span>
+  // AI snapshot card for a set of section keys
+  const SnapshotCard = ({ data, loading, error, sectionKeys, label, emoji, cacheKey, isStale, setter, setLoad, setErr }) => (
+    <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "16px 18px", flex: 1, minWidth: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#1a1733", flex: 1 }}>{emoji} {label}</p>
+        {data?.generatedAt && <span style={{ fontSize: 10, color: "#9b8fcf" }}>{new Date(data.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span>}
+        <button onClick={() => fetchSnapshot(cacheKey, isStale, setter, setLoad, setErr, true)} disabled={loading}
+          style={{ background: "none", border: "none", color: "#c0b8d8", cursor: "pointer", fontSize: 12, padding: "0 0 0 8px", fontFamily: "Inter, system-ui, sans-serif" }}>↻</button>
+      </div>
+      {loading && <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf", fontStyle: "italic" }}>Analyzing…</p>}
+      {error && <p style={{ margin: 0, fontSize: 12, color: "#c00" }}>⚠️ {error}</p>}
+      {!loading && !error && !data && <p style={{ margin: 0, fontSize: 12, color: "#c0b8d8", fontStyle: "italic" }}>Not yet generated.</p>}
+      {data && !loading && (() => {
+        const items = sectionKeys.map(k => data.weeklyThemes?.[k]).filter(Boolean);
+        if (items.length === 0) return <p style={{ margin: 0, fontSize: 12, color: "#c0b8d8", fontStyle: "italic" }}>No themes yet — more responses needed.</p>;
+        return items.map((sec, si) => (
+          <div key={si} style={{ marginBottom: si < items.length - 1 ? 14 : 0 }}>
+            {items.length > 1 && <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>{sec.label}</p>}
+            <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+              {sec.themes.map((t, ti) => (
+                <div key={ti} style={{ display: "flex", gap: 7, alignItems: "flex-start" }}>
+                  <span style={{ background: "#f3f0ff", color: "#5c4eb5", borderRadius: 4, padding: "1px 6px", fontSize: 10, fontWeight: 800, flexShrink: 0, marginTop: 1 }}>#{ti + 1}</span>
+                  <div>
+                    <p style={{ margin: "0 0 1px", fontSize: 12, fontWeight: 600, color: "#1a1733" }}>{t.title}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "#6b6480", lineHeight: 1.55 }}>{t.description}</p>
+                  </div>
                 </div>
-                {/* Top 3 themes */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {section.themes.map((t, i) => (
-                    <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                      <span style={{
-                        background: "#f3f0ff", color: "#5c4eb5",
-                        borderRadius: 6, padding: "2px 8px",
-                        fontSize: 11, fontWeight: 800, flexShrink: 0, marginTop: 1,
-                      }}>
-                        #{i + 1}
-                      </span>
-                      <div>
-                        <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{t.title}</p>
-                        <p style={{ margin: 0, fontSize: 12, color: "#6b6480", lineHeight: 1.6 }}>{t.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              ))}
+            </div>
+          </div>
+        ));
+      })()}
+    </div>
+  );
+
+  const weekSections = (weekNum) => (stats?.sections || []).filter(s => (WEEK_KEYS[weekNum] || []).includes(s.key));
+
+  return (
+    <div style={{ maxWidth: 860, margin: "0 auto", padding: "32px 24px" }}>
+      <p style={{ margin: "0 0 20px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Prompt Engagement</p>
+
+      {/* Sub-tab bar */}
+      <div style={{ display: "flex", gap: 0, borderBottom: "2px solid #e8e4f5", marginBottom: 28, flexWrap: "wrap" }}>
+        {ACTIVE_WEEKS.map(w => (
+          <button key={w} onClick={() => setSubTab(w)} style={{
+            background: "none", border: "none",
+            borderBottom: subTab === w ? "2px solid #5c4eb5" : "2px solid transparent",
+            color: subTab === w ? "#5c4eb5" : "#9b8fcf",
+            fontFamily: "Inter, system-ui, sans-serif", fontSize: 13,
+            fontWeight: subTab === w ? 700 : 500,
+            padding: "8px 16px", cursor: "pointer", marginBottom: -2,
+          }}>Week {w}</button>
+        ))}
+        <button onClick={() => setSubTab("ai")} style={{
+          background: "none", border: "none",
+          borderBottom: subTab === "ai" ? "2px solid #5c4eb5" : "2px solid transparent",
+          color: subTab === "ai" ? "#5c4eb5" : "#9b8fcf",
+          fontFamily: "Inter, system-ui, sans-serif", fontSize: 13,
+          fontWeight: subTab === "ai" ? 700 : 500,
+          padding: "8px 16px", cursor: "pointer", marginBottom: -2,
+        }}>✨ AI Insights</button>
+      </div>
+
+      {/* ── WEEK TAB ── */}
+      {subTab !== "ai" && (
+        <div>
+          {statsLoading
+            ? <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>Loading…</p>
+            : <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+                {weekSections(subTab).map(s => <SectionCard key={s.key} section={s} />)}
+                {weekSections(subTab).length === 0 && (
+                  <p style={{ fontSize: 13, color: "#c0b8d8", fontStyle: "italic" }}>No prompt sections for this week yet.</p>
+                )}
               </div>
-            ))}
+          }
+
+          {/* AI snapshots side-by-side */}
+          <p style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>🧠 AI Theme Snapshots</p>
+          <div style={{ display: "flex", gap: 12 }}>
+            <SnapshotCard data={sunData} loading={loadingSun} error={errorSun} sectionKeys={WEEK_KEYS[subTab] || []}
+              label="Sunday Snapshot" emoji="🌙" cacheKey={SUN_CACHE} isStale={isSundayCacheStale}
+              setter={setSunData} setLoad={setLoadingSun} setErr={setErrorSun} />
+            <SnapshotCard data={wedData} loading={loadingWed} error={errorWed} sectionKeys={WEEK_KEYS[subTab] || []}
+              label="Wednesday Snapshot" emoji="📋" cacheKey={WED_CACHE} isStale={isWednesdayCacheStale}
+              setter={setWedData} setLoad={setLoadingWed} setErr={setErrorWed} />
           </div>
         </div>
       )}
 
-      {loading && <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>Loading…</p>}
-
-      {!loading && stats && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {(stats.sections || []).map(section => {
-            const total  = stats.total || 1;
-            const pct    = total > 0 ? Math.round((section.count / total) * 100) : 0;
-            const hasAny = section.count > 0;
-            const isOpen = !!openSections[section.key];
-            return (
-              <div key={section.key} style={{
-                background: "#fff", borderRadius: 12,
-                border: `1px solid ${isOpen ? "#c4b8f0" : "#e8e4f5"}`,
-                overflow: "hidden",
-                boxShadow: isOpen ? "0 2px 12px rgba(92,78,181,0.08)" : "none",
-              }}>
-                {/* Header row — clickable */}
-                <button
-                  onClick={() => toggle(section.key)}
-                  style={{
-                    width: "100%", background: "none", border: "none", cursor: "pointer",
-                    padding: "15px 20px", display: "flex", alignItems: "center", gap: 16,
-                    fontFamily: "Inter, system-ui, sans-serif", textAlign: "left",
-                  }}
-                >
-                  {/* Percentage pill */}
-                  <span style={{
-                    fontSize: 18, fontWeight: 800, lineHeight: 1, flexShrink: 0, minWidth: 52,
-                    color: hasAny ? "#5c4eb5" : "#c0b8d8",
-                  }}>
-                    {pct}%
-                  </span>
-
-                  {/* Label + mini bar */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: "0 0 5px", fontSize: 14, fontWeight: 600, color: "#1a1733" }}>
-                      {section.label}
-                    </p>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <div style={{ flex: 1, height: 5, background: "#e8e4f5", borderRadius: 3, overflow: "hidden", maxWidth: 260 }}>
-                        <div style={{
-                          width: `${pct}%`, height: "100%",
-                          background: hasAny ? "#5c4eb5" : "#e8e4f5",
-                          borderRadius: 3, transition: "width 0.4s",
-                        }} />
-                      </div>
-                      <span style={{ fontSize: 11, color: "#9b8fcf", flexShrink: 0 }}>
-                        {section.count} founder{section.count !== 1 ? "s" : ""}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Chevron */}
-                  <span style={{
-                    fontSize: 14, color: "#9b8fcf", flexShrink: 0,
-                    transform: isOpen ? "rotate(180deg)" : "none",
-                    transition: "transform 0.2s",
-                  }}>▾</span>
+      {/* ── AI INSIGHTS TAB ── */}
+      {subTab === "ai" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {[
+            { d: sunData, loading: loadingSun, err: errorSun, label: "🌙 Sunday Overall Analysis", ck: SUN_CACHE, stale: isSundayCacheStale, set: setSunData, setL: setLoadingSun, setE: setErrorSun },
+            { d: wedData, loading: loadingWed, err: errorWed, label: "📋 Wednesday Overall Analysis", ck: WED_CACHE, stale: isWednesdayCacheStale, set: setWedData, setL: setLoadingWed, setE: setErrorWed },
+          ].map(({ d, loading, err, label, ck, stale, set, setL, setE }) => (
+            <div key={label} style={{ background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)", borderRadius: 14, padding: "20px 24px", color: "#fff" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: d ? 18 : 0 }}>
+                <div>
+                  <p style={{ margin: "0 0 3px", fontSize: 15, fontWeight: 800 }}>{label}</p>
+                  <p style={{ margin: 0, fontSize: 11, opacity: 0.7 }}>
+                    {loading ? "Analyzing…" : d ? `From ${new Date(d.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · ${d.totalResponses || 0} responses` : "Not yet generated"}
+                  </p>
+                </div>
+                <button onClick={() => fetchSnapshot(ck, stale, set, setL, setE, true)} disabled={loading}
+                  style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", color: "#fff", borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 700, cursor: loading ? "default" : "pointer", fontFamily: "Inter, system-ui, sans-serif", flexShrink: 0, marginLeft: 16 }}>
+                  {loading ? "Analyzing…" : "↻ Refresh"}
                 </button>
-
-                {/* Dropdown — who completed */}
-                {isOpen && (
-                  <div style={{ borderTop: "1px solid #f0ecff", padding: "14px 20px" }}>
-                    {section.mentees.length === 0 ? (
-                      <p style={{ margin: 0, fontSize: 13, color: "#b0a8cc", fontStyle: "italic" }}>
-                        No responses saved yet.
-                      </p>
-                    ) : (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                        {section.mentees.map((m, i) => (
-                          <span key={i} style={{
-                            fontSize: 12, fontWeight: 600, color: "#1a1733",
-                            background: "#f3f0ff", border: "1px solid #e0d9f8",
-                            borderRadius: 20, padding: "4px 12px",
-                            display: "flex", alignItems: "center", gap: 6,
-                          }}>
-                            {m.name}
-                            <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 500 }}>
-                              {m.cohort} · {COHORT_NAMES_PE[m.cohort] || m.cohort}
-                            </span>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
-            );
-          })}
+              {err && <p style={{ margin: "8px 0 0", fontSize: 12, color: "#ffb3b3" }}>⚠️ {err}</p>}
+              {d && !loading && (
+                <div>
+                  <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.6 }}>Top 5 Themes</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 16 }}>
+                    {(d.themes || []).map((t, i) => (
+                      <div key={i} style={{ background: "rgba(255,255,255,0.1)", borderRadius: 8, padding: "10px 14px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+                        <span style={{ fontSize: 15, flexShrink: 0 }}>{THEME_ICONS[i] || "•"}</span>
+                        <div>
+                          <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 700 }}>{t.title}</p>
+                          <p style={{ margin: 0, fontSize: 11, opacity: 0.8, lineHeight: 1.55 }}>{t.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.6 }}>Session Ideas</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                    {(d.sessionIdeas || []).map((s, i) => (
+                      <div key={i} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 8, padding: "10px 14px", display: "flex", gap: 10, alignItems: "flex-start", borderLeft: "3px solid rgba(167,139,250,0.6)" }}>
+                        <span style={{ fontSize: 15, flexShrink: 0 }}>{SESSION_ICONS[i] || "•"}</span>
+                        <div>
+                          <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 700 }}>{s.title}</p>
+                          <p style={{ margin: 0, fontSize: 11, opacity: 0.8, lineHeight: 1.55 }}>{s.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
+
       <p style={{ margin: "28px 0 0", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
         📋 To view individual responses, please go directly to the master tracker sheet.
       </p>
