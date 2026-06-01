@@ -265,14 +265,14 @@ function Dashboard({ data, refreshedAt }) {
     },
     {
       label: "Participation Confirmed",
-      value: `${counts.participated} / ${counts.total}`,
+      value: counts.participated,
       color: "#1a6e42", bg: "#e8f8f0",
       desc: "Founders who have accepted their spot in the program",
       statusKey: null,
     },
     {
       label: "Onboarding Completed",
-      value: `${counts.onboarding} / ${counts.total}`,
+      value: counts.onboarding,
       color: "#2a7fd4", bg: "#e8f4ff",
       desc: "Founders who have attended an onboarding session",
       statusKey: null,
