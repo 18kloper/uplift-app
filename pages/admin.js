@@ -189,6 +189,94 @@ const MILESTONE_FILTERS = [
   { key: "edu3",    label: "3 Edu Sessions",    color: "#2a7fd4", bg: "#e8f4ff", test: m => m.eduCount >= 3 },
 ];
 
+// ─── Resource Engagement view ─────────────────────────────────────────────────
+function ResourceEngagement() {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/resource-stats")
+      .then(r => r.json())
+      .then(d => { setStats(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const RankList = ({ items, label }) => (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <p style={{ margin: "0 0 16px", fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
+        {label}
+      </p>
+      {items.length === 0 ? (
+        <p style={{ fontSize: 13, color: "#b0a8cc", fontStyle: "italic" }}>No clicks recorded yet.</p>
+      ) : (
+        items.map((item, i) => {
+          const max = items[0].count;
+          const pct = Math.round((item.count / max) * 100);
+          const medals = ["🥇", "🥈", "🥉", "4", "5"];
+          return (
+            <div key={i} style={{ marginBottom: 18 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 5 }}>
+                <span style={{ fontSize: i < 3 ? 18 : 13, width: 24, textAlign: "center", flexShrink: 0, fontWeight: 700, color: "#9b8fcf" }}>
+                  {medals[i]}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                    <a href={item.url || "#"} target="_blank" rel="noopener noreferrer"
+                      style={{ fontSize: 14, fontWeight: 600, color: "#1a1733", textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {item.title}
+                    </a>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#5c4eb5", flexShrink: 0 }}>
+                      {item.count} click{item.count !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                    <div style={{ flex: 1, height: 6, background: "#ede9f8", borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ width: `${pct}%`, height: "100%", background: i === 0 ? "#5c4eb5" : "#a090e0", borderRadius: 3, transition: "width 0.4s" }} />
+                    </div>
+                    <span style={{ fontSize: 11, color: "#b0a8cc", flexShrink: 0 }}>
+                      {item.uniqueFounders} founder{item.uniqueFounders !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+
+  return (
+    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <p style={{ margin: "0 0 2px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Resource Engagement</p>
+          <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>
+            {stats ? `${stats.total} total clicks recorded` : "Loading…"}
+          </p>
+        </div>
+      </div>
+
+      {loading && (
+        <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>Loading click data…</p>
+      )}
+
+      {!loading && stats && (
+        <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+          {/* This week */}
+          <div style={{ flex: 1, minWidth: 320, background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "28px 28px" }}>
+            <RankList items={stats.thisWeek} label="Top 5 — This Week" />
+          </div>
+          {/* All time */}
+          <div style={{ flex: 1, minWidth: 320, background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "28px 28px" }}>
+            <RankList items={stats.allTime} label="Top 5 — All Time" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main dashboard ────────────────────────────────────────────────────────────
 function Dashboard({ data, refreshedAt }) {
   const [activeCohort, setActiveCohort] = useState("All");
@@ -737,6 +825,7 @@ export default function AdminPage() {
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
+  const [adminTab, setAdminTab] = useState("mentees");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -795,7 +884,25 @@ export default function AdminPage() {
           </div>
         </div>
       )}
-      {data && !loading && <Dashboard data={data} refreshedAt={data.generatedAt} />}
+      {data && !loading && (
+        <>
+          {/* Top-level admin tab bar */}
+          <div style={{ background: "#1a0e4f", borderBottom: "1px solid rgba(255,255,255,0.1)", display: "flex", gap: 4, padding: "0 32px" }}>
+            {[{ key: "mentees", label: "👥 Mentees" }, { key: "resources", label: "📊 Resource Engagement" }].map(({ key, label }) => (
+              <button key={key} onClick={() => setAdminTab(key)} style={{
+                background: "none", border: "none", borderBottom: adminTab === key ? "2px solid #f5c542" : "2px solid transparent",
+                color: adminTab === key ? "#fff" : "rgba(255,255,255,0.5)",
+                fontFamily: "Inter, system-ui, sans-serif", fontSize: 13, fontWeight: 600,
+                padding: "12px 18px", cursor: "pointer", transition: "color 0.15s",
+              }}>
+                {label}
+              </button>
+            ))}
+          </div>
+          {adminTab === "mentees"   && <Dashboard data={data} refreshedAt={data.generatedAt} />}
+          {adminTab === "resources" && <ResourceEngagement />}
+        </>
+      )}
     </>
   );
 }
