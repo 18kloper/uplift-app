@@ -23,24 +23,34 @@ export default async function handler(req, res) {
       max_tokens: 600,
       messages: [{
         role: "user",
-        content: `You are writing a warm founder intro email on behalf of the TechUnited:NJ Uplift Summer 2026 team.
+        content: `Write a warm, personal intro email connecting two founders in the Uplift Summer 2026 mentorship program at TechUnited:NJ.
 
-You are introducing two founders from the Uplift accelerator to each other because you think they'd benefit from connecting.
-
-FOUNDER 1: ${founder1.name} (Cohort ${founder1.cohort} — ${founder1.cohortName})
-FOUNDER 2: ${founder2.name} (Cohort ${founder2.cohort} — ${founder2.cohortName})
+FOUNDER 1: ${founder1.name} (Cohort ${founder1.cohort} - ${founder1.cohortName})
+FOUNDER 2: ${founder2.name} (Cohort ${founder2.cohort} - ${founder2.cohortName})
 
 SHARED THEME: ${sharedTheme}
 WHY THEY SHOULD CONNECT: ${reason}
 
-Write a warm, punchy intro email that:
-- Opens with "Hi ${f1} and ${f2},"
-- In 2-3 sentences, explains why we're connecting them — pull the specific insight from the reason above, make it feel personal and observed (not generic)
-- Ends with something like "Feel free to reply-all and take it from here — we think you two will hit it off."
-- Signs off: "— The Uplift Team at TechUnited:NJ"
-- Total body under 120 words. Human and warm, not corporate.
+Follow this structure exactly:
 
-Subject line: "${f1} ↔ ${f2} — [5-word hook capturing the shared challenge or theme]"
+1. Open with: "Hey ${f1} and ${f2},"
+
+2. One sentence: From the founder insights you've both been sharing, I noticed you two might have a few things in common - thought I'd intro you.
+
+3. One sentence mentioning they're both mentees in the Uplift mentorship program and briefly noting what cohorts they're in.
+
+4. 2-3 sentences: "Here are some of the patterns I noticed:" then describe the specific shared themes and why this pairing makes sense. Draw directly from the reason provided. Be specific, not generic.
+
+5. Closing line: "Feel free to reply all and take it from here - I think you two might be able to exchange some real insights."
+
+6. Sign off:
+"Best,
+Kennedy"
+
+Keep the whole email under 130 words. Warm, human, direct. No corporate language.
+
+Subject line format (use a regular hyphen, not em dash):
+"You two should meet - ${f1} ↔ ${f2}"
 
 Return ONLY valid JSON:
 {
