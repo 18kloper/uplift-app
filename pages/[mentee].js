@@ -3179,10 +3179,11 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
                   rel="noopener noreferrer"
                   style={{
                     marginLeft: "auto",
-                    background: "rgba(255,255,255,0.15)", borderRadius: 8,
-                    padding: "5px 12px", fontSize: 12, fontWeight: 600,
-                    letterSpacing: "0.06em", textTransform: "uppercase",
-                    color: "#fff", textDecoration: "none", whiteSpace: "nowrap",
+                    background: "rgba(255,255,255,0.95)", borderRadius: 20,
+                    padding: "6px 14px", fontSize: 12, fontWeight: 700,
+                    letterSpacing: "0.04em", textTransform: "uppercase",
+                    color: "#3d2f8a", textDecoration: "none", whiteSpace: "nowrap",
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
                   }}
                 >
                   💡 Make a Suggestion
