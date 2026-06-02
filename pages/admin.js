@@ -2825,6 +2825,7 @@ function MentorEmailResponses({ confirmations = {}, onConfirmationChange }) {
   const [responses, setResponses] = useState([]);
   const [lastRefreshed, setLastRefreshed] = useState("");
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     fetch("/api/mentor-email-responses")
@@ -2838,6 +2839,19 @@ function MentorEmailResponses({ confirmations = {}, onConfirmationChange }) {
   }, []);
 
   const confKey = (threadId, slug) => `${threadId}|${slug}`;
+
+  // A card is "not reviewed" if any option has no confirmation set
+  const isNotReviewed = r => r.options.some(opt => !(confirmations[confKey(r.threadId, opt.slug)]));
+  // A card has a declined option
+  const hasDeclined = r => r.options.some(opt => confirmations[confKey(r.threadId, opt.slug)] === "declined");
+
+  const FILTERS = [
+    { key: "all",        label: "All",               match: () => true },
+    { key: "unreviewed", label: "Not Reviewed Yet",  match: isNotReviewed },
+    { key: "declined",   label: "Declined a Match",  match: hasDeclined },
+  ];
+
+  const visible = responses.filter(FILTERS.find(f => f.key === filter)?.match || (() => true));
 
   const sentimentColor = (selected) => {
     if (!selected) return { bg: "#fef2f2", border: "#fca5a5", badge: "#ef4444", badgeText: "#fff", label: "Declined" };
@@ -2853,13 +2867,39 @@ function MentorEmailResponses({ confirmations = {}, onConfirmationChange }) {
         <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: "#1e1b4b" }}>Mentor Confirmation</h2>
         <span style={{ fontSize: 13, color: "#6b7280" }}>{responses.length} replies received</span>
       </div>
-      <p style={{ margin: "0 0 28px", fontSize: 13, color: "#6b7280" }}>
+      <p style={{ margin: "0 0 16px", fontSize: 13, color: "#6b7280" }}>
         Replies to the "Your Uplift Mentor Matches" email via uplift@techunited.co &amp; uplift@vip.techunited.co.
         {lastRefreshed && ` Last parsed: ${lastRefreshed}.`}
       </p>
 
+      {/* Filter chips */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
+        {FILTERS.map(f => {
+          const count = responses.filter(f.match).length;
+          const active = filter === f.key;
+          const accent = f.key === "declined" ? "#dc2626" : "#5c4eb5";
+          return (
+            <button key={f.key} onClick={() => setFilter(f.key)} style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: active ? 700 : 500,
+              border: `1.5px solid ${active ? accent : "#e0daf5"}`,
+              background: active ? accent : "#fff",
+              color: active ? "#fff" : "#6b6480",
+              cursor: "pointer", fontFamily: "inherit",
+            }}>
+              {f.label}
+              <span style={{
+                background: active ? "rgba(255,255,255,0.25)" : "#f0ecff",
+                color: active ? "#fff" : accent,
+                borderRadius: 10, padding: "1px 7px", fontSize: 11, fontWeight: 700,
+              }}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        {responses.map(r => {
+        {visible.map(r => {
           const { bg, border, badge, badgeText, label } = sentimentColor(r.selected);
           return (
             <div key={r.threadId} style={{ background: "#fff", border: `1.5px solid ${border}`, borderRadius: 12, padding: "20px 24px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
