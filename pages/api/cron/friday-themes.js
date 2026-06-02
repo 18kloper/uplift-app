@@ -77,7 +77,7 @@ export default async function handler(req, res) {
 
   blocks.push({
     type: "context",
-    elements: [{ type: "mrkdwn", text: `AI analysis of founder prompt responses · <https://uplift.techunited.co/admin|Full breakdown in admin>` }],
+    elements: [{ type: "mrkdwn", text: `AI analysis of founder prompt responses · <https://uplift2026.vercel.app/admin|Full breakdown in admin>` }],
   });
 
   // ── Post to Slack ───────────────────────────────────────────────────────────
