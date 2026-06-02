@@ -2299,7 +2299,7 @@ export default function AdminPage() {
           {adminTab === "activity"    && <PortalActivity />}
           {adminTab === "connections" && <PeerConnections />}
           {adminTab === "pulse"       && <PulseReport />}
-          {adminTab === "matches"     && <MentorMatches confirmations={mentorConfirmations} sessions={mentorSessions} onSessionChange={handleMentorSessionChange} />}
+          {adminTab === "matches"     && <MentorMatches confirmations={mentorConfirmations} sessions={mentorSessions} onSessionChange={handleMentorSessionChange} mentees={data?.mentees || []} />}
           {adminTab === "emails"      && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} />}
         </>
       )}
@@ -2584,7 +2584,7 @@ function MentorSelections() {
 }
 
 // ─── Mentor Matches view ──────────────────────────────────────────────────────
-function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
+function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, mentees = [] }) {
   const [responses, setResponses] = useState([]);
   const [allMentors, setAllMentors] = useState([]);
   const [menteeBySlug, setMenteeBySlug] = useState({});
@@ -2653,13 +2653,32 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
       };
     });
 
+  // Build slug → { participation, churned } from admin mentees data
+  const menteeStatusBySlug = {};
+  for (const m of mentees) {
+    menteeStatusBySlug[m.slug] = {
+      participation: m.milestones?.participation || false,
+      churned: m.status === "churned",
+    };
+  }
+
+  // A row has confirmed mentees but at least one hasn't confirmed participation
+  const mentorConfirmedMenteePending = r => {
+    const confirmed = (r.allOpts || []).filter(o => confirmations[`${r.threadId}|${o.slug}`] === "confirmed");
+    return confirmed.length > 0 && confirmed.some(o => {
+      const s = menteeStatusBySlug[o.slug];
+      return s && !s.participation && !s.churned;
+    });
+  };
+
   const FILTERS = [
-    { key: "all",     label: "All",              match: () => true },
-    { key: "two",     label: "2 Mentees",        match: r => r.matchCount === 2 },
-    { key: "one",     label: "1 Mentee",         match: r => r.matchCount === 1 },
-    { key: "none",    label: "Needs a Mentee",   match: r => (r.needsMentee && !r.isPending && !r.allDeclined) || r.isApplicant },
-    { key: "rematch", label: "Needs Rematch",    match: r => r.allDeclined },
-    { key: "pending", label: "Pending",          match: r => r.isPending },
+    { key: "all",            label: "All",                          match: () => true },
+    { key: "two",            label: "2 Mentees",                   match: r => r.matchCount === 2 },
+    { key: "one",            label: "1 Mentee",                    match: r => r.matchCount === 1 },
+    { key: "none",           label: "Needs a Mentee",              match: r => (r.needsMentee && !r.isPending && !r.allDeclined) || r.isApplicant },
+    { key: "rematch",        label: "Needs Rematch",               match: r => r.allDeclined },
+    { key: "pending",        label: "Pending",                     match: r => r.isPending },
+    { key: "mentee-pending", label: "Mentee Not Yet Confirmed",    match: mentorConfirmedMenteePending },
   ];
 
   const visible = activeFilters.length === 0
@@ -2673,9 +2692,19 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
     const state = confirmations[`${threadId}|${opt.slug}`] || "";
     const isConf = state === "confirmed";
     const isDecl = state === "declined";
+    const menteeStatus = menteeStatusBySlug[opt.slug];
+    const menteeChurned = menteeStatus?.churned;
+    const menteeParticipated = menteeStatus?.participation;
+
+    // Dot reflects mentor confirmation state; inner pip reflects mentee participation
     const dotColor = isConf ? "#22a366" : isDecl ? "#e74c3c" : "#c0b8d8";
     const nameColor = isConf ? "#1a1733" : isDecl ? "#9b8fcf" : "#1a1733";
     const textDecor = isDecl ? "line-through" : "none";
+
+    // Participation bubble: green = confirmed, yellow = pending, red = churned, none if not confirmed by mentor yet
+    const pipColor = menteeChurned ? "#e74c3c" : menteeParticipated ? "#22a366" : "#f5a623";
+    const pipTitle = menteeChurned ? "Churned / dropped out" : menteeParticipated ? "Confirmed participation" : "Has not confirmed participation yet";
+
     const info = menteeBySlug[opt.slug] || {};
     return (
       <div style={{ minWidth: 0 }}>
@@ -2684,6 +2713,9 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
           <span style={{ fontSize: 13, fontWeight: 700, color: nameColor, textDecoration: textDecor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {opt.name}
           </span>
+          {menteeStatus && (
+            <div title={pipTitle} style={{ width: 7, height: 7, borderRadius: "50%", background: pipColor, flexShrink: 0, marginLeft: 1 }} />
+          )}
         </div>
         <div style={{ fontSize: 11, color: "#9b8fcf", paddingLeft: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{opt.company}</div>
         {info.email && (
