@@ -828,8 +828,8 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
         </p>
 
         <div style={{ marginBottom: 20 }}>
-          <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Reflection
+          <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 700, color: "#1a1733" }}>
+            Let's get more granular with your goals.
           </p>
           <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#5c4eb5", textTransform: "uppercase", letterSpacing: "0.05em" }}>
             Primary focus — {mentee.primaryFocus}
@@ -847,9 +847,6 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
 
         {mentee.secondaryFoci && mentee.secondaryFoci.length > 0 && (
           <div style={{ marginBottom: 20 }}>
-            <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              Reflection
-            </p>
             <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#2a7fd4", textTransform: "uppercase", letterSpacing: "0.05em" }}>
               Secondary focus — {mentee.secondaryFoci[0]}
             </p>
