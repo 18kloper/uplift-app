@@ -1256,7 +1256,7 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
             question="Share a Win — this will be shared with the group"
           />
           <p style={{ margin: "10px 0 0", fontSize: 12, color: "#9b7a00", fontStyle: "italic" }}>
-            ✨ Your win will be highlighted in the weekly Uplift update for your cohort and mentors.
+            ✨ Your win will be shared as an Uplift update with your fellow founders and mentors.
           </p>
         </div>
 
