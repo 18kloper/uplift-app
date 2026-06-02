@@ -2198,7 +2198,7 @@ export default function AdminPage() {
               { key: "activity",    label: "🕐 Portal Activity" },
               { key: "connections", label: "🤝 Peer Connections" },
               { key: "pulse",       label: "❤️ Weekly Pulse" },
-              { key: "matches",     label: "🔗 Mentor Matches" },
+              { key: "matches",     label: "👥 Mentors" },
               { key: "emails",      label: "✅ Mentor Confirmation" },
             ].map(({ key, label }) => (
               <button key={key} onClick={() => setAdminTab(key)} style={{
@@ -2534,23 +2534,26 @@ function MentorMatches({ confirmations = {} }) {
       const resp = responseByMentor[m.name];
       if (resp) {
         const opts = resp.options || [];
-        const visibleOpts = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] !== "declined");
         const confirmed = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] === "confirmed");
-        return { ...resp, opts: visibleOpts, matchCount: confirmed.length, needsMentee: confirmed.length === 0, isPending: false };
+        const declined  = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] === "declined");
+        const visibleOpts = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] !== "declined");
+        const allDeclined = opts.length > 0 && declined.length === opts.length;
+        return { ...resp, opts: visibleOpts, allOpts: opts, matchCount: confirmed.length, needsMentee: confirmed.length === 0, allDeclined, isPending: false };
       }
       // No response yet
       return {
         threadId: null, mentor: { name: m.name, email: m.email || "" },
-        opts: [], matchCount: 0, needsMentee: true, isPending: true,
+        opts: [], allOpts: [], matchCount: 0, needsMentee: true, allDeclined: false, isPending: true,
       };
     });
 
   const FILTERS = [
-    { key: "all",     label: "All",            match: () => true },
-    { key: "two",     label: "2 Mentees",      match: r => r.matchCount === 2 },
-    { key: "one",     label: "1 Mentee",       match: r => r.matchCount === 1 },
-    { key: "none",    label: "Needs a Mentee", match: r => r.needsMentee && !r.isPending },
-    { key: "pending", label: "No Reply Yet",   match: r => r.isPending },
+    { key: "all",     label: "All",              match: () => true },
+    { key: "two",     label: "2 Mentees",        match: r => r.matchCount === 2 },
+    { key: "one",     label: "1 Mentee",         match: r => r.matchCount === 1 },
+    { key: "none",    label: "Needs a Mentee",   match: r => r.needsMentee && !r.isPending && !r.allDeclined },
+    { key: "rematch", label: "Needs Rematch",    match: r => r.allDeclined },
+    { key: "pending", label: "Pending",          match: r => r.isPending },
   ];
 
   const visible = rows.filter(FILTERS.find(f => f.key === filter)?.match || (() => true));
@@ -2589,7 +2592,7 @@ function MentorMatches({ confirmations = {} }) {
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px", fontFamily: "Inter, system-ui, sans-serif" }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "baseline", gap: 14, marginBottom: 4 }}>
-        <p style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Mentor Matches</p>
+        <p style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Mentors</p>
         <span style={{ fontSize: 13, color: "#9b8fcf" }}>
           {rows.length} mentors · {rows.reduce((s, r) => s + r.matchCount, 0)} confirmed · {rows.filter(r => r.isPending).length} no reply yet
         </span>
@@ -2603,7 +2606,7 @@ function MentorMatches({ confirmations = {} }) {
         {FILTERS.map(f => {
           const count = rows.filter(f.match).length;
           const active = filter === f.key;
-          const accent = f.key === "none" ? "#b35c00" : f.key === "two" ? "#1a6e42" : "#5c4eb5";
+          const accent = f.key === "none" ? "#b35c00" : f.key === "two" ? "#1a6e42" : f.key === "rematch" ? "#c0392b" : "#5c4eb5";
           return (
             <button key={f.key} onClick={() => setFilter(f.key)} style={{
               display: "flex", alignItems: "center", gap: 6,
@@ -2653,9 +2656,9 @@ function MentorMatches({ confirmations = {} }) {
             // match badge
             const total = r.opts.length;
             const mc = r.matchCount;
-            const badgeLabel = r.isPending ? "No Reply Yet" : mc === 0 ? "Needs a Mentee" : mc === 1 ? "1 Mentee" : "2 Mentees";
-            const badgeColor = r.isPending ? "#6b6480" : mc === 0 ? "#b35c00" : mc === 2 ? "#1a6e42" : "#5c4eb5";
-            const badgeBg    = r.isPending ? "#f0eef8" : mc === 0 ? "#fff3e0" : mc === 2 ? "#e8f8f0" : "#f0ecff";
+            const badgeLabel = r.isPending ? "Pending" : r.allDeclined ? "Needs Rematch" : mc === 0 ? "Needs a Mentee" : mc === 1 ? "1 Mentee" : "2 Mentees";
+            const badgeColor = r.isPending ? "#6b6480" : r.allDeclined ? "#c0392b" : mc === 0 ? "#b35c00" : mc === 2 ? "#1a6e42" : "#5c4eb5";
+            const badgeBg    = r.isPending ? "#f0eef8" : r.allDeclined ? "#fdf0f0" : mc === 0 ? "#fff3e0" : mc === 2 ? "#e8f8f0" : "#f0ecff";
 
             return (
               <div key={r.threadId} style={{
