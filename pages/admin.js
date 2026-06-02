@@ -2595,9 +2595,21 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
     Promise.all([
       fetch("/api/mentor-email-responses").then(r => r.json()),
       fetch("/api/mentor-selections").then(r => r.json()),
-    ]).then(([emailData, selData]) => {
+      fetch("/api/mentor-applications").then(r => r.json()).catch(() => ({ mentors: [] })),
+    ]).then(([emailData, selData, appData]) => {
       setResponses(emailData.responses || []);
-      setAllMentors(selData.mentors || []);
+
+      // Merge MENTEES-assigned mentors with unmatched Typeform applicants
+      const assigned = selData.mentors || [];
+      const assignedNames = new Set(assigned.map(m => m.name.toLowerCase().trim()));
+      const assignedEmails = new Set(assigned.map(m => (m.email || "").toLowerCase().trim()).filter(Boolean));
+      const newApplicants = (appData.mentors || []).filter(m => {
+        const n = m.name.toLowerCase().trim();
+        const e = (m.email || "").toLowerCase().trim();
+        return !assignedNames.has(n) && !(e && assignedEmails.has(e));
+      });
+      setAllMentors([...assigned, ...newApplicants.map(m => ({ name: m.name, email: m.email, isApplicant: true }))]);
+
       // Build slug → { email, cohort } lookup
       const emails = selData.menteeEmails || {};
       const lookup = {};
@@ -2626,10 +2638,12 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
         const allDeclined = opts.length > 0 && declined.length === opts.length;
         return { ...resp, opts: visibleOpts, allOpts: opts, matchCount: confirmed.length, needsMentee: confirmed.length === 0, allDeclined, isPending: false };
       }
-      // No response yet
+      // No email response yet — applicants from Typeform not yet emailed show as Needs a Mentee
       return {
         threadId: null, mentor: { name: m.name, email: m.email || "" },
-        opts: [], allOpts: [], matchCount: 0, needsMentee: true, allDeclined: false, isPending: true,
+        opts: [], allOpts: [], matchCount: 0, needsMentee: true, allDeclined: false,
+        isPending: !m.isApplicant,
+        isApplicant: m.isApplicant || false,
       };
     });
 
@@ -2637,7 +2651,7 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
     { key: "all",     label: "All",              match: () => true },
     { key: "two",     label: "2 Mentees",        match: r => r.matchCount === 2 },
     { key: "one",     label: "1 Mentee",         match: r => r.matchCount === 1 },
-    { key: "none",    label: "Needs a Mentee",   match: r => r.needsMentee && !r.isPending && !r.allDeclined },
+    { key: "none",    label: "Needs a Mentee",   match: r => (r.needsMentee && !r.isPending && !r.allDeclined) || r.isApplicant },
     { key: "rematch", label: "Needs Rematch",    match: r => r.allDeclined },
     { key: "pending", label: "Pending",          match: r => r.isPending },
   ];
@@ -2787,9 +2801,9 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
             // match badge
             const total = r.opts.length;
             const mc = r.matchCount;
-            const badgeLabel = r.isPending ? "Pending" : r.allDeclined ? "Needs Rematch" : mc === 0 ? "Needs a Mentee" : mc === 1 ? "1 Mentee" : "2 Mentees";
-            const badgeColor = r.isPending ? "#6b6480" : r.allDeclined ? "#c0392b" : mc === 0 ? "#b35c00" : mc === 2 ? "#1a6e42" : "#5c4eb5";
-            const badgeBg    = r.isPending ? "#f0eef8" : r.allDeclined ? "#fdf0f0" : mc === 0 ? "#fff3e0" : mc === 2 ? "#e8f8f0" : "#f0ecff";
+            const badgeLabel = r.isPending ? "No Reply Yet" : r.isApplicant ? "Needs a Mentee" : r.allDeclined ? "Needs Rematch" : mc === 0 ? "Needs a Mentee" : mc === 1 ? "1 Mentee" : "2 Mentees";
+            const badgeColor = r.isPending ? "#6b6480" : r.isApplicant ? "#b35c00" : r.allDeclined ? "#c0392b" : mc === 0 ? "#b35c00" : mc === 2 ? "#1a6e42" : "#5c4eb5";
+            const badgeBg    = r.isPending ? "#f0eef8" : r.isApplicant ? "#fff3e0" : r.allDeclined ? "#fdf0f0" : mc === 0 ? "#fff3e0" : mc === 2 ? "#e8f8f0" : "#f0ecff";
 
             const mentorKey = r.mentor.email || r.mentor.name;
             const sk1 = opt1 ? `${mentorKey}|${opt1.slug}` : null;
