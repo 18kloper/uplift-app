@@ -1074,12 +1074,15 @@ function WeeklyPulse({ slug, weekNum }) {
         background: "#fafafa", borderRadius: 12, border: "1px solid #e8e4f5",
         padding: "18px 22px", marginBottom: 20,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#9b8fcf" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#9b8fcf" }}>
             How are you feeling about the program this week?
           </p>
           <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 600, background: "#f0ecff", borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>Optional</span>
         </div>
+        <p style={{ margin: "0 0 10px", fontSize: 12, color: "#c0b8d8", lineHeight: 1.6 }}>
+          Weekly pulse check · We use this to see where you&apos;re at in the program, how you&apos;re feeling, and how your momentum is going. It helps us gauge the cohort as a whole and spot where we can show up better for you.
+        </p>
         {/* Grayed-out preview of the rating buttons */}
         <div style={{ display: "flex", gap: 8, opacity: 0.35, pointerEvents: "none", marginBottom: 10 }}>
           {PULSE_RATINGS.map(r => (
@@ -1236,18 +1239,21 @@ function WeeklyFocus({ slug, weekNum }) {
         background: "#fafafa", borderRadius: 12, border: "1px solid #e8e4f5",
         padding: "18px 22px", marginBottom: 20,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
           <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#9b8fcf" }}>
             Share what you&apos;re focused on this week.
           </p>
           <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 600, background: "#f0ecff", borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>Optional</span>
         </div>
+        <p style={{ margin: "0 0 10px", fontSize: 12, color: "#c0b8d8", lineHeight: 1.6 }}>
+          Whether it&apos;s a small goal, a project, or a deadline — share what you&apos;re building or working on. If there&apos;s a program participant working on the same thing or something similar, we&apos;ll connect you.
+        </p>
         <div style={{
-          background: "#f7f5ff", borderRadius: 8, padding: "14px 16px",
-          fontSize: 13, color: "#b0a8cc", fontStyle: "italic", lineHeight: 1.6,
+          background: "#f7f5ff", borderRadius: 8, padding: "12px 16px",
+          fontSize: 12, color: "#b0a8cc", fontStyle: "italic", lineHeight: 1.6,
           border: "1.5px dashed #ddd8f5",
         }}>
-          🔒 Unlocks the week of {fmtPulseDate(win.start)} – {fmtPulseDate(win.end)} · Share what you&apos;re building toward and we&apos;ll connect you with founders working on something similar.
+          🔒 Unlocks the week of {fmtPulseDate(win.start)} – {fmtPulseDate(win.end)}.
         </div>
       </div>
     );
