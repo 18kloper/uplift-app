@@ -940,36 +940,37 @@ function PeerConnections() {
   };
 
   const updateStatus = (pairKey, status) => {
-    // status is the new value (string key or null/empty = clear)
     const nextStatus = status || null;
-    setConnections(prev => {
-      const current = prev.find(c => c.pairKey === pairKey);
-      const prevStatus = current ? current.status : null;
+    // Grab current value from state directly (no functional-updater side effects)
+    const conn = connections.find(c => c.pairKey === pairKey);
+    const prevStatus = conn?.status ?? null;
+    const updated = connections.map(c => c.pairKey !== pairKey ? c : { ...c, status: nextStatus });
 
-      // Set up undo
-      if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-      setUndoState({ pairKey, prevStatus });
-      undoTimerRef.current = setTimeout(() => setUndoState(null), 5000);
+    // Update React state
+    setConnections(updated);
 
-      const updated = prev.map(c => c.pairKey !== pairKey ? c : { ...c, status: nextStatus });
-      try { localStorage.setItem(STORE_KEY, JSON.stringify({ connections: updated, lastRunAt })); } catch (_) {}
-      // Persist to sheet (fire-and-forget)
-      const conn = updated.find(c => c.pairKey === pairKey);
-      if (conn) {
-        fetch("/api/save-peer-status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            pairKey,
-            status: nextStatus,
-            founder1Name: conn.founders?.[0]?.name,
-            founder2Name: conn.founders?.[1]?.name,
-            sharedTheme: conn.sharedTheme,
-          }),
-        }).catch(() => {});
-      }
-      return updated;
-    });
+    // Persist locally
+    try { localStorage.setItem(STORE_KEY, JSON.stringify({ connections: updated, lastRunAt })); } catch (_) {}
+
+    // Undo toast
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    setUndoState({ pairKey, prevStatus });
+    undoTimerRef.current = setTimeout(() => setUndoState(null), 5000);
+
+    // Persist to sheet (fire-and-forget)
+    if (conn) {
+      fetch("/api/save-peer-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pairKey,
+          status: nextStatus,
+          founder1Name: conn.founders?.[0]?.name,
+          founder2Name: conn.founders?.[1]?.name,
+          sharedTheme: conn.sharedTheme,
+        }),
+      }).catch(() => {});
+    }
   };
 
   const handleUndo = () => {
@@ -1042,11 +1043,31 @@ function PeerConnections() {
   const FounderPill = ({ founder }) => {
     const c = COHORT_COLORS[founder.cohort] || { bg: "#f3f0ff", color: "#5c4eb5", border: "#c4b8f0" };
     return (
-      <div style={{ background: c.bg, border: `1px solid ${c.border}`, borderRadius: 10, padding: "8px 14px", minWidth: 0 }}>
-        <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{founder.name}</p>
-        <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: c.color }}>
+      <div style={{ background: c.bg, border: `1px solid ${c.border}`, borderRadius: 10, padding: "10px 14px", minWidth: 0 }}>
+        <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{founder.name}</p>
+        {founder.company && (
+          <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 600, color: "#1a1733", opacity: 0.7 }}>{founder.company}</p>
+        )}
+        <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 600, color: c.color }}>
           Cohort {founder.cohort} · {founder.cohortName}
         </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 6px" }}>
+          {founder.industry && (
+            <span style={{ fontSize: 10, background: "rgba(0,0,0,0.06)", borderRadius: 4, padding: "1px 6px", color: "#4a4060", fontWeight: 500 }}>
+              {founder.industry}
+            </span>
+          )}
+          {founder.stage && (
+            <span style={{ fontSize: 10, background: "rgba(0,0,0,0.06)", borderRadius: 4, padding: "1px 6px", color: "#4a4060", fontWeight: 500 }}>
+              {founder.stage}
+            </span>
+          )}
+          {founder.county && (
+            <span style={{ fontSize: 10, background: "rgba(0,0,0,0.06)", borderRadius: 4, padding: "1px 6px", color: "#4a4060", fontWeight: 500 }}>
+              📍 {founder.county} County
+            </span>
+          )}
+        </div>
       </div>
     );
   };

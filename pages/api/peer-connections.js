@@ -43,6 +43,10 @@ export default async function handler(req, res) {
         name: `${m.first} ${m.last}`,
         cohort: m.cohort,
         cohortName: COHORT_NAMES[m.cohort] || m.cohort,
+        company: m.company || "",
+        stage: m.stage || "",
+        industry: m.industry || "",
+        county: m.county || "",
         responses: [],
       };
     }
@@ -141,10 +145,16 @@ Return ONLY valid JSON, no markdown:
       .map(c => ({
         sharedTheme: c.sharedTheme,
         reason: c.reason,
-        founders: [
-          { slug: c.slug1, name: slugIndex[c.slug1].name, cohort: slugIndex[c.slug1].cohort, cohortName: slugIndex[c.slug1].cohortName },
-          { slug: c.slug2, name: slugIndex[c.slug2].name, cohort: slugIndex[c.slug2].cohort, cohortName: slugIndex[c.slug2].cohortName },
-        ],
+        founders: [c.slug1, c.slug2].map(slug => ({
+          slug,
+          name: slugIndex[slug].name,
+          cohort: slugIndex[slug].cohort,
+          cohortName: slugIndex[slug].cohortName,
+          company: slugIndex[slug].company,
+          stage: slugIndex[slug].stage,
+          industry: slugIndex[slug].industry,
+          county: slugIndex[slug].county,
+        })),
       }));
 
     return res.status(200).json({
