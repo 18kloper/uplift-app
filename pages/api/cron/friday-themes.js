@@ -7,9 +7,9 @@ const SLACK_CHANNEL = "C0B3Q7WJF8C";
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
 
-  const isVercelCron = req.headers["x-vercel-cron"] === "1";
-  const isDev        = process.env.NODE_ENV === "development";
-  if (!isVercelCron && !isDev) return res.status(401).json({ error: "Unauthorized" });
+  const userAgent = req.headers["user-agent"] || "";
+  const isVercelCron = userAgent.includes("vercel-cron") || req.headers["x-vercel-cron"] === "1";
+  if (!isVercelCron && process.env.NODE_ENV !== "development") return res.status(401).json({ error: "Unauthorized" });
 
   const slackToken = process.env.SLACK_BOT_TOKEN;
   if (!slackToken) return res.status(500).json({ error: "SLACK_BOT_TOKEN not configured" });
