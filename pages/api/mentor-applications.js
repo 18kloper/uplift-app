@@ -1,63 +1,14 @@
 // GET /api/mentor-applications
-// Fetches all mentor Typeform submissions (form AayoroO1).
-// Returns mentors not already assigned in MENTEES so they appear on the Mentors tab.
-// Add ?debug=1 to see raw field structure.
+// Fetches mentor Typeform submissions (form AayoroO1).
+// Returns ONLY mentors not already assigned in MENTEES.
+// Add ?debug=1 to see raw field structure — use this to confirm field refs.
 
 import { MENTEES } from "../../lib/mentees";
 
 const FORM_ID = "AayoroO1";
 
-function extractNameEmail(answers, fields) {
-  // Build a title-keyed map for quick lookup
-  const byTitle = {};
-  for (const f of fields) {
-    const t = (f.title || "").toLowerCase().trim();
-    byTitle[t] = f.ref || f.id;
-  }
-
-  // Find field refs by fuzzy title match
-  const findRef = (...patterns) => {
-    for (const p of patterns) {
-      for (const [title, ref] of Object.entries(byTitle)) {
-        if (title.includes(p)) return ref;
-      }
-    }
-    return null;
-  };
-
-  const getByRef = (ref) => {
-    if (!ref) return "";
-    const a = answers.find(a => a.field?.ref === ref || a.field?.id === ref);
-    if (!a) return "";
-    return a.text || a.email || a.phone_number || "";
-  };
-
-  const firstRef = findRef("first name", "first_name", "firstname");
-  const lastRef  = findRef("last name",  "last_name",  "lastname", "surname");
-  const fullRef  = findRef("full name",  "full_name",  "your name", "name");
-  const emailRef = findRef("email");
-
-  const first = getByRef(firstRef);
-  const last  = getByRef(lastRef);
-  const full  = getByRef(fullRef);
-
-  let name = "";
-  if (first || last) name = `${first} ${last}`.trim();
-  else if (full)     name = full.trim();
-  else {
-    // Last resort: any text answer ≥2 words with no @
-    const t = answers.find(a =>
-      (a.type === "text" || a.type === "short_text") &&
-      a.text && !a.text.includes("@") && a.text.trim().split(/\s+/).length >= 2
-    );
-    if (t) name = t.text.trim();
-  }
-
-  // Email: field match first, then any email-type answer
-  const email = getByRef(emailRef) || answers.find(a => a.type === "email")?.email || "";
-
-  return { name, email };
-}
+// Normalize a name for comparison: lowercase, trim, collapse whitespace
+const norm = s => (s || "").toLowerCase().replace(/\s+/g, " ").trim();
 
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
@@ -76,42 +27,72 @@ export default async function handler(req, res) {
     const fields   = formDef.fields || [];
     const items    = respData.items || [];
 
-    // Debug mode — return field structure
+    // Debug mode — return raw field/answer structure so we can confirm refs
     if (req.query.debug === "1") {
       return res.status(200).json({
         totalResponses: items.length,
         fields: fields.map(f => ({ id: f.id, ref: f.ref, title: f.title, type: f.type })),
-        sampleAnswers: (items[0]?.answers || []).map(a => ({
-          fieldId: a.field?.id, fieldRef: a.field?.ref, type: a.type,
-          value: a.text || a.email || a.choice?.label || a.choices?.labels || a.boolean,
+        sample: (items[0]?.answers || []).map(a => ({
+          fieldId: a.field?.id, ref: a.field?.ref, type: a.type,
+          value: a.text || a.email || a.choice?.label || a.choices?.labels?.join(", ") || String(a.boolean ?? ""),
         })),
       });
     }
 
-    // Build set of existing mentor names/emails from MENTEES
-    const existingNames  = new Set();
-    const existingEmails = new Set();
-    for (const m of MENTEES) {
-      if (m.mentor?.name)  existingNames.add(m.mentor.name.toLowerCase().trim());
-      if (m.mentor?.email) existingEmails.add(m.mentor.email.toLowerCase().trim());
-    }
+    // Find field refs by matching title keywords — NO fallback to arbitrary text
+    const findRef = (...keywords) => {
+      for (const f of fields) {
+        const t = (f.title || "").toLowerCase();
+        if (keywords.some(k => t.includes(k))) return f.ref || f.id;
+      }
+      return null;
+    };
+
+    const firstRef = findRef("first name", "first_name");
+    const lastRef  = findRef("last name",  "last_name");
+    const fullRef  = !firstRef && !lastRef ? findRef("full name", "your name", "name") : null;
+    const emailRef = findRef("email");
+
+    const getVal = (answers, ref) => {
+      if (!ref) return "";
+      const a = answers.find(a => (a.field?.ref === ref || a.field?.id === ref));
+      return a?.text || a?.email || "";
+    };
+
+    // Build existing mentor lookup — names AND emails
+    const existingNames  = new Set(MENTEES.map(m => norm(m.mentor?.name)).filter(Boolean));
+    const existingEmails = new Set(MENTEES.map(m => norm(m.mentor?.email)).filter(Boolean));
 
     const seen = new Set();
     const newMentors = [];
 
     for (const item of items) {
-      const { name, email } = extractNameEmail(item.answers || [], fields);
-      if (!name) continue;
+      const answers = item.answers || [];
 
-      const nameKey  = name.toLowerCase().trim();
-      const emailKey = (email || "").toLowerCase().trim();
-      const dedupeKey = emailKey || nameKey;
+      // Extract name — ONLY from labeled name fields, never from arbitrary text
+      const first = getVal(answers, firstRef);
+      const last  = getVal(answers, lastRef);
+      const full  = getVal(answers, fullRef);
 
-      if (seen.has(dedupeKey)) continue;
-      seen.add(dedupeKey);
+      let name = "";
+      if (first || last) name = `${first} ${last}`.trim();
+      else if (full)     name = full.trim();
+      else continue; // can't identify name — skip
 
+      // Extract email — labeled field first, then any email-type answer
+      const email = getVal(answers, emailRef) || answers.find(a => a.type === "email")?.email || "";
+
+      const nameKey  = norm(name);
+      const emailKey = norm(email);
+
+      // Skip if already in MENTEES (by name or email)
       if (existingNames.has(nameKey)) continue;
       if (emailKey && existingEmails.has(emailKey)) continue;
+
+      // Dedupe within this batch
+      const dedupeKey = emailKey || nameKey;
+      if (seen.has(dedupeKey)) continue;
+      seen.add(dedupeKey);
 
       newMentors.push({ name, email, submittedAt: item.submitted_at });
     }
@@ -121,6 +102,8 @@ export default async function handler(req, res) {
       total: items.length,
       existingCount: existingNames.size,
       newCount: newMentors.length,
+      // Include refs found so we can verify in logs
+      _refs: { firstRef, lastRef, fullRef, emailRef },
     });
   } catch (err) {
     console.error("mentor-applications error:", err.message);
