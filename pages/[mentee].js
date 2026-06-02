@@ -1064,9 +1064,11 @@ function WeeklyPulse({ slug, weekNum }) {
   const isPast   = win && today > win.end;
   const isFuture = win && today < win.start;
 
-  // Onboarding week: no pulse — show a locked teaser box
-  if (weekNum === 1) {
-    const week2Win = PULSE_WINDOWS.find(w => w.week === 2);
+  // Onboarding week: no pulse at all
+  if (weekNum === 1) return null;
+
+  // Future weeks: styled locked box
+  if (isFuture) {
     return (
       <div style={{
         background: "#fafafa", borderRadius: 12, border: "1px solid #e8e4f5",
@@ -1083,14 +1085,11 @@ function WeeklyPulse({ slug, weekNum }) {
           fontSize: 13, color: "#b0a8cc", fontStyle: "italic", lineHeight: 1.6,
           border: "1.5px dashed #ddd8f5",
         }}>
-          🔒 Pulse check-ins unlock the week of {fmtPulseDate(week2Win.start)} – {fmtPulseDate(week2Win.end)} · Starting Week 2, we&apos;ll check in each week to see how you&apos;re feeling about the program.
+          🔒 Unlocks {fmtPulseDate(win.start)} — available until {fmtPulseDate(win.end)}.
         </div>
       </div>
     );
   }
-
-  // Future weeks: don't render at all (they haven't started yet)
-  if (isFuture) return null;
 
   // Past window
   if (isPast) {
