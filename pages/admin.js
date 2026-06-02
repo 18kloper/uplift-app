@@ -1515,11 +1515,12 @@ function PortalActivity() {
 }
 
 // ─── Main dashboard ────────────────────────────────────────────────────────────
-function Dashboard({ data, refreshedAt }) {
+function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlugs = new Set() }) {
   const [activeCohort, setActiveCohort] = useState("All");
   const [search, setSearch] = useState("");
   const [statusFilters, setStatusFilters] = useState([]);
   const [milestoneFilters, setMilestoneFilters] = useState([]);
+  const [needsMentorFilter, setNeedsMentorFilter] = useState(false);
 
   const { mentees = [], pendingReviewCount = 0 } = data;
   const isPreProgram = new Date() < PROGRAM_START;
@@ -1542,7 +1543,8 @@ function Dashboard({ data, refreshedAt }) {
     const statusMatch = statusFilters.length === 0 || statusFilters.includes(m.status);
     const milestoneMatch = milestoneFilters.length === 0 ||
       MILESTONE_FILTERS.filter(f => milestoneFilters.includes(f.key)).some(f => f.test(m));
-    return cohortMatch && searchMatch && statusMatch && milestoneMatch;
+    const needsMentorMatch = !needsMentorFilter || declinedSlugs.has(m.slug) || (!m.mentorName && !confirmedSlugs.has(m.slug));
+    return cohortMatch && searchMatch && statusMatch && milestoneMatch && needsMentorMatch;
   });
 
   const realMentees   = mentees.filter(m => !m.isTest);
@@ -1831,6 +1833,28 @@ function Dashboard({ data, refreshedAt }) {
             );
           })}
 
+          {/* Divider */}
+          <span style={{ width: 1, height: 18, background: "#e0daf0", flexShrink: 0 }} />
+
+          {/* Needs Mentor filter */}
+          {(() => {
+            const nmCount = mentees.filter(m => declinedSlugs.has(m.slug) || (!m.mentorName && !confirmedSlugs.has(m.slug))).length;
+            return (
+              <button onClick={() => setNeedsMentorFilter(p => !p)} style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+                border: needsMentorFilter ? "2px solid #b35c00" : "1.5px solid #b35c0044",
+                background: needsMentorFilter ? "#b35c00" : "#fff3e0",
+                color: needsMentorFilter ? "#fff" : "#b35c00",
+                cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s", userSelect: "none",
+              }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: needsMentorFilter ? "rgba(255,255,255,0.8)" : "#b35c00", flexShrink: 0 }} />
+                Needs Mentor ({nmCount})
+                {needsMentorFilter && <span style={{ marginLeft: 1 }}>×</span>}
+              </button>
+            );
+          })()}
+
         </div>
 
         {/* Table — sticky header, scrollable rows */}
@@ -1931,9 +1955,16 @@ function Dashboard({ data, refreshedAt }) {
 
                       {/* Mentor */}
                       <div style={{ minWidth: 0 }}>
-                        {m.mentorName ? (
+                        {declinedSlugs.has(m.slug) ? (
+                          <span style={{ fontSize: 11, fontWeight: 700, color: "#b35c00", background: "#fff3e0", borderRadius: 4, padding: "2px 7px" }}>
+                            Needs Mentor
+                          </span>
+                        ) : m.mentorName ? (
                           <>
-                            <p style={{ margin: "0 0 1px", fontSize: 13, fontWeight: 600, color: "#1a1733", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            <p style={{ margin: "0 0 1px", fontSize: 13, fontWeight: 600, color: "#1a1733", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 4 }}>
+                              {confirmedSlugs.has(m.slug) && (
+                                <span style={{ color: "#22a366", fontSize: 13, flexShrink: 0 }}>✓</span>
+                              )}
                               {m.mentorName}
                             </p>
                             <p style={{
@@ -1978,7 +2009,12 @@ function Dashboard({ data, refreshedAt }) {
 
                       {/* Flags */}
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 3, minWidth: 0 }}>
-                        {m.flags.length === 0 ? (
+                        {declinedSlugs.has(m.slug) && (
+                          <span style={{ fontSize: 10, fontWeight: 600, lineHeight: 1.3, background: "#fff3e0", color: "#b35c00", borderRadius: 4, padding: "2px 5px" }}>
+                            Mentor declined — needs reassignment
+                          </span>
+                        )}
+                        {m.flags.length === 0 && !declinedSlugs.has(m.slug) ? (
                           <span style={{ fontSize: 11, color: "#27ae60", fontWeight: 600 }}>✓ All clear</span>
                         ) : (
                           m.flags.slice(0, 3).map((f, fi) => (
@@ -2071,12 +2107,34 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
   const [adminTab, setAdminTab] = useState("mentees");
+  const [mentorConfirmations, setMentorConfirmations] = useState({});
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (sessionStorage.getItem("uplift_admin") === "yes") setAuthed(true);
     }
   }, []);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("uplift_mentor_confirmations_v1");
+      if (stored) setMentorConfirmations(JSON.parse(stored));
+    } catch (_) {}
+  }, []);
+
+  const handleConfirmationChange = (key, val, meta) => {
+    const next = { ...mentorConfirmations, [key]: val };
+    setMentorConfirmations(next);
+    try { localStorage.setItem("uplift_mentor_confirmations_v1", JSON.stringify(next)); } catch (_) {}
+    // Persist to Google Sheet (fire-and-forget)
+    if (meta) {
+      fetch("/api/save-mentor-confirmation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...meta, status: val }),
+      }).catch(() => {});
+    }
+  };
 
   useEffect(() => {
     if (!authed) return;
@@ -2132,7 +2190,7 @@ export default function AdminPage() {
       {data && !loading && (
         <>
           {/* Top-level admin tab bar */}
-          <div style={{ background: "#1a0e4f", borderBottom: "1px solid rgba(255,255,255,0.1)", display: "flex", gap: 4, padding: "0 32px" }}>
+          <div style={{ background: "#1a0e4f", borderBottom: "1px solid rgba(255,255,255,0.1)", display: "flex", gap: 4, padding: "0 32px", overflowX: "auto" }}>
             {[
               { key: "mentees",     label: "👥 Mentees" },
               { key: "clicks",      label: "📊 Click Engagement" },
@@ -2140,6 +2198,8 @@ export default function AdminPage() {
               { key: "activity",    label: "🕐 Portal Activity" },
               { key: "connections", label: "🤝 Peer Connections" },
               { key: "pulse",       label: "❤️ Weekly Pulse" },
+              { key: "matches",     label: "🔗 Mentor Matches" },
+              { key: "emails",      label: "✅ Mentor Confirmation" },
             ].map(({ key, label }) => (
               <button key={key} onClick={() => setAdminTab(key)} style={{
                 background: "none", border: "none", borderBottom: adminTab === key ? "2px solid #f5c542" : "2px solid transparent",
@@ -2151,15 +2211,611 @@ export default function AdminPage() {
               </button>
             ))}
           </div>
-          {adminTab === "mentees"  && <Dashboard data={data} refreshedAt={data.generatedAt} />}
+          {(() => {
+            const confirmedSlugs = new Set(Object.entries(mentorConfirmations).filter(([,v]) => v === "confirmed").map(([k]) => k.split("|")[1]));
+            const declinedSlugs  = new Set(Object.entries(mentorConfirmations).filter(([,v]) => v === "declined").map(([k]) => k.split("|")[1]));
+            return adminTab === "mentees" && <Dashboard data={data} refreshedAt={data.generatedAt} confirmedSlugs={confirmedSlugs} declinedSlugs={declinedSlugs} />;
+          })()}
           {adminTab === "clicks"   && <ClickEngagement />}
           {adminTab === "prompts"     && <PromptEngagement />}
           {adminTab === "activity"    && <PortalActivity />}
           {adminTab === "connections" && <PeerConnections />}
           {adminTab === "pulse"       && <PulseReport />}
+          {adminTab === "matches"     && <MentorMatches confirmations={mentorConfirmations} />}
+          {adminTab === "emails"      && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} />}
         </>
       )}
     </>
+  );
+}
+
+// ─── Mentor Selections view ───────────────────────────────────────────────────
+function MentorSelections() {
+  const [selections, setSelections] = useState([]);
+  const [mentors, setMentors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState({}); // slug → "saving" | "saved" | "error"
+  const [activeCohort, setActiveCohort] = useState("All");
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [edits, setEdits] = useState({}); // slug → { responded, selectedMentor, responseDate, notes }
+  const COHORT_NAMES_MS = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
+
+  useEffect(() => {
+    fetch("/api/mentor-selections")
+      .then(r => r.json())
+      .then(d => {
+        setSelections(d.selections || []);
+        setMentors(d.mentors || []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const getEdited = (s) => ({ ...s, ...(edits[s.slug] || {}) });
+
+  const handleChange = (slug, field, value) => {
+    setEdits(prev => ({ ...prev, [slug]: { ...(prev[slug] || {}), [field]: value } }));
+  };
+
+  const save = async (slug) => {
+    const sel = getEdited(selections.find(s => s.slug === slug));
+    setSaving(prev => ({ ...prev, [slug]: "saving" }));
+    try {
+      await fetch("/api/save-mentor-selection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug,
+          responded:      sel.responded,
+          selectedMentor: sel.selectedMentor,
+          responseDate:   sel.responseDate,
+          notes:          sel.notes,
+        }),
+      });
+      // Merge edits back into selections
+      setSelections(prev => prev.map(s => s.slug === slug ? { ...s, ...(edits[slug] || {}) } : s));
+      setEdits(prev => { const n = { ...prev }; delete n[slug]; return n; });
+      setSaving(prev => ({ ...prev, [slug]: "saved" }));
+      setTimeout(() => setSaving(prev => { const n = { ...prev }; delete n[slug]; return n; }), 2000);
+    } catch (_) {
+      setSaving(prev => ({ ...prev, [slug]: "error" }));
+      setTimeout(() => setSaving(prev => { const n = { ...prev }; delete n[slug]; return n; }), 3000);
+    }
+  };
+
+  const cohorts = ["All", 1, 2, 3, 4, 5, "Test"];
+  const TEST_SLUGS = ["kennedy", "jackie", "aaron", "mj"];
+
+  const FILTERS = [
+    { key: "all",       label: "All",          match: () => true },
+    { key: "responded", label: "Responded",    match: s => s.responded },
+    { key: "pending",   label: "No response",  match: s => !s.responded },
+  ];
+
+  let visible = selections.filter(s => {
+    if (activeCohort === "Test") return TEST_SLUGS.includes(s.slug);
+    if (activeCohort === "All")  return !TEST_SLUGS.includes(s.slug);
+    return s.cohort === activeCohort && !TEST_SLUGS.includes(s.slug);
+  });
+  const filterFn = FILTERS.find(f => f.key === activeFilter)?.match || (() => true);
+  visible = visible.filter(s => filterFn(getEdited(s)));
+
+  const totalResponded = selections.filter(s => !TEST_SLUGS.includes(s.slug) && getEdited(s).responded).length;
+  const totalNonTest   = selections.filter(s => !TEST_SLUGS.includes(s.slug)).length;
+
+  return (
+    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px", fontFamily: "Inter, system-ui, sans-serif" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <p style={{ margin: "0 0 3px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Mentor Selections</p>
+          <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>
+            {loading ? "Loading…" : `${totalResponded} of ${totalNonTest} founders have responded`}
+          </p>
+        </div>
+        {/* Response progress bar */}
+        {!loading && totalNonTest > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 180, height: 8, background: "#e8e4f5", borderRadius: 4, overflow: "hidden" }}>
+              <div style={{
+                width: `${Math.round(totalResponded / totalNonTest * 100)}%`,
+                height: "100%", background: "#27ae60", borderRadius: 4, transition: "width 0.4s",
+              }} />
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#1a6e42" }}>
+              {Math.round(totalResponded / totalNonTest * 100)}%
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Cohort tabs */}
+      <div style={{ display: "flex", gap: 0, borderBottom: "2px solid #e8e4f5", marginBottom: 20 }}>
+        {cohorts.map(c => (
+          <button key={c} onClick={() => setActiveCohort(c)} style={{
+            background: "none", border: "none",
+            borderBottom: activeCohort === c ? "2px solid #5c4eb5" : "2px solid transparent",
+            color: activeCohort === c ? "#5c4eb5" : "#9b8fcf",
+            fontFamily: "inherit", fontSize: 13,
+            fontWeight: activeCohort === c ? 700 : 500,
+            padding: "8px 16px", cursor: "pointer", marginBottom: -2,
+          }}>
+            {c === "All" || c === "Test" ? c : `${COHORT_NAMES_MS[c]} (${c})`}
+          </button>
+        ))}
+      </div>
+
+      {/* Status filters */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
+        {FILTERS.map(f => {
+          const count = selections
+            .filter(s => activeCohort === "Test" ? TEST_SLUGS.includes(s.slug) : activeCohort === "All" ? !TEST_SLUGS.includes(s.slug) : s.cohort === activeCohort && !TEST_SLUGS.includes(s.slug))
+            .filter(s => f.match(getEdited(s))).length;
+          const active = activeFilter === f.key;
+          return (
+            <button key={f.key} onClick={() => setActiveFilter(f.key)} style={{
+              padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: active ? 700 : 500,
+              border: active ? "1.5px solid #5c4eb5" : "1.5px solid #e0daf5",
+              background: active ? "#5c4eb5" : "#fff",
+              color: active ? "#fff" : "#6b6480",
+              cursor: "pointer", fontFamily: "inherit",
+              display: "flex", alignItems: "center", gap: 6,
+            }}>
+              {f.label}
+              <span style={{
+                background: active ? "rgba(255,255,255,0.25)" : "#f0ecff",
+                color: active ? "#fff" : "#5c4eb5",
+                borderRadius: 10, padding: "1px 7px", fontSize: 11, fontWeight: 700,
+              }}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {loading && <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>Loading mentor selections…</p>}
+
+      {!loading && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {visible.length === 0 && (
+            <p style={{ fontSize: 13, color: "#c0b8d8", fontStyle: "italic" }}>No founders match this filter.</p>
+          )}
+          {visible.map(rawSel => {
+            const sel = getEdited(rawSel);
+            const isDirty = !!edits[sel.slug];
+            const savingState = saving[sel.slug];
+            return (
+              <div key={sel.slug} style={{
+                background: "#fff", borderRadius: 12,
+                border: isDirty ? "1.5px solid #a78bfa" : "1px solid #e8e4f5",
+                padding: "14px 18px",
+              }}>
+                {/* Row 1: identity + responded toggle + save */}
+                <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 12, flexWrap: "wrap" }}>
+                  <div style={{ flex: "0 0 180px", minWidth: 0 }}>
+                    <p style={{ margin: "0 0 1px", fontSize: 14, fontWeight: 700, color: "#1a1733" }}>
+                      {sel.first} {sel.last}
+                    </p>
+                    <p style={{ margin: "0 0 3px", fontSize: 11, color: "#9b8fcf", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {sel.company}
+                    </p>
+                    <span style={{ fontSize: 10, fontWeight: 700, background: "#f3f0ff", color: "#5c4eb5", borderRadius: 4, padding: "1px 7px" }}>
+                      {COHORT_NAMES_MS[sel.cohort]} ({sel.cohort})
+                    </span>
+                  </div>
+                  <div style={{ flex: "0 0 160px", minWidth: 0 }}>
+                    <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 700, color: "#b0a8cc", textTransform: "uppercase", letterSpacing: "0.05em" }}>Assigned</p>
+                    <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#4a4060" }}>
+                      {sel.assignedMentor || <span style={{ color: "#c0b8d8", fontStyle: "italic" }}>—</span>}
+                    </p>
+                  </div>
+                  <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                    <button
+                      onClick={() => handleChange(sel.slug, "responded", !sel.responded)}
+                      style={{
+                        padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700,
+                        cursor: "pointer", fontFamily: "inherit", border: "none",
+                        background: sel.responded ? "#e8f8f0" : "#fef0f0",
+                        color: sel.responded ? "#1a6e42" : "#c0392b",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {sel.responded ? "✓ Responded" : "✕ No response"}
+                    </button>
+                    {isDirty && (
+                      <button
+                        onClick={() => save(sel.slug)}
+                        disabled={savingState === "saving"}
+                        style={{
+                          padding: "6px 16px", borderRadius: 8, fontSize: 12, fontWeight: 700,
+                          cursor: savingState === "saving" ? "default" : "pointer",
+                          fontFamily: "inherit", border: "none", whiteSpace: "nowrap",
+                          background: savingState === "saved" ? "#e8f8f0" : savingState === "error" ? "#fee2e2" : "#5c4eb5",
+                          color: savingState === "saved" ? "#1a6e42" : savingState === "error" ? "#c0392b" : "#fff",
+                        }}
+                      >
+                        {savingState === "saving" ? "Saving…" : savingState === "saved" ? "✓ Saved" : savingState === "error" ? "Error" : "Save"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 2: selected mentor + date + notes */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 160px 1fr", gap: 12 }}>
+                  <div>
+                    <p style={{ margin: "0 0 4px", fontSize: 10, fontWeight: 700, color: "#b0a8cc", textTransform: "uppercase", letterSpacing: "0.05em" }}>Selected by founder</p>
+                    <select
+                      value={sel.selectedMentor || ""}
+                      onChange={e => handleChange(sel.slug, "selectedMentor", e.target.value)}
+                      style={{
+                        width: "100%", padding: "7px 10px", borderRadius: 7,
+                        border: "1.5px solid #e8e4f5", fontSize: 12, fontFamily: "inherit",
+                        outline: "none", background: "#fafafa", color: "#1a1733", cursor: "pointer",
+                      }}
+                      onFocus={e => (e.target.style.borderColor = "#a78bfa")}
+                      onBlur={e => (e.target.style.borderColor = "#e8e4f5")}
+                    >
+                      <option value="">— Not recorded —</option>
+                      {mentors.map(m => (
+                        <option key={m.name} value={m.name}>{m.name} ({m.company})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <p style={{ margin: "0 0 4px", fontSize: 10, fontWeight: 700, color: "#b0a8cc", textTransform: "uppercase", letterSpacing: "0.05em" }}>Date responded</p>
+                    <input
+                      type="date"
+                      value={sel.responseDate || ""}
+                      onChange={e => handleChange(sel.slug, "responseDate", e.target.value)}
+                      style={{
+                        width: "100%", padding: "7px 10px", borderRadius: 7,
+                        border: "1.5px solid #e8e4f5", fontSize: 12, fontFamily: "inherit",
+                        outline: "none", background: "#fafafa", boxSizing: "border-box",
+                      }}
+                      onFocus={e => (e.target.style.borderColor = "#a78bfa")}
+                      onBlur={e => (e.target.style.borderColor = "#e8e4f5")}
+                    />
+                  </div>
+                  <div>
+                    <p style={{ margin: "0 0 4px", fontSize: 10, fontWeight: 700, color: "#b0a8cc", textTransform: "uppercase", letterSpacing: "0.05em" }}>Notes</p>
+                    <input
+                      type="text"
+                      value={sel.notes || ""}
+                      onChange={e => handleChange(sel.slug, "notes", e.target.value)}
+                      placeholder="Optional notes…"
+                      style={{
+                        width: "100%", padding: "7px 10px", borderRadius: 7,
+                        border: "1.5px solid #e8e4f5", fontSize: 12, fontFamily: "inherit",
+                        outline: "none", background: "#fafafa", boxSizing: "border-box",
+                      }}
+                      onFocus={e => (e.target.style.borderColor = "#a78bfa")}
+                      onBlur={e => (e.target.style.borderColor = "#e8e4f5")}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <p style={{ margin: "28px 0 0", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
+        📋 Changes are saved to the "Mentor Selections" tab in the master tracker sheet.
+      </p>
+    </div>
+  );
+}
+
+// ─── Mentor Matches view ──────────────────────────────────────────────────────
+function MentorMatches({ confirmations = {} }) {
+  const [responses, setResponses] = useState([]);
+  const [allMentors, setAllMentors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all");
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/mentor-email-responses").then(r => r.json()),
+      fetch("/api/mentor-selections").then(r => r.json()),
+    ]).then(([emailData, selData]) => {
+      setResponses(emailData.responses || []);
+      setAllMentors(selData.mentors || []);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, []);
+
+  // Build a map of email responses by mentor name
+  const responseByMentor = {};
+  for (const r of responses) responseByMentor[r.mentor.name] = r;
+
+  // Full rows: all mentors, overlay response data if available
+  const rows = allMentors
+    .filter(m => m.name !== "MJ" && m.name !== "Kennedy") // exclude test accounts
+    .map(m => {
+      const resp = responseByMentor[m.name];
+      if (resp) {
+        const opts = resp.options || [];
+        const visibleOpts = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] !== "declined");
+        const confirmed = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] === "confirmed");
+        return { ...resp, opts: visibleOpts, matchCount: confirmed.length, needsMentee: confirmed.length === 0, isPending: false };
+      }
+      // No response yet
+      return {
+        threadId: null, mentor: { name: m.name, email: m.email || "" },
+        opts: [], matchCount: 0, needsMentee: true, isPending: true,
+      };
+    });
+
+  const FILTERS = [
+    { key: "all",     label: "All",            match: () => true },
+    { key: "two",     label: "2 Mentees",      match: r => r.matchCount === 2 },
+    { key: "one",     label: "1 Mentee",       match: r => r.matchCount === 1 },
+    { key: "none",    label: "Needs a Mentee", match: r => r.needsMentee && !r.isPending },
+    { key: "pending", label: "No Reply Yet",   match: r => r.isPending },
+  ];
+
+  const visible = rows.filter(FILTERS.find(f => f.key === filter)?.match || (() => true));
+
+  const COLS = "1.4fr 1.6fr 1.6fr 120px";
+
+  const MenteeCell = ({ opt, threadId }) => {
+    if (!opt) return <span style={{ fontSize: 12, color: "#c0b8d8" }}>—</span>;
+    const state = confirmations[`${threadId}|${opt.slug}`] || "";
+    const isConf = state === "confirmed";
+    const isDecl = state === "declined";
+    const dotColor = isConf ? "#22a366" : isDecl ? "#e74c3c" : "#c0b8d8";
+    const nameColor = isConf ? "#1a1733" : isDecl ? "#9b8fcf" : "#1a1733";
+    const textDecor = isDecl ? "line-through" : "none";
+    return (
+      <div style={{ minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
+          <div style={{ width: 7, height: 7, borderRadius: "50%", background: dotColor, flexShrink: 0 }} />
+          <span style={{ fontSize: 13, fontWeight: 700, color: nameColor, textDecoration: textDecor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {opt.name}
+          </span>
+        </div>
+        <div style={{ fontSize: 11, color: "#9b8fcf", paddingLeft: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{opt.company}</div>
+        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", paddingLeft: 12, marginTop: 3 }}>
+          <span style={{ fontSize: 10, background: "#f3f0ff", color: "#5c4eb5", borderRadius: 4, padding: "1px 5px", fontWeight: 600 }}>{opt.stage}</span>
+        </div>
+      </div>
+    );
+  };
+
+  if (loading) return (
+    <div style={{ padding: 48, textAlign: "center", color: "#9b8fcf", fontFamily: "Inter, system-ui, sans-serif" }}>Loading…</div>
+  );
+
+  return (
+    <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px", fontFamily: "Inter, system-ui, sans-serif" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "baseline", gap: 14, marginBottom: 4 }}>
+        <p style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Mentor Matches</p>
+        <span style={{ fontSize: 13, color: "#9b8fcf" }}>
+          {rows.length} mentors · {rows.reduce((s, r) => s + r.matchCount, 0)} confirmed · {rows.filter(r => r.isPending).length} no reply yet
+        </span>
+      </div>
+      <p style={{ margin: "0 0 24px", fontSize: 13, color: "#9b8fcf" }}>
+        Confirmed/declined on the ✅ Mentor Confirmation tab — matches update here automatically.
+      </p>
+
+      {/* Filter chips */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        {FILTERS.map(f => {
+          const count = rows.filter(f.match).length;
+          const active = filter === f.key;
+          const accent = f.key === "none" ? "#b35c00" : f.key === "two" ? "#1a6e42" : "#5c4eb5";
+          return (
+            <button key={f.key} onClick={() => setFilter(f.key)} style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: active ? 700 : 500,
+              border: `1.5px solid ${active ? accent : "#e0daf5"}`,
+              background: active ? accent : "#fff",
+              color: active ? "#fff" : "#6b6480",
+              cursor: "pointer", fontFamily: "inherit",
+            }}>
+              {f.label}
+              <span style={{
+                background: active ? "rgba(255,255,255,0.25)" : "#f0ecff",
+                color: active ? "#fff" : accent,
+                borderRadius: 10, padding: "1px 7px", fontSize: 11, fontWeight: 700,
+              }}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Table */}
+      <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", overflow: "clip" }}>
+        <div style={{ overflowY: "auto", maxHeight: "calc(100vh - 360px)", minHeight: 200 }}>
+          {/* Sticky header */}
+          <div style={{
+            position: "sticky", top: 0, zIndex: 10,
+            display: "grid", gridTemplateColumns: COLS,
+            padding: "11px 20px", background: "#f7f5ff",
+            borderBottom: "1px solid #e8e4f5",
+          }}>
+            {["Mentor", "Mentee 1", "Mentee 2", "Mentees"].map(h => (
+              <p key={h} style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                {h}
+              </p>
+            ))}
+          </div>
+
+          {/* Rows */}
+          {visible.length === 0 ? (
+            <div style={{ padding: "40px", textAlign: "center", color: "#9b8fcf", fontSize: 14 }}>
+              No mentors match this filter.
+            </div>
+          ) : visible.map((r, i) => {
+            const opt1 = r.opts[0];
+            const opt2 = r.opts[1] || null;
+
+            // match badge
+            const total = r.opts.length;
+            const mc = r.matchCount;
+            const badgeLabel = r.isPending ? "No Reply Yet" : mc === 0 ? "Needs a Mentee" : mc === 1 ? "1 Mentee" : "2 Mentees";
+            const badgeColor = r.isPending ? "#6b6480" : mc === 0 ? "#b35c00" : mc === 2 ? "#1a6e42" : "#5c4eb5";
+            const badgeBg    = r.isPending ? "#f0eef8" : mc === 0 ? "#fff3e0" : mc === 2 ? "#e8f8f0" : "#f0ecff";
+
+            return (
+              <div key={r.threadId} style={{
+                display: "grid", gridTemplateColumns: COLS,
+                padding: "13px 20px", alignItems: "start",
+                borderBottom: i < visible.length - 1 ? "1px solid #f5f3ff" : "none",
+                background: i % 2 === 0 ? "#fff" : "#fdfcff",
+              }}>
+                {/* Mentor */}
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ margin: "0 0 1px", fontSize: 13, fontWeight: 700, color: "#1a1733", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {r.mentor.name}
+                  </p>
+                  <p style={{ margin: 0, fontSize: 11, color: "#9b8fcf", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {r.mentor.email}
+                  </p>
+                </div>
+
+                {/* Mentee 1 */}
+                <MenteeCell opt={opt1} threadId={r.threadId} />
+
+                {/* Mentee 2 */}
+                <MenteeCell opt={opt2} threadId={r.threadId} />
+
+                {/* Match badge */}
+                <div>
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, padding: "3px 10px",
+                    borderRadius: 20, background: badgeBg, color: badgeColor,
+                    whiteSpace: "nowrap",
+                  }}>
+                    {badgeLabel}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Mentor Email Responses view ──────────────────────────────────────────────
+function MentorEmailResponses({ confirmations = {}, onConfirmationChange }) {
+  const [responses, setResponses] = useState([]);
+  const [lastRefreshed, setLastRefreshed] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/mentor-email-responses")
+      .then(r => r.json())
+      .then(d => {
+        setResponses(d.responses || []);
+        setLastRefreshed(d.lastRefreshed || "");
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const confKey = (threadId, slug) => `${threadId}|${slug}`;
+
+  const sentimentColor = (selected) => {
+    if (!selected) return { bg: "#fef2f2", border: "#fca5a5", badge: "#ef4444", badgeText: "#fff", label: "Declined" };
+    if (selected === "Both") return { bg: "#f0fdf4", border: "#86efac", badge: "#22c55e", badgeText: "#fff", label: "Both" };
+    return { bg: "#f0f9ff", border: "#7dd3fc", badge: "#3b82f6", badgeText: "#fff", label: "1 of 2" };
+  };
+
+  if (loading) return <div style={{ padding: 48, textAlign: "center", color: "#6b7280" }}>Loading…</div>;
+
+  return (
+    <div style={{ padding: "32px 40px", maxWidth: 960, margin: "0 auto" }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 8 }}>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: "#1e1b4b" }}>Mentor Confirmation</h2>
+        <span style={{ fontSize: 13, color: "#6b7280" }}>{responses.length} replies received</span>
+      </div>
+      <p style={{ margin: "0 0 28px", fontSize: 13, color: "#6b7280" }}>
+        Replies to the "Your Uplift Mentor Matches" email via uplift@techunited.co &amp; uplift@vip.techunited.co.
+        {lastRefreshed && ` Last parsed: ${lastRefreshed}.`}
+      </p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        {responses.map(r => {
+          const { bg, border, badge, badgeText, label } = sentimentColor(r.selected);
+          return (
+            <div key={r.threadId} style={{ background: "#fff", border: `1.5px solid ${border}`, borderRadius: 12, padding: "20px 24px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+              {/* Header row */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#ede9fe", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16, color: "#7c3aed", flexShrink: 0 }}>
+                  {r.mentor.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: 16, color: "#1e1b4b" }}>{r.mentor.name}</div>
+                  <div style={{ fontSize: 12, color: "#6b7280" }}>{r.mentor.email}</div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ background: badge, color: badgeText, fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20 }}>{label}</span>
+                  <span style={{ fontSize: 12, color: "#9ca3af" }}>{r.replyDate}</span>
+                </div>
+              </div>
+
+              {/* Options */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+                {r.options.map((opt, i) => {
+                  const chosen = r.selected === "Both" || r.selected === opt.name;
+                  const ck = confKey(r.threadId, opt.slug);
+                  const conf = confirmations[ck] || "";
+                  const confColors = {
+                    confirmed: { bg: "#f0fdf4", border: "#86efac", label: "✓ Confirmed", color: "#16a34a" },
+                    declined:  { bg: "#fef2f2", border: "#fca5a5", label: "✕ Declined",  color: "#dc2626" },
+                    "":        { bg: chosen ? "#f5f3ff" : "#f9fafb", border: chosen ? "#c4b5fd" : "#e5e7eb", label: "", color: "#6b7280" },
+                  };
+                  const cc = confColors[conf] || confColors[""];
+                  return (
+                    <div key={i} style={{ background: cc.bg, border: `1px solid ${cc.border}`, borderRadius: 8, padding: "12px 14px" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                        <div style={{ fontSize: 11, fontWeight: 600, color: chosen ? "#7c3aed" : "#6b7280", textTransform: "uppercase", letterSpacing: "0.06em" }}>Option {i + 1}</div>
+                        <select
+                          value={conf}
+                          onChange={e => onConfirmationChange && onConfirmationChange(ck, e.target.value, {
+                            threadId: r.threadId,
+                            mentorName: r.mentor.name,
+                            mentorEmail: r.mentor.email,
+                            menteeName: opt.name,
+                            menteeSlug: opt.slug,
+                          })}
+                          style={{
+                            fontSize: 11, fontWeight: 700, borderRadius: 6, border: "1px solid #d1d5db",
+                            padding: "2px 6px", cursor: "pointer", fontFamily: "inherit",
+                            background: conf === "confirmed" ? "#dcfce7" : conf === "declined" ? "#fee2e2" : "#f9fafb",
+                            color: conf === "confirmed" ? "#16a34a" : conf === "declined" ? "#dc2626" : "#6b7280",
+                            outline: "none",
+                          }}
+                        >
+                          <option value="">— Pending —</option>
+                          <option value="confirmed">✓ Confirmed</option>
+                          <option value="declined">✕ Declined</option>
+                        </select>
+                      </div>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: "#1e1b4b", marginBottom: 2 }}>{opt.name}</div>
+                      <div style={{ fontSize: 13, color: "#4b5563", marginBottom: 6 }}>{opt.company}</div>
+                      <div style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.5 }}>
+                        <span style={{ background: "#e5e7eb", borderRadius: 4, padding: "1px 6px", marginRight: 4 }}>{opt.stage}</span>
+                        {opt.industry}
+                      </div>
+                      {opt.needs && <div style={{ fontSize: 11, color: "#6b7280", marginTop: 4 }}>Needs: {opt.needs}</div>}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Reply */}
+              <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderLeft: "3px solid #7c3aed", borderRadius: "0 6px 6px 0", padding: "12px 16px", fontSize: 13, color: "#374151", lineHeight: 1.6, fontStyle: "italic" }}>
+                "{r.reply}"
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
