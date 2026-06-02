@@ -4014,7 +4014,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
                   fontFamily: "inherit", transition: "color 0.15s, border-color 0.15s",
                 }}
               >
-                ✨ Wrapped
+                <em>✨ Uplift Wrapped</em>
               </button>
             </div>
           </div>
