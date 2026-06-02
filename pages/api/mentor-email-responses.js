@@ -136,6 +136,17 @@ const RESPONSES = [
     ],
     selected: "Both",
   },
+  {
+    threadId: "19e89409a73dc381",
+    mentor: { name: "ebun okubanjo", email: "et@mssuzie.io" },
+    replyDate: "2026-06-02",
+    reply: "I have decided on this company: Elisa Charters — Juegos AI Lab. I would have loved to do both but due to work, I want to be on the safer side and give my all to this. I also know software and consumer tech a lot more than I do hardware and manufacturing.",
+    options: [
+      { name: "Andrea Vernengo", company: "TrueSkin", slug: "andrea-vernengo", stage: "MVP / Early build", industry: "Hardware / Manufacturing", needs: "Fundraising strategy & investor readiness" },
+      { name: "Elisa Charters", company: "Juegos AI Lab", slug: "elisa-charters", stage: "Early traction", industry: "Other", needs: "Fundraising strategy & investor readiness" },
+    ],
+    selected: "Elisa Charters",
+  },
 ];
 
 export default function handler(req, res) {
