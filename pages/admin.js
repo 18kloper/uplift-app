@@ -978,6 +978,21 @@ function PeerConnections() {
     return new Date(b.addedAt || 0) - new Date(a.addedAt || 0);
   });
 
+  // Detect duplicate pairs: same two founders appearing in multiple cards
+  const namePairKey = (conn) => (conn.founders || []).map(f => f.name).sort().join("||");
+  const pairStatusMap = {};
+  connections.forEach(c => {
+    const nk = namePairKey(c);
+    if (!pairStatusMap[nk]) pairStatusMap[nk] = [];
+    pairStatusMap[nk].push({ pairKey: c.pairKey, status: c.status });
+  });
+  const getSiblingStatus = (conn) => {
+    const siblings = (pairStatusMap[namePairKey(conn)] || []).filter(s => s.pairKey !== conn.pairKey && s.status);
+    if (siblings.some(s => s.status === "connected")) return "connected";
+    if (siblings.some(s => s.status === "planned")) return "planned";
+    return null;
+  };
+
   const newCount = connections.filter(c => c.isNew).length;
 
   const FounderPill = ({ founder }) => {
@@ -1022,15 +1037,30 @@ function PeerConnections() {
               padding: "18px 20px",
               boxShadow: "0 1px 4px rgba(92,78,181,0.06)",
             }}>
-              {/* Top row: NEW badge + shared theme + date */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-<span style={{ background: "#f3f0ff", color: "#5c4eb5", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em" }}>
-                  🔗 {conn.sharedTheme}
-                </span>
-                <span style={{ marginLeft: "auto", fontSize: 10, color: "#c0b8d8", flexShrink: 0 }}>
-                  Suggested Jun 1, 2026
-                </span>
-              </div>
+              {/* Top row: shared theme + already-handled badge + date */}
+              {(() => {
+                const siblingStatus = getSiblingStatus(conn);
+                return (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+                    <span style={{ background: "#f3f0ff", color: "#5c4eb5", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em" }}>
+                      🔗 {conn.sharedTheme}
+                    </span>
+                    {siblingStatus === "connected" && (
+                      <span style={{ background: "#e8f8f0", color: "#1a6e42", border: "1px solid #b8e8d0", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>
+                        ✓ Already connected
+                      </span>
+                    )}
+                    {siblingStatus === "planned" && (
+                      <span style={{ background: "#fffbe6", color: "#7a5700", border: "1px solid #f5c542", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>
+                        📅 Connection in progress
+                      </span>
+                    )}
+                    <span style={{ marginLeft: "auto", fontSize: 10, color: "#c0b8d8", flexShrink: 0 }}>
+                      Suggested Jun 1, 2026
+                    </span>
+                  </div>
+                );
+              })()}
 
               {/* The two founders */}
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
