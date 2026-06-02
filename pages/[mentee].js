@@ -1067,26 +1067,35 @@ function WeeklyPulse({ slug, weekNum }) {
   // Onboarding week: no pulse at all
   if (weekNum === 1) return null;
 
-  // Future weeks: styled locked box
+  // Future weeks: preview with disabled rating buttons
   if (isFuture) {
     return (
       <div style={{
         background: "#fafafa", borderRadius: 12, border: "1px solid #e8e4f5",
         padding: "18px 22px", marginBottom: 20,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
           <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#9b8fcf" }}>
             How are you feeling about the program this week?
           </p>
           <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 600, background: "#f0ecff", borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>Optional</span>
         </div>
-        <div style={{
-          background: "#f7f5ff", borderRadius: 8, padding: "14px 16px",
-          fontSize: 13, color: "#b0a8cc", fontStyle: "italic", lineHeight: 1.6,
-          border: "1.5px dashed #ddd8f5",
-        }}>
-          🔒 Unlocks {fmtPulseDate(win.start)} — available until {fmtPulseDate(win.end)}.
+        {/* Grayed-out preview of the rating buttons */}
+        <div style={{ display: "flex", gap: 8, opacity: 0.35, pointerEvents: "none", marginBottom: 10 }}>
+          {PULSE_RATINGS.map(r => (
+            <div key={r.value} style={{
+              flex: 1, padding: "10px 4px", borderRadius: 8,
+              border: "1.5px solid #e8e4f5", background: "#fff",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+            }}>
+              <span style={{ fontSize: 20 }}>{r.emoji}</span>
+              <span style={{ fontSize: 10, fontWeight: 500, color: "#9b8fcf" }}>{r.label}</span>
+            </div>
+          ))}
         </div>
+        <p style={{ margin: 0, fontSize: 11, color: "#b0a8cc", fontStyle: "italic" }}>
+          🔒 Unlocks {fmtPulseDate(win.start)} — available until {fmtPulseDate(win.end)}.
+        </p>
       </div>
     );
   }
