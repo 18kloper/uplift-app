@@ -1515,13 +1515,14 @@ function PortalActivity() {
 }
 
 // ─── Main dashboard ────────────────────────────────────────────────────────────
-function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlugs = new Set() }) {
+function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlugs = new Set(), respondedMentorNames = new Set() }) {
   const [activeCohort, setActiveCohort] = useState("All");
   const [search, setSearch] = useState("");
   const [statusFilters, setStatusFilters] = useState([]);
   const [milestoneFilters, setMilestoneFilters] = useState([]);
   const [needsMentorFilter, setNeedsMentorFilter] = useState(false);
   const [confirmedMentorFilter, setConfirmedMentorFilter] = useState(false);
+  const [pendingMentorFilter, setPendingMentorFilter] = useState(false);
 
   const { mentees = [], pendingReviewCount = 0 } = data;
   const isPreProgram = new Date() < PROGRAM_START;
@@ -1546,7 +1547,8 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
       MILESTONE_FILTERS.filter(f => milestoneFilters.includes(f.key)).some(f => f.test(m));
     const needsMentorMatch = !needsMentorFilter || declinedSlugs.has(m.slug) || (!m.mentorName && !confirmedSlugs.has(m.slug));
     const confirmedMentorMatch = !confirmedMentorFilter || confirmedSlugs.has(m.slug);
-    return cohortMatch && searchMatch && statusMatch && milestoneMatch && needsMentorMatch && confirmedMentorMatch;
+    const pendingMentorMatch = !pendingMentorFilter || (m.mentorName && !respondedMentorNames.has(m.mentorName));
+    return cohortMatch && searchMatch && statusMatch && milestoneMatch && needsMentorMatch && confirmedMentorMatch && pendingMentorMatch;
   });
 
   const realMentees   = mentees.filter(m => !m.isTest);
@@ -1876,6 +1878,25 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
             );
           })()}
 
+          {/* Pending Mentor Match filter */}
+          {(() => {
+            const pmCount = mentees.filter(m => m.mentorName && !respondedMentorNames.has(m.mentorName)).length;
+            return (
+              <button onClick={() => setPendingMentorFilter(p => !p)} style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+                border: pendingMentorFilter ? "2px solid #6b6480" : "1.5px solid #6b648044",
+                background: pendingMentorFilter ? "#6b6480" : "#f0eef8",
+                color: pendingMentorFilter ? "#fff" : "#6b6480",
+                cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s", userSelect: "none",
+              }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: pendingMentorFilter ? "rgba(255,255,255,0.8)" : "#6b6480", flexShrink: 0 }} />
+                Pending Mentor Reply ({pmCount})
+                {pendingMentorFilter && <span style={{ marginLeft: 1 }}>×</span>}
+              </button>
+            );
+          })()}
+
         </div>
 
         {/* Table — sticky header, scrollable rows */}
@@ -2130,6 +2151,7 @@ export default function AdminPage() {
   const [adminTab, setAdminTab] = useState("mentees");
   const [mentorConfirmations, setMentorConfirmations] = useState({});
   const [mentorSessions, setMentorSessions] = useState({});
+  const [respondedMentorNames, setRespondedMentorNames] = useState(new Set());
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -2171,10 +2193,14 @@ export default function AdminPage() {
   useEffect(() => {
     if (!authed) return;
     setLoading(true);
-    fetch("/api/admin-data")
-      .then(r => r.json())
-      .then(d => { setData(d); setLoading(false); })
-      .catch(e => { setError(e.message); setLoading(false); });
+    Promise.all([
+      fetch("/api/admin-data").then(r => r.json()),
+      fetch("/api/mentor-email-responses").then(r => r.json()),
+    ]).then(([d, emailData]) => {
+      setData(d);
+      setRespondedMentorNames(new Set((emailData.responses || []).map(r => r.mentor.name)));
+      setLoading(false);
+    }).catch(e => { setError(e.message); setLoading(false); });
   }, [authed]);
 
   const handleAuth = () => {
@@ -2246,7 +2272,7 @@ export default function AdminPage() {
           {(() => {
             const confirmedSlugs = new Set(Object.entries(mentorConfirmations).filter(([,v]) => v === "confirmed").map(([k]) => k.split("|")[1]));
             const declinedSlugs  = new Set(Object.entries(mentorConfirmations).filter(([,v]) => v === "declined").map(([k]) => k.split("|")[1]));
-            return adminTab === "mentees" && <Dashboard data={data} refreshedAt={data.generatedAt} confirmedSlugs={confirmedSlugs} declinedSlugs={declinedSlugs} />;
+            return adminTab === "mentees" && <Dashboard data={data} refreshedAt={data.generatedAt} confirmedSlugs={confirmedSlugs} declinedSlugs={declinedSlugs} respondedMentorNames={respondedMentorNames} />;
           })()}
           {adminTab === "clicks"   && <ClickEngagement />}
           {adminTab === "prompts"     && <PromptEngagement />}
@@ -2843,12 +2869,12 @@ function MentorEmailResponses({ confirmations = {}, onConfirmationChange }) {
   // A card is "not reviewed" if any option has no confirmation set
   const isNotReviewed = r => r.options.some(opt => !(confirmations[confKey(r.threadId, opt.slug)]));
   // A card has a declined option
-  const hasDeclined = r => r.options.some(opt => confirmations[confKey(r.threadId, opt.slug)] === "declined");
+  const hasDeclined = r => r.options.length > 0 && r.options.every(opt => confirmations[confKey(r.threadId, opt.slug)] === "declined");
 
   const FILTERS = [
     { key: "all",        label: "All",               match: () => true },
     { key: "unreviewed", label: "Not Reviewed Yet",  match: isNotReviewed },
-    { key: "declined",   label: "Declined a Match",  match: hasDeclined },
+    { key: "declined",   label: "Declined Both Matches",  match: hasDeclined },
   ];
 
   const visible = responses.filter(FILTERS.find(f => f.key === filter)?.match || (() => true));
