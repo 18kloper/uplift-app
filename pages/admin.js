@@ -941,10 +941,15 @@ function PeerConnections() {
 
   const updateStatus = (pairKey, status) => {
     const nextStatus = status || null;
-    // Grab current value from state directly (no functional-updater side effects)
     const conn = connections.find(c => c.pairKey === pairKey);
     const prevStatus = conn?.status ?? null;
-    const updated = connections.map(c => c.pairKey !== pairKey ? c : { ...c, status: nextStatus });
+    const prevStatusUpdatedAt = conn?.statusUpdatedAt ?? null;
+    const now = new Date().toISOString();
+    const updated = connections.map(c => c.pairKey !== pairKey ? c : {
+      ...c,
+      status: nextStatus,
+      statusUpdatedAt: nextStatus ? now : null,
+    });
 
     // Update React state
     setConnections(updated);
@@ -954,7 +959,7 @@ function PeerConnections() {
 
     // Undo toast
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-    setUndoState({ pairKey, prevStatus });
+    setUndoState({ pairKey, prevStatus, prevStatusUpdatedAt });
     undoTimerRef.current = setTimeout(() => setUndoState(null), 5000);
 
     // Persist to sheet (fire-and-forget)
@@ -977,7 +982,7 @@ function PeerConnections() {
     if (!undoState) return;
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
     setConnections(prev => {
-      const updated = prev.map(c => c.pairKey === undoState.pairKey ? { ...c, status: undoState.prevStatus } : c);
+      const updated = prev.map(c => c.pairKey === undoState.pairKey ? { ...c, status: undoState.prevStatus, statusUpdatedAt: undoState.prevStatusUpdatedAt ?? null } : c);
       try { localStorage.setItem(STORE_KEY, JSON.stringify({ connections: updated, lastRunAt })); } catch (_) {}
       return updated;
     });
@@ -1152,9 +1157,25 @@ function PeerConnections() {
                         📅 Connection in progress
                       </span>
                     )}
-                    <span style={{ marginLeft: "auto", fontSize: 10, color: "#c0b8d8", flexShrink: 0 }}>
-                      Suggested Jun 1, 2026
-                    </span>
+                    {(() => {
+                      const fmtDate = iso => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+                      let label, color;
+                      if (conn.status === "connected" && conn.statusUpdatedAt) {
+                        label = `Connected on ${fmtDate(conn.statusUpdatedAt)}`;
+                        color = "#1a6e42";
+                      } else if (conn.status === "planned" && conn.statusUpdatedAt) {
+                        label = `Planning to connect on ${fmtDate(conn.statusUpdatedAt)}`;
+                        color = "#7a5700";
+                      } else {
+                        label = `Suggested ${fmtDate(conn.addedAt || new Date())}`;
+                        color = "#c0b8d8";
+                      }
+                      return (
+                        <span style={{ marginLeft: "auto", fontSize: 10, color, fontStyle: "italic", flexShrink: 0 }}>
+                          {label}
+                        </span>
+                      );
+                    })()}
                   </div>
                 );
               })()}
