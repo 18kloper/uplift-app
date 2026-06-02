@@ -943,23 +943,24 @@ function PeerConnections() {
     const nextStatus = status || null;
     const conn = connections.find(c => c.pairKey === pairKey);
     const prevStatus = conn?.status ?? null;
-    const prevStatusUpdatedAt = conn?.statusUpdatedAt ?? null;
+    // Snapshot all timeline stamps for undo
+    const prevStamps = { plannedAt: conn?.plannedAt, connectedAt: conn?.connectedAt, skippedAt: conn?.skippedAt };
     const now = new Date().toISOString();
     const updated = connections.map(c => c.pairKey !== pairKey ? c : {
       ...c,
       status: nextStatus,
-      statusUpdatedAt: nextStatus ? now : null,
+      // Each timestamp only sets once — stamp when first switching to that status
+      plannedAt:   nextStatus === "planned"   ? now : c.plannedAt,
+      connectedAt: nextStatus === "connected" ? now : c.connectedAt,
+      skippedAt:   nextStatus === "skip"      ? now : c.skippedAt,
     });
 
-    // Update React state
     setConnections(updated);
-
-    // Persist locally
     try { localStorage.setItem(STORE_KEY, JSON.stringify({ connections: updated, lastRunAt })); } catch (_) {}
 
     // Undo toast
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-    setUndoState({ pairKey, prevStatus, prevStatusUpdatedAt });
+    setUndoState({ pairKey, prevStatus, prevStamps });
     undoTimerRef.current = setTimeout(() => setUndoState(null), 5000);
 
     // Persist to sheet (fire-and-forget)
@@ -982,7 +983,7 @@ function PeerConnections() {
     if (!undoState) return;
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
     setConnections(prev => {
-      const updated = prev.map(c => c.pairKey === undoState.pairKey ? { ...c, status: undoState.prevStatus, statusUpdatedAt: undoState.prevStatusUpdatedAt ?? null } : c);
+      const updated = prev.map(c => c.pairKey === undoState.pairKey ? { ...c, status: undoState.prevStatus, ...undoState.prevStamps } : c);
       try { localStorage.setItem(STORE_KEY, JSON.stringify({ connections: updated, lastRunAt })); } catch (_) {}
       return updated;
     });
@@ -1158,22 +1159,21 @@ function PeerConnections() {
                       </span>
                     )}
                     {(() => {
-                      const fmtDate = iso => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-                      let label, color;
-                      if (conn.status === "connected" && conn.statusUpdatedAt) {
-                        label = `Connected on ${fmtDate(conn.statusUpdatedAt)}`;
-                        color = "#1a6e42";
-                      } else if (conn.status === "planned" && conn.statusUpdatedAt) {
-                        label = `Planning to connect on ${fmtDate(conn.statusUpdatedAt)}`;
-                        color = "#7a5700";
-                      } else {
-                        label = `Suggested ${fmtDate(conn.addedAt || new Date())}`;
-                        color = "#c0b8d8";
-                      }
+                      const fmtDate = iso => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", yyyy: "numeric", year: "numeric" });
+                      const lines = [
+                        { iso: conn.addedAt || new Date().toISOString(), label: `Suggested` },
+                        conn.plannedAt   && { iso: conn.plannedAt,   label: "Planning to connect" },
+                        conn.skippedAt   && { iso: conn.skippedAt,   label: "Decided not to connect" },
+                        conn.connectedAt && { iso: conn.connectedAt, label: "Connected" },
+                      ].filter(Boolean);
                       return (
-                        <span style={{ marginLeft: "auto", fontSize: 10, color, fontStyle: "italic", flexShrink: 0 }}>
-                          {label}
-                        </span>
+                        <div style={{ marginLeft: "auto", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
+                          {lines.map((l, i) => (
+                            <span key={i} style={{ fontSize: 10, color: "#c0b8d8", fontStyle: "italic", whiteSpace: "nowrap" }}>
+                              {l.label} {fmtDate(l.iso)}
+                            </span>
+                          ))}
+                        </div>
                       );
                     })()}
                   </div>
