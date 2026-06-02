@@ -219,7 +219,7 @@ export default async function handler(req, res) {
     },
     {
       type: "context",
-      elements: [{ type: "mrkdwn", text: `Live data · <https://uplift.techunited.co/admin|Open admin dashboard>` }],
+      elements: [{ type: "mrkdwn", text: `Live data · <https://uplift2026.vercel.app/admin|Open admin dashboard>` }],
     },
   ];
 
