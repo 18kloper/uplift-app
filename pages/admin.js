@@ -1216,7 +1216,7 @@ function PeerConnections() {
                         <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.05em" }}>Subject</p>
                         <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{draft.subject}</p>
                       </div>
-                      <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                      <div style={{ display: "flex", gap: 6, flexShrink: 0, alignItems: "center" }}>
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(`Subject: ${draft.subject}\n\n${draft.body}`);
@@ -1232,6 +1232,13 @@ function PeerConnections() {
                           style={{ padding: "4px 10px", background: "#fff", border: "1px solid #e0daf5", borderRadius: 6, fontSize: 11, fontWeight: 600, color: "#9b8fcf", cursor: "pointer", fontFamily: "inherit" }}
                         >
                           ↺ Redo
+                        </button>
+                        <button
+                          onClick={() => setDraftEmails(prev => { const n = { ...prev }; delete n[conn.pairKey]; return n; })}
+                          style={{ padding: "4px 8px", background: "#fff", border: "1px solid #e0daf5", borderRadius: 6, fontSize: 13, lineHeight: 1, color: "#b0a8cc", cursor: "pointer", fontFamily: "inherit" }}
+                          title="Close"
+                        >
+                          ✕
                         </button>
                       </div>
                     </div>
