@@ -2784,15 +2784,21 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
 
       {/* Filter chips — multi-select, empty = All */}
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
-        {activeFilters.length > 0 && (
-          <button onClick={() => setActiveFilters([])} style={{
-            padding: "6px 12px", borderRadius: 20, fontSize: 11, fontWeight: 600,
-            border: "1.5px solid #e0daf5", background: "#f7f5ff", color: "#9b8fcf",
-            cursor: "pointer", fontFamily: "inherit",
-          }}>
-            Clear
-          </button>
-        )}
+        <button onClick={() => toggleFilter("all")} style={{
+          display: "flex", alignItems: "center", gap: 6,
+          padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: activeFilters.length === 0 ? 700 : 500,
+          border: `1.5px solid ${activeFilters.length === 0 ? "#5c4eb5" : "#e0daf5"}`,
+          background: activeFilters.length === 0 ? "#5c4eb5" : "#fff",
+          color: activeFilters.length === 0 ? "#fff" : "#6b6480",
+          cursor: "pointer", fontFamily: "inherit",
+        }}>
+          All
+          <span style={{
+            background: activeFilters.length === 0 ? "rgba(255,255,255,0.25)" : "#f0ecff",
+            color: activeFilters.length === 0 ? "#fff" : "#5c4eb5",
+            borderRadius: 10, padding: "1px 7px", fontSize: 11, fontWeight: 700,
+          }}>{rows.length}</span>
+        </button>
         {FILTERS.filter(f => f.key !== "all").map(f => {
           const count = rows.filter(f.match).length;
           const active = activeFilters.includes(f.key);
