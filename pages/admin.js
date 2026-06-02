@@ -2139,6 +2139,7 @@ export default function AdminPage() {
               { key: "prompts",     label: "📝 Prompt Engagement" },
               { key: "activity",    label: "🕐 Portal Activity" },
               { key: "connections", label: "🤝 Peer Connections" },
+              { key: "pulse",       label: "❤️ Weekly Pulse" },
             ].map(({ key, label }) => (
               <button key={key} onClick={() => setAdminTab(key)} style={{
                 background: "none", border: "none", borderBottom: adminTab === key ? "2px solid #f5c542" : "2px solid transparent",
@@ -2155,8 +2156,231 @@ export default function AdminPage() {
           {adminTab === "prompts"     && <PromptEngagement />}
           {adminTab === "activity"    && <PortalActivity />}
           {adminTab === "connections" && <PeerConnections />}
+          {adminTab === "pulse"       && <PulseReport />}
         </>
       )}
     </>
+  );
+}
+
+// ─── Pulse Report ─────────────────────────────────────────────────────────────
+const PULSE_RATINGS_ADMIN = {
+  1: { label: "Stuck",       emoji: "😩", color: "#c0392b", bg: "#fee2e2" },
+  2: { label: "Struggling",  emoji: "😕", color: "#b45309", bg: "#fef3c7" },
+  3: { label: "Managing",    emoji: "😐", color: "#6b6480", bg: "#f0ecff" },
+  4: { label: "Good",        emoji: "🙂", color: "#1a6e42", bg: "#e8f8f0" },
+  5: { label: "Crushing it", emoji: "🚀", color: "#1a6e42", bg: "#d4f8e8" },
+};
+const COHORT_NAMES_PULSE = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
+
+function PulseReport() {
+  const [data, setData]         = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [err, setErr]           = useState(null);
+  const [expandedWeek, setExpandedWeek] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/pulse-stats")
+      .then(r => r.json())
+      .then(d => { setData(d); setLoading(false); })
+      .catch(e => { setErr(e.message); setLoading(false); });
+  }, []);
+
+  if (loading) return (
+    <div style={{ padding: 60, textAlign: "center", color: "#9b8fcf", fontFamily: "Inter, system-ui, sans-serif" }}>
+      Loading pulse data…
+    </div>
+  );
+  if (err) return (
+    <div style={{ padding: 60, color: "#c0392b", fontFamily: "Inter, system-ui, sans-serif" }}>Error: {err}</div>
+  );
+
+  const pulses = data?.pulses || [];
+  const respondedFounders = pulses.filter(p => Object.keys(p.responses).length > 0);
+
+  // Build per-week stats
+  const weekStats = {};
+  for (let w = 1; w <= 9; w++) {
+    const responders = pulses
+      .filter(p => p.responses[w] !== undefined)
+      .map(p => ({ name: p.name, cohort: p.cohort, value: p.responses[w] }));
+
+    if (!responders.length) { weekStats[w] = null; continue; }
+
+    const vals = responders.map(r => r.value);
+    const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+
+    const byCohort = {};
+    for (const r of responders) {
+      if (!byCohort[r.cohort]) byCohort[r.cohort] = [];
+      byCohort[r.cohort].push(r.value);
+    }
+
+    weekStats[w] = { avg, responders, byCohort };
+  }
+
+  // Overall averages
+  const allVals = pulses.flatMap(p => Object.values(p.responses));
+  const overallAvg = allVals.length ? allVals.reduce((a, b) => a + b, 0) / allVals.length : null;
+
+  const cohortOverall = {};
+  for (const p of pulses) {
+    const vals = Object.values(p.responses);
+    if (!vals.length) continue;
+    if (!cohortOverall[p.cohort]) cohortOverall[p.cohort] = [];
+    cohortOverall[p.cohort].push(...vals);
+  }
+
+  const ratingColor = v => v >= 4 ? "#1a6e42" : v >= 3 ? "#b45309" : "#c0392b";
+  const ratingBg    = v => v >= 4 ? "#e8f8f0" : v >= 3 ? "#fef3c7" : "#fee2e2";
+
+  const AvgPill = ({ val, label, sub }) => (
+    <div style={{
+      background: ratingBg(val), borderRadius: 12,
+      border: `1px solid ${ratingColor(val)}30`,
+      padding: "18px 16px", textAlign: "center", minWidth: 120,
+    }}>
+      <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: ratingColor(val) }}>
+        {label}
+      </p>
+      <p style={{ margin: "0 0 4px", fontSize: 30, fontWeight: 800, color: ratingColor(val) }}>
+        {val.toFixed(1)}
+      </p>
+      <p style={{ margin: 0, fontSize: 11, color: "#9b8fcf" }}>{sub}</p>
+    </div>
+  );
+
+  return (
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 32px", fontFamily: "Inter, system-ui, sans-serif" }}>
+      <h2 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 700, color: "#1a1733" }}>Weekly Pulse Check-In</h2>
+      <p style={{ margin: "0 0 32px", fontSize: 13, color: "#9b8fcf" }}>
+        How founders are feeling week by week · {respondedFounders.length} of {pulses.length} founders have responded
+      </p>
+
+      {/* Overall + per-cohort averages */}
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 40 }}>
+        {overallAvg !== null && (
+          <AvgPill val={overallAvg} label="Overall" sub={`${allVals.length} responses`} />
+        )}
+        {[1, 2, 3, 4, 5].map(cohort => {
+          const vals = cohortOverall[cohort] || [];
+          if (!vals.length) return null;
+          const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+          return <AvgPill key={cohort} val={avg} label={COHORT_NAMES_PULSE[cohort]} sub={`${vals.length} responses`} />;
+        })}
+      </div>
+
+      {/* Empty state */}
+      {!allVals.length && (
+        <div style={{ background: "#fafafa", borderRadius: 12, border: "1px dashed #d4d0e8", padding: "40px 32px", textAlign: "center" }}>
+          <p style={{ margin: 0, fontSize: 15, color: "#9b8fcf" }}>No pulse responses yet — they&apos;ll appear here as founders check in each week.</p>
+        </div>
+      )}
+
+      {/* Week-by-week breakdown */}
+      {allVals.length > 0 && (
+        <>
+          <h3 style={{ margin: "0 0 14px", fontSize: 15, fontWeight: 700, color: "#1a1733" }}>Week by Week</h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[1,2,3,4,5,6,7,8,9].map(w => {
+              const ws = weekStats[w];
+              if (!ws) return null;
+              const isOpen = expandedWeek === w;
+
+              return (
+                <div key={w} style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", overflow: "hidden" }}>
+                  {/* Row header */}
+                  <button
+                    onClick={() => setExpandedWeek(isOpen ? null : w)}
+                    style={{
+                      width: "100%", display: "flex", alignItems: "center", gap: 14,
+                      padding: "14px 20px", background: "none", border: "none",
+                      cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+                    }}
+                  >
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#9b8fcf", minWidth: 56 }}>Week {w}</span>
+
+                    {/* Emoji count tally */}
+                    <div style={{ flex: 1, display: "flex", gap: 10, alignItems: "center" }}>
+                      {[1,2,3,4,5].map(r => {
+                        const count = ws.responders.filter(p => p.value === r).length;
+                        if (!count) return null;
+                        return (
+                          <span key={r} style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                            <span style={{ fontSize: 16 }}>{PULSE_RATINGS_ADMIN[r].emoji}</span>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: "#6b6480" }}>{count}</span>
+                          </span>
+                        );
+                      })}
+                    </div>
+
+                    {/* Avg pill */}
+                    <span style={{
+                      background: ratingBg(ws.avg), color: ratingColor(ws.avg),
+                      borderRadius: 8, padding: "3px 12px", fontSize: 14, fontWeight: 700,
+                    }}>
+                      {ws.avg.toFixed(1)} avg
+                    </span>
+
+                    <span style={{ fontSize: 11, color: "#9b8fcf" }}>{ws.responders.length} responses</span>
+                    <span style={{ fontSize: 11, color: "#b0a8cc" }}>{isOpen ? "▲" : "▼"}</span>
+                  </button>
+
+                  {/* Expanded: per-cohort + individual */}
+                  {isOpen && (
+                    <div style={{ borderTop: "1px solid #f0ecff", padding: "16px 20px" }}>
+                      {/* Per-cohort averages */}
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+                        {[1,2,3,4,5].map(cohort => {
+                          const vals = ws.byCohort[cohort] || [];
+                          if (!vals.length) return null;
+                          const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+                          return (
+                            <span key={cohort} style={{
+                              background: ratingBg(avg), color: ratingColor(avg),
+                              borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600,
+                              border: `1px solid ${ratingColor(avg)}25`,
+                            }}>
+                              {COHORT_NAMES_PULSE[cohort]}: {avg.toFixed(1)}
+                            </span>
+                          );
+                        })}
+                      </div>
+
+                      {/* Individual responses sorted by rating */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        {[...ws.responders].sort((a, b) => a.value - b.value).map((r, i) => {
+                          const rat = PULSE_RATINGS_ADMIN[r.value];
+                          return (
+                            <div key={i} style={{
+                              display: "flex", alignItems: "center", gap: 10,
+                              padding: "8px 12px", background: "#fafafa", borderRadius: 8,
+                            }}>
+                              <span style={{ fontSize: 18, flexShrink: 0 }}>{rat.emoji}</span>
+                              <div style={{ flex: 1 }}>
+                                <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{r.name}</span>
+                                <span style={{ marginLeft: 8, fontSize: 11, color: "#9b8fcf" }}>
+                                  Cohort {r.cohort} — {COHORT_NAMES_PULSE[r.cohort]}
+                                </span>
+                              </div>
+                              <span style={{
+                                fontSize: 12, fontWeight: 700, color: rat.color,
+                                background: rat.bg, borderRadius: 6, padding: "3px 10px", flexShrink: 0,
+                              }}>
+                                {r.value} — {rat.label}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
   );
 }

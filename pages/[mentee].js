@@ -998,6 +998,26 @@ function Week2({ mentee, slug, mentorUnlocked }) {
 }
 
 // ─── Weekly pulse check-in ────────────────────────────────────────────────────
+const PULSE_WINDOWS = [
+  { week: 1, start: new Date("2026-06-01"), end: new Date("2026-06-06T23:59:59") },
+  { week: 2, start: new Date("2026-06-08"), end: new Date("2026-06-13T23:59:59") },
+  { week: 3, start: new Date("2026-06-15"), end: new Date("2026-06-20T23:59:59") },
+  { week: 4, start: new Date("2026-06-22"), end: new Date("2026-06-27T23:59:59") },
+  { week: 5, start: new Date("2026-06-29"), end: new Date("2026-07-04T23:59:59") },
+  { week: 6, start: new Date("2026-07-06"), end: new Date("2026-07-11T23:59:59") },
+  { week: 7, start: new Date("2026-07-13"), end: new Date("2026-07-18T23:59:59") },
+  { week: 8, start: new Date("2026-07-19"), end: new Date("2026-07-25T23:59:59") },
+  { week: 9, start: new Date("2026-07-27"), end: new Date("2026-08-04T23:59:59") },
+];
+
+const PULSE_RATINGS = [
+  { value: 1, emoji: "😩", label: "Stuck" },
+  { value: 2, emoji: "😕", label: "Struggling" },
+  { value: 3, emoji: "😐", label: "Managing" },
+  { value: 4, emoji: "🙂", label: "Good" },
+  { value: 5, emoji: "🚀", label: "Crushing it" },
+];
+
 function WeeklyPulse({ slug, weekNum }) {
   const storageKey = `${slug}_w${weekNum}_pulse`;
   const [selected, setSelected] = useState(null);
@@ -1007,20 +1027,55 @@ function WeeklyPulse({ slug, weekNum }) {
     if (saved) setSelected(parseInt(saved, 10));
   }, [storageKey]);
 
-  const RATINGS = [
-    { value: 1, emoji: "😩", label: "Stuck" },
-    { value: 2, emoji: "😕", label: "Struggling" },
-    { value: 3, emoji: "😐", label: "Managing" },
-    { value: 4, emoji: "🙂", label: "Good" },
-    { value: 5, emoji: "🚀", label: "Crushing it" },
-  ];
-
   const handleSelect = (val) => {
     setSelected(val);
     localStorage.setItem(storageKey, String(val));
     persistToSheet(slug, weekNum, "pulse", String(val), "How are you feeling this week?");
   };
 
+  // Date-window logic
+  const today = new Date();
+  const win = PULSE_WINDOWS.find(w => w.week === weekNum);
+  const isActive = win && today >= win.start && today <= win.end;
+  const isPast   = win && today > win.end;
+  const isFuture = win && today < win.start;
+
+  // Future weeks: don't render at all (they haven't started yet)
+  if (isFuture) return null;
+
+  // Past window
+  if (isPast) {
+    const answered = selected !== null;
+    const rating = answered ? PULSE_RATINGS[selected - 1] : null;
+    // Find next current week number
+    const currentWin = PULSE_WINDOWS.find(w => today >= w.start && today <= w.end);
+    const currentWeekNum = currentWin?.week;
+
+    return (
+      <div style={{
+        background: "#fafafa", borderRadius: 12,
+        border: "1px solid #e8e4f5", padding: "16px 22px", marginBottom: 20,
+        display: "flex", alignItems: "center", gap: 12,
+      }}>
+        <span style={{ fontSize: 22 }}>{answered ? rating.emoji : "💬"}</span>
+        <div>
+          <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 600, color: "#6b6480" }}>
+            {answered
+              ? `You responded: ${rating.emoji} ${rating.label}`
+              : "You didn't share your pulse this week"}
+          </p>
+          <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>
+            This feedback window is now closed.
+            {currentWeekNum && currentWeekNum !== weekNum && (
+              <> Share how you&apos;re feeling in Week {currentWeekNum}.</>
+            )}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Active window — show interactive buttons
   return (
     <div style={{
       background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
@@ -1030,12 +1085,12 @@ function WeeklyPulse({ slug, weekNum }) {
         How are you feeling this week?
         {selected && (
           <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 500, color: "#9b8fcf" }}>
-            {RATINGS[selected - 1]?.label}
+            {PULSE_RATINGS[selected - 1]?.label}
           </span>
         )}
       </p>
       <div style={{ display: "flex", gap: 8 }}>
-        {RATINGS.map(r => (
+        {PULSE_RATINGS.map(r => (
           <button key={r.value} onClick={() => handleSelect(r.value)} style={{
             flex: 1, padding: "10px 4px", borderRadius: 8, cursor: "pointer",
             border: selected === r.value ? "2px solid #5c4eb5" : "1.5px solid #e8e4f5",
@@ -2647,19 +2702,21 @@ function MilestoneSection({ milestones, onNavigate }) {
           const done = !!milestones[item.key];
           const dueDate = parseDueDate(item.due);
           const overdue = !done && dueDate && today > dueDate;
+          const daysPastDue = overdue ? Math.floor((today - dueDate) / (1000 * 60 * 60 * 24)) : 0;
+          const severelyOverdue = daysPastDue > 5;
           return (
             <div key={item.key} style={{
-              background: overdue ? "#fffbf5" : "#fff",
+              background: severelyOverdue ? "#fff5f5" : overdue ? "#fffbf5" : "#fff",
               borderRadius: 12,
-              border: done ? "1px solid #b8e8d0" : overdue ? "1px solid #f5c97a" : "1px solid #e8e4f5",
+              border: done ? "1px solid #b8e8d0" : severelyOverdue ? "1px solid #f5a0a0" : overdue ? "1px solid #f5c97a" : "1px solid #e8e4f5",
               padding: "14px 20px",
               display: "flex", alignItems: "flex-start", gap: 14,
             }}>
               <div style={{
                 width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                background: done ? "#22a366" : overdue ? "#fef3c7" : "#f0ecff",
-                color: done ? "#fff" : overdue ? "#b45309" : "#c0b8d8",
+                background: done ? "#22a366" : severelyOverdue ? "#fee2e2" : overdue ? "#fef3c7" : "#f0ecff",
+                color: done ? "#fff" : severelyOverdue ? "#c0392b" : overdue ? "#b45309" : "#c0b8d8",
                 fontSize: done ? 14 : overdue ? 15 : 18,
                 fontWeight: 700,
                 marginTop: 2,
@@ -2669,7 +2726,7 @@ function MilestoneSection({ milestones, onNavigate }) {
               <span style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
                 <span style={{
                   fontSize: 15, fontWeight: done ? 600 : 400,
-                  color: done ? "#1a4a32" : overdue ? "#92400e" : "#6b6480",
+                  color: done ? "#1a4a32" : severelyOverdue ? "#c0392b" : overdue ? "#92400e" : "#6b6480",
                 }}>
                   {item.label}
                 </span>
@@ -2679,7 +2736,7 @@ function MilestoneSection({ milestones, onNavigate }) {
                   </span>
                 )}
                 {overdue && (item.week || item.contactMsg) && (
-                  <span style={{ marginTop: 4, fontSize: 12, color: "#b45309", lineHeight: 1.6 }}>
+                  <span style={{ marginTop: 4, fontSize: 12, color: severelyOverdue ? "#c0392b" : "#b45309", lineHeight: 1.6 }}>
                     ⚠️ This is past due.{" "}
                     {item.contactMsg ? (
                       <>
@@ -2693,7 +2750,7 @@ function MilestoneSection({ milestones, onNavigate }) {
                         onClick={() => onNavigate && onNavigate(item.week)}
                         style={{
                           background: "none", border: "none", padding: 0,
-                          color: "#b45309", fontWeight: 700, fontSize: 12,
+                          color: severelyOverdue ? "#c0392b" : "#b45309", fontWeight: 700, fontSize: 12,
                           cursor: "pointer", textDecoration: "underline",
                           fontFamily: "inherit",
                         }}
@@ -2704,11 +2761,18 @@ function MilestoneSection({ milestones, onNavigate }) {
                   </span>
                 )}
               </span>
-              {done && (
-                <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 600, color: "#22a366", background: "#f0faf5", borderRadius: 4, padding: "2px 8px", flexShrink: 0 }}>
-                  COMPLETED
-                </span>
-              )}
+              <div style={{ marginLeft: "auto", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flexShrink: 0 }}>
+                {done && (
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "#22a366", background: "#f0faf5", borderRadius: 4, padding: "2px 8px" }}>
+                    COMPLETED
+                  </span>
+                )}
+                {severelyOverdue && (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#c0392b", background: "#fee2e2", borderRadius: 4, padding: "2px 8px" }}>
+                    OVERDUE · {daysPastDue}d past due
+                  </span>
+                )}
+              </div>
             </div>
           );
         })}
@@ -2886,8 +2950,27 @@ function CalendarSection({ milestones = {} }) {
 
 // ─── Resources section ────────────────────────────────────────────────────────
 function ResourcesSection({ slug, menteeName }) {
+  const storageKey = `${slug}_resource_favorites`;
+  const [favorites, setFavorites] = useState([]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) setFavorites(JSON.parse(saved));
+    } catch (_) {}
+  }, [storageKey]);
+
+  const toggleFavorite = (itemKey) => {
+    setFavorites(prev => {
+      const next = prev.includes(itemKey)
+        ? prev.filter(k => k !== itemKey)
+        : [...prev, itemKey];
+      try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch (_) {}
+      return next;
+    });
+  };
+
   const trackClick = (title, url) => {
-    // Fire-and-forget — never blocks navigation
     fetch("/api/track-resource", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -2895,53 +2978,94 @@ function ResourcesSection({ slug, menteeName }) {
     }).catch(() => {});
   };
 
+  // Collect all items across categories
+  const allItems = RESOURCES.flatMap(cat =>
+    cat.items.map(item => ({ ...item, _key: `${cat.category}::${item.title}` }))
+  );
+  const favoriteItems = allItems.filter(item => favorites.includes(item._key));
+
+  const ResourceRow = ({ item, showHeart = true }) => {
+    const itemKey = item._key;
+    const isDisabled = item.locked || item.comingSoon;
+    const isFav = favorites.includes(itemKey);
+    const Tag = isDisabled ? "div" : "a";
+    const extraProps = isDisabled ? {} : { href: item.url, target: "_blank", rel: "noopener noreferrer" };
+    return (
+      <Tag {...extraProps}
+        onClick={isDisabled ? undefined : () => trackClick(item.title, item.url)}
+        style={{
+          background: isDisabled ? "#fafafa" : "#fff",
+          borderRadius: 10,
+          border: `1px solid ${isDisabled ? "#ede9f8" : "#e8e4f5"}`,
+          padding: "14px 18px", display: "flex", justifyContent: "space-between",
+          alignItems: "center", textDecoration: "none", gap: 12,
+          opacity: isDisabled ? 0.7 : 1,
+          cursor: isDisabled ? "default" : "pointer",
+          position: "relative",
+        }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+            <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: isDisabled ? "#6b6183" : "#1a1733" }}>{item.title}</p>
+            {item.locked && (
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9b8fcf", background: "#f0ecff", borderRadius: 4, padding: "2px 7px" }}>
+                🔒 {item.lockedLabel || "Locked"}
+              </span>
+            )}
+            {item.comingSoon && (
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9b8fcf", background: "#f0ecff", borderRadius: 4, padding: "2px 7px" }}>
+                Coming soon
+              </span>
+            )}
+            {item.star && <span style={{ fontSize: 13 }}>⭐</span>}
+          </div>
+          <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>{item.description}</p>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+          {showHeart && !isDisabled && (
+            <button
+              onClick={e => { e.preventDefault(); e.stopPropagation(); toggleFavorite(itemKey); }}
+              title={isFav ? "Remove from favorites" : "Add to favorites"}
+              style={{
+                background: "none", border: "none", cursor: "pointer", padding: "2px 4px",
+                fontSize: 16, lineHeight: 1, color: isFav ? "#e74c3c" : "#c0b8d8",
+                transition: "color 0.15s", flexShrink: 0,
+              }}
+            >
+              {isFav ? "❤️" : "🤍"}
+            </button>
+          )}
+          <span style={{ fontSize: 14, color: isDisabled ? "#c4b8e8" : "#5c4eb5" }}>→</span>
+        </div>
+      </Tag>
+    );
+  };
+
   return (
     <div>
+      {/* My Favorites */}
+      {favoriteItems.length > 0 && (
+        <div style={{ marginBottom: 32 }}>
+          <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#e74c3c" }}>
+            ❤️ My Favorites
+          </p>
+          <div style={{ display: "grid", gap: 8 }}>
+            {favoriteItems.map((item, i) => (
+              <ResourceRow key={i} item={item} showHeart={true} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* All categories */}
       {RESOURCES.map((cat, ci) => (
         <div key={ci} style={{ marginBottom: 28 }}>
           <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
             {cat.category}
           </p>
           <div style={{ display: "grid", gap: 8 }}>
-            {cat.items.map((item, i) => {
-              const isDisabled = item.locked || item.comingSoon;
-              const Tag = isDisabled ? "div" : "a";
-              const extraProps = isDisabled ? {} : { href: item.url, target: "_blank", rel: "noopener noreferrer" };
-              return (
-                <Tag key={i} {...extraProps}
-                  onClick={isDisabled ? undefined : () => trackClick(item.title, item.url)}
-                  style={{
-                  background: isDisabled ? "#fafafa" : "#fff",
-                  borderRadius: 10,
-                  border: `1px solid ${isDisabled ? "#ede9f8" : "#e8e4f5"}`,
-                  padding: "14px 18px", display: "flex", justifyContent: "space-between",
-                  alignItems: "center", textDecoration: "none", gap: 12,
-                  opacity: isDisabled ? 0.7 : 1,
-                  cursor: isDisabled ? "default" : "pointer",
-                }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-                      <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: isDisabled ? "#6b6183" : "#1a1733" }}>{item.title}</p>
-                      {item.locked && (
-                        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9b8fcf", background: "#f0ecff", borderRadius: 4, padding: "2px 7px" }}>
-                          🔒 {item.lockedLabel || "Locked"}
-                        </span>
-                      )}
-                      {item.comingSoon && (
-                        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9b8fcf", background: "#f0ecff", borderRadius: 4, padding: "2px 7px" }}>
-                          Coming soon
-                        </span>
-                      )}
-                      {item.star && (
-                        <span style={{ fontSize: 13 }}>⭐</span>
-                      )}
-                    </div>
-                    <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>{item.description}</p>
-                  </div>
-                  <span style={{ fontSize: 14, color: isDisabled ? "#c4b8e8" : "#5c4eb5", flexShrink: 0 }}>→</span>
-                </Tag>
-              );
-            })}
+            {cat.items.map((item, i) => (
+              <ResourceRow key={i} item={{ ...item, _key: `${cat.category}::${item.title}` }} showHeart={true} />
+            ))}
           </div>
         </div>
       ))}
@@ -3322,6 +3446,27 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
     }).catch(() => {});
   }, [isAuthenticated, slug]);
 
+  // Cross-device sync: seed localStorage from Google Sheet on first login
+  useEffect(() => {
+    if (!isAuthenticated || !slug) return;
+    const syncKey = `synced_${slug}`;
+    if (sessionStorage.getItem(syncKey)) return; // already synced this session
+    sessionStorage.setItem(syncKey, "1");
+    fetch(`/api/get-responses?slug=${slug}`)
+      .then(r => r.json())
+      .then(({ responses }) => {
+        if (!responses) return;
+        for (const [key, val] of Object.entries(responses)) {
+          const storageKey = `${slug}_${key}`;
+          // Only seed if not already set locally (don't overwrite local edits)
+          if (!localStorage.getItem(storageKey)) {
+            localStorage.setItem(storageKey, val);
+          }
+        }
+      })
+      .catch(() => {});
+  }, [isAuthenticated, slug]);
+
   if (!isAuthenticated) {
     return <PasswordGate slug={slug} onAuthenticated={() => setIsAuthenticated(true)} />;
   }
@@ -3502,7 +3647,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
                   ) : (
                     <>
                       <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Mentor TBD</p>
-                      <p style={{ margin: 0, fontSize: 12, opacity: 0.75 }}>Unlocks after orientation</p>
+                      <p style={{ margin: 0, fontSize: 12, opacity: 0.75 }}>Unlocks after onboarding week</p>
                     </>
                   )}
                 </div>
