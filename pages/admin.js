@@ -2174,6 +2174,15 @@ export default function AdminPage() {
     const next = { ...mentorSessions, [mentorKey]: count };
     setMentorSessions(next);
     try { localStorage.setItem("uplift_mentor_sessions_v1", JSON.stringify(next)); } catch (_) {}
+    // mentorKey format: mentorEmail|menteeSlug
+    const [mentorEmail, menteeSlug] = mentorKey.split("|");
+    if (mentorEmail && menteeSlug) {
+      fetch("/api/save-mentor-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mentorEmail, menteeSlug, count }),
+      }).catch(() => {});
+    }
   };
 
   const handleConfirmationChange = (key, val, meta) => {
@@ -2196,9 +2205,20 @@ export default function AdminPage() {
     Promise.all([
       fetch("/api/admin-data").then(r => r.json()),
       fetch("/api/mentor-email-responses").then(r => r.json()),
-    ]).then(([d, emailData]) => {
+      fetch("/api/get-mentor-confirmations").then(r => r.json()).catch(() => ({})),
+      fetch("/api/get-mentor-sessions").then(r => r.json()).catch(() => ({})),
+    ]).then(([d, emailData, confData, sessData]) => {
       setData(d);
       setRespondedMentorNames(new Set((emailData.responses || []).map(r => r.mentor.name)));
+      // Sheet is source of truth — merge over localStorage
+      if (confData.confirmations && Object.keys(confData.confirmations).length > 0) {
+        setMentorConfirmations(prev => ({ ...prev, ...confData.confirmations }));
+        try { localStorage.setItem("uplift_mentor_confirmations_v1", JSON.stringify({ ...JSON.parse(localStorage.getItem("uplift_mentor_confirmations_v1") || "{}"), ...confData.confirmations })); } catch (_) {}
+      }
+      if (sessData.sessions && Object.keys(sessData.sessions).length > 0) {
+        setMentorSessions(prev => ({ ...prev, ...sessData.sessions }));
+        try { localStorage.setItem("uplift_mentor_sessions_v1", JSON.stringify({ ...JSON.parse(localStorage.getItem("uplift_mentor_sessions_v1") || "{}"), ...sessData.sessions })); } catch (_) {}
+      }
       setLoading(false);
     }).catch(e => { setError(e.message); setLoading(false); });
   }, [authed]);
