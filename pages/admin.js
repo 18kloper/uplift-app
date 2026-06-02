@@ -878,7 +878,17 @@ function PeerConnections() {
       const r = await fetch("/api/get-peer-statuses");
       const { statuses } = await r.json();
       if (!statuses || !Object.keys(statuses).length) return conns;
-      return conns.map(c => statuses[c.pairKey] !== undefined ? { ...c, status: statuses[c.pairKey] } : c);
+      return conns.map(c => {
+        const s = statuses[c.pairKey];
+        if (!s) return c;
+        return {
+          ...c,
+          status:      s.status      ?? c.status,
+          plannedAt:   s.plannedAt   ?? c.plannedAt,
+          connectedAt: s.connectedAt ?? c.connectedAt,
+          skippedAt:   s.skippedAt   ?? c.skippedAt,
+        };
+      });
     } catch (_) { return conns; }
   };
 
@@ -970,10 +980,13 @@ function PeerConnections() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pairKey,
-          status: nextStatus,
+          status:       nextStatus,
           founder1Name: conn.founders?.[0]?.name,
           founder2Name: conn.founders?.[1]?.name,
-          sharedTheme: conn.sharedTheme,
+          sharedTheme:  conn.sharedTheme,
+          plannedAt:    nextStatus === "planned"   ? now : conn.plannedAt,
+          connectedAt:  nextStatus === "connected" ? now : conn.connectedAt,
+          skippedAt:    nextStatus === "skip"      ? now : conn.skippedAt,
         }),
       }).catch(() => {});
     }

@@ -1,5 +1,5 @@
 // GET /api/get-peer-statuses
-// Returns { statuses: { [pairKey]: status } } from the "Peer Connections" sheet tab
+// Returns { statuses: { [pairKey]: { status, plannedAt, connectedAt, skippedAt } } }
 
 import { getSheetsClient } from "../../lib/sheets-helper";
 
@@ -16,16 +16,24 @@ export default async function handler(req, res) {
     const sheets = getSheetsClient();
     const read = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: `${SHEET_NAME}!A:F`,
+      range: `${SHEET_NAME}!A:I`,
     });
 
     const rows = read.data.values || [];
     const statuses = {};
-    // Row 0 is header; col 0 = pairKey, col 4 = status
+
+    // Row 0 is header
+    // A=pairKey, B=Founder1, C=Founder2, D=Theme, E=Status, F=Updated, G=plannedAt, H=connectedAt, I=skippedAt
     for (let i = 1; i < rows.length; i++) {
-      const pairKey = rows[i][0];
-      const status = rows[i][4];
-      if (pairKey) statuses[pairKey] = status || null;
+      const [pairKey, , , , status, , plannedAt, connectedAt, skippedAt] = rows[i];
+      if (pairKey) {
+        statuses[pairKey] = {
+          status:      status      || null,
+          plannedAt:   plannedAt   || null,
+          connectedAt: connectedAt || null,
+          skippedAt:   skippedAt   || null,
+        };
+      }
     }
 
     return res.status(200).json({ statuses });
