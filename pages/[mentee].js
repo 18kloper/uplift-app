@@ -3164,25 +3164,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
         {/* Header */}
         <div style={{ background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)", padding: "28px 24px 24px", color: "#fff" }}>
           <div style={{ maxWidth: 720, margin: "0 auto" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 18 }}>
-              <img src="/uplift-logo-white.png" alt="Uplift" style={{ height: 36, display: "block" }} />
-              <a
-                href="https://form.typeform.com/to/tHKCNXhN"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  background: "rgba(255,255,255,0.15)",
-                  border: "1px solid rgba(255,255,255,0.3)",
-                  color: "#fff", borderRadius: 20,
-                  padding: "6px 14px", fontSize: 12, fontWeight: 600,
-                  textDecoration: "none", whiteSpace: "nowrap",
-                  display: "flex", alignItems: "center", gap: 6,
-                  flexShrink: 0,
-                }}
-              >
-                💡 Make a Suggestion
-              </a>
-            </div>
+            <img src="/uplift-logo-white.png" alt="Uplift" style={{ height: 36, marginBottom: 18, display: "block" }} />
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                 Cohort {mentee.cohort}{myCohortHeader ? ` — ${myCohortHeader.name}` : ""}
@@ -3190,6 +3172,20 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
               <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                 Uplift Summer 2026
               </div>
+              <a
+                href="https://form.typeform.com/to/tHKCNXhN"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  marginLeft: "auto",
+                  background: "rgba(255,255,255,0.15)", borderRadius: 8,
+                  padding: "5px 12px", fontSize: 12, fontWeight: 600,
+                  letterSpacing: "0.06em", textTransform: "uppercase",
+                  color: "#fff", textDecoration: "none", whiteSpace: "nowrap",
+                }}
+              >
+                💡 Make a Suggestion
+              </a>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 4 }}>
               {mentee.photo ? (
