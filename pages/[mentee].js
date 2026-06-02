@@ -997,6 +997,142 @@ function Week2({ mentee, slug, mentorUnlocked }) {
   );
 }
 
+// ─── Weekly pulse check-in ────────────────────────────────────────────────────
+function WeeklyPulse({ slug, weekNum }) {
+  const storageKey = `${slug}_w${weekNum}_pulse`;
+  const [selected, setSelected] = useState(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(storageKey);
+    if (saved) setSelected(parseInt(saved, 10));
+  }, [storageKey]);
+
+  const RATINGS = [
+    { value: 1, emoji: "😩", label: "Stuck" },
+    { value: 2, emoji: "😕", label: "Struggling" },
+    { value: 3, emoji: "😐", label: "Managing" },
+    { value: 4, emoji: "🙂", label: "Good" },
+    { value: 5, emoji: "🚀", label: "Crushing it" },
+  ];
+
+  const handleSelect = (val) => {
+    setSelected(val);
+    localStorage.setItem(storageKey, String(val));
+    persistToSheet(slug, weekNum, "pulse", String(val), "How are you feeling this week?");
+  };
+
+  return (
+    <div style={{
+      background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
+      padding: "18px 22px", marginBottom: 20,
+    }}>
+      <p style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>
+        How are you feeling this week?
+        {selected && (
+          <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 500, color: "#9b8fcf" }}>
+            {RATINGS[selected - 1]?.label}
+          </span>
+        )}
+      </p>
+      <div style={{ display: "flex", gap: 8 }}>
+        {RATINGS.map(r => (
+          <button key={r.value} onClick={() => handleSelect(r.value)} style={{
+            flex: 1, padding: "10px 4px", borderRadius: 8, cursor: "pointer",
+            border: selected === r.value ? "2px solid #5c4eb5" : "1.5px solid #e8e4f5",
+            background: selected === r.value ? "#f0ecff" : "#fafafa",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+            fontFamily: "inherit", transition: "all 0.15s",
+          }}>
+            <span style={{ fontSize: 20 }}>{r.emoji}</span>
+            <span style={{ fontSize: 10, fontWeight: selected === r.value ? 700 : 500, color: selected === r.value ? "#5c4eb5" : "#9b8fcf" }}>
+              {r.label}
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Weekly focus one-liner ───────────────────────────────────────────────────
+function WeeklyFocus({ slug, weekNum }) {
+  const storageKey = `${slug}_w${weekNum}_weekly_focus`;
+  return (
+    <div style={{
+      background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
+      padding: "18px 22px", marginBottom: 20,
+    }}>
+      <p style={{ margin: "0 0 10px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>
+        What are you focused on this week?
+      </p>
+      <AutoTextarea
+        storageKey={storageKey}
+        placeholder="e.g. closing my first customer, improving onboarding, prepping for a pitch…"
+        slug={slug}
+        weekNum={weekNum}
+        fieldKey="weekly_focus"
+        rows={2}
+        question="What are you focused on this week?"
+      />
+    </div>
+  );
+}
+
+// ─── Journey progress bar ─────────────────────────────────────────────────────
+function JourneyProgressBar({ slug, activeWeek }) {
+  const [completedWeeks, setCompletedWeeks] = useState(0);
+  const [weekPrompts, setWeekPrompts] = useState(0);
+
+  useEffect(() => {
+    let done = 0;
+    let thisWeekFilled = 0;
+    for (let w = 1; w <= 9; w++) {
+      let weekHasAny = false;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(`${slug}_w${w}_`)) {
+          const val = localStorage.getItem(key);
+          if (val && val.trim()) {
+            weekHasAny = true;
+            if (w === activeWeek) thisWeekFilled++;
+          }
+        }
+      }
+      if (weekHasAny) done++;
+    }
+    setCompletedWeeks(done);
+    setWeekPrompts(thisWeekFilled);
+  }, [slug, activeWeek]);
+
+  const pct = (completedWeeks / 9) * 100;
+
+  return (
+    <div style={{
+      background: "#fff", borderRadius: 10, border: "1px solid #e8e4f5",
+      padding: "14px 20px", marginBottom: 20,
+      display: "flex", alignItems: "center", gap: 16,
+    }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: "#5c4eb5" }}>
+            {completedWeeks} of 9 weeks with responses
+          </span>
+          <span style={{ fontSize: 11, color: "#9b8fcf" }}>
+            {weekPrompts} {weekPrompts === 1 ? "prompt" : "prompts"} filled this week
+          </span>
+        </div>
+        <div style={{ height: 6, background: "#f0ecff", borderRadius: 3, overflow: "hidden" }}>
+          <div style={{
+            height: "100%", width: `${pct}%`,
+            background: "linear-gradient(90deg, #5c4eb5, #9b8fcf)",
+            borderRadius: 3, transition: "width 0.6s ease",
+          }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Generic reflection week ──────────────────────────────────────────────────
 function WeekReflection({ weekNum, slug, prompts, menteeName }) {
   const trackEventClick = (title, url) => {
@@ -2233,6 +2369,7 @@ function EduSessionsSection({ milestones }) {
 // ─── Goals tab ────────────────────────────────────────────────────────────────
 function GoalsSection({ mentee, slug }) {
   const [responses, setResponses] = useState({});
+  const [weeklyFocus, setWeeklyFocus] = useState({});
 
   useEffect(() => {
     const keys = {
@@ -2257,9 +2394,17 @@ function GoalsSection({ mentee, slug }) {
       if (val.trim()) loaded[k] = val.trim();
     }
     setResponses(loaded);
+
+    // Load weekly focus for all 9 weeks
+    const focus = {};
+    for (let w = 1; w <= 9; w++) {
+      const val = localStorage.getItem(`${slug}_w${w}_weekly_focus`) || "";
+      if (val.trim()) focus[w] = val.trim();
+    }
+    setWeeklyFocus(focus);
   }, [slug]);
 
-  const hasAnyResponse = Object.values(responses).some(v => v.trim());
+  const hasAnyResponse = Object.values(responses).some(v => v.trim()) || Object.values(weeklyFocus).some(v => v);
 
   return (
     <div>
@@ -2292,6 +2437,25 @@ function GoalsSection({ mentee, slug }) {
           </>
         )}
       </div>
+
+      {/* Weekly focus entries */}
+      {Object.keys(weeklyFocus).length > 0 && (
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "22px 26px", marginBottom: 16 }}>
+          <p style={{ margin: "0 0 16px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#5c4eb5" }}>
+            🎯 Weekly Focus
+          </p>
+          {WEEKS.filter(w => weeklyFocus[w.num]).map((w, i, arr) => (
+            <div key={w.num} style={{ marginBottom: i < arr.length - 1 ? 14 : 0 }}>
+              <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 600, color: "#6b6480" }}>
+                Week {w.num} — {w.title}
+              </p>
+              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>
+                {weeklyFocus[w.num]}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Written goals from Week 1 */}
       {responses.primary_refine && (
@@ -2394,7 +2558,7 @@ function GoalsSection({ mentee, slug }) {
             No reflections yet
           </p>
           <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf", lineHeight: 1.6 }}>
-            Head to <strong>Week 1</strong> in My Journey to fill in your goals — they'll appear here once saved.
+            Head to <strong>My Journey</strong> to fill in your weekly focus and reflections — they'll appear here once saved.
           </p>
         </div>
       )}
@@ -2848,12 +3012,58 @@ function EmailsSection() {
 // ─── Profile / About Me section ───────────────────────────────────────────────
 function FounderCard({ m, isSelf }) {
   const mi = `${m.first[0]}${m.last.split(" ")[0][0]}`;
+  const [selfLinkedin, setSelfLinkedin] = useState("");
+  const [linkedinInput, setLinkedinInput] = useState("");
+  const [linkedinSaved, setLinkedinSaved] = useState(false);
+
+  useEffect(() => {
+    if (!isSelf) return;
+    const saved = localStorage.getItem(`${m.slug}_profile_linkedin`);
+    if (saved) setSelfLinkedin(saved);
+  }, [isSelf, m.slug]);
+
+  const effectiveLinkedin = m.linkedin || selfLinkedin;
+
+  // Profile completeness ring
+  const fields = [m.photo, effectiveLinkedin, m.company, m.stage, m.industry, m.county];
+  const filledCount = fields.filter(Boolean).length;
+  const ringPct = filledCount / fields.length;
+  const R = 14, STROKE = 3;
+  const circ = 2 * Math.PI * (R - STROKE / 2);
+  const dashOffset = circ * (1 - ringPct);
+
+  const handleLinkedinSave = () => {
+    const url = linkedinInput.trim();
+    if (!url) return;
+    localStorage.setItem(`${m.slug}_profile_linkedin`, url);
+    setSelfLinkedin(url);
+    persistToSheet(m.slug, 0, "linkedin_url", url, "LinkedIn URL");
+    setLinkedinSaved(true);
+    setTimeout(() => setLinkedinSaved(false), 3000);
+  };
+
   return (
     <div style={{
       background: "#fff", borderRadius: 12,
       border: isSelf ? "2px solid #5c4eb5" : "1px solid #e8e4f5",
       padding: "16px 14px", textAlign: "center",
+      position: "relative",
     }}>
+      {/* Completeness ring — own card only */}
+      {isSelf && (
+        <div style={{ position: "absolute", top: 8, right: 8 }} title={`Profile ${Math.round(ringPct * 100)}% complete`}>
+          <svg width={R * 2} height={R * 2}>
+            <circle cx={R} cy={R} r={R - STROKE / 2} fill="none" stroke="#f0ecff" strokeWidth={STROKE} />
+            <circle cx={R} cy={R} r={R - STROKE / 2} fill="none" stroke="#5c4eb5" strokeWidth={STROKE}
+              strokeDasharray={circ} strokeDashoffset={dashOffset}
+              strokeLinecap="round" transform={`rotate(-90 ${R} ${R})`} />
+            <text x={R} y={R + 3.5} textAnchor="middle" fill="#5c4eb5" fontSize={6} fontWeight="700">
+              {Math.round(ringPct * 100)}%
+            </text>
+          </svg>
+        </div>
+      )}
+
       {m.photo ? (
         <img src={m.photo} alt={m.first} style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", marginBottom: 10 }} />
       ) : (
@@ -2868,8 +3078,8 @@ function FounderCard({ m, isSelf }) {
           {mi}
         </div>
       )}
-      {m.linkedin ? (
-        <a href={m.linkedin} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontWeight: 700, fontSize: 13, color: "#1a1733", textDecoration: "none", marginBottom: 3 }}>
+      {effectiveLinkedin ? (
+        <a href={effectiveLinkedin} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontWeight: 700, fontSize: 13, color: "#1a1733", textDecoration: "none", marginBottom: 3 }}>
           {m.first} {m.last} ↗
         </a>
       ) : (
@@ -2882,6 +3092,38 @@ function FounderCard({ m, isSelf }) {
       {m.stage && <p style={{ margin: "0 0 1px", fontSize: 10, color: "#b0a8cc" }}>{m.stage}</p>}
       {m.industry && <p style={{ margin: 0, fontSize: 10, color: "#b0a8cc" }}>{m.industry}</p>}
       {isSelf && <p style={{ margin: "4px 0 0", fontSize: 10, color: "#5c4eb5", fontWeight: 700 }}>YOU</p>}
+
+      {/* LinkedIn self-entry — own card, no LinkedIn on file */}
+      {isSelf && !effectiveLinkedin && (
+        <div style={{ marginTop: 10, borderTop: "1px solid #f0ecff", paddingTop: 10 }}>
+          <p style={{ margin: "0 0 6px", fontSize: 10, color: "#9b8fcf" }}>Add your LinkedIn ↓</p>
+          <input
+            type="url"
+            value={linkedinInput}
+            onChange={e => setLinkedinInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleLinkedinSave()}
+            placeholder="linkedin.com/in/yourname"
+            style={{
+              width: "100%", fontSize: 10, padding: "5px 7px",
+              borderRadius: 5, border: "1px solid #d4d0e8",
+              boxSizing: "border-box", fontFamily: "inherit", marginBottom: 5,
+              outline: "none",
+            }}
+          />
+          <button
+            onClick={handleLinkedinSave}
+            style={{
+              width: "100%", fontSize: 10, padding: "5px 0",
+              borderRadius: 5, border: "none",
+              background: linkedinSaved ? "#22a366" : "#5c4eb5",
+              color: "#fff", fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+              transition: "background 0.2s",
+            }}
+          >
+            {linkedinSaved ? "✓ Saved!" : "Submit"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -3021,7 +3263,18 @@ function ProfileSection({ mentee, slug, cohortMates, allCohortMembers }) {
 export default function MenteePage({ menteeData, cohortMates, allCohortMembers }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState("journey");
-  const [activeWeek, setActiveWeek] = useState(1);
+  const [activeWeek, setActiveWeek] = useState(() => {
+    const today = new Date();
+    const starts = [
+      [1, "2026-06-01"], [2, "2026-06-08"], [3, "2026-06-15"],
+      [4, "2026-06-22"], [5, "2026-06-29"], [6, "2026-07-06"],
+      [7, "2026-07-13"], [8, "2026-07-19"], [9, "2026-07-27"],
+    ];
+    for (let i = starts.length - 1; i >= 0; i--) {
+      if (today >= new Date(starts[i][1])) return starts[i][0];
+    }
+    return 1;
+  });
   const [liveMilestones, setLiveMilestones] = useState(null);
 
   // Fetch live milestone data from Google Sheets on load
@@ -3113,16 +3366,27 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
     }
     const week = WEEKS.find((w) => w.num === activeWeek);
     if (!week) return null;
+    let weekContent;
     switch (week.type) {
       case "onboarding":
-        return <Week1 mentee={mentee} slug={slug} prompts={promptBlocks} mentorUnlocked={mentorUnlocked}
+        weekContent = <Week1 mentee={mentee} slug={slug} prompts={promptBlocks} mentorUnlocked={mentorUnlocked}
           milestones={liveMilestones || mentee.milestones || {}}
           onParticipationAccepted={() => setLiveMilestones(prev => ({ ...(prev || mentee.milestones || {}), participation: true }))} />;
+        break;
       case "mentor-meeting":
-        return <Week2 mentee={mentee} slug={slug} mentorUnlocked={mentorUnlocked} />;
+        weekContent = <Week2 mentee={mentee} slug={slug} mentorUnlocked={mentorUnlocked} />;
+        break;
       default:
-        return <WeekReflection weekNum={week.num} slug={slug} prompts={promptBlocks} menteeName={`${mentee.first} ${mentee.last}`.trim()} />;
+        weekContent = <WeekReflection weekNum={week.num} slug={slug} prompts={promptBlocks} menteeName={`${mentee.first} ${mentee.last}`.trim()} />;
     }
+    return (
+      <>
+        <JourneyProgressBar slug={slug} activeWeek={week.num} />
+        <WeeklyFocus slug={slug} weekNum={week.num} />
+        <WeeklyPulse slug={slug} weekNum={week.num} />
+        {weekContent}
+      </>
+    );
   };
 
   const renderTabContent = () => {
