@@ -2165,11 +2165,11 @@ export default function AdminPage() {
 
 // ─── Pulse Report ─────────────────────────────────────────────────────────────
 const PULSE_RATINGS_ADMIN = {
-  1: { label: "Stuck",       emoji: "😩", color: "#c0392b", bg: "#fee2e2" },
-  2: { label: "Struggling",  emoji: "😕", color: "#b45309", bg: "#fef3c7" },
-  3: { label: "Managing",    emoji: "😐", color: "#6b6480", bg: "#f0ecff" },
-  4: { label: "Good",        emoji: "🙂", color: "#1a6e42", bg: "#e8f8f0" },
-  5: { label: "Crushing it", emoji: "🚀", color: "#1a6e42", bg: "#d4f8e8" },
+  1: { label: "Could be better", emoji: "😌", color: "#c0392b", bg: "#fee2e2" },
+  2: { label: "Getting there",   emoji: "🙂", color: "#b45309", bg: "#fef3c7" },
+  3: { label: "Feeling good",    emoji: "😊", color: "#6b6480", bg: "#f0ecff" },
+  4: { label: "Feeling great",   emoji: "😄", color: "#1a6e42", bg: "#e8f8f0" },
+  5: { label: "Crushing it",     emoji: "🚀", color: "#1a6e42", bg: "#d4f8e8" },
 };
 const COHORT_NAMES_PULSE = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
 

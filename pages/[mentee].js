@@ -956,6 +956,9 @@ function Week2({ mentee, slug, mentorUnlocked }) {
       {/* Sessions */}
       <EventsSection events={week.events} slug={slug} menteeName={`${mentee.first} ${mentee.last}`.trim()} />
 
+      {/* Weekly focus */}
+      <WeeklyFocus slug={slug} weekNum={2} />
+
       {/* Pre-meeting reflection */}
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
@@ -1011,10 +1014,10 @@ const PULSE_WINDOWS = [
 ];
 
 const PULSE_RATINGS = [
-  { value: 1, emoji: "😩", label: "Stuck" },
-  { value: 2, emoji: "😕", label: "Struggling" },
-  { value: 3, emoji: "😐", label: "Managing" },
-  { value: 4, emoji: "🙂", label: "Good" },
+  { value: 1, emoji: "😌", label: "Could be better" },
+  { value: 2, emoji: "🙂", label: "Getting there" },
+  { value: 3, emoji: "😊", label: "Feeling good" },
+  { value: 4, emoji: "😄", label: "Feeling great" },
   { value: 5, emoji: "🚀", label: "Crushing it" },
 ];
 
@@ -1081,14 +1084,19 @@ function WeeklyPulse({ slug, weekNum }) {
       background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
       padding: "18px 22px", marginBottom: 20,
     }}>
-      <p style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>
-        How are you feeling this week?
-        {selected && (
-          <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 500, color: "#9b8fcf" }}>
-            {PULSE_RATINGS[selected - 1]?.label}
-          </span>
-        )}
-      </p>
+      <div style={{ marginBottom: 10 }}>
+        <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>
+          How are you feeling about the program this week?
+          {selected && (
+            <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 500, color: "#9b8fcf" }}>
+              {PULSE_RATINGS[selected - 1]?.label}
+            </span>
+          )}
+        </p>
+        <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf", lineHeight: 1.6 }}>
+          Weekly pulse check · How&apos;s Uplift supporting you? Are your next steps clear? This helps us gauge how the cohort is doing and where we can show up better.
+        </p>
+      </div>
       <div style={{ display: "flex", gap: 8 }}>
         {PULSE_RATINGS.map(r => (
           <button key={r.value} onClick={() => handleSelect(r.value)} style={{
@@ -1112,13 +1120,62 @@ function WeeklyPulse({ slug, weekNum }) {
 // ─── Weekly focus one-liner ───────────────────────────────────────────────────
 function WeeklyFocus({ slug, weekNum }) {
   const storageKey = `${slug}_w${weekNum}_weekly_focus`;
+  const [savedValue, setSavedValue] = useState("");
+
+  // Date-window logic (same windows as pulse)
+  const today = new Date();
+  const win = PULSE_WINDOWS.find(w => w.week === weekNum);
+  const isActive = win && today >= win.start && today <= win.end;
+  const isPast   = win && today > win.end;
+  const isFuture = win && today < win.start;
+
+  useEffect(() => {
+    setSavedValue(localStorage.getItem(storageKey) || "");
+  }, [storageKey]);
+
+  // Future weeks: don't render
+  if (isFuture) return null;
+
+  // Past window: read-only
+  if (isPast) {
+    return (
+      <div style={{
+        background: "#fafafa", borderRadius: 12,
+        border: "1px solid #e8e4f5", padding: "16px 22px", marginBottom: 20,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: savedValue ? 8 : 0 }}>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#6b6480" }}>
+            What were you focused on this week?
+          </p>
+          <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 600, background: "#f0ecff", borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>
+            Closed
+          </span>
+        </div>
+        {savedValue ? (
+          <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6, fontStyle: "italic" }}>{savedValue}</p>
+        ) : (
+          <p style={{ margin: 0, fontSize: 13, color: "#b0a8cc", fontStyle: "italic" }}>You didn&apos;t share a focus this week.</p>
+        )}
+      </div>
+    );
+  }
+
+  // Active window: editable
   return (
     <div style={{
       background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
       padding: "18px 22px", marginBottom: 20,
     }}>
-      <p style={{ margin: "0 0 10px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>
-        What are you focused on this week?
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>
+          What are you focused on this week?
+        </p>
+        <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 600, background: "#f0ecff", borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>
+          Optional
+        </span>
+      </div>
+      <p style={{ margin: "0 0 12px", fontSize: 12, color: "#9b8fcf", lineHeight: 1.6 }}>
+        Give us a quick snapshot of where you&apos;re putting your energy this week. If someone else in the program is working on something similar, we&apos;ll look to connect you.
       </p>
       <AutoTextarea
         storageKey={storageKey}
@@ -1320,6 +1377,9 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
           ))}
         </div>
 
+        {/* Weekly focus */}
+        <WeeklyFocus slug={slug} weekNum={4} />
+
         {midpoint && (
           <div style={{ background: "#f0faf5", borderRadius: 12, border: "2px solid #b8e8d0", padding: "24px 28px", marginBottom: 24 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
@@ -1421,6 +1481,9 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
           ))}
         </div>
         <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
+
+        {/* Weekly focus */}
+        <WeeklyFocus slug={slug} weekNum={3} />
 
         {/* Share a Win */}
         <div style={{
@@ -1557,6 +1620,7 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
           </a>
         </div>
         <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
+        <WeeklyFocus slug={slug} weekNum={5} />
         <LockedPrompts />
       </div>
     );
@@ -1598,6 +1662,7 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
           {week.tagline}
         </p>
         <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
+        <WeeklyFocus slug={slug} weekNum={7} />
         <div style={{ textAlign: "center", marginBottom: 12 }}>
           <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{
             display: "inline-block", padding: "14px 36px",
@@ -1695,6 +1760,7 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
         </div>
 
         <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
+        <WeeklyFocus slug={slug} weekNum={6} />
         <LockedPrompts />
       </div>
     );
@@ -3526,8 +3592,6 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
     }
     return (
       <>
-        <JourneyProgressBar slug={slug} activeWeek={week.num} />
-        <WeeklyFocus slug={slug} weekNum={week.num} />
         <WeeklyPulse slug={slug} weekNum={week.num} />
         {weekContent}
       </>
