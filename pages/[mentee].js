@@ -1144,7 +1144,7 @@ function WeeklyPulse({ slug, weekNum }) {
           <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 600, background: "#f0ecff", borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>Optional</span>
         </div>
         <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf", lineHeight: 1.6 }}>
-          Available {fmtPulseDate(win.start)} – {fmtPulseDate(win.end)} · How&apos;s Uplift supporting you? Are your next steps clear? This helps us gauge how the cohort is doing and where we can show up better.
+          Weekly pulse check · Available {fmtPulseDate(win.start)} – {fmtPulseDate(win.end)} · We use this to see where you&apos;re at in the program, how you&apos;re feeling, and how your momentum is going. It helps us gauge the cohort as a whole and spot where we can show up better for you.
         </p>
       </div>
 
@@ -1283,7 +1283,7 @@ function WeeklyFocus({ slug, weekNum }) {
         </span>
       </div>
       <p style={{ margin: "0 0 12px", fontSize: 12, color: "#9b8fcf", lineHeight: 1.6 }}>
-        Available {fmtPulseDate(win.start)} – {fmtPulseDate(win.end)} · Give us a quick snapshot of where you&apos;re putting your energy. If someone in the program is working on something similar, we&apos;ll connect you.
+        Weekly focus · Available {fmtPulseDate(win.start)} – {fmtPulseDate(win.end)} · Give us a quick snapshot of where you&apos;re putting your energy this week. If someone in the program is working on something similar, we&apos;ll look to connect you.
       </p>
       <AutoTextarea
         storageKey={storageKey}
