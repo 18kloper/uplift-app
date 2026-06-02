@@ -863,8 +863,6 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
         </div>
       </div>
 
-      <WeeklyFocus slug={slug} weekNum={2} />
-
       {/* One personalized prompt block */}
       <div style={{ marginBottom: 14 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
@@ -957,9 +955,6 @@ function Week2({ mentee, slug, mentorUnlocked }) {
 
       {/* Sessions */}
       <EventsSection events={week.events} slug={slug} menteeName={`${mentee.first} ${mentee.last}`.trim()} />
-
-      {/* Weekly focus */}
-      <WeeklyFocus slug={slug} weekNum={2} />
 
       {/* Pre-meeting reflection */}
       <div style={{ marginBottom: 16 }}>
