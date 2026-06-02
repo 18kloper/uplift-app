@@ -863,6 +863,8 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
         </div>
       </div>
 
+      <WeeklyFocus slug={slug} weekNum={2} />
+
       {/* One personalized prompt block */}
       <div style={{ marginBottom: 14 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
@@ -1013,6 +1015,15 @@ const PULSE_WINDOWS = [
   { week: 9, start: new Date("2026-07-27"), end: new Date("2026-08-04T23:59:59") },
 ];
 
+function fmtPulseDate(d) {
+  const month = d.toLocaleDateString("en-US", { month: "long" });
+  const day = d.getDate();
+  const ord = day % 10 === 1 && day !== 11 ? "st"
+    : day % 10 === 2 && day !== 12 ? "nd"
+    : day % 10 === 3 && day !== 13 ? "rd" : "th";
+  return `${month} ${day}${ord}`;
+}
+
 const PULSE_RATINGS = [
   { value: 1, emoji: "😌", label: "Could be better" },
   { value: 2, emoji: "🙂", label: "Getting there" },
@@ -1051,6 +1062,16 @@ function WeeklyPulse({ slug, weekNum }) {
   const isActive = win && today >= win.start && today <= win.end;
   const isPast   = win && today > win.end;
   const isFuture = win && today < win.start;
+
+  // Onboarding week: no pulse — just a teaser pointing to Week 2
+  if (weekNum === 1) {
+    const week2Win = PULSE_WINDOWS.find(w => w.week === 2);
+    return (
+      <p style={{ margin: "0 0 16px", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
+        💬 Pulse check-ins open {fmtPulseDate(week2Win.start)} — starting Week 2, we&apos;ll check in each week to see how you&apos;re feeling about the program.
+      </p>
+    );
+  }
 
   // Future weeks: don't render at all (they haven't started yet)
   if (isFuture) return null;
@@ -1096,16 +1117,19 @@ function WeeklyPulse({ slug, weekNum }) {
       padding: "18px 22px", marginBottom: 20,
     }}>
       <div style={{ marginBottom: 10 }}>
-        <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>
-          How are you feeling about the program this week?
-          {selected && !isChanging && (
-            <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 500, color: "#9b8fcf" }}>
-              {PULSE_RATINGS[selected - 1]?.label}
-            </span>
-          )}
-        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>
+            How are you feeling about the program this week?
+            {selected && !isChanging && (
+              <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 500, color: "#9b8fcf" }}>
+                {PULSE_RATINGS[selected - 1]?.label}
+              </span>
+            )}
+          </p>
+          <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 600, background: "#f0ecff", borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>Optional</span>
+        </div>
         <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf", lineHeight: 1.6 }}>
-          Weekly pulse check · How&apos;s Uplift supporting you? Are your next steps clear? This helps us gauge how the cohort is doing and where we can show up better.
+          Available {fmtPulseDate(win.start)} – {fmtPulseDate(win.end)} · How&apos;s Uplift supporting you? Are your next steps clear? This helps us gauge how the cohort is doing and where we can show up better.
         </p>
       </div>
 
@@ -1181,8 +1205,14 @@ function WeeklyFocus({ slug, weekNum }) {
     setSavedValue(localStorage.getItem(storageKey) || "");
   }, [storageKey]);
 
-  // Future weeks: don't render
-  if (isFuture) return null;
+  // Future weeks: discrete teaser
+  if (isFuture) {
+    return (
+      <p style={{ margin: "0 0 16px", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
+        ✏️ Weekly focus opens {fmtPulseDate(win.start)} – {fmtPulseDate(win.end)} · Share what you&apos;re building toward and we&apos;ll connect you with founders working on something similar.
+      </p>
+    );
+  }
 
   // Past window: read-only
   if (isPast) {
@@ -1223,7 +1253,7 @@ function WeeklyFocus({ slug, weekNum }) {
         </span>
       </div>
       <p style={{ margin: "0 0 12px", fontSize: 12, color: "#9b8fcf", lineHeight: 1.6 }}>
-        Give us a quick snapshot of where you&apos;re putting your energy this week. If someone else in the program is working on something similar, we&apos;ll look to connect you.
+        Available {fmtPulseDate(win.start)} – {fmtPulseDate(win.end)} · Give us a quick snapshot of where you&apos;re putting your energy. If someone in the program is working on something similar, we&apos;ll connect you.
       </p>
       <AutoTextarea
         storageKey={storageKey}
@@ -1608,22 +1638,9 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
 
   // Locked prompt block shown on weeks 5–7 until midpoint is attended
   const LockedPrompts = () => (
-    <div style={{
-      background: "#fafafa", borderRadius: 12, border: "1px solid #ede9f8",
-      padding: "24px 28px", marginTop: 24, opacity: 0.7,
-    }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
-          Reflection Prompts
-        </p>
-        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9b8fcf", background: "#ede9f8", borderRadius: 4, padding: "2px 7px" }}>
-          🔒 Unlocked after the Midpoint Meetup
-        </span>
-      </div>
-      <p style={{ margin: 0, fontSize: 14, color: "#b0a8cc", lineHeight: 1.6, fontStyle: "italic" }}>
-        These prompts will become available after you've attended the Midpoint Meetup on June 23rd.
-      </p>
-    </div>
+    <p style={{ margin: "4px 0 16px", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
+      🔒 Reflection prompts unlock after you&apos;ve attended the Midpoint Meetup on June 23rd.
+    </p>
   );
 
   // Week 5: action items, submit button, sessions
