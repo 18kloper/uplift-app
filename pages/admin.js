@@ -2592,8 +2592,9 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
   const [activeFilters, setActiveFilters] = useState([]);
 
   const toggleFilter = key => {
+    if (key === "all") { setActiveFilters([]); return; }
     setActiveFilters(prev =>
-      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev.filter(k => k !== "all"), key]
     );
   };
 
