@@ -180,6 +180,17 @@ const RESPONSES = [
     ],
     selected: "Natalie Kitts",
   },
+  {
+    threadId: "19e8a0e74f44b46f",
+    mentor: { name: "Natalie Kaminski", email: "natalie@jetrockets.com" },
+    replyDate: "2026-06-02",
+    reply: "I confirm my availability to mentor, but unfortunately I won't be able to attend the in-person meetings due to prior travel commitments.",
+    options: [
+      { name: "Jedidiah Worrell", company: "Unnamed (Idea Stage)", slug: "jedidiah-worrell", stage: "Idea stage", industry: "Retail / Marketplace / E-commerce", needs: "Product strategy & roadmap decisions" },
+      { name: "Tosca Marleen", company: "Tend to Belle", slug: "tosca-marleen", stage: "MVP / Early build", industry: "Retail / Marketplace / E-commerce", needs: "Hiring, team structure & leadership" },
+    ],
+    selected: "both",
+  },
 ];
 
 export default function handler(req, res) {
