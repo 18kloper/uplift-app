@@ -1192,7 +1192,7 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
     );
   }
 
-  // Week 3: tagline + action items + sessions + prompt
+  // Week 3: tagline + action items + sessions + share a win + reflection
   if (weekNum === 3) {
     return (
       <div>
