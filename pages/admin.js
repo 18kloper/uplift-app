@@ -842,6 +842,7 @@ function PeerConnections() {
   const [undoState, setUndoState] = useState(null); // { pairKey, prevStatus, label }
   const undoTimerRef = useRef(null);
   const [draftEmails, setDraftEmails] = useState({}); // pairKey → { loading, subject, body, error, copied }
+  const [activeFilter, setActiveFilter] = useState("all");
   const STORE_KEY = "uplift_peer_connections_v2";
 
   const COHORT_COLORS = {
@@ -871,22 +872,36 @@ function PeerConnections() {
     return true;
   };
 
-  useEffect(() => {
+  // Fetch sheet statuses and overlay them on a connections array
+  const applySheetStatuses = async (conns) => {
     try {
-      const stored = localStorage.getItem(STORE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (!isPeerStale(parsed.lastRunAt)) {
-          setConnections(parsed.connections || []);
-          setLastRunAt(parsed.lastRunAt);
-          return;
-        } else {
-          runAnalysis(parsed.connections || []);
-          return;
+      const r = await fetch("/api/get-peer-statuses");
+      const { statuses } = await r.json();
+      if (!statuses || !Object.keys(statuses).length) return conns;
+      return conns.map(c => statuses[c.pairKey] !== undefined ? { ...c, status: statuses[c.pairKey] } : c);
+    } catch (_) { return conns; }
+  };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const stored = localStorage.getItem(STORE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const baseConns = parsed.connections || [];
+          if (!isPeerStale(parsed.lastRunAt)) {
+            const synced = await applySheetStatuses(baseConns);
+            setConnections(synced);
+            setLastRunAt(parsed.lastRunAt);
+            return;
+          } else {
+            runAnalysis(baseConns);
+            return;
+          }
         }
-      }
-    } catch (_) {}
-    runAnalysis([]);
+      } catch (_) {}
+      runAnalysis([]);
+    })();
   }, []);
 
   const runAnalysis = (existingConnections) => {
@@ -914,10 +929,12 @@ function PeerConnections() {
           .filter(c => !existingKeys.has(c.pairKey))
           .map(c => ({ ...c, isNew: true, addedAt: now, status: null }));
         const merged = [...newOnes, ...existingUpdated];
-        setConnections(merged);
-        setLastRunAt(now);
-        try { localStorage.setItem(STORE_KEY, JSON.stringify({ connections: merged, lastRunAt: now })); } catch (_) {}
-        setLoading(false);
+        applySheetStatuses(merged).then(synced => {
+          setConnections(synced);
+          setLastRunAt(now);
+          try { localStorage.setItem(STORE_KEY, JSON.stringify({ connections: synced, lastRunAt: now })); } catch (_) {}
+          setLoading(false);
+        });
       })
       .catch(e => { setError(e.message); setLoading(false); });
   };
@@ -936,6 +953,21 @@ function PeerConnections() {
 
       const updated = prev.map(c => c.pairKey !== pairKey ? c : { ...c, status: nextStatus });
       try { localStorage.setItem(STORE_KEY, JSON.stringify({ connections: updated, lastRunAt })); } catch (_) {}
+      // Persist to sheet (fire-and-forget)
+      const conn = updated.find(c => c.pairKey === pairKey);
+      if (conn) {
+        fetch("/api/save-peer-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            pairKey,
+            status: nextStatus,
+            founder1Name: conn.founders?.[0]?.name,
+            founder2Name: conn.founders?.[1]?.name,
+            sharedTheme: conn.sharedTheme,
+          }),
+        }).catch(() => {});
+      }
       return updated;
     });
   };
@@ -995,6 +1027,18 @@ function PeerConnections() {
 
   const newCount = connections.filter(c => c.isNew).length;
 
+  const FILTERS = [
+    { key: "all",        label: "All",                   match: () => true },
+    { key: "new",        label: "New this week",          match: c => !!c.isNew },
+    { key: "unreviewed", label: "Not reviewed yet",       match: c => !c.status },
+    { key: "connected",  label: "I connected them",       match: c => c.status === "connected" },
+    { key: "planned",    label: "Planning to connect",    match: c => c.status === "planned" },
+    { key: "skip",       label: "Not connecting",         match: c => c.status === "skip" },
+  ];
+  const filteredConnections = sortedConnections.filter(
+    FILTERS.find(f => f.key === activeFilter)?.match || (() => true)
+  );
+
   const FounderPill = ({ founder }) => {
     const c = COHORT_COLORS[founder.cohort] || { bg: "#f3f0ff", color: "#5c4eb5", border: "#c4b8f0" };
     return (
@@ -1029,8 +1073,40 @@ function PeerConnections() {
       )}
 
       {sortedConnections.length > 0 && (
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
+          {FILTERS.map(f => {
+            const count = f.key === "all" ? sortedConnections.length : sortedConnections.filter(f.match).length;
+            const active = activeFilter === f.key;
+            return (
+              <button
+                key={f.key}
+                onClick={() => setActiveFilter(f.key)}
+                style={{
+                  padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: active ? 700 : 500,
+                  border: active ? "1.5px solid #5c4eb5" : "1.5px solid #e0daf5",
+                  background: active ? "#5c4eb5" : "#fff",
+                  color: active ? "#fff" : "#6b6480",
+                  cursor: "pointer", fontFamily: "inherit",
+                  display: "flex", alignItems: "center", gap: 6,
+                }}
+              >
+                {f.label}
+                <span style={{
+                  background: active ? "rgba(255,255,255,0.25)" : "#f0ecff",
+                  color: active ? "#fff" : "#5c4eb5",
+                  borderRadius: 10, padding: "1px 7px", fontSize: 11, fontWeight: 700,
+                }}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {sortedConnections.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {sortedConnections.map((conn, i) => (
+          {filteredConnections.map((conn, i) => (
             <div key={conn.pairKey || i} style={{
               background: "#fff", borderRadius: 14,
               border: "1px solid #e8e4f5",
@@ -1190,6 +1266,9 @@ function PeerConnections() {
 
       {connections.length === 0 && !loading && (
         <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>No connections found yet — more responses needed.</p>
+      )}
+      {connections.length > 0 && filteredConnections.length === 0 && (
+        <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>No connections match this filter.</p>
       )}
 
       <p style={{ margin: "28px 0 0", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
