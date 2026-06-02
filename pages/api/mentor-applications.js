@@ -98,8 +98,11 @@ export default async function handler(req, res) {
       const nameKey  = norm(name);
       const emailKey = norm(email);
 
-      if (existingNames.has(nameKey)) continue;
-      if (emailKey && existingEmails.has(emailKey)) continue;
+      // ?all=1 returns every submission (for email lookup purposes)
+      if (req.query.all !== "1") {
+        if (existingNames.has(nameKey)) continue;
+        if (emailKey && existingEmails.has(emailKey)) continue;
+      }
 
       const dedupeKey = emailKey || nameKey;
       if (seen.has(dedupeKey)) continue;
