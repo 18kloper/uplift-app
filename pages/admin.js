@@ -841,6 +841,7 @@ function PeerConnections() {
   const [lastRunAt, setLastRunAt] = useState(null);
   const [undoState, setUndoState] = useState(null); // { pairKey, prevStatus, label }
   const undoTimerRef = useRef(null);
+  const [draftEmails, setDraftEmails] = useState({}); // pairKey → { loading, subject, body, error, copied }
   const STORE_KEY = "uplift_peer_connections_v2";
 
   const COHORT_COLORS = {
@@ -950,6 +951,28 @@ function PeerConnections() {
     setUndoState(null);
   };
 
+  const draftIntro = async (conn) => {
+    const key = conn.pairKey;
+    setDraftEmails(prev => ({ ...prev, [key]: { loading: true } }));
+    try {
+      const res = await fetch("/api/draft-intro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          founder1: conn.founders[0],
+          founder2: conn.founders[1],
+          sharedTheme: conn.sharedTheme,
+          reason: conn.reason,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setDraftEmails(prev => ({ ...prev, [key]: { loading: false, subject: data.subject, body: data.body, copied: false } }));
+    } catch (err) {
+      setDraftEmails(prev => ({ ...prev, [key]: { loading: false, error: err.message } }));
+    }
+  };
+
   const sortedConnections = [...connections].sort((a, b) => {
     if (a.isNew !== b.isNew) return a.isNew ? -1 : 1;
     return new Date(b.addedAt || 0) - new Date(a.addedAt || 0);
@@ -1017,9 +1040,75 @@ function PeerConnections() {
               </div>
 
               {/* Reason */}
-              <p style={{ margin: "0 0 14px", fontSize: 13, color: "#4a4060", lineHeight: 1.65 }}>
+              <p style={{ margin: "0 0 12px", fontSize: 13, color: "#4a4060", lineHeight: 1.65 }}>
                 {conn.reason}
               </p>
+
+              {/* Draft intro email */}
+              {(() => {
+                const draft = draftEmails[conn.pairKey];
+                if (!draft) {
+                  return (
+                    <button
+                      onClick={() => draftIntro(conn)}
+                      style={{
+                        marginBottom: 12, padding: "6px 14px",
+                        background: "#f3f0ff", border: "1px solid #c4b8f0",
+                        borderRadius: 8, fontSize: 12, fontWeight: 600,
+                        color: "#5c4eb5", cursor: "pointer", fontFamily: "inherit",
+                        display: "flex", alignItems: "center", gap: 6,
+                      }}
+                    >
+                      ✉️ Draft Intro Email
+                    </button>
+                  );
+                }
+                if (draft.loading) {
+                  return (
+                    <p style={{ margin: "0 0 12px", fontSize: 12, color: "#9b8fcf", fontStyle: "italic" }}>
+                      ✉️ Drafting intro email…
+                    </p>
+                  );
+                }
+                if (draft.error) {
+                  return (
+                    <p style={{ margin: "0 0 12px", fontSize: 12, color: "#c0392b" }}>
+                      ⚠ {draft.error} —{" "}
+                      <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => draftIntro(conn)}>retry</span>
+                    </p>
+                  );
+                }
+                return (
+                  <div style={{
+                    marginBottom: 12, background: "#f7f5ff",
+                    border: "1px solid #ddd8f8", borderRadius: 10, padding: "14px 16px",
+                  }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
+                      <div>
+                        <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.05em" }}>Subject</p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{draft.subject}</p>
+                      </div>
+                      <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                        <button
+                          onClick={() => { navigator.clipboard.writeText(`Subject: ${draft.subject}\n\n${draft.body}`); setDraftEmails(prev => ({ ...prev, [conn.pairKey]: { ...draft, copied: true } })); setTimeout(() => setDraftEmails(prev => ({ ...prev, [conn.pairKey]: { ...prev[conn.pairKey], copied: false } })), 2000); }}
+                          style={{ padding: "4px 10px", background: draft.copied ? "#e8f8f0" : "#fff", border: `1px solid ${draft.copied ? "#b8e8d0" : "#c4b8f0"}`, borderRadius: 6, fontSize: 11, fontWeight: 600, color: draft.copied ? "#1a6e42" : "#5c4eb5", cursor: "pointer", fontFamily: "inherit" }}
+                        >
+                          {draft.copied ? "✓ Copied" : "Copy"}
+                        </button>
+                        <button
+                          onClick={() => draftIntro(conn)}
+                          style={{ padding: "4px 10px", background: "#fff", border: "1px solid #e0daf5", borderRadius: 6, fontSize: 11, fontWeight: 600, color: "#9b8fcf", cursor: "pointer", fontFamily: "inherit" }}
+                        >
+                          ↺ Redo
+                        </button>
+                      </div>
+                    </div>
+                    <pre style={{ margin: 0, fontSize: 12, color: "#4a4060", lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: "inherit" }}>
+                      {draft.body}
+                    </pre>
+                  </div>
+                );
+              })()}
 
               {/* Status dropdown */}
               {(() => {
