@@ -117,13 +117,13 @@ const RESPONSES = [
   {
     threadId: "19e7645bb7a0ccf4",
     mentor: { name: "Rahul Mehendale", email: "rahul.mehendale@gmail.com" },
-    replyDate: "2026-05-29",
-    reply: "Please send some further details so can decide if can do 1 or both.",
+    replyDate: "2026-06-02",
+    reply: "Can meet with both.",
     options: [
       { name: "Jagannadh Kanumuri", company: "ACI Infotech", slug: "jagannadh-kanumuri", stage: "Growth-stage", industry: "AI / Data / ML", needs: "Go-to-market & customer acquisition" },
       { name: "Hamza Zafar", company: "HHALI LLC", slug: "hamza-zafar", stage: "MVP / Early build", industry: "AI / Data / ML", needs: "Go-to-market & customer acquisition" },
     ],
-    selected: null,
+    selected: "both",
   },
   {
     threadId: "19e763023f7e2c44",
@@ -158,9 +158,20 @@ const RESPONSES = [
     ],
     selected: "Jean Guerdy Paul",
   },
+  {
+    threadId: "19e89e98bf6bb5c9",
+    mentor: { name: "Aizaz Shariff", email: "shariff.aizaz@gmail.com" },
+    replyDate: "2026-06-02",
+    reply: "I will support both of them and I responded to this earlier, also.",
+    options: [
+      { name: "Justin Savage", company: "STEAM FOR ME", slug: "justin-savage", stage: "Early traction", industry: "Enterprise SaaS / B2B", needs: "Fundraising strategy & investor readiness" },
+      { name: "Pierre Girgis", company: "Veriflo LLC", slug: "pierre-girgis", stage: "Idea stage", industry: "AI / Data / ML", needs: "Product strategy & roadmap decisions" },
+    ],
+    selected: "both",
+  },
 ];
 
 export default function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
-  return res.status(200).json({ responses: RESPONSES, lastRefreshed: "2026-06-02" });
+  return res.status(200).json({ responses: RESPONSES, lastRefreshed: "2026-06-02 (evening)" });
 }
