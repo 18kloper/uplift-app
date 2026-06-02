@@ -3228,28 +3228,6 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
 
               {/* Utility nav — header links */}
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-                <button
-                  onClick={() => {
-                    if (typeof window !== "undefined" && window.tf) {
-                      window.tf.createPopup("01KT2VVPD2JSKX90MG1GEQJT01").open();
-                    } else {
-                      window.open("https://form.typeform.com/to/01KT2VVPD2JSKX90MG1GEQJT01", "_blank");
-                    }
-                  }}
-                  style={{
-                    padding: "5px 13px",
-                    border: "1px solid rgba(255,255,255,0.55)",
-                    borderRadius: 8, background: "rgba(255,255,255,0.12)",
-                    color: "#fff", fontSize: 12, fontWeight: 700,
-                    cursor: "pointer", fontFamily: "inherit",
-                    display: "flex", alignItems: "center", gap: 5,
-                    transition: "background 0.15s",
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.22)"}
-                  onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.12)"}
-                >
-                  💡 Make a Suggestion
-                </button>
                 {TAB_ROW_2.map(id => {
                   const tab = PRIMARY_TABS.find(t => t.id === id);
                   const active = activeTab === id;
@@ -3383,6 +3361,28 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
         <div style={{ background: "#1a0e4f", padding: "20px 24px", textAlign: "center", color: "rgba(255,255,255,0.5)", fontSize: 12 }}>
           TechUnited:NJ · Uplift Summer 2026 · Your responses sync to Google Sheets
         </div>
+
+        {/* Floating suggestion button */}
+        <button
+          onClick={() => {
+            if (typeof window !== "undefined" && window.tf) {
+              window.tf.createPopup("01KT2VVPD2JSKX90MG1GEQJT01").open();
+            } else {
+              window.open("https://form.typeform.com/to/01KT2VVPD2JSKX90MG1GEQJT01", "_blank");
+            }
+          }}
+          style={{
+            position: "fixed", bottom: 24, right: 24, zIndex: 1000,
+            background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+            color: "#fff", border: "none", borderRadius: 28,
+            padding: "12px 20px", fontSize: 14, fontWeight: 700,
+            cursor: "pointer", fontFamily: "inherit",
+            boxShadow: "0 4px 16px rgba(92,78,181,0.4)",
+            display: "flex", alignItems: "center", gap: 8,
+          }}
+        >
+          💡 Make a Suggestion
+        </button>
       </div>
     </>
   );
