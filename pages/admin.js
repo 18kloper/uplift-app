@@ -2583,11 +2583,69 @@ function MentorSelections() {
   );
 }
 
+// ─── Mentor note editor ────────────────────────────────────────────────────────
+function MentorNote({ mentorKey, initialValue }) {
+  const [value, setValue] = useState(initialValue || "");
+  const [status, setStatus] = useState("idle");
+  const timerRef = useRef(null);
+
+  const handleChange = (e) => {
+    const newVal = e.target.value;
+    setValue(newVal);
+    setStatus("saving");
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(async () => {
+      try {
+        await fetch("/api/save-mentor-note", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mentorKey, note: newVal }),
+        });
+        setStatus("saved");
+        setTimeout(() => setStatus("idle"), 2000);
+      } catch (_) {
+        setStatus("idle");
+      }
+    }, 800);
+  };
+
+  return (
+    <div style={{ position: "relative" }}>
+      <textarea
+        value={value}
+        onChange={handleChange}
+        placeholder="Add notes…"
+        rows={2}
+        style={{
+          width: "100%", padding: "7px 10px", borderRadius: 6,
+          border: "1.5px solid #e8e4f5", background: "#fafafa",
+          fontSize: 12, lineHeight: 1.5, resize: "vertical",
+          fontFamily: "inherit", boxSizing: "border-box", outline: "none",
+          transition: "border-color 0.15s", color: "#1a1733",
+        }}
+        onFocus={e => (e.target.style.borderColor = "#5c4eb5")}
+        onBlur={e => (e.target.style.borderColor = "#e8e4f5")}
+      />
+      {status !== "idle" && (
+        <span style={{
+          position: "absolute", bottom: 6, right: 8, fontSize: 10,
+          color: status === "saved" ? "#22a366" : "#9b8fcf",
+          fontWeight: 500, pointerEvents: "none",
+          background: "rgba(250,250,250,0.9)", padding: "0 2px",
+        }}>
+          {status === "saving" ? "Syncing…" : "✓ Synced"}
+        </span>
+      )}
+    </div>
+  );
+}
+
 // ─── Mentor Matches view ──────────────────────────────────────────────────────
 function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, mentees = [] }) {
   const [responses, setResponses] = useState([]);
   const [allMentors, setAllMentors] = useState([]);
   const [menteeBySlug, setMenteeBySlug] = useState({});
+  const [mentorNotes, setMentorNotes] = useState({});
   const [loading, setLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState([]);
 
@@ -2603,8 +2661,10 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
       fetch("/api/mentor-email-responses").then(r => r.json()),
       fetch("/api/mentor-selections").then(r => r.json()),
       fetch("/api/mentor-applications").then(r => r.json()).catch(() => ({ mentors: [] })),
-    ]).then(([emailData, selData, appData]) => {
+      fetch("/api/get-mentor-notes").then(r => r.json()).catch(() => ({ notes: {} })),
+    ]).then(([emailData, selData, appData, notesData]) => {
       setResponses(emailData.responses || []);
+      if (notesData.notes) setMentorNotes(notesData.notes);
 
       // Merge MENTEES-assigned mentors with unmatched Typeform applicants
       const assigned = selData.mentors || [];
@@ -2686,7 +2746,7 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
     ? rows
     : rows.filter(r => activeFilters.some(key => FILTERS.find(f => f.key === key)?.match(r)));
 
-  const COLS = "1.4fr 1.6fr 1.6fr 110px 120px";
+  const COLS = "1.4fr 1.6fr 1.6fr 110px 120px 1.8fr";
 
   const MenteeCell = ({ opt, threadId }) => {
     if (!opt) return <span style={{ fontSize: 12, color: "#c0b8d8" }}>—</span>;
@@ -2833,7 +2893,7 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
             padding: "11px 20px", background: "#f7f5ff",
             borderBottom: "1px solid #e8e4f5",
           }}>
-            {["Mentor", "Mentee 1", "Mentee 2", "Sessions", "Mentees"].map(h => (
+            {["Mentor", "Mentee 1", "Mentee 2", "Sessions", "Mentees", "Notes"].map(h => (
               <p key={h} style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 {h}
               </p>
@@ -2921,6 +2981,11 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
                   }}>
                     {badgeLabel}
                   </span>
+                </div>
+
+                {/* Notes */}
+                <div style={{ minWidth: 0 }}>
+                  <MentorNote mentorKey={mentorKey} initialValue={mentorNotes[mentorKey] || ""} />
                 </div>
               </div>
             );
