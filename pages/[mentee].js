@@ -3364,18 +3364,17 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
 
         {/* Floating suggestion button */}
         <button
+          data-tf-popup="01KT2VVPD2JSKX90MG1GEQJT01"
           onClick={() => {
-            if (typeof window !== "undefined" && window.tf) {
-              window.tf.createPopup("01KT2VVPD2JSKX90MG1GEQJT01").open();
-            } else {
+            if (typeof window !== "undefined" && !window.tf) {
               window.open("https://form.typeform.com/to/01KT2VVPD2JSKX90MG1GEQJT01", "_blank");
             }
           }}
           style={{
-            position: "fixed", bottom: 24, right: 24, zIndex: 1000,
+            position: "fixed", top: 20, right: 20, zIndex: 1000,
             background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
             color: "#fff", border: "none", borderRadius: 28,
-            padding: "12px 20px", fontSize: 14, fontWeight: 700,
+            padding: "10px 18px", fontSize: 13, fontWeight: 700,
             cursor: "pointer", fontFamily: "inherit",
             boxShadow: "0 4px 16px rgba(92,78,181,0.4)",
             display: "flex", alignItems: "center", gap: 8,
