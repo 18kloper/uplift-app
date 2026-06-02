@@ -531,6 +531,10 @@
       background: #fffbf5;
       border: 1px solid #f5c97a;
     }
+    .milestone-card-severely-overdue {
+      background: #fff5f5;
+      border: 1px solid #f5a0a0;
+    }
     .milestone-circle {
       width: 28px;
       height: 28px;
@@ -546,14 +550,39 @@
     .milestone-circle-done { background: #22a366; color: #fff; }
     .milestone-circle-pending { background: #f0ecff; color: #c0b8d8; font-size: 18px; }
     .milestone-circle-overdue { background: #fef3c7; color: #b45309; }
+    .milestone-circle-severely-overdue { background: #fee2e2; color: #c0392b; }
     .milestone-label { font-size: 15px; line-height: 1.4; }
     .milestone-label-done { font-weight: 600; color: #1a4a32; }
     .milestone-label-pending { font-weight: 400; color: #6b6480; }
     .milestone-label-overdue { font-weight: 500; color: #92400e; }
+    .milestone-label-severely-overdue { font-weight: 500; color: #c0392b; }
     .milestone-due { font-size: 11px; font-style: italic; }
     .milestone-due-done { color: #6abf97; }
     .milestone-due-pending { color: #b0a8cc; }
     .milestone-due-overdue { color: #d97706; }
+    .milestone-severely-overdue-badge {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 700;
+      color: #c0392b;
+      background: #fee2e2;
+      border-radius: 4px;
+      padding: 2px 8px;
+      flex-shrink: 0;
+      align-self: center;
+      white-space: nowrap;
+    }
+    .milestone-overdue-msg-red {
+      margin-top: 5px;
+      font-size: 12px;
+      color: #c0392b;
+      line-height: 1.6;
+    }
+    .overdue-link-red {
+      color: #c0392b;
+      font-weight: 700;
+      text-decoration: underline;
+    }
     .milestone-completed-badge {
       margin-left: auto;
       font-size: 11px;
@@ -987,6 +1016,9 @@
       <li><a href="#s10">Cohort Directory</a></li>
       <li><a href="#s11">Support</a></li>
       <li><a href="#s12">Resources</a></li>
+      <li><a href="#s13">Weekly Pulse Check</a></li>
+      <li><a href="#s14">Weekly Focus &amp; Peer Connections</a></li>
+      <li><a href="#s15">✨ Uplift Wrapped</a></li>
     </ol>
   </div>
 
@@ -1037,6 +1069,7 @@
               <div class="portal-pill">Cohort Directory</div>
               <div class="portal-pill">Resources</div>
               <div class="portal-pill">Support</div>
+              <div class="portal-pill" style="margin-left:auto;background:rgba(255,255,255,0.18);box-shadow:0 0 0 1.5px rgba(255,255,255,0.75);font-weight:700;">💡 Make a Suggestion</div>
             </div>
           </div>
           <div class="portal-mentor-card">
@@ -1066,6 +1099,7 @@
       <li><strong style="color:#1a1733;">Your name and cohort</strong> — top left. Your cohort name (Edison, Hopper, Bardeen, Lawrence, or Morrison) is assigned based on your application focus area.</li>
       <li><strong style="color:#1a1733;">Your mentor card</strong> — top right. Shows your mentor's name and company. This appears after your mentor match is confirmed (following your onboarding session attendance).</li>
       <li><strong style="color:#1a1733;">Quick-nav pills</strong> (Program Roadmap, Cohort Directory, Resources, Support) — jump to secondary sections of the portal without hunting through tabs.</li>
+      <li><strong style="color:#1a1733;">💡 Make a Suggestion</strong> — a pill button in the top-right of the header strip. Click it to open a short Typeform where you can send feedback, flag something, or share an idea with the Uplift team. It's anonymous-friendly and takes about 30 seconds. Use it anytime — we read every submission.</li>
       <li><strong style="color:#1a1733;">Tab row</strong> — the white bar below the header holds the five main sections: My Journey, My Goals &amp; Reflections, Milestones, Logged Mentorship Sessions, and Logged Educational Sessions.</li>
     </ul>
 
@@ -1144,6 +1178,7 @@
         <div class="week-pill">Week 8</div>
         <div class="week-pill">Week 9</div>
         <div class="week-pill">Certificate</div>
+        <div class="week-pill" style="color:#c0006e;font-style:italic;">✨ Uplift Wrapped</div>
       </div>
       <div style="padding:20px 24px;">
 
@@ -1230,6 +1265,10 @@
     <div class="callout callout-amber">
       <strong>Some prompts are marked Optional.</strong> These are for your own reflection and growth — they won't be graded or required to complete the program. We encourage you to engage with them anyway. The founders who do tend to get more out of their mentor relationships.
     </div>
+
+    <div class="callout callout-purple" style="margin-top:12px;">
+      <strong>New in Summer 2026:</strong> My Journey now includes a <strong>Weekly Pulse Check</strong> (a quick 5-option mood rating, Weeks 2–9), a <strong>Weekly Focus</strong> field where you share what you're building toward that week (used for peer matching), and an <strong>✨ Uplift Wrapped</strong> tab at the end of the week navigation — a Spotify Wrapped-style recap of your full summer that unlocks after graduation. See Sections 13, 14, and 15 for details.
+    </div>
   </div>
 
   <!-- ── SECTION 5: MILESTONES ── -->
@@ -1306,6 +1345,19 @@
       </div>
     </div>
     <p class="explain">For milestones tied to a specific week's action (like submitting a mentor meeting), the overdue message will link you directly to the relevant week in My Journey. Click the link to jump there and take action. Remember: mentor sessions are submitted through Typeform via the link on your My Journey page — they don't automatically appear from calendar events or emails.</p>
+
+    <!-- State 5: Severely overdue -->
+    <div class="mockup-label" style="margin-top:20px;">State 5 — Severely overdue (5+ days past due)</div>
+    <div class="milestone-card milestone-card-severely-overdue">
+      <div class="milestone-circle milestone-circle-severely-overdue">!</div>
+      <div style="flex:1;">
+        <div class="milestone-label milestone-label-severely-overdue">Mentor Session 1</div>
+        <div class="milestone-due" style="color:#c0392b;">By Jun 13</div>
+        <div class="milestone-overdue-msg-red">⚠️ This is past due. <a href="#" class="overdue-link-red">Visit Week 2 in My Journey →</a></div>
+      </div>
+      <div class="milestone-severely-overdue-badge">OVERDUE · 8d past due</div>
+    </div>
+    <p class="explain">When a milestone is more than 5 days past due, the card turns <strong>red</strong> — a stronger signal that this needs your attention now. You'll see an <strong>"OVERDUE · Xd past due"</strong> badge in the top-right corner showing exactly how many days have passed. The action prompt (either a link to My Journey or an email link) is the same — take action as soon as you can, or reach out to <a href="mailto:uplift@techunited.co" style="color:#c0392b;font-weight:600;">uplift@techunited.co</a> if you're stuck.</p>
 
     <div class="callout callout-amber">
       <strong>Milestones update every Tuesday.</strong> If you completed something on a Wednesday, it may not be reflected until the following Tuesday. If a milestone seems wrong after a full week, contact <a href="mailto:uplift@techunited.co" style="color:#b45309;font-weight:600;">uplift@techunited.co</a>.
@@ -1711,6 +1763,80 @@
 
     <p class="explain">The <strong>Resources</strong> section (accessible via the pill in the header) contains a curated list of links and tools organized by category. From submission forms to investor resources to NJ ecosystem connections, everything lives here. Some items are locked until later in the program.</p>
 
+    <!-- Favorites walkthrough -->
+    <p style="font-size:15px;font-weight:700;color:#1a1733;margin:0 0 10px;">❤️ Building Your Favorites</p>
+    <p class="explain" style="margin-bottom:14px;">Every resource card has a small heart icon on the right side. Tap or click it to instantly pin that resource to your own <strong>❤️ My Favorites</strong> section, which appears at the very top of the Resources tab. It's a quick way to bookmark the links you use most — submission forms, note-taking tools, investor contacts — without scrolling to find them each time.</p>
+
+    <!-- Mockup: un-hearted vs hearted card -->
+    <div class="mockup-label">Step 1 — Click the ♡ heart on any resource</div>
+    <div class="mockup" style="padding:16px 20px;">
+      <div style="display:flex;align-items:center;background:#fff;border:1px solid #e8e4f5;border-radius:10px;padding:14px 16px;gap:12px;margin-bottom:10px;">
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:600;color:#1a1733;margin-bottom:3px;">Mentor Meeting Submission</div>
+          <div style="font-size:12px;color:#9b8fcf;">Submit your mentor meeting reports here (required)</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+          <span style="font-size:18px;color:#d4cef5;cursor:pointer;line-height:1;">♡</span>
+          <span style="font-size:14px;color:#5c4eb5;">→</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;background:#fff;border:1px solid #e8e4f5;border-radius:10px;padding:14px 16px;gap:12px;">
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:600;color:#1a1733;margin-bottom:3px;">Granola — AI Note Taker</div>
+          <div style="font-size:12px;color:#9b8fcf;">Required for all mentorship sessions. Free download.</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+          <span style="font-size:18px;color:#d4cef5;cursor:pointer;line-height:1;">♡</span>
+          <span style="font-size:14px;color:#5c4eb5;">→</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup-label" style="margin-top:16px;">Step 2 — Hearted resources turn red and snap to the top</div>
+    <div class="mockup" style="padding:16px 20px;">
+      <!-- My Favorites section -->
+      <div style="margin-bottom:16px;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:#c0392b;margin:0 0 8px;">❤️ My Favorites</p>
+        <div style="display:flex;align-items:center;background:#fff;border:1px solid #f5c8c8;border-radius:10px;padding:14px 16px;gap:12px;margin-bottom:8px;">
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:600;color:#1a1733;margin-bottom:3px;">Mentor Meeting Submission</div>
+            <div style="font-size:12px;color:#9b8fcf;">Submit your mentor meeting reports here (required)</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+            <span style="font-size:18px;color:#e74c3c;cursor:pointer;line-height:1;">♥</span>
+            <span style="font-size:14px;color:#5c4eb5;">→</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;background:#fff;border:1px solid #f5c8c8;border-radius:10px;padding:14px 16px;gap:12px;">
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:600;color:#1a1733;margin-bottom:3px;">Granola — AI Note Taker</div>
+            <div style="font-size:12px;color:#9b8fcf;">Required for all mentorship sessions. Free download.</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+            <span style="font-size:18px;color:#e74c3c;cursor:pointer;line-height:1;">♥</span>
+            <span style="font-size:14px;color:#5c4eb5;">→</span>
+          </div>
+        </div>
+      </div>
+      <!-- Rest of resources -->
+      <p style="font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:#5c4eb5;margin:0 0 8px;">Program Essentials</p>
+      <div style="display:flex;align-items:center;background:#fff;border:1px solid #e8e4f5;border-radius:10px;padding:14px 16px;gap:12px;opacity:0.55;">
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:600;color:#1a1733;margin-bottom:3px;">Mentor Meeting Submission</div>
+          <div style="font-size:12px;color:#9b8fcf;">Submit your mentor meeting reports here (required)</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+          <span style="font-size:18px;color:#e74c3c;line-height:1;">♥</span>
+          <span style="font-size:14px;color:#5c4eb5;">→</span>
+        </div>
+      </div>
+    </div>
+    <p class="explain">Favorited resources also stay in their original category — they appear in both places. To un-favorite, just click the red heart again and it's removed from your Favorites section immediately.</p>
+
+    <div class="callout callout-green" style="margin-bottom:18px;">
+      <strong>💡 Pro tip — build your own Favorites.</strong> Heart any resource to instantly pin it to a personal <strong>❤️ My Favorites</strong> section that appears at the top of the Resources tab. Your favorites are saved to your device and follow you across sessions.
+    </div>
+
     <!-- Program Essentials -->
     <div style="margin-bottom:24px;">
       <p style="font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:#5c4eb5;margin-bottom:10px;">Program Essentials</p>
@@ -1807,6 +1933,156 @@
 
     <div class="callout callout-purple">
       <strong>Resources are added throughout the program.</strong> Items marked "Coming Soon" will be unlocked on the listed dates. Check back each week — the Resources section grows as the program progresses.
+    </div>
+  </div>
+
+  <!-- ── SECTION 13: WEEKLY PULSE CHECK ── -->
+  <div class="section" id="s13">
+    <div class="section-heading">
+      <div class="section-number">13</div>
+      <div class="section-title">Weekly Pulse Check</div>
+    </div>
+
+    <p class="explain">Starting in Week 2, every week's <strong>My Journey</strong> page opens with a short, optional pulse check. One question — <em>"How are you feeling about the program this week?"</em> — answered with one of five emoji ratings. Takes two seconds. We use it to see where you're at in the program, how your momentum is going, and whether we're showing up for you the way you need us to.</p>
+
+    <!-- Pulse mockup -->
+    <div class="mockup" style="padding:20px 24px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <p style="margin:0;font-size:13px;font-weight:700;color:#1a1733;">How are you feeling about the program this week?</p>
+        <span style="font-size:10px;color:#9b8fcf;font-weight:600;background:#f0ecff;border-radius:4px;padding:2px 7px;">Optional</span>
+      </div>
+      <p style="margin:0 0 14px;font-size:12px;color:#9b8fcf;line-height:1.6;">Weekly pulse check · We use this to see where you're at in the program, how you're feeling, and how your momentum is going. It helps us gauge the cohort as a whole and spot where we can show up better for you.</p>
+      <div style="display:flex;gap:8px;">
+        <div style="flex:1;padding:10px 4px;border-radius:8px;border:1.5px solid #e8e4f5;background:#fafafa;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;">
+          <span style="font-size:20px;">😌</span>
+          <span style="font-size:10px;color:#9b8fcf;">Could be better</span>
+        </div>
+        <div style="flex:1;padding:10px 4px;border-radius:8px;border:1.5px solid #e8e4f5;background:#fafafa;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;">
+          <span style="font-size:20px;">🙂</span>
+          <span style="font-size:10px;color:#9b8fcf;">Getting there</span>
+        </div>
+        <div style="flex:1;padding:10px 4px;border-radius:8px;border:2px solid #5c4eb5;background:#f0ecff;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;">
+          <span style="font-size:20px;">😊</span>
+          <span style="font-size:10px;font-weight:700;color:#5c4eb5;">Feeling good</span>
+        </div>
+        <div style="flex:1;padding:10px 4px;border-radius:8px;border:1.5px solid #e8e4f5;background:#fafafa;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;">
+          <span style="font-size:20px;">😄</span>
+          <span style="font-size:10px;color:#9b8fcf;">Feeling great</span>
+        </div>
+        <div style="flex:1;padding:10px 4px;border-radius:8px;border:1.5px solid #e8e4f5;background:#fafafa;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;">
+          <span style="font-size:20px;">🚀</span>
+          <span style="font-size:10px;color:#9b8fcf;">Crushing it</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="explain" style="margin-top:16px;">A few things to know about how the pulse check works:</p>
+    <ul style="font-size:14px;color:#4a4060;line-height:1.9;padding-left:20px;margin-bottom:16px;">
+      <li><strong style="color:#1a1733;">Date-locked windows.</strong> Each week's pulse is only open during that week. Week 2 opens June 8th and closes June 13th; Week 3 opens June 15th and closes June 20th — and so on. If the window hasn't opened yet, you'll see a preview of the rating buttons (grayed out) along with the unlock date. Week 1 (onboarding) has no pulse check.</li>
+      <li><strong style="color:#1a1733;">One-change rule.</strong> After you submit, a "Change my response" button appears — along with a note that you can only change it once. If something shifts mid-week, you have one chance to update it. After that, your response is locked for the week.</li>
+      <li><strong style="color:#1a1733;">Completely optional.</strong> No pressure, no grades. But the more founders respond, the better we understand how the cohort is doing as a whole — and the more we can adjust support in real time.</li>
+      <li><strong style="color:#1a1733;">Private to Uplift.</strong> Your individual responses are never shared with your cohort or your mentor. We look at aggregate patterns across the program.</li>
+    </ul>
+
+    <div class="callout callout-purple">
+      <strong>Why it matters.</strong> If your pulse is consistently low, we'll reach out — not to check a box, but because we genuinely want to know what's not working and try to fix it. This is one of the main ways we catch issues before someone quietly disengages.
+    </div>
+  </div>
+
+  <!-- ── SECTION 14: WEEKLY FOCUS & PEER CONNECTIONS ── -->
+  <div class="section" id="s14">
+    <div class="section-heading">
+      <div class="section-number">14</div>
+      <div class="section-title">Weekly Focus &amp; Peer Connections</div>
+    </div>
+
+    <p class="explain">During Weeks 2–7, your <strong>My Journey</strong> page includes a short optional field: <em>"Share what you're focused on this week."</em> Whether it's closing a customer, prepping for a pitch, redesigning onboarding, or just getting through a tough stretch — we want to know what you're actually building toward. This is one of the most underrated features of the portal.</p>
+
+    <!-- Weekly focus mockup -->
+    <div class="mockup" style="padding:20px 24px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <p style="margin:0;font-size:15px;font-weight:700;color:#1a1733;">Share what you're focused on this week.</p>
+        <span style="font-size:10px;color:#9b8fcf;font-weight:600;background:#f0ecff;border-radius:4px;padding:2px 7px;white-space:nowrap;">Optional</span>
+      </div>
+      <p style="margin:0 0 12px;font-size:12px;color:#9b8fcf;line-height:1.7;">Whether it's a small goal, a project, or a deadline — share what you're building or working on. If there's a program participant working on the same thing or something similar, we'll connect you.</p>
+      <div class="textarea-mockup">
+        <div class="textarea-inner" style="min-height:56px;">e.g. closing my first customer, improving onboarding, prepping for a pitch…</div>
+      </div>
+    </div>
+
+    <p class="explain" style="margin-top:16px;"><strong>Why we ask — and what happens with your answer:</strong></p>
+    <ul style="font-size:14px;color:#4a4060;line-height:1.9;padding-left:20px;margin-bottom:16px;">
+      <li><strong style="color:#1a1733;">Peer matching.</strong> Every week, the Uplift team reviews what founders across all cohorts are focused on. If two founders are working on the same challenge — say, both navigating B2B pricing or building their first sales motion — we'll make an introduction. These connections have turned into real collaborations.</li>
+      <li><strong style="color:#1a1733;">Date-locked.</strong> Like the pulse check, this field is only editable during that week's specific window. Before it opens, you'll see the field with the unlock date displayed. After it closes, your response is shown as read-only.</li>
+      <li><strong style="color:#1a1733;">It's a snapshot, not a commitment.</strong> A single sentence is enough. Write what's actually on your mind that week — it doesn't need to be polished or final.</li>
+      <li><strong style="color:#1a1733;">It surfaces in My Goals &amp; Reflections.</strong> Your weekly focuses are collected in the Goals &amp; Reflections tab, so you can see how your priorities evolved across the whole summer.</li>
+    </ul>
+
+    <div class="callout callout-green">
+      <strong>Real connections happen here.</strong> The weekly focus field is one of the main ways we facilitate peer-to-peer introductions inside the program. The more specific you are, the better the match. "Building an MVP" is fine — "figuring out how to price a B2B SaaS tool for marketing agencies" is much better.
+    </div>
+  </div>
+
+  <!-- ── SECTION 15: UPLIFT WRAPPED ── -->
+  <div class="section" id="s15">
+    <div class="section-heading">
+      <div class="section-number">15</div>
+      <div class="section-title">✨ Uplift Wrapped</div>
+    </div>
+
+    <p class="explain">At the end of the program, we drop something special: <strong>Uplift Wrapped</strong> — a personalized, Spotify Wrapped-style recap of your entire summer. Every reflection you wrote, every pulse check, every weekly focus, every mentor session, every peer connection — it all feeds into a one-of-a-kind analysis built just for you.</p>
+
+    <!-- Wrapped mockup -->
+    <div class="mockup" style="overflow:hidden;">
+      <div style="background:linear-gradient(160deg,#0d0020 0%,#4a0077 38%,#b8005a 72%,#ff4b8b 100%);padding:36px 28px 32px;color:#fff;text-align:center;">
+        <div style="font-size:44px;margin-bottom:10px;">✨</div>
+        <div style="font-size:28px;font-weight:900;letter-spacing:-0.5px;margin-bottom:5px;">Uplift Wrapped</div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;opacity:0.55;margin-bottom:10px;">Summer 2026</div>
+        <div style="font-size:14px;opacity:0.8;margin-bottom:20px;">Your summer, by the numbers.</div>
+        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.13);border-radius:24px;padding:8px 22px;border:1px solid rgba(255,255,255,0.2);margin-bottom:24px;font-size:12px;font-weight:700;">
+          🔒 Unlocks after graduation · August 10th
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:14px 12px;text-align:left;filter:blur(3px);border:1px solid rgba(255,255,255,0.1);">
+            <div style="font-size:18px;margin-bottom:5px;">💫</div>
+            <div style="font-size:11px;font-weight:700;">Your Mood Journey</div>
+            <div style="font-size:10px;opacity:0.7;margin-top:3px;line-height:1.4;">Week-by-week pulse: the highs, the grinds, the breakthroughs.</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:14px 12px;text-align:left;filter:blur(3px);border:1px solid rgba(255,255,255,0.1);">
+            <div style="font-size:18px;margin-bottom:5px;">🧠</div>
+            <div style="font-size:11px;font-weight:700;">Your Founder Type</div>
+            <div style="font-size:10px;opacity:0.7;margin-top:3px;line-height:1.4;">Decoded from your reflections and goals.</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:14px 12px;text-align:left;filter:blur(3px);border:1px solid rgba(255,255,255,0.1);">
+            <div style="font-size:18px;margin-bottom:5px;">🎯</div>
+            <div style="font-size:11px;font-weight:700;">Your Top Themes</div>
+            <div style="font-size:10px;opacity:0.7;margin-top:3px;line-height:1.4;">What your summer was really about, in your own words.</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:14px 12px;text-align:left;filter:blur(3px);border:1px solid rgba(255,255,255,0.1);">
+            <div style="font-size:18px;margin-bottom:5px;">👥</div>
+            <div style="font-size:11px;font-weight:700;">Cohort Vibes</div>
+            <div style="font-size:10px;opacity:0.7;margin-top:3px;line-height:1.4;">How the whole cohort felt, week by week.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="explain" style="margin-top:20px;">Find it in the <strong>My Journey</strong> tab — look for the <em>✨ Uplift Wrapped</em> button at the far end of the week navigation bar, right after the Certificate tab. Before it unlocks, you'll see a teaser with blurred preview cards hinting at what's coming.</p>
+
+    <p class="explain"><strong>What's inside your Wrapped:</strong></p>
+    <ul style="font-size:14px;color:#4a4060;line-height:1.9;padding-left:20px;margin-bottom:16px;">
+      <li><strong style="color:#1a1733;">Your Mood Journey.</strong> A week-by-week visualization of your pulse check responses. The weeks you were sky high, the weeks you were grinding, the moments things shifted — all of it charted.</li>
+      <li><strong style="color:#1a1733;">Your Founder Type.</strong> Based on everything you wrote — your goals, reflections, responses, and weekly focuses — we've identified an archetype that captures how you showed up this summer. Fun, a little revealing, and usually pretty accurate.</li>
+      <li><strong style="color:#1a1733;">Your Top Themes.</strong> The challenges and topics that came up most in your writing — what your summer was actually about, in your own words.</li>
+      <li><strong style="color:#1a1733;">Cohort Vibes.</strong> How the whole cohort felt week by week, the shared themes across everyone's experience, and the patterns we noticed. It gets good.</li>
+    </ul>
+
+    <div class="callout callout-purple">
+      <strong>Powered by AI — built with everything you put in.</strong> Uplift Wrapped is generated using AI analysis of all your responses across the 9 weeks. The more you engaged with the portal — reflections, pulse checks, weekly focuses, peer connections — the richer your Wrapped will be. Think of it as the program closing the loop: turning your summer into something worth looking back at.
+    </div>
+
+    <div class="callout callout-amber" style="margin-top:12px;">
+      <strong>Unlocks August 10th.</strong> After graduation, head to My Journey and click <em>✨ Uplift Wrapped</em> in the week navigation. It'll be waiting for you.
     </div>
   </div>
 
