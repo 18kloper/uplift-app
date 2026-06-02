@@ -3172,23 +3172,26 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
               <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                 Uplift Summer 2026
               </div>
-              <TabTooltip tip="Share any suggestions via this form" direction="down">
-                <a
-                  href="https://form.typeform.com/to/tHKCNXhN"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    marginLeft: "auto",
-                    background: "rgba(255,255,255,0.95)", borderRadius: 20,
-                    padding: "6px 14px", fontSize: 12, fontWeight: 700,
-                    letterSpacing: "0.04em", textTransform: "uppercase",
-                    color: "#3d2f8a", textDecoration: "none", whiteSpace: "nowrap",
-                    boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
-                  }}
-                >
-                  💡 Make a Suggestion
-                </a>
-              </TabTooltip>
+              <div style={{ marginLeft: "auto" }}>
+                <TabTooltip tip="Share any suggestions via this form" direction="down">
+                  <a
+                    href="https://form.typeform.com/to/tHKCNXhN"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      background: "#fff", borderRadius: 20,
+                      padding: "7px 16px", fontSize: 12, fontWeight: 700,
+                      letterSpacing: "0.03em", textTransform: "uppercase",
+                      color: "#3d2f8a", textDecoration: "none", whiteSpace: "nowrap",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.22)",
+                      border: "2px solid rgba(255,255,255,0.9)",
+                      display: "inline-block",
+                    }}
+                  >
+                    💡 Make a Suggestion
+                  </a>
+                </TabTooltip>
+              </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 4 }}>
               {mentee.photo ? (
