@@ -2740,7 +2740,7 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
           onClick={() => {
             const escape = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
             const hdrs = ["Mentor Name", "Mentor Email", "Mentee 1", "Mentee 1 Email", "Mentee 1 Cohort", "Mentee 1 Sessions", "Mentee 2", "Mentee 2 Email", "Mentee 2 Cohort", "Mentee 2 Sessions", "Status"];
-            const csvRows = rows.map(r => {
+            const csvRows = visible.map(r => {
               const o1 = r.allOpts?.[0];
               const o2 = r.allOpts?.[1];
               const mc = r.matchCount;
