@@ -3691,7 +3691,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
           ))}
 
           <div style={{ position: "relative", zIndex: 1 }}>
-            <div style={{ fontSize: 52, marginBottom: 12 }}>🎁</div>
+            <div style={{ fontSize: 52, marginBottom: 12 }}>✨</div>
             <h2 style={{ margin: "0 0 6px", fontSize: 34, fontWeight: 900, letterSpacing: "-0.5px", lineHeight: 1 }}>
               Uplift Wrapped
             </h2>
@@ -4005,7 +4005,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
                   fontFamily: "inherit", transition: "color 0.15s, border-color 0.15s",
                 }}
               >
-                🎁 Wrapped
+                ✨ Wrapped
               </button>
             </div>
           </div>
