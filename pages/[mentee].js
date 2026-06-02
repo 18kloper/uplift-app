@@ -580,7 +580,6 @@ function ParticipationWidget({ slug, onAccepted, participationConfirmed }) {
     localStorage.setItem(storageKey, val);
     setChoice(val);
     await persistToSheet(slug, 1, "participation", val, "Program participation confirmation");
-    // Auto-check the participation milestone in the Dashboard + update portal state instantly
     if (val === "accepted") {
       try {
         await fetch("/api/update-milestone", {
@@ -590,6 +589,15 @@ function ParticipationWidget({ slug, onAccepted, participationConfirmed }) {
         });
       } catch (_) {}
       if (onAccepted) onAccepted();
+    }
+    if (val === "declined") {
+      try {
+        await fetch("/api/set-churned", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slug, churned: true }),
+        });
+      } catch (_) {}
     }
     setSubmitting(false);
   };

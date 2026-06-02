@@ -1521,6 +1521,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
   const [statusFilters, setStatusFilters] = useState([]);
   const [milestoneFilters, setMilestoneFilters] = useState([]);
   const [needsMentorFilter, setNeedsMentorFilter] = useState(false);
+  const [confirmedMentorFilter, setConfirmedMentorFilter] = useState(false);
 
   const { mentees = [], pendingReviewCount = 0 } = data;
   const isPreProgram = new Date() < PROGRAM_START;
@@ -1544,7 +1545,8 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
     const milestoneMatch = milestoneFilters.length === 0 ||
       MILESTONE_FILTERS.filter(f => milestoneFilters.includes(f.key)).some(f => f.test(m));
     const needsMentorMatch = !needsMentorFilter || declinedSlugs.has(m.slug) || (!m.mentorName && !confirmedSlugs.has(m.slug));
-    return cohortMatch && searchMatch && statusMatch && milestoneMatch && needsMentorMatch;
+    const confirmedMentorMatch = !confirmedMentorFilter || confirmedSlugs.has(m.slug);
+    return cohortMatch && searchMatch && statusMatch && milestoneMatch && needsMentorMatch && confirmedMentorMatch;
   });
 
   const realMentees   = mentees.filter(m => !m.isTest);
@@ -1851,6 +1853,25 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: needsMentorFilter ? "rgba(255,255,255,0.8)" : "#b35c00", flexShrink: 0 }} />
                 Needs Mentor ({nmCount})
                 {needsMentorFilter && <span style={{ marginLeft: 1 }}>×</span>}
+              </button>
+            );
+          })()}
+
+          {/* Confirmed Mentor filter */}
+          {(() => {
+            const cmCount = mentees.filter(m => confirmedSlugs.has(m.slug)).length;
+            return (
+              <button onClick={() => setConfirmedMentorFilter(p => !p)} style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+                border: confirmedMentorFilter ? "2px solid #1a6e42" : "1.5px solid #1a6e4244",
+                background: confirmedMentorFilter ? "#1a6e42" : "#e8f8f0",
+                color: confirmedMentorFilter ? "#fff" : "#1a6e42",
+                cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s", userSelect: "none",
+              }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: confirmedMentorFilter ? "rgba(255,255,255,0.8)" : "#1a6e42", flexShrink: 0 }} />
+                Confirmed Mentor ({cmCount})
+                {confirmedMentorFilter && <span style={{ marginLeft: 1 }}>×</span>}
               </button>
             );
           })()}
