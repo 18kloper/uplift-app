@@ -828,6 +828,9 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
         </p>
 
         <div style={{ marginBottom: 20 }}>
+          <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Reflection
+          </p>
           <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#5c4eb5", textTransform: "uppercase", letterSpacing: "0.05em" }}>
             Primary focus — {mentee.primaryFocus}
           </p>
@@ -844,6 +847,9 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
 
         {mentee.secondaryFoci && mentee.secondaryFoci.length > 0 && (
           <div style={{ marginBottom: 20 }}>
+            <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              Reflection
+            </p>
             <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#2a7fd4", textTransform: "uppercase", letterSpacing: "0.05em" }}>
               Secondary focus — {mentee.secondaryFoci[0]}
             </p>
@@ -958,14 +964,17 @@ function Week2({ mentee, slug, mentorUnlocked }) {
 
       {/* Pre-meeting reflection */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-          <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "#3d2f8a" }}>
-            Before your first meeting, take some time to think about these things:
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#5c4eb5", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            Pre-Meeting Prompts
           </p>
           <span style={{ background: "#f0ecff", color: "#9b8fcf", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
             Optional
           </span>
         </div>
+        <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf", lineHeight: 1.5 }}>
+          Before your first meeting, take some time to think about these things:
+        </p>
       </div>
       {[
         { q: "What's the single most important thing you want your mentor to understand about your company?", key: "prep_q1" },
@@ -1457,6 +1466,7 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
 
         {/* Quote */}
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24, borderLeft: "4px solid #5c4eb5" }}>
+          <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.08em" }}>Reflection</p>
           <p style={{ margin: "0 0 10px", fontSize: 15, fontWeight: 500, color: "#1a1733", lineHeight: 1.5 }}>
             If you'd like, we would love to share a quote from you on our <a href="https://techunited.org" target="_blank" rel="noopener noreferrer" style={{ color: "#5c4eb5" }}>webpage</a> — your name will be linked.
           </p>
@@ -1529,7 +1539,10 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
         )}
 
         {/* Midpoint reflection prompts */}
-        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "24px 28px", marginTop: 24 }}>
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "24px 28px", marginTop: 24, borderLeft: "4px solid #5c4eb5" }}>
+          <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
+            Reflection
+          </p>
           <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
             Ahead of the Midpoint Meetup
           </p>
@@ -1895,13 +1908,14 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
           padding: "20px 24px", marginBottom: 16,
           borderLeft: `4px solid ${["#5c4eb5", "#2a7fd4", "#e07b39"][i % 3]}`,
         }}>
+          <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.08em" }}>Reflection</p>
           <p style={{ margin: "0 0 10px", fontSize: 15, fontWeight: 500, color: "#1a1733", lineHeight: 1.5 }}>{item.q}</p>
           <AutoTextarea storageKey={`${slug}_w${weekNum}_${item.key}`} placeholder="Your thoughts…" slug={slug} weekNum={weekNum} fieldKey={item.key} />
         </div>
       ))}
 
-      <p style={{ margin: "28px 0 14px", fontSize: 15, fontWeight: 600, color: "#3d2f8a" }}>
-        Your personal prompt
+      <p style={{ margin: "28px 0 4px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+        Prompt
       </p>
       <PromptBlock
         theme={prompts[0].theme}
