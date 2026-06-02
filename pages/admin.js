@@ -2108,6 +2108,7 @@ export default function AdminPage() {
   const [error, setError]     = useState(null);
   const [adminTab, setAdminTab] = useState("mentees");
   const [mentorConfirmations, setMentorConfirmations] = useState({});
+  const [mentorSessions, setMentorSessions] = useState({});
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -2120,7 +2121,17 @@ export default function AdminPage() {
       const stored = localStorage.getItem("uplift_mentor_confirmations_v1");
       if (stored) setMentorConfirmations(JSON.parse(stored));
     } catch (_) {}
+    try {
+      const stored = localStorage.getItem("uplift_mentor_sessions_v1");
+      if (stored) setMentorSessions(JSON.parse(stored));
+    } catch (_) {}
   }, []);
+
+  const handleMentorSessionChange = (mentorKey, count) => {
+    const next = { ...mentorSessions, [mentorKey]: count };
+    setMentorSessions(next);
+    try { localStorage.setItem("uplift_mentor_sessions_v1", JSON.stringify(next)); } catch (_) {}
+  };
 
   const handleConfirmationChange = (key, val, meta) => {
     const next = { ...mentorConfirmations, [key]: val };
@@ -2221,7 +2232,7 @@ export default function AdminPage() {
           {adminTab === "activity"    && <PortalActivity />}
           {adminTab === "connections" && <PeerConnections />}
           {adminTab === "pulse"       && <PulseReport />}
-          {adminTab === "matches"     && <MentorMatches confirmations={mentorConfirmations} />}
+          {adminTab === "matches"     && <MentorMatches confirmations={mentorConfirmations} sessions={mentorSessions} onSessionChange={handleMentorSessionChange} />}
           {adminTab === "emails"      && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} />}
         </>
       )}
@@ -2506,7 +2517,7 @@ function MentorSelections() {
 }
 
 // ─── Mentor Matches view ──────────────────────────────────────────────────────
-function MentorMatches({ confirmations = {} }) {
+function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
   const [responses, setResponses] = useState([]);
   const [allMentors, setAllMentors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -2558,7 +2569,7 @@ function MentorMatches({ confirmations = {} }) {
 
   const visible = rows.filter(FILTERS.find(f => f.key === filter)?.match || (() => true));
 
-  const COLS = "1.4fr 1.6fr 1.6fr 120px";
+  const COLS = "1.4fr 1.6fr 1.6fr 110px 120px";
 
   const MenteeCell = ({ opt, threadId }) => {
     if (!opt) return <span style={{ fontSize: 12, color: "#c0b8d8" }}>—</span>;
@@ -2591,11 +2602,49 @@ function MentorMatches({ confirmations = {} }) {
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px", fontFamily: "Inter, system-ui, sans-serif" }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "baseline", gap: 14, marginBottom: 4 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 4, flexWrap: "wrap" }}>
         <p style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Mentors</p>
-        <span style={{ fontSize: 13, color: "#9b8fcf" }}>
-          {rows.length} mentors · {rows.reduce((s, r) => s + r.matchCount, 0)} confirmed · {rows.filter(r => r.isPending).length} no reply yet
+        <span style={{ fontSize: 13, color: "#9b8fcf", flex: 1 }}>
+          {rows.length} mentors · {rows.reduce((s, r) => s + r.matchCount, 0)} confirmed · {rows.filter(r => r.isPending).length} pending
         </span>
+        <button
+          onClick={() => {
+            const escape = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+            const hdrs = ["Mentor Name", "Mentor Email", "Mentee 1", "Mentee 1 Company", "Mentee 2", "Mentee 2 Company", "Sessions Completed", "Status"];
+            const csvRows = rows.map(r => {
+              const opt1 = r.allOpts?.[0];
+              const opt2 = r.allOpts?.[1];
+              const mc = r.matchCount;
+              const statusLabel = r.isPending ? "Pending" : r.allDeclined ? "Needs Rematch" : mc === 0 ? "Needs a Mentee" : mc === 1 ? "1 Mentee" : "2 Mentees";
+              const sessionKey = r.mentor.email || r.mentor.name;
+              return [
+                r.mentor.name, r.mentor.email,
+                opt1?.name || "", opt1?.company || "",
+                opt2?.name || "", opt2?.company || "",
+                sessions[sessionKey] ?? 0,
+                statusLabel,
+              ].map(escape).join(",");
+            });
+            const csv = [hdrs.map(escape).join(","), ...csvRows].join("\n");
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `uplift-mentors-${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+          style={{
+            display: "flex", alignItems: "center", gap: 4,
+            padding: "5px 14px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+            border: "1.5px solid #5c4eb5", background: "#fff", color: "#5c4eb5",
+            cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = "#f0ecff"}
+          onMouseLeave={e => e.currentTarget.style.background = "#fff"}
+        >
+          ⬇ Export CSV <span style={{ opacity: 0.6, marginLeft: 3 }}>({visible.length})</span>
+        </button>
       </div>
       <p style={{ margin: "0 0 24px", fontSize: 13, color: "#9b8fcf" }}>
         Confirmed/declined on the ✅ Mentor Confirmation tab — matches update here automatically.
@@ -2637,7 +2686,7 @@ function MentorMatches({ confirmations = {} }) {
             padding: "11px 20px", background: "#f7f5ff",
             borderBottom: "1px solid #e8e4f5",
           }}>
-            {["Mentor", "Mentee 1", "Mentee 2", "Mentees"].map(h => (
+            {["Mentor", "Mentee 1", "Mentee 2", "Sessions", "Mentees"].map(h => (
               <p key={h} style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 {h}
               </p>
@@ -2660,8 +2709,11 @@ function MentorMatches({ confirmations = {} }) {
             const badgeColor = r.isPending ? "#6b6480" : r.allDeclined ? "#c0392b" : mc === 0 ? "#b35c00" : mc === 2 ? "#1a6e42" : "#5c4eb5";
             const badgeBg    = r.isPending ? "#f0eef8" : r.allDeclined ? "#fdf0f0" : mc === 0 ? "#fff3e0" : mc === 2 ? "#e8f8f0" : "#f0ecff";
 
+            const sessionKey = r.mentor.email || r.mentor.name;
+            const sessionCount = sessions[sessionKey] ?? 0;
+
             return (
-              <div key={r.threadId} style={{
+              <div key={r.mentor.email || r.mentor.name} style={{
                 display: "grid", gridTemplateColumns: COLS,
                 padding: "13px 20px", alignItems: "start",
                 borderBottom: i < visible.length - 1 ? "1px solid #f5f3ff" : "none",
@@ -2672,7 +2724,7 @@ function MentorMatches({ confirmations = {} }) {
                   <p style={{ margin: "0 0 1px", fontSize: 13, fontWeight: 700, color: "#1a1733", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {r.mentor.name}
                   </p>
-                  <p style={{ margin: 0, fontSize: 11, color: "#9b8fcf", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <p style={{ margin: 0, fontSize: 11, color: "#5c4eb5", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {r.mentor.email}
                   </p>
                 </div>
@@ -2682,6 +2734,24 @@ function MentorMatches({ confirmations = {} }) {
 
                 {/* Mentee 2 */}
                 <MenteeCell opt={opt2} threadId={r.threadId} />
+
+                {/* Sessions dots — click to increment, right-click to decrement */}
+                <div style={{ display: "flex", gap: 5, alignItems: "center", paddingTop: 2 }}>
+                  {Array.from({ length: 3 }).map((_, di) => (
+                    <div
+                      key={di}
+                      title={di < sessionCount ? `Click to remove session ${di + 1}` : `Click to add session ${di + 1}`}
+                      onClick={() => onSessionChange && onSessionChange(sessionKey, di < sessionCount ? di : di + 1)}
+                      onContextMenu={e => { e.preventDefault(); onSessionChange && onSessionChange(sessionKey, Math.max(0, sessionCount - 1)); }}
+                      style={{
+                        width: 11, height: 11, borderRadius: "50%", cursor: "pointer",
+                        background: di < sessionCount ? "#5c4eb5" : "#e8e4f5",
+                        transition: "background 0.15s",
+                      }}
+                    />
+                  ))}
+                  <span style={{ fontSize: 11, color: "#9b8fcf", marginLeft: 2 }}>{sessionCount}/3</span>
+                </div>
 
                 {/* Match badge */}
                 <div>
