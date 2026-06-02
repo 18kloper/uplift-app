@@ -1,14 +1,26 @@
 // GET /api/mentor-applications
 // Fetches mentor Typeform submissions (form AayoroO1).
 // Returns ONLY mentors not already assigned in MENTEES.
-// Add ?debug=1 to see raw field structure — use this to confirm field refs.
+// Add ?debug=1 to see raw field structure.
 
 import { MENTEES } from "../../lib/mentees";
 
 const FORM_ID = "AayoroO1";
 
-// Normalize a name for comparison: lowercase, trim, collapse whitespace
 const norm = s => (s || "").toLowerCase().replace(/\s+/g, " ").trim();
+
+// Flatten nested group fields — Typeform groups nest sub-fields in properties.fields
+function flattenFields(fields) {
+  const result = [];
+  for (const f of (fields || [])) {
+    if (f.type === "group" || f.type === "inline_group") {
+      result.push(...flattenFields(f.properties?.fields));
+    } else {
+      result.push(f);
+    }
+  }
+  return result;
+}
 
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
@@ -24,13 +36,16 @@ export default async function handler(req, res) {
 
     const formDef  = await formRes.json();
     const respData = await respRes.json();
-    const fields   = formDef.fields || [];
     const items    = respData.items || [];
 
-    // Debug mode — return raw field/answer structure so we can confirm refs
+    // Flatten all fields including those nested inside groups
+    const fields = flattenFields(formDef.fields || []);
+
+    // Debug mode — shows flattened fields and first response's answers
     if (req.query.debug === "1") {
       return res.status(200).json({
         totalResponses: items.length,
+        flattenedFieldCount: fields.length,
         fields: fields.map(f => ({ id: f.id, ref: f.ref, title: f.title, type: f.type })),
         sample: (items[0]?.answers || []).map(a => ({
           fieldId: a.field?.id, ref: a.field?.ref, type: a.type,
@@ -39,7 +54,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Find field refs by matching title keywords — NO fallback to arbitrary text
+    // Find a field ref by matching title keywords against flattened fields
     const findRef = (...keywords) => {
       for (const f of fields) {
         const t = (f.title || "").toLowerCase();
@@ -49,17 +64,17 @@ export default async function handler(req, res) {
     };
 
     const firstRef = findRef("first name", "first_name");
-    const lastRef  = findRef("last name",  "last_name");
-    const fullRef  = !firstRef && !lastRef ? findRef("full name", "your name", "name") : null;
+    const lastRef  = findRef("last name", "last_name");
+    const fullRef  = (!firstRef && !lastRef) ? findRef("full name", "your name", "name") : null;
     const emailRef = findRef("email");
 
     const getVal = (answers, ref) => {
       if (!ref) return "";
-      const a = answers.find(a => (a.field?.ref === ref || a.field?.id === ref));
+      const a = answers.find(a => a.field?.ref === ref || a.field?.id === ref);
       return a?.text || a?.email || "";
     };
 
-    // Build existing mentor lookup — names AND emails
+    // Existing mentor names/emails from MENTEES
     const existingNames  = new Set(MENTEES.map(m => norm(m.mentor?.name)).filter(Boolean));
     const existingEmails = new Set(MENTEES.map(m => norm(m.mentor?.email)).filter(Boolean));
 
@@ -69,7 +84,6 @@ export default async function handler(req, res) {
     for (const item of items) {
       const answers = item.answers || [];
 
-      // Extract name — ONLY from labeled name fields, never from arbitrary text
       const first = getVal(answers, firstRef);
       const last  = getVal(answers, lastRef);
       const full  = getVal(answers, fullRef);
@@ -77,19 +91,16 @@ export default async function handler(req, res) {
       let name = "";
       if (first || last) name = `${first} ${last}`.trim();
       else if (full)     name = full.trim();
-      else continue; // can't identify name — skip
+      else continue; // skip if no name found
 
-      // Extract email — labeled field first, then any email-type answer
       const email = getVal(answers, emailRef) || answers.find(a => a.type === "email")?.email || "";
 
       const nameKey  = norm(name);
       const emailKey = norm(email);
 
-      // Skip if already in MENTEES (by name or email)
       if (existingNames.has(nameKey)) continue;
       if (emailKey && existingEmails.has(emailKey)) continue;
 
-      // Dedupe within this batch
       const dedupeKey = emailKey || nameKey;
       if (seen.has(dedupeKey)) continue;
       seen.add(dedupeKey);
@@ -102,7 +113,6 @@ export default async function handler(req, res) {
       total: items.length,
       existingCount: existingNames.size,
       newCount: newMentors.length,
-      // Include refs found so we can verify in logs
       _refs: { firstRef, lastRef, fullRef, emailRef },
     });
   } catch (err) {
