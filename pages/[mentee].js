@@ -1003,16 +1003,17 @@ function Week2({ mentee, slug, mentorUnlocked }) {
 }
 
 // ─── Weekly pulse check-in ────────────────────────────────────────────────────
+// Use new Date(y,m,d) (local midnight) — never ISO strings, which parse as UTC and shift the display date
 const PULSE_WINDOWS = [
-  { week: 1, start: new Date("2026-06-01"), end: new Date("2026-06-06T23:59:59") },
-  { week: 2, start: new Date("2026-06-08"), end: new Date("2026-06-13T23:59:59") },
-  { week: 3, start: new Date("2026-06-15"), end: new Date("2026-06-20T23:59:59") },
-  { week: 4, start: new Date("2026-06-22"), end: new Date("2026-06-27T23:59:59") },
-  { week: 5, start: new Date("2026-06-29"), end: new Date("2026-07-04T23:59:59") },
-  { week: 6, start: new Date("2026-07-06"), end: new Date("2026-07-11T23:59:59") },
-  { week: 7, start: new Date("2026-07-13"), end: new Date("2026-07-18T23:59:59") },
-  { week: 8, start: new Date("2026-07-19"), end: new Date("2026-07-25T23:59:59") },
-  { week: 9, start: new Date("2026-07-27"), end: new Date("2026-08-04T23:59:59") },
+  { week: 1, start: new Date(2026, 5,  1), end: new Date(2026, 5,  6, 23, 59, 59) },
+  { week: 2, start: new Date(2026, 5,  8), end: new Date(2026, 5, 13, 23, 59, 59) },
+  { week: 3, start: new Date(2026, 5, 15), end: new Date(2026, 5, 20, 23, 59, 59) },
+  { week: 4, start: new Date(2026, 5, 22), end: new Date(2026, 5, 27, 23, 59, 59) },
+  { week: 5, start: new Date(2026, 5, 29), end: new Date(2026, 6,  4, 23, 59, 59) },
+  { week: 6, start: new Date(2026, 6,  6), end: new Date(2026, 6, 11, 23, 59, 59) },
+  { week: 7, start: new Date(2026, 6, 13), end: new Date(2026, 6, 18, 23, 59, 59) },
+  { week: 8, start: new Date(2026, 6, 19), end: new Date(2026, 6, 25, 23, 59, 59) },
+  { week: 9, start: new Date(2026, 6, 27), end: new Date(2026, 7,  4, 23, 59, 59) },
 ];
 
 function fmtPulseDate(d) {
@@ -1063,13 +1064,28 @@ function WeeklyPulse({ slug, weekNum }) {
   const isPast   = win && today > win.end;
   const isFuture = win && today < win.start;
 
-  // Onboarding week: no pulse — just a teaser pointing to Week 2
+  // Onboarding week: no pulse — show a locked teaser box
   if (weekNum === 1) {
     const week2Win = PULSE_WINDOWS.find(w => w.week === 2);
     return (
-      <p style={{ margin: "0 0 16px", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
-        💬 Pulse check-ins open {fmtPulseDate(week2Win.start)} — starting Week 2, we&apos;ll check in each week to see how you&apos;re feeling about the program.
-      </p>
+      <div style={{
+        background: "#fafafa", borderRadius: 12, border: "1px solid #e8e4f5",
+        padding: "18px 22px", marginBottom: 20,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#9b8fcf" }}>
+            How are you feeling about the program this week?
+          </p>
+          <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 600, background: "#f0ecff", borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>Optional</span>
+        </div>
+        <div style={{
+          background: "#f7f5ff", borderRadius: 8, padding: "14px 16px",
+          fontSize: 13, color: "#b0a8cc", fontStyle: "italic", lineHeight: 1.6,
+          border: "1.5px dashed #ddd8f5",
+        }}>
+          🔒 Pulse check-ins unlock the week of {fmtPulseDate(week2Win.start)} – {fmtPulseDate(week2Win.end)} · Starting Week 2, we&apos;ll check in each week to see how you&apos;re feeling about the program.
+        </div>
+      </div>
     );
   }
 
@@ -1205,12 +1221,27 @@ function WeeklyFocus({ slug, weekNum }) {
     setSavedValue(localStorage.getItem(storageKey) || "");
   }, [storageKey]);
 
-  // Future weeks: discrete teaser
+  // Future weeks: styled locked box
   if (isFuture) {
     return (
-      <p style={{ margin: "0 0 16px", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
-        ✏️ Weekly focus opens {fmtPulseDate(win.start)} – {fmtPulseDate(win.end)} · Share what you&apos;re building toward and we&apos;ll connect you with founders working on something similar.
-      </p>
+      <div style={{
+        background: "#fafafa", borderRadius: 12, border: "1px solid #e8e4f5",
+        padding: "18px 22px", marginBottom: 20,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#9b8fcf" }}>
+            What are you focused on this week?
+          </p>
+          <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 600, background: "#f0ecff", borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>Optional</span>
+        </div>
+        <div style={{
+          background: "#f7f5ff", borderRadius: 8, padding: "14px 16px",
+          fontSize: 13, color: "#b0a8cc", fontStyle: "italic", lineHeight: 1.6,
+          border: "1.5px dashed #ddd8f5",
+        }}>
+          🔒 Unlocks the week of {fmtPulseDate(win.start)} – {fmtPulseDate(win.end)} · Share what you&apos;re building toward and we&apos;ll connect you with founders working on something similar.
+        </div>
+      </div>
     );
   }
 
