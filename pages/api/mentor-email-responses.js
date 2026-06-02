@@ -169,6 +169,17 @@ const RESPONSES = [
     ],
     selected: "both",
   },
+  {
+    threadId: "19e89f2d33b2dba7",
+    mentor: { name: "Vishal Soni", email: "vsoni@viridbiosolutions.com" },
+    replyDate: "2026-06-02",
+    reply: "I can only mentor 1. Natalie from The Zigzig business appears to be more closer to my business area expertise. Thus, Zigzag might be a better fit for me.",
+    options: [
+      { name: "Soheil Khosravinejad", company: "DRIFTLANE", slug: "soheil-khosravinejad", stage: "Early traction", industry: "Media / Marketing / Advertising", needs: "Preparing for a major inflection point (raise, launch, pivot, expansion)" },
+      { name: "Natalie Kitts", company: "The Zigzag Flow, Therapy Services", slug: "natalie-kitts", stage: "Early traction", industry: "Other", needs: "Fundraising strategy & investor readiness" },
+    ],
+    selected: "Natalie Kitts",
+  },
 ];
 
 export default function handler(req, res) {
