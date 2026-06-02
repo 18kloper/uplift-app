@@ -3158,6 +3158,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <script src="//embed.typeform.com/next/embed.js" async />
       </Head>
 
       <div style={{ minHeight: "100vh", background: "#f7f5ff", fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -3226,7 +3227,29 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
               </div>
 
               {/* Utility nav — header links */}
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                <button
+                  onClick={() => {
+                    if (typeof window !== "undefined" && window.tf) {
+                      window.tf.createPopup("01KT2VVPD2JSKX90MG1GEQJT01").open();
+                    } else {
+                      window.open("https://form.typeform.com/to/01KT2VVPD2JSKX90MG1GEQJT01", "_blank");
+                    }
+                  }}
+                  style={{
+                    padding: "5px 13px",
+                    border: "1px solid rgba(255,255,255,0.55)",
+                    borderRadius: 8, background: "rgba(255,255,255,0.12)",
+                    color: "#fff", fontSize: 12, fontWeight: 700,
+                    cursor: "pointer", fontFamily: "inherit",
+                    display: "flex", alignItems: "center", gap: 5,
+                    transition: "background 0.15s",
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.22)"}
+                  onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.12)"}
+                >
+                  💡 Make a Suggestion
+                </button>
                 {TAB_ROW_2.map(id => {
                   const tab = PRIMARY_TABS.find(t => t.id === id);
                   const active = activeTab === id;
