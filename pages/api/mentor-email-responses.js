@@ -147,6 +147,17 @@ const RESPONSES = [
     ],
     selected: "Elisa Charters",
   },
+  {
+    threadId: "19e899e0aa6cd59c",
+    mentor: { name: "Roman Tsibulevskiy", email: "roman.tsibulevskiy@dentons.com" },
+    replyDate: "2026-06-02",
+    reply: "Option 2 - Jean Guerdy Paul — TETHRRA. I will try to attend the in-person midpoint meetup and the in-person summit.",
+    options: [
+      { name: "Shell Bobev", company: "Disrupt The Gap", slug: "shell-bobev", stage: "Revenue-generating", industry: "Government / Civic / Policy", needs: "Product strategy & roadmap decisions" },
+      { name: "Jean Guerdy Paul", company: "TETHRRA", slug: "jean-guerdy-paul", stage: "Early traction", industry: "Enterprise SaaS / B2B", needs: "Refining pitch or company narrative" },
+    ],
+    selected: "Jean Guerdy Paul",
+  },
 ];
 
 export default function handler(req, res) {
