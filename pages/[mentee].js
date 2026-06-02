@@ -3173,6 +3173,11 @@ function ResourcesSection({ slug, menteeName }) {
 
   return (
     <div>
+      {/* Pro tip */}
+      <p style={{ margin: "0 0 20px", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
+        💡 Pro tip — heart any resource below to instantly pin it to your own Favorites section at the top.
+      </p>
+
       {/* My Favorites */}
       {favoriteItems.length > 0 && (
         <div style={{ marginBottom: 32 }}>
@@ -3640,6 +3645,84 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
         </div>
       );
     }
+    if (activeWeek === "wrapped") {
+      return (
+        <div style={{
+          background: "linear-gradient(160deg, #0d0020 0%, #4a0077 38%, #b8005a 72%, #ff4b8b 100%)",
+          borderRadius: 20, padding: "44px 28px 48px", color: "#fff",
+          position: "relative", overflow: "hidden", textAlign: "center",
+        }}>
+          {/* Decorative orbs */}
+          {[["18%","−5%",100],["82%","25%",60],["5%","65%",70],["88%","78%",45],["50%","88%",55]].map(([left, top, sz], i) => (
+            <div key={i} style={{
+              position: "absolute", left, top, width: sz, height: sz,
+              borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none",
+            }} />
+          ))}
+
+          <div style={{ position: "relative", zIndex: 1 }}>
+            <div style={{ fontSize: 52, marginBottom: 12 }}>🎁</div>
+            <h2 style={{ margin: "0 0 6px", fontSize: 34, fontWeight: 900, letterSpacing: "-0.5px", lineHeight: 1 }}>
+              Uplift Wrapped
+            </h2>
+            <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", opacity: 0.55 }}>
+              Summer 2026
+            </p>
+            <p style={{ margin: "0 0 24px", fontSize: 15, opacity: 0.8, lineHeight: 1.5 }}>
+              Your summer, by the numbers.
+            </p>
+
+            {/* Lock badge */}
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              background: "rgba(255,255,255,0.13)", borderRadius: 24,
+              padding: "9px 22px", marginBottom: 36,
+              border: "1px solid rgba(255,255,255,0.2)",
+            }}>
+              <span style={{ fontSize: 15 }}>🔒</span>
+              <span style={{ fontSize: 13, fontWeight: 700 }}>Unlocks after graduation · August 4th</span>
+            </div>
+
+            {/* Blurred preview cards */}
+            <p style={{ margin: "0 0 12px", fontSize: 11, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", opacity: 0.4 }}>
+              A peek at what&apos;s inside
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 28 }}>
+              {[
+                { emoji: "💫", label: "Your Mood Journey",  preview: "Week-by-week pulse: the highs, the grinds, the breakthroughs." },
+                { emoji: "🧠", label: "Your Founder Type",  preview: "We decoded your archetype from your reflections and goals." },
+                { emoji: "🎯", label: "Your Top Themes",    preview: "What your summer was really about, in your own words." },
+                { emoji: "👥", label: "Cohort Vibes",       preview: "How the whole cohort felt week by week. It gets good." },
+              ].map((card, i) => (
+                <div key={i} style={{
+                  background: "rgba(255,255,255,0.08)", borderRadius: 12,
+                  padding: "16px 14px", textAlign: "left",
+                  filter: "blur(3.5px)", userSelect: "none",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                }}>
+                  <div style={{ fontSize: 22, marginBottom: 7 }}>{card.emoji}</div>
+                  <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700 }}>{card.label}</p>
+                  <p style={{ margin: 0, fontSize: 11, opacity: 0.7, lineHeight: 1.4 }}>{card.preview}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Teaser copy */}
+            <div style={{
+              background: "rgba(255,255,255,0.07)", borderRadius: 14,
+              padding: "20px 22px", textAlign: "left",
+              border: "1px solid rgba(255,255,255,0.1)",
+            }}>
+              <p style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 700 }}>What to expect</p>
+              <p style={{ margin: 0, fontSize: 13, opacity: 0.82, lineHeight: 1.8 }}>
+                Some weeks you were moody. Some you were sky high. Some had strong takeaways — others you were deep in the grind. Based on every reflection, prompt response, mood check-in, and connection you made this summer, we&apos;ve built your personalized Uplift Wrapped — complete with your founder character type, the themes that defined your summer, cohort-wide patterns, and all the moments that made this program yours.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     const week = WEEKS.find((w) => w.num === activeWeek);
     if (!week) return null;
     let weekContent;
@@ -3880,6 +3963,20 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
               >
                 🎓 Certificate
               </button>
+              <button
+                onClick={() => setActiveWeek("wrapped")}
+                style={{
+                  flex: "0 0 auto", padding: "10px 12px 8px",
+                  border: "none", background: "none",
+                  borderBottom: activeWeek === "wrapped" ? "2px solid #c0006e" : "2px solid transparent",
+                  color: activeWeek === "wrapped" ? "#c0006e" : "#9b8fcf",
+                  fontWeight: activeWeek === "wrapped" ? 700 : 400,
+                  fontSize: 12, cursor: "pointer", whiteSpace: "nowrap",
+                  fontFamily: "inherit", transition: "color 0.15s, border-color 0.15s",
+                }}
+              >
+                🎁 Wrapped
+              </button>
             </div>
           </div>
         )}
@@ -3894,7 +3991,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
               </h2>
             </div>
           )}
-          {activeTab === "journey" && activeWeek !== "certificate" && activeWeekData && (
+          {activeTab === "journey" && activeWeek !== "certificate" && activeWeek !== "wrapped" && activeWeekData && (
             <div style={{ marginBottom: 24 }}>
               <h2 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 700, color: "#1a1733" }}>
                 {activeWeekData.title}
