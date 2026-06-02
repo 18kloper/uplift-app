@@ -843,7 +843,7 @@ function PeerConnections() {
   const undoTimerRef = useRef(null);
   const [draftEmails, setDraftEmails] = useState({}); // pairKey → { loading, subject, body, error, copied }
   const [activeFilter, setActiveFilter] = useState("all");
-  const STORE_KEY = "uplift_peer_connections_v2";
+  const STORE_KEY = "uplift_peer_connections_v3";
 
   const COHORT_COLORS = {
     1: { bg: "#fff3cd", color: "#7a5700", border: "#f5c542" },
