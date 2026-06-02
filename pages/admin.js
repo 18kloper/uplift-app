@@ -2541,6 +2541,7 @@ function MentorSelections() {
 function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
   const [responses, setResponses] = useState([]);
   const [allMentors, setAllMentors] = useState([]);
+  const [menteeBySlug, setMenteeBySlug] = useState({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
 
@@ -2551,6 +2552,13 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
     ]).then(([emailData, selData]) => {
       setResponses(emailData.responses || []);
       setAllMentors(selData.mentors || []);
+      // Build slug → { email, cohort } lookup
+      const emails = selData.menteeEmails || {};
+      const lookup = {};
+      for (const s of (selData.selections || [])) {
+        lookup[s.slug] = { email: emails[s.slug] || "", cohort: s.cohort };
+      }
+      setMenteeBySlug(lookup);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
@@ -2600,6 +2608,7 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
     const dotColor = isConf ? "#22a366" : isDecl ? "#e74c3c" : "#c0b8d8";
     const nameColor = isConf ? "#1a1733" : isDecl ? "#9b8fcf" : "#1a1733";
     const textDecor = isDecl ? "line-through" : "none";
+    const info = menteeBySlug[opt.slug] || {};
     return (
       <div style={{ minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
@@ -2609,9 +2618,12 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
           </span>
         </div>
         <div style={{ fontSize: 11, color: "#9b8fcf", paddingLeft: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{opt.company}</div>
-        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", paddingLeft: 12, marginTop: 3 }}>
-          <span style={{ fontSize: 10, background: "#f3f0ff", color: "#5c4eb5", borderRadius: 4, padding: "1px 5px", fontWeight: 600 }}>{opt.stage}</span>
-        </div>
+        {info.email && (
+          <div style={{ fontSize: 11, color: "#5c4eb5", paddingLeft: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{info.email}</div>
+        )}
+        {info.cohort && (
+          <div style={{ fontSize: 10, color: "#9b8fcf", paddingLeft: 12, marginTop: 1 }}>Cohort {info.cohort}</div>
+        )}
       </div>
     );
   };
@@ -2631,18 +2643,21 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
         <button
           onClick={() => {
             const escape = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
-            const hdrs = ["Mentor Name", "Mentor Email", "Mentee 1", "Mentee 1 Company", "Mentee 2", "Mentee 2 Company", "Sessions Completed", "Status"];
+            const hdrs = ["Mentor Name", "Mentor Email", "Mentee 1", "Mentee 1 Email", "Mentee 1 Cohort", "Mentee 1 Sessions", "Mentee 2", "Mentee 2 Email", "Mentee 2 Cohort", "Mentee 2 Sessions", "Status"];
             const csvRows = rows.map(r => {
-              const opt1 = r.allOpts?.[0];
-              const opt2 = r.allOpts?.[1];
+              const o1 = r.allOpts?.[0];
+              const o2 = r.allOpts?.[1];
               const mc = r.matchCount;
               const statusLabel = r.isPending ? "Pending" : r.allDeclined ? "Needs Rematch" : mc === 0 ? "Needs a Mentee" : mc === 1 ? "1 Mentee" : "2 Mentees";
-              const sessionKey = r.mentor.email || r.mentor.name;
+              const mk = r.mentor.email || r.mentor.name;
+              const s1 = o1 ? (sessions[`${mk}|${o1.slug}`] ?? 0) : "";
+              const s2 = o2 ? (sessions[`${mk}|${o2.slug}`] ?? 0) : "";
+              const i1 = o1 ? (menteeBySlug[o1.slug] || {}) : {};
+              const i2 = o2 ? (menteeBySlug[o2.slug] || {}) : {};
               return [
                 r.mentor.name, r.mentor.email,
-                opt1?.name || "", opt1?.company || "",
-                opt2?.name || "", opt2?.company || "",
-                sessions[sessionKey] ?? 0,
+                o1?.name || "", i1.email || "", i1.cohort ? `Cohort ${i1.cohort}` : "", s1,
+                o2?.name || "", i2.email || "", i2.cohort ? `Cohort ${i2.cohort}` : "", s2,
                 statusLabel,
               ].map(escape).join(",");
             });
@@ -2730,8 +2745,32 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
             const badgeColor = r.isPending ? "#6b6480" : r.allDeclined ? "#c0392b" : mc === 0 ? "#b35c00" : mc === 2 ? "#1a6e42" : "#5c4eb5";
             const badgeBg    = r.isPending ? "#f0eef8" : r.allDeclined ? "#fdf0f0" : mc === 0 ? "#fff3e0" : mc === 2 ? "#e8f8f0" : "#f0ecff";
 
-            const sessionKey = r.mentor.email || r.mentor.name;
-            const sessionCount = sessions[sessionKey] ?? 0;
+            const mentorKey = r.mentor.email || r.mentor.name;
+            const sk1 = opt1 ? `${mentorKey}|${opt1.slug}` : null;
+            const sk2 = opt2 ? `${mentorKey}|${opt2.slug}` : null;
+            const sc1 = sk1 ? (sessions[sk1] ?? 0) : null;
+            const sc2 = sk2 ? (sessions[sk2] ?? 0) : null;
+
+            const SessionDots = ({ sk, count, color = "#5c4eb5" }) => {
+              if (sk === null) return <div style={{ height: 18 }} />;
+              return (
+                <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                  {Array.from({ length: 3 }).map((_, di) => (
+                    <div
+                      key={di}
+                      onClick={() => onSessionChange && onSessionChange(sk, di < count ? di : di + 1)}
+                      onContextMenu={e => { e.preventDefault(); onSessionChange && onSessionChange(sk, Math.max(0, count - 1)); }}
+                      style={{
+                        width: 10, height: 10, borderRadius: "50%", cursor: "pointer",
+                        background: di < count ? color : "#e8e4f5",
+                        transition: "background 0.15s",
+                      }}
+                    />
+                  ))}
+                  <span style={{ fontSize: 10, color: "#9b8fcf", marginLeft: 1 }}>{count}/3</span>
+                </div>
+              );
+            };
 
             return (
               <div key={r.mentor.email || r.mentor.name} style={{
@@ -2756,22 +2795,10 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
                 {/* Mentee 2 */}
                 <MenteeCell opt={opt2} threadId={r.threadId} />
 
-                {/* Sessions dots — click to increment, right-click to decrement */}
-                <div style={{ display: "flex", gap: 5, alignItems: "center", paddingTop: 2 }}>
-                  {Array.from({ length: 3 }).map((_, di) => (
-                    <div
-                      key={di}
-                      title={di < sessionCount ? `Click to remove session ${di + 1}` : `Click to add session ${di + 1}`}
-                      onClick={() => onSessionChange && onSessionChange(sessionKey, di < sessionCount ? di : di + 1)}
-                      onContextMenu={e => { e.preventDefault(); onSessionChange && onSessionChange(sessionKey, Math.max(0, sessionCount - 1)); }}
-                      style={{
-                        width: 11, height: 11, borderRadius: "50%", cursor: "pointer",
-                        background: di < sessionCount ? "#5c4eb5" : "#e8e4f5",
-                        transition: "background 0.15s",
-                      }}
-                    />
-                  ))}
-                  <span style={{ fontSize: 11, color: "#9b8fcf", marginLeft: 2 }}>{sessionCount}/3</span>
+                {/* Sessions — one dot row per mentee */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 2 }}>
+                  <SessionDots sk={sk1} count={sc1 ?? 0} />
+                  {opt2 && <SessionDots sk={sk2} count={sc2 ?? 0} />}
                 </div>
 
                 {/* Match badge */}
