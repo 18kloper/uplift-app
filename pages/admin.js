@@ -2696,26 +2696,21 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
     const menteeChurned = menteeStatus?.churned;
     const menteeParticipated = menteeStatus?.participation;
 
-    // Dot reflects mentor confirmation state; inner pip reflects mentee participation
-    const dotColor = isConf ? "#22a366" : isDecl ? "#e74c3c" : "#c0b8d8";
     const nameColor = isConf ? "#1a1733" : isDecl ? "#9b8fcf" : "#1a1733";
     const textDecor = isDecl ? "line-through" : "none";
 
-    // Participation bubble: green = confirmed, yellow = pending, red = churned, none if not confirmed by mentor yet
-    const pipColor = menteeChurned ? "#e74c3c" : menteeParticipated ? "#22a366" : "#f5a623";
-    const pipTitle = menteeChurned ? "Churned / dropped out" : menteeParticipated ? "Confirmed participation" : "Has not confirmed participation yet";
+    // Single dot on left: mentee participation/churn status
+    const dotColor = menteeChurned ? "#e74c3c" : menteeParticipated ? "#22a366" : "#f5a623";
+    const dotTitle = menteeChurned ? "Churned / dropped out" : menteeParticipated ? "Confirmed participation" : "Has not confirmed participation yet";
 
     const info = menteeBySlug[opt.slug] || {};
     return (
       <div style={{ minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
-          <div style={{ width: 7, height: 7, borderRadius: "50%", background: dotColor, flexShrink: 0 }} />
+          <div title={dotTitle} style={{ width: 7, height: 7, borderRadius: "50%", background: dotColor, flexShrink: 0 }} />
           <span style={{ fontSize: 13, fontWeight: 700, color: nameColor, textDecoration: textDecor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {opt.name}
           </span>
-          {menteeStatus && (
-            <div title={pipTitle} style={{ width: 7, height: 7, borderRadius: "50%", background: pipColor, flexShrink: 0, marginLeft: 1 }} />
-          )}
         </div>
         <div style={{ fontSize: 11, color: "#9b8fcf", paddingLeft: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{opt.company}</div>
         {info.email && (
