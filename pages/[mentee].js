@@ -1024,16 +1024,25 @@ const PULSE_RATINGS = [
 function WeeklyPulse({ slug, weekNum }) {
   const storageKey = `${slug}_w${weekNum}_pulse`;
   const [selected, setSelected] = useState(null);
+  const [isChanging, setIsChanging] = useState(false);
+  const [hasChanged, setHasChanged] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
     if (saved) setSelected(parseInt(saved, 10));
+    if (localStorage.getItem(`${storageKey}_changed`)) setHasChanged(true);
   }, [storageKey]);
 
   const handleSelect = (val) => {
+    const wasChanging = isChanging;
     setSelected(val);
+    setIsChanging(false);
     localStorage.setItem(storageKey, String(val));
     persistToSheet(slug, weekNum, "pulse", String(val), "How are you feeling this week?");
+    if (wasChanging) {
+      setHasChanged(true);
+      localStorage.setItem(`${storageKey}_changed`, "1");
+    }
   };
 
   // Date-window logic
@@ -1079,6 +1088,8 @@ function WeeklyPulse({ slug, weekNum }) {
   }
 
   // Active window — show interactive buttons
+  const showButtons = !selected || isChanging;
+
   return (
     <div style={{
       background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
@@ -1087,7 +1098,7 @@ function WeeklyPulse({ slug, weekNum }) {
       <div style={{ marginBottom: 10 }}>
         <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>
           How are you feeling about the program this week?
-          {selected && (
+          {selected && !isChanging && (
             <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 500, color: "#9b8fcf" }}>
               {PULSE_RATINGS[selected - 1]?.label}
             </span>
@@ -1097,22 +1108,59 @@ function WeeklyPulse({ slug, weekNum }) {
           Weekly pulse check · How&apos;s Uplift supporting you? Are your next steps clear? This helps us gauge how the cohort is doing and where we can show up better.
         </p>
       </div>
-      <div style={{ display: "flex", gap: 8 }}>
-        {PULSE_RATINGS.map(r => (
-          <button key={r.value} onClick={() => handleSelect(r.value)} style={{
-            flex: 1, padding: "10px 4px", borderRadius: 8, cursor: "pointer",
-            border: selected === r.value ? "2px solid #5c4eb5" : "1.5px solid #e8e4f5",
-            background: selected === r.value ? "#f0ecff" : "#fafafa",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-            fontFamily: "inherit", transition: "all 0.15s",
-          }}>
-            <span style={{ fontSize: 20 }}>{r.emoji}</span>
-            <span style={{ fontSize: 10, fontWeight: selected === r.value ? 700 : 500, color: selected === r.value ? "#5c4eb5" : "#9b8fcf" }}>
-              {r.label}
-            </span>
-          </button>
-        ))}
-      </div>
+
+      {showButtons ? (
+        <div style={{ display: "flex", gap: 8 }}>
+          {PULSE_RATINGS.map(r => (
+            <button key={r.value} onClick={() => handleSelect(r.value)} style={{
+              flex: 1, padding: "10px 4px", borderRadius: 8, cursor: "pointer",
+              border: selected === r.value ? "2px solid #5c4eb5" : "1.5px solid #e8e4f5",
+              background: selected === r.value ? "#f0ecff" : "#fafafa",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+              fontFamily: "inherit", transition: "all 0.15s",
+            }}>
+              <span style={{ fontSize: 20 }}>{r.emoji}</span>
+              <span style={{ fontSize: 10, fontWeight: selected === r.value ? 700 : 500, color: selected === r.value ? "#5c4eb5" : "#9b8fcf" }}>
+                {r.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : hasChanged ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#f0ecff", borderRadius: 8 }}>
+          <span style={{ fontSize: 20 }}>{PULSE_RATINGS[selected - 1]?.emoji}</span>
+          <div>
+            <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 600, color: "#5c4eb5" }}>
+              ✓ Response updated — you&apos;ve used your one change for this week.
+            </p>
+            <p style={{ margin: 0, fontSize: 11, color: "#9b8fcf" }}>
+              Your response: {PULSE_RATINGS[selected - 1]?.label}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#f8f7ff", borderRadius: 8, marginBottom: 10 }}>
+            <span style={{ fontSize: 20 }}>{PULSE_RATINGS[selected - 1]?.emoji}</span>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#5c4eb5" }}>
+              You responded: {PULSE_RATINGS[selected - 1]?.label}
+            </p>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button onClick={() => setIsChanging(true)} style={{
+              padding: "7px 16px", borderRadius: 7, cursor: "pointer",
+              border: "1.5px solid #c8bef5", background: "#fff",
+              fontSize: 12, fontWeight: 600, color: "#5c4eb5",
+              fontFamily: "inherit", transition: "all 0.15s",
+            }}>
+              Change my response
+            </button>
+            <p style={{ margin: 0, fontSize: 11, color: "#b0a8cc", fontStyle: "italic" }}>
+              Please note, you can only change your response once.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
