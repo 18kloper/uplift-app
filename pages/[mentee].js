@@ -3158,14 +3158,31 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-        <script src="//embed.typeform.com/next/embed.js" async />
       </Head>
 
       <div style={{ minHeight: "100vh", background: "#f7f5ff", fontFamily: "'Inter', system-ui, sans-serif" }}>
         {/* Header */}
         <div style={{ background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)", padding: "28px 24px 24px", color: "#fff" }}>
           <div style={{ maxWidth: 720, margin: "0 auto" }}>
-            <img src="/uplift-logo-white.png" alt="Uplift" style={{ height: 36, marginBottom: 18, display: "block" }} />
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 18 }}>
+              <img src="/uplift-logo-white.png" alt="Uplift" style={{ height: 36, display: "block" }} />
+              <a
+                href="https://form.typeform.com/to/tHKCNXhN"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  background: "rgba(255,255,255,0.15)",
+                  border: "1px solid rgba(255,255,255,0.3)",
+                  color: "#fff", borderRadius: 20,
+                  padding: "6px 14px", fontSize: 12, fontWeight: 600,
+                  textDecoration: "none", whiteSpace: "nowrap",
+                  display: "flex", alignItems: "center", gap: 6,
+                  flexShrink: 0,
+                }}
+              >
+                💡 Make a Suggestion
+              </a>
+            </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                 Cohort {mentee.cohort}{myCohortHeader ? ` — ${myCohortHeader.name}` : ""}
@@ -3362,26 +3379,6 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
           TechUnited:NJ · Uplift Summer 2026 · Your responses sync to Google Sheets
         </div>
 
-        {/* Floating suggestion button */}
-        <button
-          data-tf-popup="01KT2VVPD2JSKX90MG1GEQJT01"
-          onClick={() => {
-            if (typeof window !== "undefined" && !window.tf) {
-              window.open("https://form.typeform.com/to/01KT2VVPD2JSKX90MG1GEQJT01", "_blank");
-            }
-          }}
-          style={{
-            position: "fixed", top: 20, right: 20, zIndex: 1000,
-            background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
-            color: "#fff", border: "none", borderRadius: 28,
-            padding: "10px 18px", fontSize: 13, fontWeight: 700,
-            cursor: "pointer", fontFamily: "inherit",
-            boxShadow: "0 4px 16px rgba(92,78,181,0.4)",
-            display: "flex", alignItems: "center", gap: 8,
-          }}
-        >
-          💡 Make a Suggestion
-        </button>
       </div>
     </>
   );
