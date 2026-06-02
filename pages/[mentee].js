@@ -3172,21 +3172,22 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
               <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                 Uplift Summer 2026
               </div>
-              <a
-                href="https://form.typeform.com/to/tHKCNXhN"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Share any suggestions via this form"
-                style={{
-                  marginLeft: "auto",
-                  background: "rgba(255,255,255,0.15)", borderRadius: 8,
-                  padding: "5px 12px", fontSize: 12, fontWeight: 600,
-                  letterSpacing: "0.06em", textTransform: "uppercase",
-                  color: "#fff", textDecoration: "none", whiteSpace: "nowrap",
-                }}
-              >
-                💡 Make a Suggestion
-              </a>
+              <TabTooltip tip="Share any suggestions via this form" direction="down">
+                <a
+                  href="https://form.typeform.com/to/tHKCNXhN"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    marginLeft: "auto",
+                    background: "rgba(255,255,255,0.15)", borderRadius: 8,
+                    padding: "5px 12px", fontSize: 12, fontWeight: 600,
+                    letterSpacing: "0.06em", textTransform: "uppercase",
+                    color: "#fff", textDecoration: "none", whiteSpace: "nowrap",
+                  }}
+                >
+                  💡 Make a Suggestion
+                </a>
+              </TabTooltip>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 4 }}>
               {mentee.photo ? (
