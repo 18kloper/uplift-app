@@ -1,124 +1,126 @@
 // GET /api/mentor-applications
-// Fetches all mentor Typeform submissions (form AayoroO1) and returns
-// mentors not already assigned in MENTEES, so they appear on the Mentors tab.
+// Fetches all mentor Typeform submissions (form AayoroO1).
+// Returns mentors not already assigned in MENTEES so they appear on the Mentors tab.
+// Add ?debug=1 to see raw field structure.
 
 import { MENTEES } from "../../lib/mentees";
 
 const FORM_ID = "AayoroO1";
 
-// Known field refs from the mentor application form — update if Typeform changes
-// These are discovered via /api/debug-mentor-form
-const FIELD_HINTS = {
-  firstName:  ["first_name", "first-name", "firstName", "name_first"],
-  lastName:   ["last_name",  "last-name",  "lastName",  "name_last"],
-  email:      ["email", "email_address", "your_email"],
-  fullName:   ["full_name", "full-name", "name", "your_name"],
-};
-
-function getAnswer(answers, refs) {
-  for (const ref of refs) {
-    const a = answers.find(a => a.field?.ref === ref || a.field?.id === ref);
-    if (a) return a.text || a.email || a.phone_number || a.date || "";
+function extractNameEmail(answers, fields) {
+  // Build a title-keyed map for quick lookup
+  const byTitle = {};
+  for (const f of fields) {
+    const t = (f.title || "").toLowerCase().trim();
+    byTitle[t] = f.ref || f.id;
   }
-  return "";
-}
 
-function extractNameEmail(answers, fieldDefs) {
-  // Try first+last separately
-  const first = getAnswer(answers, fieldDefs.firstName || FIELD_HINTS.firstName);
-  const last  = getAnswer(answers, fieldDefs.lastName  || FIELD_HINTS.lastName);
-  const full  = getAnswer(answers, fieldDefs.fullName  || FIELD_HINTS.fullName);
-  const email = getAnswer(answers, fieldDefs.email     || FIELD_HINTS.email);
+  // Find field refs by fuzzy title match
+  const findRef = (...patterns) => {
+    for (const p of patterns) {
+      for (const [title, ref] of Object.entries(byTitle)) {
+        if (title.includes(p)) return ref;
+      }
+    }
+    return null;
+  };
+
+  const getByRef = (ref) => {
+    if (!ref) return "";
+    const a = answers.find(a => a.field?.ref === ref || a.field?.id === ref);
+    if (!a) return "";
+    return a.text || a.email || a.phone_number || "";
+  };
+
+  const firstRef = findRef("first name", "first_name", "firstname");
+  const lastRef  = findRef("last name",  "last_name",  "lastname", "surname");
+  const fullRef  = findRef("full name",  "full_name",  "your name", "name");
+  const emailRef = findRef("email");
+
+  const first = getByRef(firstRef);
+  const last  = getByRef(lastRef);
+  const full  = getByRef(fullRef);
 
   let name = "";
   if (first || last) name = `${first} ${last}`.trim();
-  else if (full) name = full.trim();
+  else if (full)     name = full.trim();
   else {
-    // Fall back: find any text answer that looks like a name (2+ words, no @)
-    const textAns = answers.find(a => a.type === "text" && a.text && !a.text.includes("@") && a.text.split(" ").length >= 2);
-    if (textAns) name = textAns.text.trim();
+    // Last resort: any text answer ≥2 words with no @
+    const t = answers.find(a =>
+      (a.type === "text" || a.type === "short_text") &&
+      a.text && !a.text.includes("@") && a.text.trim().split(/\s+/).length >= 2
+    );
+    if (t) name = t.text.trim();
   }
 
-  const emailVal = email || answers.find(a => a.type === "email")?.email || "";
+  // Email: field match first, then any email-type answer
+  const email = getByRef(emailRef) || answers.find(a => a.type === "email")?.email || "";
 
-  return { name, email: emailVal };
+  return { name, email };
 }
 
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
 
   const token = process.env.TYPEFORM_TOKEN;
-  if (!token) return res.status(200).json({ mentors: [], total: 0, debug: "no token" });
+  if (!token) return res.status(200).json({ mentors: [], total: 0, note: "no TYPEFORM_TOKEN" });
 
   try {
-    // Fetch form definition to discover field refs
-    const formRes = await fetch(`https://api.typeform.com/forms/${FORM_ID}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const formDef = await formRes.json();
-    const fields = formDef.fields || [];
+    const [formRes, respRes] = await Promise.all([
+      fetch(`https://api.typeform.com/forms/${FORM_ID}`, { headers: { Authorization: `Bearer ${token}` } }),
+      fetch(`https://api.typeform.com/forms/${FORM_ID}/responses?page_size=1000`, { headers: { Authorization: `Bearer ${token}` } }),
+    ]);
 
-    // Build ref map from field titles
-    const fieldDefs = { firstName: [], lastName: [], email: [], fullName: [] };
-    for (const f of fields) {
-      const t = (f.title || "").toLowerCase();
-      const ref = f.ref || f.id;
-      if (/first.?name/i.test(t))       fieldDefs.firstName.push(ref);
-      else if (/last.?name/i.test(t))   fieldDefs.lastName.push(ref);
-      else if (/email/i.test(t))        fieldDefs.email.push(ref);
-      else if (/full.?name|your name/i.test(t)) fieldDefs.fullName.push(ref);
-    }
-
-    // Fetch all responses (up to 1000)
-    const respRes = await fetch(
-      `https://api.typeform.com/forms/${FORM_ID}/responses?page_size=1000`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    const formDef  = await formRes.json();
     const respData = await respRes.json();
-    const items = respData.items || [];
+    const fields   = formDef.fields || [];
+    const items    = respData.items || [];
 
-    // Build set of existing mentor names (lowercase) from MENTEES
-    const existingMentorNames = new Set();
-    const existingMentorEmails = new Set();
-    for (const m of MENTEES) {
-      if (m.mentor?.name) existingMentorNames.add(m.mentor.name.toLowerCase().trim());
-      if (m.mentor?.email) existingMentorEmails.add(m.mentor.email.toLowerCase().trim());
+    // Debug mode — return field structure
+    if (req.query.debug === "1") {
+      return res.status(200).json({
+        totalResponses: items.length,
+        fields: fields.map(f => ({ id: f.id, ref: f.ref, title: f.title, type: f.type })),
+        sampleAnswers: (items[0]?.answers || []).map(a => ({
+          fieldId: a.field?.id, fieldRef: a.field?.ref, type: a.type,
+          value: a.text || a.email || a.choice?.label || a.choices?.labels || a.boolean,
+        })),
+      });
     }
 
-    // Parse each response
+    // Build set of existing mentor names/emails from MENTEES
+    const existingNames  = new Set();
+    const existingEmails = new Set();
+    for (const m of MENTEES) {
+      if (m.mentor?.name)  existingNames.add(m.mentor.name.toLowerCase().trim());
+      if (m.mentor?.email) existingEmails.add(m.mentor.email.toLowerCase().trim());
+    }
+
     const seen = new Set();
     const newMentors = [];
 
     for (const item of items) {
-      const answers = item.answers || [];
-      const { name, email } = extractNameEmail(answers, fieldDefs);
+      const { name, email } = extractNameEmail(item.answers || [], fields);
       if (!name) continue;
 
-      const nameKey = name.toLowerCase().trim();
-      const emailKey = email.toLowerCase().trim();
-
-      // Skip duplicates within this batch
+      const nameKey  = name.toLowerCase().trim();
+      const emailKey = (email || "").toLowerCase().trim();
       const dedupeKey = emailKey || nameKey;
+
       if (seen.has(dedupeKey)) continue;
       seen.add(dedupeKey);
 
-      // Skip if already in MENTEES mentor list
-      if (existingMentorNames.has(nameKey)) continue;
-      if (emailKey && existingMentorEmails.has(emailKey)) continue;
+      if (existingNames.has(nameKey)) continue;
+      if (emailKey && existingEmails.has(emailKey)) continue;
 
-      newMentors.push({
-        name,
-        email,
-        submittedAt: item.submitted_at,
-        // Raw answers for debugging — remove in prod if desired
-        _fields: fields.map(f => ({ id: f.id, ref: f.ref, title: f.title })).slice(0, 5),
-      });
+      newMentors.push({ name, email, submittedAt: item.submitted_at });
     }
 
     return res.status(200).json({
       mentors: newMentors,
       total: items.length,
-      existingCount: existingMentorNames.size,
+      existingCount: existingNames.size,
+      newCount: newMentors.length,
     });
   } catch (err) {
     console.error("mentor-applications error:", err.message);

@@ -2589,7 +2589,13 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
   const [allMentors, setAllMentors] = useState([]);
   const [menteeBySlug, setMenteeBySlug] = useState({});
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
+  const [activeFilters, setActiveFilters] = useState([]);
+
+  const toggleFilter = key => {
+    setActiveFilters(prev =>
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    );
+  };
 
   useEffect(() => {
     Promise.all([
@@ -2656,7 +2662,9 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
     { key: "pending", label: "Pending",          match: r => r.isPending },
   ];
 
-  const visible = rows.filter(FILTERS.find(f => f.key === filter)?.match || (() => true));
+  const visible = activeFilters.length === 0
+    ? rows
+    : rows.filter(r => activeFilters.some(key => FILTERS.find(f => f.key === key)?.match(r)));
 
   const COLS = "1.4fr 1.6fr 1.6fr 110px 120px";
 
@@ -2746,14 +2754,23 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange }) {
         Confirmed/declined on the ✅ Mentor Confirmation tab — matches update here automatically.
       </p>
 
-      {/* Filter chips */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-        {FILTERS.map(f => {
+      {/* Filter chips — multi-select, empty = All */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
+        {activeFilters.length > 0 && (
+          <button onClick={() => setActiveFilters([])} style={{
+            padding: "6px 12px", borderRadius: 20, fontSize: 11, fontWeight: 600,
+            border: "1.5px solid #e0daf5", background: "#f7f5ff", color: "#9b8fcf",
+            cursor: "pointer", fontFamily: "inherit",
+          }}>
+            Clear
+          </button>
+        )}
+        {FILTERS.filter(f => f.key !== "all").map(f => {
           const count = rows.filter(f.match).length;
-          const active = filter === f.key;
+          const active = activeFilters.includes(f.key);
           const accent = f.key === "none" ? "#b35c00" : f.key === "two" ? "#1a6e42" : f.key === "rematch" ? "#c0392b" : "#5c4eb5";
           return (
-            <button key={f.key} onClick={() => setFilter(f.key)} style={{
+            <button key={f.key} onClick={() => toggleFilter(f.key)} style={{
               display: "flex", alignItems: "center", gap: 6,
               padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: active ? 700 : 500,
               border: `1.5px solid ${active ? accent : "#e0daf5"}`,
