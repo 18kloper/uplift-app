@@ -3710,7 +3710,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
               border: "1px solid rgba(255,255,255,0.2)",
             }}>
               <span style={{ fontSize: 15 }}>🔒</span>
-              <span style={{ fontSize: 13, fontWeight: 700 }}>Unlocks after graduation · August 4th</span>
+              <span style={{ fontSize: 13, fontWeight: 700 }}>Unlocks after graduation · August 10th</span>
             </div>
 
             {/* Blurred preview cards */}
