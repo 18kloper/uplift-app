@@ -1228,8 +1228,8 @@ function WeeklyFocus({ slug, weekNum }) {
         padding: "18px 22px", marginBottom: 20,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#9b8fcf" }}>
-            What are you focused on this week?
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#9b8fcf" }}>
+            Share what you&apos;re focused on this week.
           </p>
           <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 600, background: "#f0ecff", borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>Optional</span>
         </div>
@@ -1252,8 +1252,8 @@ function WeeklyFocus({ slug, weekNum }) {
         border: "1px solid #e8e4f5", padding: "16px 22px", marginBottom: 20,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: savedValue ? 8 : 0 }}>
-          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#6b6480" }}>
-            What were you focused on this week?
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#6b6480" }}>
+            Share what you&apos;re focused on this week.
           </p>
           <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 600, background: "#f0ecff", borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>
             Closed
@@ -1274,16 +1274,16 @@ function WeeklyFocus({ slug, weekNum }) {
       background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
       padding: "18px 22px", marginBottom: 20,
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>
-          What are you focused on this week?
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+        <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1a1733" }}>
+          Share what you&apos;re focused on this week.
         </p>
         <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 600, background: "#f0ecff", borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>
           Optional
         </span>
       </div>
-      <p style={{ margin: "0 0 12px", fontSize: 12, color: "#9b8fcf", lineHeight: 1.6 }}>
-        Weekly focus · Available {fmtPulseDate(win.start)} – {fmtPulseDate(win.end)} · Give us a quick snapshot of where you&apos;re putting your energy this week. If someone in the program is working on something similar, we&apos;ll look to connect you.
+      <p style={{ margin: "0 0 12px", fontSize: 12, color: "#9b8fcf", lineHeight: 1.7 }}>
+        Whether it&apos;s a small goal, a project, or a deadline — share what you&apos;re building or working on. If there&apos;s a program participant working on the same thing or something similar, we&apos;ll connect you. · Available {fmtPulseDate(win.start)} – {fmtPulseDate(win.end)}.
       </p>
       <AutoTextarea
         storageKey={storageKey}
