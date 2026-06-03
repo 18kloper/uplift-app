@@ -213,9 +213,20 @@ const RESPONSES = [
     ],
     selected: "Both",
   },
+  {
+    threadId: "19e8a636cf9d51c1",
+    mentor: { name: "Bruno Bilik", email: "bbilik@gmail.com" },
+    replyDate: "2026-06-02",
+    reply: "I'd be happy to work with both of my matches, Shounak Thaker (Arnex Solutions LLC) and Harshil Thakkar (Newyorklife).",
+    options: [
+      { name: "Shounak Thaker", company: "Arnex Solutions LLC", slug: "shounak-thaker", stage: "Revenue-generating", industry: "Other", needs: "Fundraising strategy & investor readiness" },
+      { name: "Harshil Thakkar", company: "Newyorklife", slug: "harshil-thakkar", stage: "Revenue-generating", industry: "Finance / Fintech", needs: "Understanding the NJ/regional startup ecosystem" },
+    ],
+    selected: "Both",
+  },
 ];
 
 export default function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
-  return res.status(200).json({ responses: RESPONSES, lastRefreshed: "2026-06-02 (night)" });
+  return res.status(200).json({ responses: RESPONSES, lastRefreshed: "2026-06-03" });
 }
