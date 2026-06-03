@@ -224,6 +224,17 @@ const RESPONSES = [
     ],
     selected: "Both",
   },
+  {
+    threadId: "19e8df6aa13f18e4",
+    mentor: { name: "Yuri Fiaschi", email: "yurifiaschi@gmail.com" },
+    replyDate: "2026-06-03",
+    reply: "I'm happy to confirm my participation in the Uplift Mentorship Program, and I'd be glad to support both matched founders: Lianna and Rachel.",
+    options: [
+      { name: "Lianna LaRiccia", company: "Quanticore", slug: "lianna-lariccia", stage: "MVP / Early build", industry: "Enterprise SaaS / B2B", needs: "Fundraising strategy & investor readiness" },
+      { name: "Rachel Hayes", company: "Ravel Genetics", slug: "rachel-hayes", stage: "MVP / Early build", industry: "Enterprise SaaS / B2B", needs: "Fundraising strategy & investor readiness" },
+    ],
+    selected: "Both",
+  },
 ];
 
 export default function handler(req, res) {
