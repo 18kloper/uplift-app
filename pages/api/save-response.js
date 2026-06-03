@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
     const timestamp = new Date().toISOString();
 
-    // ── Read existing rows from mentee tab (columns A & B only) ───────────────
+    // ── Ensure mentee tab exists (create if missing) ─────────────────────────
     let existingRows = [];
     try {
       const read = await sheets.spreadsheets.values.get({
@@ -37,7 +37,21 @@ export default async function handler(req, res) {
       });
       existingRows = read.data.values || [];
     } catch (_) {
-      // Tab doesn't exist yet — append will create it
+      // Tab doesn't exist — create it with headers
+      try {
+        await sheets.spreadsheets.batchUpdate({
+          spreadsheetId,
+          requestBody: { requests: [{ addSheet: { properties: { title: slug } } }] },
+        });
+        await sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: `${slug}!A1:E1`,
+          valueInputOption: "USER_ENTERED",
+          requestBody: { values: [["Week", "Field Key", "Question", "Value", "Updated At"]] },
+        });
+      } catch (_2) {
+        // Tab may have just been created by a concurrent request — ignore
+      }
     }
 
     // ── Find matching row (skip header at index 0) ────────────────────────────
