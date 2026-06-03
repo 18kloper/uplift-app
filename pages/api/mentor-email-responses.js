@@ -191,9 +191,31 @@ const RESPONSES = [
     ],
     selected: "both",
   },
+  {
+    threadId: "19e8a6860e11cc88",
+    mentor: { name: "Wadnes Castelly", email: "wadnes@kapab.co" },
+    replyDate: "2026-06-02",
+    reply: "Confirming I can mentor both of my matches.",
+    options: [
+      { name: "Debbie Douglas-Henry", company: "3DHR Consulting, LLC", slug: "debbie-douglas-henry", stage: "Early traction", industry: "Media / Marketing / Advertising", needs: "Go-to-market & customer acquisition" },
+      { name: "Kima D'Anjou", company: "The Keenly Group LLC", slug: "kima-danjou", stage: "Revenue-generating", industry: "Enterprise SaaS / B2B", needs: "Sense-checking decisions with an experienced operator" },
+    ],
+    selected: "Both",
+  },
+  {
+    threadId: "19e8a3230e1e1de3",
+    mentor: { name: "Marty Coleman", email: "colemanglobal@gmail.com" },
+    replyDate: "2026-06-02",
+    reply: "Option 1, please!!",
+    options: [
+      { name: "Jhamar Youngblood", company: "Brickcity", slug: "jhamar-youngblood", stage: "Early traction", industry: "Other", needs: "Go-to-market & customer acquisition" },
+      { name: "Ekaterina Kashkina", company: "Stealth-mode molecular diagnostics startup", slug: "ekaterina-kashkina", stage: "MVP / Early build", industry: "Other", needs: "Fundraising strategy & investor readiness" },
+    ],
+    selected: "Both",
+  },
 ];
 
 export default function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
-  return res.status(200).json({ responses: RESPONSES, lastRefreshed: "2026-06-02 (evening)" });
+  return res.status(200).json({ responses: RESPONSES, lastRefreshed: "2026-06-02 (night)" });
 }
