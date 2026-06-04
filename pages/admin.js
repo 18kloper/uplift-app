@@ -1524,6 +1524,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
   const [confirmedMentorFilter, setConfirmedMentorFilter] = useState(false);
   const [pendingMentorFilter, setPendingMentorFilter] = useState(false);
   const [participatedNotOnboardedFilter, setParticipatedNotOnboardedFilter] = useState(false);
+  const [onboardedPendingMentorFilter, setOnboardedPendingMentorFilter] = useState(false);
   const [pendingAssignments, setPendingAssignments] = useState([]);
 
   useEffect(() => {
@@ -1566,7 +1567,8 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
     const confirmedMentorMatch = !confirmedMentorFilter || confirmedSlugs.has(m.slug);
     const pendingMentorMatch = !pendingMentorFilter || (m.mentorName && !respondedMentorNames.has(m.mentorName));
     const participatedNotOnboardedMatch = !participatedNotOnboardedFilter || (m.milestones?.participation && !m.milestones?.onboarding);
-    return cohortMatch && searchMatch && statusMatch && milestoneMatch && needsMentorMatch && confirmedMentorMatch && pendingMentorMatch && participatedNotOnboardedMatch;
+    const onboardedPendingMentorMatch = !onboardedPendingMentorFilter || (m.milestones?.onboarding && m.mentorName && !confirmedSlugs.has(m.slug));
+    return cohortMatch && searchMatch && statusMatch && milestoneMatch && needsMentorMatch && confirmedMentorMatch && pendingMentorMatch && participatedNotOnboardedMatch && onboardedPendingMentorMatch;
   });
 
   const realMentees   = mentees.filter(m => !m.isTest);
@@ -1937,6 +1939,24 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: participatedNotOnboardedFilter ? "rgba(255,255,255,0.8)" : "#0e7c6b", flexShrink: 0 }} />
                 Confirmed · Onboarding Incomplete ({count})
                 {participatedNotOnboardedFilter && <span style={{ marginLeft: 1 }}>×</span>}
+              </button>
+            );
+          })()}
+
+          {(() => {
+            const count = mentees.filter(m => !m.isTest && m.milestones?.onboarding && m.mentorName && !confirmedSlugs.has(m.slug)).length;
+            return (
+              <button onClick={() => setOnboardedPendingMentorFilter(p => !p)} style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+                border: onboardedPendingMentorFilter ? "2px solid #2a7fd4" : "1.5px solid #2a7fd444",
+                background: onboardedPendingMentorFilter ? "#2a7fd4" : "#e8f4ff",
+                color: onboardedPendingMentorFilter ? "#fff" : "#2a7fd4",
+                cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s", userSelect: "none",
+              }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: onboardedPendingMentorFilter ? "rgba(255,255,255,0.8)" : "#2a7fd4", flexShrink: 0 }} />
+                🎓 Onboarded · Mentor Pending ({count})
+                {onboardedPendingMentorFilter && <span style={{ marginLeft: 1 }}>×</span>}
               </button>
             );
           })()}
