@@ -75,6 +75,39 @@ export default async function handler(req, res) {
       });
     }
 
+    // If confirmed, also mark the mentee as "matched" in the Milestone Dashboard
+    if (status === "confirmed" && menteeSlug) {
+      try {
+        const dashRes = await sheets.spreadsheets.values.get({
+          spreadsheetId,
+          range: "Milestone Dashboard!A1:Z1",
+        });
+        const headers = dashRes.data.values?.[0] || [];
+        const matchedCol = headers.findIndex(h => h?.toLowerCase().trim() === "matched");
+
+        if (matchedCol !== -1) {
+          const allRows = await sheets.spreadsheets.values.get({
+            spreadsheetId,
+            range: "Milestone Dashboard!A2:A300",
+          });
+          const slugRows = allRows.data.values || [];
+          const menteeRowIdx = slugRows.findIndex(r => r[0]?.trim() === menteeSlug);
+          if (menteeRowIdx !== -1) {
+            const colLetter = String.fromCharCode(65 + matchedCol);
+            const sheetRow = menteeRowIdx + 2;
+            await sheets.spreadsheets.values.update({
+              spreadsheetId,
+              range: `Milestone Dashboard!${colLetter}${sheetRow}`,
+              valueInputOption: "USER_ENTERED",
+              requestBody: { values: [["TRUE"]] },
+            });
+          }
+        }
+      } catch (e) {
+        console.warn("Could not update Milestone Dashboard matched column:", e.message);
+      }
+    }
+
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error("save-mentor-confirmation error:", err.message);
