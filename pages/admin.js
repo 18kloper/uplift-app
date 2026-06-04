@@ -2415,84 +2415,95 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
     mentorsNeedingMentee.push({ name: m.name, email: m.email, company: m.company, title: m.title, industry: m.industry, focus: m.focus, label: "New Applicant" });
   }
 
-  // ─── Sub-section card ──────────────────────────────────────────────────────
-  const Section = ({ emoji, title, count, color, bg, border, children }) => (
-    <div style={{ background: "#fff", borderRadius: 16, border: `1.5px solid ${border}`, overflow: "hidden", marginBottom: 20 }}>
-      <div style={{ background: bg, padding: "16px 22px", display: "flex", alignItems: "center", gap: 12, borderBottom: `1px solid ${border}` }}>
-        <span style={{ fontSize: 20 }}>{emoji}</span>
-        <div style={{ flex: 1 }}>
-          <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color }}>{title}</p>
-        </div>
-        <span style={{ fontSize: 22, fontWeight: 900, color, minWidth: 28, textAlign: "right" }}>{count}</span>
-      </div>
-      <div style={{ padding: count === 0 ? "20px 22px" : "14px 22px" }}>
-        {count === 0
-          ? <p style={{ margin: 0, fontSize: 13, color: "#22a366", fontWeight: 600 }}>✓ All clear — nothing needs attention here.</p>
-          : children
-        }
-      </div>
+
+  const ColHeader = ({ emoji, label, count, color, bg }) => (
+    <div style={{ background: bg, borderRadius: "12px 12px 0 0", padding: "14px 18px", display: "flex", alignItems: "center", gap: 10, borderBottom: "1.5px solid rgba(0,0,0,0.06)" }}>
+      <span style={{ fontSize: 18 }}>{emoji}</span>
+      <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color, flex: 1 }}>{label}</p>
+      <span style={{ fontSize: 20, fontWeight: 900, color }}>{count}</span>
     </div>
   );
 
-  const MenteePill = ({ name, company, cohort, extra }) => (
-    <div style={{ background: "#f7f5ff", border: "1px solid #e0d9f8", borderRadius: 10, padding: "10px 14px", minWidth: 180, flex: "1 1 200px", maxWidth: 300 }}>
-      <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{name}</p>
-      {company && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#6b6480" }}>{company}</p>}
-      {cohort && <p style={{ margin: 0, fontSize: 10, color: "#9b8fcf" }}>Cohort {cohort} · {COHORT_NAMES_MD[cohort]}</p>}
-      {extra && <p style={{ margin: "4px 0 0", fontSize: 11, color: "#b35c00", fontWeight: 600 }}>{extra}</p>}
+  const Card = ({ children, border }) => (
+    <div style={{ background: "#fff", border: `1.5px solid ${border}`, borderRadius: 10, padding: "12px 14px" }}>
+      {children}
     </div>
   );
 
-  const MentorPill = ({ name, email, company, title, industry, focus, label }) => {
-    const labelColor = label === "New Applicant" ? "#1a6e42" : label === "Needs Rematch" ? "#c0392b" : "#b35c00";
-    const labelBg    = label === "New Applicant" ? "#e8f8f0" : label === "Needs Rematch" ? "#fef0f0" : "#fff3e0";
-    return (
-      <div style={{ background: "#fff", border: "1px solid #e8e4f5", borderRadius: 10, padding: "10px 14px", flex: "1 1 220px", maxWidth: 340 }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
-          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{name}</p>
-          <span style={{ fontSize: 10, fontWeight: 700, color: labelColor, background: labelBg, borderRadius: 6, padding: "2px 8px", flexShrink: 0 }}>{label}</span>
-        </div>
-        {company && <p style={{ margin: "0 0 1px", fontSize: 11, color: "#6b6480" }}>{company}{title ? ` · ${title}` : ""}</p>}
-        {email && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#5c4eb5" }}>{email}</p>}
-        {industry && <p style={{ margin: "0 0 1px", fontSize: 10, color: "#9b8fcf" }}>🏷 {industry}</p>}
-        {focus && <p style={{ margin: 0, fontSize: 10, color: "#9b8fcf" }}>🎯 {focus}</p>}
-      </div>
-    );
-  };
+  const emptyNote = (
+    <p style={{ margin: 0, fontSize: 13, color: "#22a366", fontWeight: 600, padding: "12px 0" }}>✓ None — all clear</p>
+  );
 
   return (
-    <div style={{ maxWidth: 960, margin: "0 auto", padding: "32px 24px", fontFamily: "Inter, system-ui, sans-serif" }}>
-      <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Matching Overview</p>
-      <p style={{ margin: "0 0 28px", fontSize: 13, color: "#9b8fcf" }}>
-        At-a-glance view of all matching gaps across mentees and mentors.
-      </p>
+    <div style={{ maxWidth: 1280, margin: "0 auto", padding: "28px 24px", fontFamily: "Inter, system-ui, sans-serif" }}>
+      {/* Header */}
+      <div style={{ marginBottom: 24 }}>
+        <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Matching</p>
+        <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>Confirmed participants only · Cross-compare to make new pairings</p>
+      </div>
 
-      {/* ── 1. Mentees with no mentor ── */}
-      <Section emoji="🚫" title="Mentees Who Need a Mentor" count={noMentorMentees.length} color="#c0392b" bg="#fef5f5" border="#f5c6c6">
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-          {noMentorMentees.map(s => (
-            <MenteePill key={s.slug} name={`${s.first} ${s.last}`} company={s.company} cohort={s.cohort} extra="No mentor assigned" />
-          ))}
-        </div>
-      </Section>
+      {/* Two-column layout */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" }}>
 
-      {/* ── 2. Confirmed participants whose mentor declined them ── */}
-      <Section emoji="🔄" title="Mentor Declined — Needs New Match" count={mentorDeclined.length} color="#b35c00" bg="#fff8f0" border="#f5d9a0">
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-          {mentorDeclined.map((m, i) => (
-            <MenteePill key={i} name={m.name} company={m.company} extra={`Declined by: ${m.mentorName}`} />
-          ))}
-        </div>
-      </Section>
+        {/* ── LEFT: MENTEES ── */}
+        <div>
+          <div style={{ border: "1.5px solid #f5c6c6", borderRadius: 12, overflow: "hidden", marginBottom: 16 }}>
+            <ColHeader emoji="👤" label="Need a Mentor" count={noMentorMentees.length} color="#c0392b" bg="#fef5f5" />
+            <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: 8 }}>
+              {noMentorMentees.length === 0 ? emptyNote : noMentorMentees.map(s => (
+                <Card key={s.slug} border="#f5c6c6">
+                  <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{s.first} {s.last}</p>
+                  {s.company && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#6b6480" }}>{s.company}</p>}
+                  {s.cohort && <p style={{ margin: 0, fontSize: 10, color: "#9b8fcf" }}>Cohort {s.cohort} · {COHORT_NAMES_MD[s.cohort]}</p>}
+                  {s.industry && <p style={{ margin: "4px 0 0", fontSize: 10, color: "#9b8fcf" }}>🏷 {s.industry}</p>}
+                  {s.stage && <p style={{ margin: "2px 0 0", fontSize: 10, color: "#9b8fcf" }}>📍 {s.stage}</p>}
+                </Card>
+              ))}
+            </div>
+          </div>
 
-      {/* ── 3. Mentors who need a mentee ── */}
-      <Section emoji="🔍" title="Mentors Who Need a Mentee" count={mentorsNeedingMentee.length} color="#5c4eb5" bg="#f3f0ff" border="#c4b8f0">
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-          {mentorsNeedingMentee.map((m, i) => (
-            <MentorPill key={i} name={m.name} email={m.email} company={m.company} title={m.title} industry={m.industry} focus={m.focus} label={m.label} />
-          ))}
+          <div style={{ border: "1.5px solid #f5d9a0", borderRadius: 12, overflow: "hidden" }}>
+            <ColHeader emoji="🔄" label="Mentor Declined — Needs Rematch" count={mentorDeclined.length} color="#b35c00" bg="#fff8f0" />
+            <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: 8 }}>
+              {mentorDeclined.length === 0 ? emptyNote : mentorDeclined.map((m, i) => (
+                <Card key={i} border="#f5d9a0">
+                  <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{m.name}</p>
+                  {m.company && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#6b6480" }}>{m.company}</p>}
+                  <p style={{ margin: 0, fontSize: 11, color: "#b35c00", fontWeight: 600 }}>Declined by {m.mentorName}</p>
+                </Card>
+              ))}
+            </div>
+          </div>
         </div>
-      </Section>
+
+        {/* ── RIGHT: MENTORS ── */}
+        <div>
+          <div style={{ border: "1.5px solid #c4b8f0", borderRadius: 12, overflow: "hidden" }}>
+            <ColHeader emoji="🔍" label="Mentors Who Need a Mentee" count={mentorsNeedingMentee.length} color="#5c4eb5" bg="#f3f0ff" />
+            <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: 8 }}>
+              {mentorsNeedingMentee.length === 0 ? emptyNote : mentorsNeedingMentee.map((m, i) => {
+                const isNew = m.label === "New Applicant";
+                const isRematch = m.label === "Declined — Needs Rematch";
+                const tagColor = isNew ? "#1a6e42" : "#c0392b";
+                const tagBg = isNew ? "#e8f8f0" : "#fef0f0";
+                return (
+                  <Card key={i} border={isNew ? "#b8e8d0" : "#c4b8f0"}>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{m.name}</p>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: tagColor, background: tagBg, borderRadius: 6, padding: "2px 8px", flexShrink: 0 }}>{m.label}</span>
+                    </div>
+                    {m.company && <p style={{ margin: "0 0 1px", fontSize: 11, color: "#6b6480" }}>{m.company}{m.title ? ` · ${m.title}` : ""}</p>}
+                    {m.email && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#5c4eb5" }}>{m.email}</p>}
+                    {m.industry && <p style={{ margin: "0 0 1px", fontSize: 10, color: "#9b8fcf" }}>🏷 {m.industry}</p>}
+                    {m.focus && <p style={{ margin: 0, fontSize: 10, color: "#9b8fcf" }}>🎯 {m.focus}</p>}
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
