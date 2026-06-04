@@ -2339,14 +2339,17 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
       setSelData(sel);
       setResponses(email.responses || []);
       setNewMentors(app.mentors || []);
-      // Build set of slugs that have a fresh admin-approved (not-yet-sent) match
+      // Build sets of slugs/mentor names that have a fresh admin-approved (not-yet-sent) match
       const adminSlugs = new Set();
+      const adminMentors = new Set();
       for (const g of (pend.pending || [])) {
-        for (const m of (g.mentees || [])) {
-          if (g.adminAssigned) adminSlugs.add(m.slug);
+        if (g.adminAssigned) {
+          adminMentors.add(g.mentorName);
+          for (const m of (g.mentees || [])) adminSlugs.add(m.slug);
         }
       }
       setAdminMatchedSlugs(adminSlugs);
+      setApprovedMentorNames(adminMentors);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
