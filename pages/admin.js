@@ -2375,9 +2375,11 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
 
   const isConfirmed = s => confirmedParticipantSlugs.has(s.slug);
 
+  const TEST_SLUGS_MD = new Set(["kennedy", "jackie", "aaron", "mj"]);
+
   // ── 1. Confirmed participants with NO mentor assigned ─────────────────────
   const noMentorMentees = (selData?.selections || []).filter(s =>
-    !s.isTest && !s.mentor?.name && isConfirmed(s)
+    !TEST_SLUGS_MD.has(s.slug) && !s.assignedMentor && isConfirmed(s)
   );
 
   // ── 2. Confirmed participants whose mentor actively DECLINED them ──────────
