@@ -2321,10 +2321,12 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
   const [mentorFilters, setMentorFilters] = useState(new Set());
   const [approvedMenteeSlugs, setApprovedMenteeSlugs] = useState(new Set());
   const [approvedMentorNames, setApprovedMentorNames] = useState(new Set());
+  const [adminMatchedSlugs, setAdminMatchedSlugs] = useState(new Set()); // slugs with fresh admin-assigned match
 
   const handleMatchApproved = (menteeSlugs, mentorName) => {
     setApprovedMenteeSlugs(prev => { const s = new Set(prev); menteeSlugs.forEach(sl => s.add(sl)); return s; });
     setApprovedMentorNames(prev => { const s = new Set(prev); s.add(mentorName); return s; });
+    setAdminMatchedSlugs(prev => { const s = new Set(prev); menteeSlugs.forEach(sl => s.add(sl)); return s; });
   };
 
   useEffect(() => {
@@ -2332,10 +2334,19 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
       fetch("/api/mentor-selections").then(r => r.json()),
       fetch("/api/mentor-email-responses").then(r => r.json()),
       fetch("/api/admin/new-mentor-details").then(r => r.json()).catch(() => ({ mentors: [] })),
-    ]).then(([sel, email, app]) => {
+      fetch("/api/admin/pending-assignments").then(r => r.json()).catch(() => ({ pending: [] })),
+    ]).then(([sel, email, app, pend]) => {
       setSelData(sel);
       setResponses(email.responses || []);
       setNewMentors(app.mentors || []);
+      // Build set of slugs that have a fresh admin-approved (not-yet-sent) match
+      const adminSlugs = new Set();
+      for (const g of (pend.pending || [])) {
+        for (const m of (g.mentees || [])) {
+          if (g.adminAssigned) adminSlugs.add(m.slug);
+        }
+      }
+      setAdminMatchedSlugs(adminSlugs);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
@@ -2432,12 +2443,13 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
       needsMentorList.push({ ...s, needTag: null });
     } else {
       const conf = slugConfirmStatus[s.slug];
+      const isNewMatch = adminMatchedSlugs.has(s.slug);
       if (!conf) {
-        needsMentorList.push({ ...s, needTag: "pending" });
+        needsMentorList.push({ ...s, needTag: isNewMatch ? "new-match" : "pending" });
       } else if (conf.status === "declined") {
         needsMentorList.push({ ...s, needTag: "declined", declinedBy: slugDeclinedBy[s.slug] });
       } else if (conf.status === "pending") {
-        needsMentorList.push({ ...s, needTag: "pending" });
+        needsMentorList.push({ ...s, needTag: isNewMatch ? "new-match" : "pending" });
       }
       // "confirmed" → matched, don't show
     }
@@ -2510,14 +2522,14 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
         {/* ── LEFT: MENTEES ── */}
         {(() => {
           const MENTEE_TAG_OPTS = [
-            { key: "not-invited", label: "Needs Invitation",      color: "#6b3fa0", bg: "#f5f0ff", border: "#d4b8f0" },
-            { key: null,          label: "No Mentor",              color: "#c0392b", bg: "#fef5f5", border: "#f5c6c6" },
-            { key: "pending",     label: "Awaiting Confirmation",  color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" },
-            { key: "declined",    label: "Mentor Declined",        color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
+            { key: "not-invited", label: "Needs Invitation",        color: "#6b3fa0", bg: "#f5f0ff", border: "#d4b8f0" },
+            { key: null,          label: "No Mentor",                color: "#c0392b", bg: "#fef5f5", border: "#f5c6c6" },
+            { key: "pending",     label: "Awaiting Confirmation",    color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" },
+            { key: "new-match",   label: "Pending New Match",        color: "#0e7c6b", bg: "#e8faf7", border: "#9ee3d8" },
+            { key: "declined",    label: "Mentor Declined",          color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
           ];
           const toggleMentee = (key) => setMenteeFilters(prev => {
             const next = new Set(prev);
-            // null stored as string "__none__"
             const k = key === null ? "__none__" : key;
             next.has(k) ? next.delete(k) : next.add(k);
             return next;
@@ -2527,6 +2539,7 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
             "not-invited": { label: "Needs Invitation",                color: "#6b3fa0", bg: "#f5f0ff", border: "#d4b8f0" },
             declined:      { label: "Mentor Declined — Needs Rematch", color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
             pending:       { label: "Awaiting Mentor Confirmation",    color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" },
+            "new-match":   { label: "Pending New Match",               color: "#0e7c6b", bg: "#e8faf7", border: "#9ee3d8" },
           };
           const visibleMentees = needsMentorList.filter(s => isMenteeActive(s.needTag));
           return (
