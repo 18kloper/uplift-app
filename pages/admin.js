@@ -2402,39 +2402,37 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
   }
 
   // ── Unified mentee needs list ─────────────────────────────────────────────
-  // tag: null = no mentor assigned (confirmed participants only)
-  // tag: "declined" = mentor said no (confirmed participants only)
-  // tag: "pending" = assigned but mentor hasn't confirmed yet (ALL non-test mentees)
+  // All categories require confirmed participation (participation = TRUE)
+  // tag: null    = no mentor assigned
+  // tag: "pending"  = assigned + confirmed participation, but mentor hasn't confirmed yet
+  // tag: "declined" = mentor explicitly declined
   const needsMentorList = [];
   for (const s of (selData?.selections || [])) {
     if (TEST_SLUGS_MD.has(s.slug)) continue;
+    if (!isConfirmed(s)) continue; // all categories require confirmed participation
 
     if (!s.assignedMentor) {
-      // No mentor at all — only flag confirmed participants (active in program)
-      if (isConfirmed(s)) needsMentorList.push({ ...s, needTag: null });
+      needsMentorList.push({ ...s, needTag: null });
     } else {
       const conf = slugConfirmStatus[s.slug];
       if (!conf) {
-        // Assigned but no email thread at all — awaiting outreach
+        // Assigned, confirmed participant, but no email thread yet
         needsMentorList.push({ ...s, needTag: "pending" });
       } else if (conf.status === "declined") {
-        // Only flag declined if they're an active confirmed participant
-        if (isConfirmed(s)) needsMentorList.push({ ...s, needTag: "declined", declinedBy: slugDeclinedBy[s.slug] });
+        needsMentorList.push({ ...s, needTag: "declined", declinedBy: slugDeclinedBy[s.slug] });
       } else if (conf.status === "pending") {
         needsMentorList.push({ ...s, needTag: "pending" });
       }
-      // "confirmed" → don't show, they're matched
+      // "confirmed" → matched, don't show
     }
   }
 
-  // Keep a separate declined list for right-column mentor rematch logic
+  // Keep a separate declined set for right-column logic
   const slugsDeclined = new Set(
     needsMentorList.filter(m => m.needTag === "declined").map(m => m.slug)
   );
 
-  // ── 3. Mentors who need a mentee ─────────────────────────────────────────
-  //    a) All their assigned mentees were declined → rematch
-  //    b) New Typeform applicants not yet in the system
+  // ── 3. Mentors who need a mentee / mentors whose mentee is unresponsive ───
   const mentorsNeedingMentee = [];
   for (const mentor of (selData?.mentors || [])) {
     if (mentor.name === "MJ" || mentor.name === "Kennedy") continue;
@@ -2442,7 +2440,16 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
     if (resp) {
       const opts = resp.options || [];
       const allDeclined = opts.length > 0 && opts.every(o => confirmations[`${resp.threadId}|${o.slug}`] === "declined");
-      if (allDeclined) mentorsNeedingMentee.push({ name: mentor.name, email: mentor.email, label: "Declined — Needs Rematch" });
+      if (allDeclined) {
+        mentorsNeedingMentee.push({ name: mentor.name, email: mentor.email, label: "Declined — Needs Rematch" });
+        continue;
+      }
+      // Mentor confirmed a mentee but that mentee hasn't confirmed participation
+      for (const o of opts) {
+        if (confirmations[`${resp.threadId}|${o.slug}`] === "confirmed" && !confirmedParticipantSlugs.has(o.slug)) {
+          mentorsNeedingMentee.push({ name: mentor.name, email: mentor.email, menteeName: o.name, menteeSlug: o.slug, label: "Mentee Unresponsive" });
+        }
+      }
     }
   }
   for (const m of newMentors) {
@@ -2519,16 +2526,19 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
             <ColHeader emoji="🔍" label="Mentors Who Need a Mentee" count={mentorsNeedingMentee.length} color="#5c4eb5" bg="#f3f0ff" />
             <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: 8 }}>
               {mentorsNeedingMentee.length === 0 ? emptyNote : mentorsNeedingMentee.map((m, i) => {
-                const isNew = m.label === "New Applicant";
-                const isRematch = m.label === "Declined — Needs Rematch";
-                const tagColor = isNew ? "#1a6e42" : "#c0392b";
-                const tagBg = isNew ? "#e8f8f0" : "#fef0f0";
+                const tagStyles = {
+                  "New Applicant":         { color: "#1a6e42", bg: "#e8f8f0", border: "#b8e8d0" },
+                  "Declined — Needs Rematch": { color: "#c0392b", bg: "#fef0f0", border: "#f5c6c6" },
+                  "Mentee Unresponsive":   { color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
+                };
+                const ts = tagStyles[m.label] || { color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" };
                 return (
-                  <Card key={i} border={isNew ? "#b8e8d0" : "#c4b8f0"}>
+                  <Card key={i} border={ts.border}>
                     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
                       <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{m.name}</p>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: tagColor, background: tagBg, borderRadius: 6, padding: "2px 8px", flexShrink: 0 }}>{m.label}</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: ts.color, background: ts.bg, border: `1px solid ${ts.border}`, borderRadius: 6, padding: "2px 8px", flexShrink: 0, whiteSpace: "nowrap" }}>{m.label}</span>
                     </div>
+                    {m.menteeName && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#b35c00", fontWeight: 600 }}>Mentee: {m.menteeName} — not yet responsive</p>}
                     {m.company && <p style={{ margin: "0 0 1px", fontSize: 11, color: "#6b6480" }}>{m.company}{m.title ? ` · ${m.title}` : ""}</p>}
                     {m.email && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#5c4eb5" }}>{m.email}</p>}
                     {m.industry && <p style={{ margin: "0 0 1px", fontSize: 10, color: "#9b8fcf" }}>🏷 {m.industry}</p>}
