@@ -2571,7 +2571,12 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
                           {s.needTag === "declined" && s.declinedBy && (
                             <p style={{ margin: "0 0 1px", fontSize: 11, color: "#b35c00", fontWeight: 600 }}>Declined by {s.declinedBy}</p>
                           )}
-                          {s.cohort && <p style={{ margin: "2px 0 0", fontSize: 10, color: "#c0b8d8" }}>Cohort {s.cohort} · {COHORT_NAMES_MD[s.cohort]}</p>}
+                          {s.needTag === "pending" && (
+                            <span style={{ display: "inline-block", marginTop: 4, fontSize: 10, fontWeight: 700, color: "#1a6e42", background: "#e8f8f0", border: "1px solid #b8e8d0", borderRadius: 6, padding: "2px 8px" }}>
+                              ✓ Mentee confirmed participation
+                            </span>
+                          )}
+                          {s.cohort && <p style={{ margin: "4px 0 0", fontSize: 10, color: "#c0b8d8" }}>Cohort {s.cohort} · {COHORT_NAMES_MD[s.cohort]}</p>}
                         </Card>
                       );
                     })
