@@ -2683,13 +2683,21 @@ function SuggestedMatches({ mentees, mentors, maxPairings }) {
   const [matches, setMatches] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // cardState: { [i]: "approved" | "rematched" | null }
+  const [cardState, setCardState] = useState({});
+  // saving: { [i]: true } while API call in flight
+  const [saving, setSaving] = useState({});
+  // saveError: { [i]: string }
+  const [saveError, setSaveError] = useState({});
 
   const generate = async () => {
     setLoading(true);
     setError(null);
     setMatches(null);
+    setCardState({});
+    setSaving({});
+    setSaveError({});
     try {
-      // Build map of slug → assigned mentor name for pending mentees
       const menteePendingMentors = {};
       mentees.forEach(m => { if (m.needTag === "pending" && m.assignedMentor) menteePendingMentors[m.slug] = m.assignedMentor; });
 
@@ -2715,6 +2723,42 @@ function SuggestedMatches({ mentees, mentors, maxPairings }) {
     setLoading(false);
   };
 
+  const handleApprove = async (match, i) => {
+    setSaving(s => ({ ...s, [i]: true }));
+    setSaveError(s => ({ ...s, [i]: null }));
+    try {
+      // Approve each mentee in the pairing
+      for (let j = 0; j < (match.menteeSlugs || []).length; j++) {
+        const slug = match.menteeSlugs[j];
+        const name = match.menteeNames?.[j] || "";
+        const mentor = mentors.find(m => m.name === match.mentorName) || {};
+        const r = await fetch("/api/admin/approve-match", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            menteeSlug: slug,
+            menteeName: name,
+            mentorName: match.mentorName,
+            mentorEmail: mentor.email || "",
+          }),
+        });
+        const d = await r.json();
+        if (!d.ok && !d.dev) throw new Error(d.error || "Save failed");
+      }
+      setCardState(s => ({ ...s, [i]: "approved" }));
+    } catch (e) {
+      setSaveError(s => ({ ...s, [i]: e.message }));
+    }
+    setSaving(s => ({ ...s, [i]: false }));
+  };
+
+  const handleRematch = (i) => {
+    setCardState(s => ({ ...s, [i]: "rematched" }));
+  };
+
+  const approvedCount = Object.values(cardState).filter(v => v === "approved").length;
+  const pendingCount = matches ? matches.filter((_, i) => !cardState[i]).length : 0;
+
   const strengthStyles = {
     strong: { color: "#1a6e42", bg: "#e8f8f0", border: "#b8e8d0", label: "⭐ Strong match" },
     good:   { color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0", label: "✓ Good match" },
@@ -2729,6 +2773,11 @@ function SuggestedMatches({ mentees, mentors, maxPairings }) {
           <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>
             {mentors.length} available mentor{mentors.length !== 1 ? "s" : ""} × up to 2 mentees each = up to {maxPairings || mentors.length * 2} pairings · drawn from {mentees.length} mentees needing a mentor
           </p>
+          {matches && approvedCount > 0 && (
+            <p style={{ margin: "4px 0 0", fontSize: 12, color: "#1a6e42", fontWeight: 600 }}>
+              ✓ {approvedCount} match{approvedCount !== 1 ? "es" : ""} approved · {pendingCount} remaining
+            </p>
+          )}
         </div>
         <button
           onClick={generate}
@@ -2761,20 +2810,59 @@ function SuggestedMatches({ mentees, mentors, maxPairings }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {matches.map((m, i) => {
             const ss = strengthStyles[m.strength] || strengthStyles.good;
+            const state = cardState[i];
+            const isSaving = saving[i];
+            const cardErr = saveError[i];
+
+            if (state === "approved") {
+              return (
+                <div key={i} style={{
+                  background: "#f0faf4", border: "1.5px solid #b8e8d0",
+                  borderRadius: 14, padding: "14px 20px",
+                  display: "flex", alignItems: "center", gap: 12,
+                }}>
+                  <span style={{ fontSize: 20 }}>✅</span>
+                  <div>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a6e42" }}>
+                      {m.mentorName} → {(m.menteeNames || []).join(" & ")}
+                    </p>
+                    <p style={{ margin: "2px 0 0", fontSize: 12, color: "#3a8e5e" }}>Match approved — assigned as pending mentor confirmation</p>
+                  </div>
+                </div>
+              );
+            }
+
+            if (state === "rematched") {
+              return (
+                <div key={i} style={{
+                  background: "#fffbe6", border: "1.5px solid #f5c542",
+                  borderRadius: 14, padding: "14px 20px",
+                  display: "flex", alignItems: "center", gap: 12,
+                }}>
+                  <span style={{ fontSize: 20 }}>🔄</span>
+                  <div>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#7a5700" }}>
+                      {m.mentorName} — flagged for rematch
+                    </p>
+                    <p style={{ margin: "2px 0 0", fontSize: 12, color: "#a07020" }}>Regenerate suggestions or manually assign from the mentor list</p>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div key={i} style={{
                 background: "#fff", border: `1.5px solid ${ss.border}`,
                 borderRadius: 14, padding: "18px 20px",
                 boxShadow: "0 1px 4px rgba(92,78,181,0.06)",
               }}>
+                {/* Header row */}
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                    {/* Mentor */}
                     <div style={{ background: "#1a1733", borderRadius: 8, padding: "6px 14px" }}>
                       <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#fff" }}>🎓 {m.mentorName}</p>
                     </div>
                     <span style={{ fontSize: 18, color: "#c4b8f0" }}>→</span>
-                    {/* Mentees */}
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       {(m.menteeNames || []).map((name, j) => (
                         <div key={j} style={{ background: "#f3f0ff", border: "1.5px solid #c4b8f0", borderRadius: 8, padding: "6px 14px" }}>
@@ -2787,7 +2875,41 @@ function SuggestedMatches({ mentees, mentors, maxPairings }) {
                     {ss.label}
                   </span>
                 </div>
-                <p style={{ margin: 0, fontSize: 13, color: "#4a4060", lineHeight: 1.65 }}>{m.reason}</p>
+
+                {/* Reason */}
+                <p style={{ margin: "0 0 14px", fontSize: 13, color: "#4a4060", lineHeight: 1.65 }}>{m.reason}</p>
+
+                {/* Action buttons */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <button
+                    onClick={() => handleApprove(m, i)}
+                    disabled={isSaving}
+                    style={{
+                      background: isSaving ? "#e8f8f0" : "linear-gradient(135deg, #1a6e42, #0f4a2c)",
+                      color: isSaving ? "#3a8e5e" : "#fff",
+                      border: "none", borderRadius: 8, padding: "8px 18px",
+                      fontSize: 13, fontWeight: 700, cursor: isSaving ? "default" : "pointer",
+                      fontFamily: "Inter, system-ui, sans-serif",
+                    }}
+                  >
+                    {isSaving ? "Saving…" : "✓ Approve & Assign"}
+                  </button>
+                  <button
+                    onClick={() => handleRematch(i)}
+                    disabled={isSaving}
+                    style={{
+                      background: "#fff", color: "#7a5700",
+                      border: "1.5px solid #f5c542", borderRadius: 8, padding: "8px 18px",
+                      fontSize: 13, fontWeight: 700, cursor: isSaving ? "default" : "pointer",
+                      fontFamily: "Inter, system-ui, sans-serif",
+                    }}
+                  >
+                    🔄 Flag for Rematch
+                  </button>
+                  {cardErr && (
+                    <span style={{ fontSize: 12, color: "#c00" }}>⚠️ {cardErr}</span>
+                  )}
+                </div>
               </div>
             );
           })}
