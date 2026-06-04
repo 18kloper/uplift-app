@@ -2484,9 +2484,19 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
   // tag: null          = confirmed participant, no mentor assigned
   // tag: "pending"     = confirmed participant, assigned mentor not confirmed yet
   // tag: "declined"    = confirmed participant, mentor explicitly declined
+  // Build a set of mentor names that have sheet-assigned mentees (selectedMentor from Mentor Selections)
+  // This is synchronous data from selData — no state dependency — so it's always accurate.
+  const mentorsWithSheetAssignment = new Set();
+  for (const s of (selData?.selections || [])) {
+    if (s.selectedMentor) mentorsWithSheetAssignment.add(s.selectedMentor);
+  }
+
   const needsMentorList = [];
   for (const s of (selData?.selections || []).filter(s => !approvedMenteeSlugs.has(s.slug))) {
     if (TEST_SLUGS_MD.has(s.slug)) continue;
+
+    // If the sheet already has an admin-assigned mentor (selectedMentor), they're covered — skip.
+    if (s.selectedMentor) continue;
 
     if (!isConfirmed(s)) {
       // Explicitly flagged in lib/mentees.js as needing an invitation (not yet onboarded)
@@ -2538,8 +2548,10 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
     mentorsNeedingMentee.push({ name: m.name, email: m.email, company: m.company, title: m.title, industry: m.industry, focus: m.focus, label: "New Applicant" });
   }
 
-  // Hide mentors that were just approved in this session
-  const visibleMentorsNeedingMentee = mentorsNeedingMentee.filter(m => !approvedMentorNames.has(m.name));
+  // Hide mentors that already have sheet-assigned mentees (selectedMentor) OR were approved this session
+  const visibleMentorsNeedingMentee = mentorsNeedingMentee.filter(
+    m => !approvedMentorNames.has(m.name) && !mentorsWithSheetAssignment.has(m.name)
+  );
 
   const ColHeader = ({ emoji, label, count, color, bg }) => (
     <div style={{ background: bg, borderRadius: "12px 12px 0 0", padding: "14px 18px", display: "flex", alignItems: "center", gap: 10, borderBottom: "1.5px solid rgba(0,0,0,0.06)" }}>
