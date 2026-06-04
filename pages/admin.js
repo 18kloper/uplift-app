@@ -2368,18 +2368,35 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
     }
   }
 
-  // ── 1. Mentees with NO mentor assigned ───────────────────────────────────
-  const noMentorMentees = (selData?.selections || []).filter(s => !s.isTest && !s.mentor?.name);
+  // Only count confirmed participants
+  const confirmedParticipantSlugs = new Set(
+    mentees.filter(m => !m.isTest && m.milestones?.participation).map(m => m.slug)
+  );
 
-  // ── 2. Mentees whose mentor has not yet accepted ──────────────────────────
-  //    Has a mentor assigned, but that mentor's email reply hasn't confirmed this slug yet
-  const mentorNotAccepted = (selData?.selections || []).filter(s => {
-    if (s.isTest || !s.mentor?.name) return false;
-    const resp = responseByMentor[s.mentor.name];
-    if (!resp) return true; // mentor never replied
-    const key = `${resp.threadId}|${s.slug}`;
-    return confirmations[key] !== "confirmed"; // not yet confirmed (may be declined or no reply)
-  });
+  const isConfirmed = s => confirmedParticipantSlugs.has(s.slug);
+
+  // ── 1. Confirmed participants with NO mentor assigned ─────────────────────
+  const noMentorMentees = (selData?.selections || []).filter(s =>
+    !s.isTest && !s.mentor?.name && isConfirmed(s)
+  );
+
+  // ── 2. Confirmed participants whose mentor actively DECLINED them ──────────
+  const mentorDeclined = [];
+  const slugsDeclined = new Set();
+  for (const r of responses) {
+    for (const opt of (r.options || [])) {
+      if (!confirmedParticipantSlugs.has(opt.slug)) continue;
+      if (confirmations[`${r.threadId}|${opt.slug}`] !== "declined") continue;
+      // Only flag if no other mentor confirmed them
+      const hasConfirm = responses.some(r2 =>
+        (r2.options || []).some(o => o.slug === opt.slug && confirmations[`${r2.threadId}|${o.slug}`] === "confirmed")
+      );
+      if (!hasConfirm && !slugsDeclined.has(opt.slug)) {
+        slugsDeclined.add(opt.slug);
+        mentorDeclined.push({ slug: opt.slug, name: opt.name, company: opt.company, mentorName: r.mentor.name });
+      }
+    }
+  }
 
   // ── 3. Mentors who need a mentee ─────────────────────────────────────────
   //    a) All their assigned mentees were declined → rematch
@@ -2459,11 +2476,11 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
         </div>
       </Section>
 
-      {/* ── 2. Mentees whose mentor has not yet accepted ── */}
-      <Section emoji="⏳" title="Mentees Whose Mentor Has Not Yet Accepted" count={mentorNotAccepted.length} color="#b35c00" bg="#fff8f0" border="#f5d9a0">
+      {/* ── 2. Confirmed participants whose mentor declined them ── */}
+      <Section emoji="🔄" title="Mentor Declined — Needs New Match" count={mentorDeclined.length} color="#b35c00" bg="#fff8f0" border="#f5d9a0">
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-          {mentorNotAccepted.map(s => (
-            <MenteePill key={s.slug} name={`${s.first} ${s.last}`} company={s.company} cohort={s.cohort} extra={`Mentor: ${s.mentor?.name}`} />
+          {mentorDeclined.map((m, i) => (
+            <MenteePill key={i} name={m.name} company={m.company} extra={`Declined by: ${m.mentorName}`} />
           ))}
         </div>
       </Section>
