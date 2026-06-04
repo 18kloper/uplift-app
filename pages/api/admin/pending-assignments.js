@@ -32,22 +32,29 @@ export default async function handler(req, res) {
 
     const result = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: `${TAB}!A2:G500`,
+      range: `${TAB}!A2:H500`,
     });
 
     const rows = result.data.values || [];
-    // Cols: ThreadID(0), MentorName(1), MentorEmail(2), MenteeName(3), MenteeSlug(4), Status(5), UpdatedAt(6)
+    // Cols: ThreadID(0), MentorName(1), MentorEmail(2), MenteeName(3), MenteeSlug(4), Status(5), UpdatedAt(6), Notes(7)
     const pending = rows
       .filter(r => r[5]?.trim().toLowerCase() === "pending")
-      .map(r => ({
-        threadId:    r[0]?.trim() || "",
-        mentorName:  r[1]?.trim() || "",
-        mentorEmail: r[2]?.trim() || "",
-        menteeName:  r[3]?.trim() || "",
-        menteeSlug:  r[4]?.trim() || "",
-        updatedAt:   r[6]?.trim() || "",
-        adminAssigned: (r[0] || "").startsWith("admin-match-"),
-      }));
+      .map(r => {
+        const notes = r[7]?.trim() || "";
+        const isRematch = notes.includes("2nd match");
+        const prevMentorMatch = notes.match(/prev mentor non-responsive: (.+)$/);
+        return {
+          threadId:    r[0]?.trim() || "",
+          mentorName:  r[1]?.trim() || "",
+          mentorEmail: r[2]?.trim() || "",
+          menteeName:  r[3]?.trim() || "",
+          menteeSlug:  r[4]?.trim() || "",
+          updatedAt:   r[6]?.trim() || "",
+          adminAssigned: (r[0] || "").startsWith("admin-match-"),
+          isRematch,
+          prevMentor: prevMentorMatch ? prevMentorMatch[1] : "",
+        };
+      });
 
     // Group by mentorName so we can show all mentees per mentor together
     const byMentor = {};
@@ -64,6 +71,8 @@ export default async function handler(req, res) {
         name: row.menteeName,
         slug: row.menteeSlug,
         updatedAt: row.updatedAt,
+        isRematch: row.isRematch,
+        prevMentor: row.prevMentor,
       });
       if (row.adminAssigned) byMentor[row.mentorName].adminAssigned = true;
     }

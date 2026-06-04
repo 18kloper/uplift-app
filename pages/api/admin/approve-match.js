@@ -7,7 +7,7 @@ import { getSheetsClient } from "../../../lib/sheets-helper";
 
 const SEL_TAB = "Mentor Selections";
 const CONF_TAB = "Mentor Confirmations";
-const CONF_HEADERS = ["Thread ID", "Mentor Name", "Mentor Email", "Mentee Name", "Mentee Slug", "Status", "Updated At"];
+const CONF_HEADERS = ["Thread ID", "Mentor Name", "Mentor Email", "Mentee Name", "Mentee Slug", "Status", "Updated At", "Notes"];
 
 async function ensureConfTab(sheets, spreadsheetId) {
   const meta = await sheets.spreadsheets.get({ spreadsheetId });
@@ -33,7 +33,7 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const { menteeSlug, menteeName, mentorName, mentorEmail } = req.body || {};
+  const { menteeSlug, menteeName, mentorName, mentorEmail, isRematch, prevMentor } = req.body || {};
   if (!menteeSlug || !mentorName) {
     return res.status(400).json({ error: "menteeSlug and mentorName required" });
   }
@@ -59,11 +59,14 @@ export default async function handler(req, res) {
     if (rowIdx !== -1) {
       const sheetRow = rowIdx + 2;
       const today = new Date().toISOString().slice(0, 10);
+      const selNote = isRematch
+        ? `2nd match — prev mentor non-responsive: ${prevMentor || "unknown"}`
+        : "Admin-assigned via suggested matches";
       await sheets.spreadsheets.values.update({
         spreadsheetId,
         range: `${SEL_TAB}!F${sheetRow}:I${sheetRow}`,
         valueInputOption: "USER_ENTERED",
-        requestBody: { values: [["Yes", mentorName, today, "Admin-assigned via suggested matches"]] },
+        requestBody: { values: [["Yes", mentorName, today, selNote]] },
       });
     }
 
@@ -80,22 +83,25 @@ export default async function handler(req, res) {
     const existingIdx = confRows.findIndex(r => r[4]?.trim() === menteeSlug);
     const updatedAt = new Date().toISOString().slice(0, 10);
 
+    const confNote = isRematch
+      ? `2nd match — prev mentor non-responsive: ${prevMentor || "unknown"}`
+      : "Admin-assigned";
     if (existingIdx === -1) {
       await sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: `${CONF_TAB}!A:G`,
+        range: `${CONF_TAB}!A:H`,
         valueInputOption: "USER_ENTERED",
         requestBody: {
-          values: [[threadId, mentorName, mentorEmail || "", menteeName || "", menteeSlug, "pending", updatedAt]],
+          values: [[threadId, mentorName, mentorEmail || "", menteeName || "", menteeSlug, "pending", updatedAt, confNote]],
         },
       });
     } else {
       const sheetRow = existingIdx + 2;
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `${CONF_TAB}!A${sheetRow}:G${sheetRow}`,
+        range: `${CONF_TAB}!A${sheetRow}:H${sheetRow}`,
         valueInputOption: "USER_ENTERED",
-        requestBody: { values: [[threadId, mentorName, mentorEmail || "", menteeName || "", menteeSlug, "pending", updatedAt]] },
+        requestBody: { values: [[threadId, mentorName, mentorEmail || "", menteeName || "", menteeSlug, "pending", updatedAt, confNote]] },
       });
     }
 

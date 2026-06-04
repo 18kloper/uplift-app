@@ -2694,6 +2694,10 @@ function SuggestedMatches({ mentees, mentors, maxPairings, onApproved }) {
   const [matches, setMatches] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Build slug → { needTag, assignedMentor, first, last } for chip annotations
+  const menteeMetaBySlug = {};
+  for (const m of mentees) menteeMetaBySlug[m.slug] = m;
   // cardState: { [i]: "approved" | "rematched" | null }
   const [cardState, setCardState] = useState({});
   // saving: { [i]: true } while API call in flight
@@ -2743,6 +2747,9 @@ function SuggestedMatches({ mentees, mentors, maxPairings, onApproved }) {
         const slug = match.menteeSlugs[j];
         const name = match.menteeNames?.[j] || "";
         const mentor = mentors.find(m => m.name === match.mentorName) || {};
+        const meta = menteeMetaBySlug[slug];
+        const isRematch = !!(meta && (meta.needTag === "pending" || meta.needTag === "declined"));
+        const prevMentor = meta?.assignedMentor || meta?.declinedBy || "";
         const r = await fetch("/api/admin/approve-match", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -2751,6 +2758,8 @@ function SuggestedMatches({ mentees, mentors, maxPairings, onApproved }) {
             menteeName: name,
             mentorName: match.mentorName,
             mentorEmail: mentor.email || "",
+            isRematch,
+            prevMentor,
           }),
         });
         const d = await r.json();
@@ -2827,11 +2836,17 @@ function SuggestedMatches({ mentees, mentors, maxPairings, onApproved }) {
             const cardErr = saveError[i];
 
             if (state === "approved") {
+              const rematchedNames = (m.menteeSlugs || [])
+                .map((slug, j) => {
+                  const meta = menteeMetaBySlug[slug];
+                  return (meta?.needTag === "pending" || meta?.needTag === "declined") ? (m.menteeNames || [])[j] : null;
+                })
+                .filter(Boolean);
               return (
                 <div key={i} style={{
                   background: "#f0faf4", border: "1.5px solid #b8e8d0",
                   borderRadius: 14, padding: "14px 20px",
-                  display: "flex", alignItems: "center", gap: 12,
+                  display: "flex", alignItems: "flex-start", gap: 12,
                 }}>
                   <span style={{ fontSize: 20 }}>✅</span>
                   <div>
@@ -2839,6 +2854,11 @@ function SuggestedMatches({ mentees, mentors, maxPairings, onApproved }) {
                       {m.mentorName} → {(m.menteeNames || []).join(" & ")}
                     </p>
                     <p style={{ margin: "2px 0 0", fontSize: 12, color: "#3a8e5e" }}>Match approved — assigned as pending mentor confirmation</p>
+                    {rematchedNames.length > 0 && (
+                      <p style={{ margin: "4px 0 0", fontSize: 11, fontWeight: 700, color: "#b35c00" }}>
+                        🔄 2nd match for: {rematchedNames.join(", ")} — previous mentor was non-responsive
+                      </p>
+                    )}
                   </div>
                 </div>
               );
@@ -2876,11 +2896,26 @@ function SuggestedMatches({ mentees, mentors, maxPairings, onApproved }) {
                     </div>
                     <span style={{ fontSize: 18, color: "#c4b8f0" }}>→</span>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      {(m.menteeNames || []).map((name, j) => (
-                        <div key={j} style={{ background: "#f3f0ff", border: "1.5px solid #c4b8f0", borderRadius: 8, padding: "6px 14px" }}>
-                          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#5c4eb5" }}>👤 {name}</p>
-                        </div>
-                      ))}
+                      {(m.menteeNames || []).map((name, j) => {
+                        const slug = (m.menteeSlugs || [])[j];
+                        const meta = menteeMetaBySlug[slug];
+                        const isRematch = meta && (meta.needTag === "pending" || meta.needTag === "declined");
+                        const prevMentor = meta?.assignedMentor || meta?.declinedBy;
+                        return (
+                          <div key={j} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                            <div style={{ background: "#f3f0ff", border: "1.5px solid #c4b8f0", borderRadius: 8, padding: "6px 14px" }}>
+                              <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#5c4eb5" }}>👤 {name}</p>
+                            </div>
+                            {isRematch && (
+                              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: "#b35c00", background: "#fff3e0", border: "1px solid #f5d9a0", borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>
+                                  🔄 2nd match{prevMentor ? ` · prev: ${prevMentor}` : ""}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                   <span style={{ fontSize: 11, fontWeight: 700, color: ss.color, background: ss.bg, border: `1px solid ${ss.border}`, borderRadius: 6, padding: "3px 10px", flexShrink: 0 }}>
@@ -2966,10 +3001,10 @@ function NeedToSend() {
   const sentCount = Object.values(markedSent).filter(Boolean).length;
 
   const exportCSV = () => {
-    const rows = [["Mentor Name", "Mentor Email", "Mentee Name", "Mentee Slug", "Assigned Date", "AI Suggested"]];
+    const rows = [["Mentor Name", "Mentor Email", "Mentee Name", "Mentee Slug", "Assigned Date", "AI Suggested", "2nd Match", "Prev Mentor"]];
     for (const g of pending) {
       for (const m of g.mentees) {
-        rows.push([g.mentorName, g.mentorEmail, m.name || m.slug, m.slug, m.updatedAt || "", g.adminAssigned ? "Yes" : "No"]);
+        rows.push([g.mentorName, g.mentorEmail, m.name || m.slug, m.slug, m.updatedAt || "", g.adminAssigned ? "Yes" : "No", m.isRematch ? "Yes" : "No", m.prevMentor || ""]);
       }
     }
     const csv = rows.map(r => r.map(v => `"${(v || "").replace(/"/g, '""')}"`).join(",")).join("\n");
@@ -3067,11 +3102,18 @@ function NeedToSend() {
             </div>
 
             {/* Mentee chips */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 12, color: "#9b8fcf", marginRight: 4 }}>Mentee{g.mentees.length !== 1 ? "s" : ""}:</span>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 12, color: "#9b8fcf", marginRight: 4, marginTop: 6 }}>Mentee{g.mentees.length !== 1 ? "s" : ""}:</span>
               {g.mentees.map((m, j) => (
-                <div key={j} style={{ background: "#f3f0ff", border: "1.5px solid #c4b8f0", borderRadius: 8, padding: "5px 12px" }}>
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#5c4eb5" }}>👤 {m.name || m.slug}</p>
+                <div key={j} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                  <div style={{ background: "#f3f0ff", border: "1.5px solid #c4b8f0", borderRadius: 8, padding: "5px 12px" }}>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#5c4eb5" }}>👤 {m.name || m.slug}</p>
+                  </div>
+                  {m.isRematch && (
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#b35c00", background: "#fff3e0", border: "1px solid #f5d9a0", borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>
+                      🔄 2nd match{m.prevMentor ? ` · prev: ${m.prevMentor}` : ""} — mentor non-responsive
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
