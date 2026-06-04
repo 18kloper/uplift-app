@@ -2404,21 +2404,25 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
   }
 
   // ── Unified mentee needs list ─────────────────────────────────────────────
-  // All categories require confirmed participation (participation = TRUE)
-  // tag: null    = no mentor assigned
-  // tag: "pending"  = assigned + confirmed participation, but mentor hasn't confirmed yet
-  // tag: "declined" = mentor explicitly declined
+  // tag: "not-invited" = accepted into program, not yet invited/participated
+  // tag: null          = confirmed participant, no mentor assigned
+  // tag: "pending"     = confirmed participant, assigned mentor not confirmed yet
+  // tag: "declined"    = confirmed participant, mentor explicitly declined
   const needsMentorList = [];
   for (const s of (selData?.selections || [])) {
     if (TEST_SLUGS_MD.has(s.slug)) continue;
-    if (!isConfirmed(s)) continue; // all categories require confirmed participation
+
+    if (!isConfirmed(s)) {
+      // Accepted (in system) but hasn't confirmed participation = not yet invited/onboarded
+      needsMentorList.push({ ...s, needTag: "not-invited" });
+      continue;
+    }
 
     if (!s.assignedMentor) {
       needsMentorList.push({ ...s, needTag: null });
     } else {
       const conf = slugConfirmStatus[s.slug];
       if (!conf) {
-        // Assigned, confirmed participant, but no email thread yet
         needsMentorList.push({ ...s, needTag: "pending" });
       } else if (conf.status === "declined") {
         needsMentorList.push({ ...s, needTag: "declined", declinedBy: slugDeclinedBy[s.slug] });
@@ -2491,9 +2495,10 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
         {/* ── LEFT: MENTEES ── */}
         {(() => {
           const MENTEE_TAG_OPTS = [
-            { key: null,        label: "No Mentor",                   color: "#c0392b", bg: "#fef5f5", border: "#f5c6c6" },
-            { key: "pending",   label: "Awaiting Confirmation",       color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" },
-            { key: "declined",  label: "Mentor Declined",             color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
+            { key: "not-invited", label: "Needs Invitation",          color: "#6b3fa0", bg: "#f5f0ff", border: "#d4b8f0" },
+            { key: null,          label: "No Mentor",                  color: "#c0392b", bg: "#fef5f5", border: "#f5c6c6" },
+            { key: "pending",     label: "Awaiting Confirmation",      color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" },
+            { key: "declined",    label: "Mentor Declined",            color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
           ];
           const toggleMentee = (key) => setMenteeFilters(prev => {
             const next = new Set(prev);
@@ -2504,8 +2509,9 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
           });
           const isMenteeActive = (key) => menteeFilters.size === 0 || menteeFilters.has(key === null ? "__none__" : key);
           const tagMap = {
-            declined: { label: "Mentor Declined — Needs Rematch", color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
-            pending:  { label: "Awaiting Mentor Confirmation",    color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" },
+            "not-invited": { label: "Needs Invitation",                color: "#6b3fa0", bg: "#f5f0ff", border: "#d4b8f0" },
+            declined:      { label: "Mentor Declined — Needs Rematch", color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
+            pending:       { label: "Awaiting Mentor Confirmation",    color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" },
           };
           const visibleMentees = needsMentorList.filter(s => isMenteeActive(s.needTag));
           return (
