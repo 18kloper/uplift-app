@@ -23,6 +23,7 @@ const MENTEE_SLUGS = [
   "jasmin-jones","natalie-kitts","britney-medich","kevin-navarro","chandni-patel",
   "daniel-patton","jeremy-ruiz-villavicencio","jordan-river-samuel","chirag-shah",
   "shippy-singh",
+  "eliana-zebro","jimmy-bastien",
 ];
 
 const MENTEE_HEADERS = [["Week", "Field Key", "Question", "Value", "Updated At"]];
