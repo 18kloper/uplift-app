@@ -16,13 +16,12 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const { menteeslugs = [], mentors = [] } = req.body || {};
-
   if (!menteeslugs.length || !mentors.length) {
     return res.status(400).json({ error: "Need at least one mentee and one mentor" });
   }
 
   // Build rich mentee profiles from MENTEES array
+  const { menteeslugs = [], mentors = [], menteePendingMentors = {} } = req.body || {};
   const menteeProfiles = menteeslugs
     .map(slug => MENTEES.find(m => m.slug === slug))
     .filter(m => m && !TEST_SLUGS.has(m.slug))
@@ -35,6 +34,7 @@ export default async function handler(req, res) {
       county: m.county || "",
       primaryFocus: m.primaryFocus || "",
       secondaryFoci: (m.secondaryFoci || []).join(", "),
+      pendingMentor: menteePendingMentors[m.slug] || null,
     }));
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     `MENTEE ${i + 1}: ${m.name} (${m.slug})
   Company: ${m.company} | Industry: ${m.industry} | Stage: ${m.stage}
   Primary focus: ${m.primaryFocus}
-  Secondary: ${m.secondaryFoci}`
+  Secondary: ${m.secondaryFoci}${m.pendingMentor ? `\n  Note: currently assigned to ${m.pendingMentor} (unconfirmed — suggest alternative if stronger fit exists)` : ""}`
   ).join("\n\n");
 
   const mentorsText = mentors.map((m, i) =>

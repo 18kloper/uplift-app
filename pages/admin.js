@@ -2664,7 +2664,7 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
 
       {/* ── SUGGESTED MATCHES ── */}
       {(() => {
-        const actionableMentees = needsMentorList.filter(m => m.needTag === "not-invited" || m.needTag === null || m.needTag === "declined");
+        const actionableMentees = needsMentorList.filter(m => m.needTag === "not-invited" || m.needTag === null || m.needTag === "declined" || m.needTag === "pending");
         const actionableMentors = mentorsNeedingMentee.filter(m => m.label === "New Applicant" || m.label === "Declined — Needs Rematch");
 
         if (actionableMentees.length === 0 || actionableMentors.length === 0) return null;
@@ -2686,6 +2686,10 @@ function SuggestedMatches({ mentees, mentors }) {
     setError(null);
     setMatches(null);
     try {
+      // Build map of slug → assigned mentor name for pending mentees
+      const menteePendingMentors = {};
+      mentees.forEach(m => { if (m.needTag === "pending" && m.assignedMentor) menteePendingMentors[m.slug] = m.assignedMentor; });
+
       const res = await fetch("/api/admin/suggest-matches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -2695,6 +2699,7 @@ function SuggestedMatches({ mentees, mentors }) {
             name: m.name, company: m.company, title: m.title,
             industry: m.industry, focus: m.focus, bio: m.bio,
           })),
+          menteePendingMentors,
         }),
       });
       const data = await res.json();
@@ -2718,7 +2723,7 @@ function SuggestedMatches({ mentees, mentors }) {
         <div>
           <p style={{ margin: "0 0 3px", fontSize: 18, fontWeight: 800, color: "#1a1733" }}>💡 Suggested Matches</p>
           <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>
-            AI-suggested pairings based on industry, focus areas, and stage · {mentees.length} mentee{mentees.length !== 1 ? "s" : ""} × {mentors.length} mentor{mentors.length !== 1 ? "s" : ""}
+            AI-suggested pairings · includes awaiting-confirmation mentees in case a better fit exists · {mentees.length} mentee{mentees.length !== 1 ? "s" : ""} × {mentors.length} mentor{mentors.length !== 1 ? "s" : ""}
           </p>
         </div>
         <button
