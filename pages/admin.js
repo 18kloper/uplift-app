@@ -2511,6 +2511,14 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
     <p style={{ margin: 0, fontSize: 13, color: "#22a366", fontWeight: 600, padding: "12px 0" }}>✓ None — all clear</p>
   );
 
+  // Hoisted so both columns AND the suggested matches section share the same filtered lists
+  const isMenteeActive = (key) => menteeFilters.size === 0 || menteeFilters.has(key === null ? "__none__" : key);
+  const visibleMentees = needsMentorList.filter(s => isMenteeActive(s.needTag));
+  const visibleMentors = mentorFilters.size === 0
+    ? visibleMentorsNeedingMentee
+    : visibleMentorsNeedingMentee.filter(m => mentorFilters.has(m.label));
+  const actionableMentors = visibleMentors.filter(m => m.label === "New Applicant" || m.label === "Declined — Needs Rematch");
+
   return (
     <div style={{ maxWidth: 1280, margin: "0 auto", padding: "28px 24px", fontFamily: "Inter, system-ui, sans-serif" }}>
       {/* Header */}
@@ -2537,14 +2545,12 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
             next.has(k) ? next.delete(k) : next.add(k);
             return next;
           });
-          const isMenteeActive = (key) => menteeFilters.size === 0 || menteeFilters.has(key === null ? "__none__" : key);
           const tagMap = {
             "not-invited": { label: "Needs Invitation",                color: "#6b3fa0", bg: "#f5f0ff", border: "#d4b8f0" },
             declined:      { label: "Mentor Declined — Needs Rematch", color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
             pending:       { label: "Awaiting Mentor Confirmation",    color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" },
             "new-match":   { label: "Pending New Match",               color: "#0e7c6b", bg: "#e8faf7", border: "#9ee3d8" },
           };
-          const visibleMentees = needsMentorList.filter(s => isMenteeActive(s.needTag));
           return (
             <div>
               {/* Filter chips */}
@@ -2629,9 +2635,6 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
             "Declined — Needs Rematch": { color: "#c0392b", bg: "#fef0f0", border: "#f5c6c6" },
             "Mentee Unresponsive":      { color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
           };
-          const visibleMentors = mentorFilters.size === 0
-            ? visibleMentorsNeedingMentee
-            : visibleMentorsNeedingMentee.filter(m => mentorFilters.has(m.label));
           return (
             <div>
               {/* Filter chips */}
@@ -2690,17 +2693,14 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
       </div>
 
       {/* ── SUGGESTED MATCHES ── */}
-      {(() => {
-        const actionableMentors = visibleMentorsNeedingMentee.filter(m => m.label === "New Applicant" || m.label === "Declined — Needs Rematch");
-        if (actionableMentors.length === 0) return null;
-
-        // Mentee pool: everyone in the left column —
-        // unmatched (no mentor / needs invitation / declined) + confirmed participants
-        // whose assigned mentor hasn't responded yet
-        if (needsMentorList.length === 0) return null;
-
-        return <SuggestedMatches mentees={needsMentorList} mentors={actionableMentors} maxPairings={actionableMentors.length * 2} onApproved={handleMatchApproved} />;
-      })()}
+      {actionableMentors.length > 0 && visibleMentees.length > 0 && (
+        <SuggestedMatches
+          mentees={visibleMentees}
+          mentors={actionableMentors}
+          maxPairings={actionableMentors.length * 2}
+          onApproved={handleMatchApproved}
+        />
+      )}
 
     </div>
   );

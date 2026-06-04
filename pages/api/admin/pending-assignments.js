@@ -10,11 +10,6 @@ const TAB = "Mentor Confirmations";
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
 
-  const secret = process.env.ADMIN_SECRET;
-  if (secret && req.query.token !== secret) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
   const hasSheets =
     process.env.GOOGLE_SHEET_ID &&
     process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
