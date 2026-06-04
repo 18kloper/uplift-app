@@ -57,7 +57,7 @@ function getProgramWeekNum() {
   const msPerWeek   = 7 * 24 * 60 * 60 * 1000;
   const elapsed     = now - PROGRAM_START;
   if (elapsed < 0) return 0;
-  return Math.min(Math.ceil(elapsed / msPerWeek) + 1, 9);
+  return Math.min(Math.floor(elapsed / msPerWeek) + 1, 9);
 }
 
 function getUpcomingEvents() {
