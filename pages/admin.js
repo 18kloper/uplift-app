@@ -2374,37 +2374,41 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
     return !s.mentor?.name;
   });
 
-  // ── 2. Mentees whose mentor has NOT confirmed the match yet ───────────────
-  //    i.e. mentor is assigned but no "confirmed" in confirmations for this slug
-  const menteesPendingConfirmation = (selData?.selections || []).filter(s => {
-    if (s.isTest || !s.mentor?.name) return false;
-    const mentorName = s.mentor.name;
-    const confirmed = confirmedSlugsByMentor[mentorName] || [];
-    return !confirmed.includes(s.slug);
-  });
+  // ── 2. Mentees whose mentor DECLINED them (needs a new match) ────────────
+  const declinedMentees = [];
+  for (const r of responses) {
+    for (const opt of (r.options || [])) {
+      const key = `${r.threadId}|${opt.slug}`;
+      if (confirmations[key] === "declined") {
+        // Only flag if the mentee doesn't have another confirmed mentor
+        const hasAnotherConfirmed = responses.some(r2 =>
+          r2 !== r && (r2.options || []).some(o2 =>
+            o2.slug === opt.slug && confirmations[`${r2.threadId}|${o2.slug}`] === "confirmed"
+          )
+        );
+        if (!hasAnotherConfirmed) {
+          declinedMentees.push({ slug: opt.slug, name: opt.name, company: opt.company, mentorName: r.mentor.name });
+        }
+      }
+    }
+  }
 
   // ── 3. Mentors who need a mentee ─────────────────────────────────────────
-  //    a) Assigned mentors with 0 confirmed mentees
-  //    b) New Typeform applicants not yet in system
+  //    a) Replied but ALL mentees declined → needs rematch
+  //    b) New Typeform applicants not yet assigned
   const mentorsNeedingMentee = [];
   for (const mentor of (selData?.mentors || [])) {
     if (mentor.name === "MJ" || mentor.name === "Kennedy") continue;
-    const confirmed = confirmedSlugsByMentor[mentor.name] || [];
     const resp = responseByMentor[mentor.name];
-    // If they replied but all were declined, they need a rematch
     if (resp) {
       const opts = resp.options || [];
       const declinedAll = opts.length > 0 && opts.every(o => confirmations[`${resp.threadId}|${o.slug}`] === "declined");
-      const hasConfirmed = opts.some(o => confirmations[`${resp.threadId}|${o.slug}`] === "confirmed");
-      if (!hasConfirmed) {
-        mentorsNeedingMentee.push({ name: mentor.name, email: mentor.email, label: declinedAll ? "Needs Rematch" : "No Reply Yet" });
+      if (declinedAll) {
+        mentorsNeedingMentee.push({ name: mentor.name, email: mentor.email, label: "Needs Rematch" });
       }
-    } else {
-      // No email response at all
-      mentorsNeedingMentee.push({ name: mentor.name, email: mentor.email, label: "No Reply Yet" });
     }
   }
-  // New Typeform applicants
+  // New Typeform applicants (not yet assigned to any mentee)
   for (const m of newMentors) {
     mentorsNeedingMentee.push({ name: m.name, email: m.email, company: m.company, title: m.title, industry: m.industry, focus: m.focus, label: "New Applicant" });
   }
@@ -2491,14 +2495,14 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
         </div>
       </Section>
 
-      {/* ── 2. Mentees pending mentor confirmation ── */}
-      <Section emoji="⏳" title="Mentees — Mentor Not Yet Confirmed Match" count={menteesPendingConfirmation.length} color="#b35c00" bg="#fff8f0" border="#f5d9a0">
+      {/* ── 2. Mentees whose mentor declined them ── */}
+      <Section emoji="🔄" title="Mentees Whose Mentor Declined — Needs New Match" count={declinedMentees.length} color="#b35c00" bg="#fff8f0" border="#f5d9a0">
         <p style={{ margin: "0 0 12px", fontSize: 12, color: "#9b8fcf" }}>
-          These mentees have a mentor assigned but the mentor hasn't confirmed via email yet.
+          These mentees had their mentor decline the match and need to be reassigned.
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-          {menteesPendingConfirmation.map(s => (
-            <MenteePill key={s.slug} name={`${s.first} ${s.last}`} company={s.company} cohort={s.cohort} extra={`Mentor: ${s.mentor?.name}`} />
+          {declinedMentees.map((m, i) => (
+            <MenteePill key={i} name={m.name} company={m.company} extra={`Declined by: ${m.mentorName}`} />
           ))}
         </div>
       </Section>
