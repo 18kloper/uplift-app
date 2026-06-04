@@ -2661,6 +2661,136 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
         })()}
 
       </div>
+
+      {/* ── SUGGESTED MATCHES ── */}
+      {(() => {
+        const actionableMentees = needsMentorList.filter(m => m.needTag === "not-invited" || m.needTag === null || m.needTag === "declined");
+        const actionableMentors = mentorsNeedingMentee.filter(m => m.label === "New Applicant" || m.label === "Declined — Needs Rematch");
+
+        if (actionableMentees.length === 0 || actionableMentors.length === 0) return null;
+
+        return <SuggestedMatches mentees={actionableMentees} mentors={actionableMentors} />;
+      })()}
+
+    </div>
+  );
+}
+
+function SuggestedMatches({ mentees, mentors }) {
+  const [matches, setMatches] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const generate = async () => {
+    setLoading(true);
+    setError(null);
+    setMatches(null);
+    try {
+      const res = await fetch("/api/admin/suggest-matches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          menteeslugs: mentees.map(m => m.slug),
+          mentors: mentors.map(m => ({
+            name: m.name, company: m.company, title: m.title,
+            industry: m.industry, focus: m.focus, bio: m.bio,
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setMatches(data.matches || []);
+    } catch (e) {
+      setError(e.message);
+    }
+    setLoading(false);
+  };
+
+  const strengthStyles = {
+    strong: { color: "#1a6e42", bg: "#e8f8f0", border: "#b8e8d0", label: "⭐ Strong match" },
+    good:   { color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0", label: "✓ Good match" },
+    fair:   { color: "#7a5700", bg: "#fffbe6", border: "#f5c542", label: "~ Fair match" },
+  };
+
+  return (
+    <div style={{ marginTop: 32 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <p style={{ margin: "0 0 3px", fontSize: 18, fontWeight: 800, color: "#1a1733" }}>💡 Suggested Matches</p>
+          <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>
+            AI-suggested pairings based on industry, focus areas, and stage · {mentees.length} mentee{mentees.length !== 1 ? "s" : ""} × {mentors.length} mentor{mentors.length !== 1 ? "s" : ""}
+          </p>
+        </div>
+        <button
+          onClick={generate}
+          disabled={loading}
+          style={{
+            background: loading ? "#e8e4f5" : "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+            color: loading ? "#9b8fcf" : "#fff",
+            border: "none", borderRadius: 10, padding: "10px 22px",
+            fontSize: 13, fontWeight: 700, cursor: loading ? "default" : "pointer",
+            fontFamily: "Inter, system-ui, sans-serif", display: "flex", alignItems: "center", gap: 8,
+          }}
+        >
+          {loading ? "✨ Generating…" : matches ? "↻ Regenerate" : "✨ Generate Suggestions"}
+        </button>
+      </div>
+
+      {error && (
+        <div style={{ background: "#fff0f0", border: "1px solid #ffcdd2", borderRadius: 10, padding: "12px 16px", marginBottom: 16 }}>
+          <p style={{ margin: 0, fontSize: 13, color: "#c00" }}>⚠️ {error}</p>
+        </div>
+      )}
+
+      {loading && (
+        <div style={{ background: "#f7f5ff", border: "1.5px solid #e0d9f8", borderRadius: 14, padding: "32px", textAlign: "center" }}>
+          <p style={{ margin: 0, fontSize: 14, color: "#9b8fcf", fontStyle: "italic" }}>Analyzing profiles and generating matches…</p>
+        </div>
+      )}
+
+      {matches && !loading && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {matches.map((m, i) => {
+            const ss = strengthStyles[m.strength] || strengthStyles.good;
+            return (
+              <div key={i} style={{
+                background: "#fff", border: `1.5px solid ${ss.border}`,
+                borderRadius: 14, padding: "18px 20px",
+                boxShadow: "0 1px 4px rgba(92,78,181,0.06)",
+              }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                    {/* Mentor */}
+                    <div style={{ background: "#1a1733", borderRadius: 8, padding: "6px 14px" }}>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#fff" }}>🎓 {m.mentorName}</p>
+                    </div>
+                    <span style={{ fontSize: 18, color: "#c4b8f0" }}>→</span>
+                    {/* Mentees */}
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {(m.menteeNames || []).map((name, j) => (
+                        <div key={j} style={{ background: "#f3f0ff", border: "1.5px solid #c4b8f0", borderRadius: 8, padding: "6px 14px" }}>
+                          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#5c4eb5" }}>👤 {name}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: ss.color, background: ss.bg, border: `1px solid ${ss.border}`, borderRadius: 6, padding: "3px 10px", flexShrink: 0 }}>
+                    {ss.label}
+                  </span>
+                </div>
+                <p style={{ margin: 0, fontSize: 13, color: "#4a4060", lineHeight: 1.65 }}>{m.reason}</p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {!matches && !loading && !error && (
+        <div style={{ background: "#faf9ff", border: "1.5px dashed #c4b8f0", borderRadius: 14, padding: "32px", textAlign: "center" }}>
+          <p style={{ margin: "0 0 6px", fontSize: 14, color: "#9b8fcf" }}>Click "Generate Suggestions" to get AI-powered match recommendations</p>
+          <p style={{ margin: 0, fontSize: 12, color: "#c0b8d8" }}>Considers industry, focus areas, stage, and mentor background</p>
+        </div>
+      )}
     </div>
   );
 }

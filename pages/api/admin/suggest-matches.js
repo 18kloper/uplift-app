@@ -1,0 +1,102 @@
+// POST /api/admin/suggest-matches
+// Body: { mentees: [...], mentors: [...] }
+// Uses Claude to suggest the best mentor-mentee pairings.
+// Auth: ?token=<ADMIN_SECRET>
+
+import Anthropic from "@anthropic-ai/sdk";
+import { MENTEES } from "../../../lib/mentees";
+
+const TEST_SLUGS = new Set(["kennedy", "jackie", "aaron", "mj"]);
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") return res.status(405).end();
+
+  const secret = process.env.ADMIN_SECRET;
+  if (secret && req.query.token !== secret) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const { menteeslugs = [], mentors = [] } = req.body || {};
+
+  if (!menteeslugs.length || !mentors.length) {
+    return res.status(400).json({ error: "Need at least one mentee and one mentor" });
+  }
+
+  // Build rich mentee profiles from MENTEES array
+  const menteeProfiles = menteeslugs
+    .map(slug => MENTEES.find(m => m.slug === slug))
+    .filter(m => m && !TEST_SLUGS.has(m.slug))
+    .map(m => ({
+      slug: m.slug,
+      name: `${m.first} ${m.last}`,
+      company: m.company || "",
+      industry: m.industry || "",
+      stage: m.stage || "",
+      county: m.county || "",
+      primaryFocus: m.primaryFocus || "",
+      secondaryFoci: (m.secondaryFoci || []).join(", "),
+    }));
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return res.status(200).json({ error: "No ANTHROPIC_API_KEY" });
+
+  const client = new Anthropic({ apiKey });
+
+  const menteesText = menteeProfiles.map((m, i) =>
+    `MENTEE ${i + 1}: ${m.name} (${m.slug})
+  Company: ${m.company} | Industry: ${m.industry} | Stage: ${m.stage}
+  Primary focus: ${m.primaryFocus}
+  Secondary: ${m.secondaryFoci}`
+  ).join("\n\n");
+
+  const mentorsText = mentors.map((m, i) =>
+    `MENTOR ${i + 1}: ${m.name}
+  Company: ${m.company || ""} | Title: ${m.title || ""}
+  Industry: ${m.industry || ""}
+  Focus areas: ${m.focus || ""}
+  Bio: ${(m.bio || "").slice(0, 300)}`
+  ).join("\n\n");
+
+  const prompt = `You are helping match startup founders with mentors in a NJ-based accelerator program called Uplift.
+Each mentor can be matched with 1 or 2 mentees. Every mentee below needs a mentor. Make the strongest possible pairings.
+
+MENTEES NEEDING A MENTOR:
+${menteesText}
+
+AVAILABLE MENTORS:
+${mentorsText}
+
+Return ONLY a JSON array of match objects. Each object must have:
+- "mentorName": exact mentor name as listed
+- "menteeSlugs": array of 1-2 mentee slugs being matched to this mentor
+- "menteeNames": array of corresponding mentee names
+- "reason": 2-3 sentence explanation of why this pairing works (specific, actionable)
+- "strength": "strong" | "good" | "fair"
+
+Rules:
+- Every mentee must appear in exactly one match
+- A mentor can appear in at most one match object (with 1 or 2 mentees)
+- If there are more mentees than mentors×2, some mentors may get 2 mentees
+- Prioritize industry alignment, then focus area alignment, then stage fit
+- Do not invent mentor or mentee details not listed above
+
+Return only the JSON array, no other text.`;
+
+  try {
+    const msg = await client.messages.create({
+      model: "claude-opus-4-5",
+      max_tokens: 1500,
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const raw = msg.content[0]?.text?.trim() || "[]";
+    // Strip markdown fences if present
+    const cleaned = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
+    const matches = JSON.parse(cleaned);
+
+    return res.status(200).json({ matches });
+  } catch (err) {
+    console.error("suggest-matches error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
