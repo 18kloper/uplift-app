@@ -2315,6 +2315,8 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
   const [responses, setResponses] = useState([]);
   const [newMentors, setNewMentors] = useState([]);
   const [loading, setLoading]     = useState(true);
+  const [menteeFilters, setMenteeFilters] = useState(new Set()); // empty = show all
+  const [mentorFilters, setMentorFilters] = useState(new Set());
 
   useEffect(() => {
     Promise.all([
@@ -2487,68 +2489,161 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" }}>
 
         {/* ── LEFT: MENTEES ── */}
-        <div>
-          <div style={{ border: "1.5px solid #f5c6c6", borderRadius: 12, overflow: "hidden" }}>
-            <ColHeader emoji="👤" label="Mentees Needing a Mentor" count={needsMentorList.length} color="#c0392b" bg="#fef5f5" />
-            <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: 8 }}>
-              {needsMentorList.length === 0 ? emptyNote : needsMentorList.map(s => {
-                const tagMap = {
-                  declined: { label: "Mentor Declined — Needs Rematch", color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
-                  pending:  { label: "Awaiting Mentor Confirmation",    color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" },
-                };
-                const tag = s.needTag ? tagMap[s.needTag] : null;
-                return (
-                  <Card key={s.slug} border={tag?.border || "#f5c6c6"}>
-                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: tag ? 4 : 0 }}>
-                      <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{s.first} {s.last}</p>
-                      {tag && (
-                        <span style={{ fontSize: 10, fontWeight: 700, color: tag.color, background: tag.bg, border: `1px solid ${tag.border}`, borderRadius: 6, padding: "2px 8px", flexShrink: 0, whiteSpace: "nowrap" }}>
-                          {tag.label}
-                        </span>
-                      )}
-                    </div>
-                    {s.company && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#6b6480" }}>{s.company}</p>}
-                    {s.assignedMentor && <p style={{ margin: "0 0 1px", fontSize: 11, color: "#9b8fcf" }}>Assigned: {s.assignedMentor}</p>}
-                    {s.needTag === "declined" && s.declinedBy && (
-                      <p style={{ margin: "0 0 1px", fontSize: 11, color: "#b35c00", fontWeight: 600 }}>Declined by {s.declinedBy}</p>
-                    )}
-                    {s.cohort && <p style={{ margin: "2px 0 0", fontSize: 10, color: "#c0b8d8" }}>Cohort {s.cohort} · {COHORT_NAMES_MD[s.cohort]}</p>}
-                  </Card>
-                );
-              })}
+        {(() => {
+          const MENTEE_TAG_OPTS = [
+            { key: null,        label: "No Mentor",                   color: "#c0392b", bg: "#fef5f5", border: "#f5c6c6" },
+            { key: "pending",   label: "Awaiting Confirmation",       color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" },
+            { key: "declined",  label: "Mentor Declined",             color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
+          ];
+          const toggleMentee = (key) => setMenteeFilters(prev => {
+            const next = new Set(prev);
+            // null stored as string "__none__"
+            const k = key === null ? "__none__" : key;
+            next.has(k) ? next.delete(k) : next.add(k);
+            return next;
+          });
+          const isMenteeActive = (key) => menteeFilters.size === 0 || menteeFilters.has(key === null ? "__none__" : key);
+          const tagMap = {
+            declined: { label: "Mentor Declined — Needs Rematch", color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
+            pending:  { label: "Awaiting Mentor Confirmation",    color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" },
+          };
+          const visibleMentees = needsMentorList.filter(s => isMenteeActive(s.needTag));
+          return (
+            <div>
+              {/* Filter chips */}
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+                {MENTEE_TAG_OPTS.map(opt => {
+                  const count = needsMentorList.filter(s => s.needTag === opt.key).length;
+                  const active = menteeFilters.size === 0
+                    ? true
+                    : menteeFilters.has(opt.key === null ? "__none__" : opt.key);
+                  return (
+                    <button key={String(opt.key)} onClick={() => toggleMentee(opt.key)} style={{
+                      padding: "5px 12px", borderRadius: 20, fontSize: 11, fontWeight: active ? 700 : 500,
+                      border: `1.5px solid ${active ? opt.border : "#e8e4f5"}`,
+                      background: active ? opt.bg : "#fff",
+                      color: active ? opt.color : "#9b8fcf",
+                      cursor: "pointer", fontFamily: "inherit",
+                      display: "flex", alignItems: "center", gap: 5, transition: "all 0.15s",
+                    }}>
+                      {opt.label}
+                      <span style={{ background: active ? opt.border : "#f0ecff", color: active ? opt.color : "#9b8fcf", borderRadius: 10, padding: "0 6px", fontSize: 10, fontWeight: 700 }}>{count}</span>
+                    </button>
+                  );
+                })}
+                {menteeFilters.size > 0 && (
+                  <button onClick={() => setMenteeFilters(new Set())} style={{ padding: "5px 10px", borderRadius: 20, fontSize: 11, border: "1.5px solid #e8e4f5", background: "#fff", color: "#9b8fcf", cursor: "pointer", fontFamily: "inherit" }}>
+                    ✕ Clear
+                  </button>
+                )}
+              </div>
+              <div style={{ border: "1.5px solid #f5c6c6", borderRadius: 12, overflow: "hidden" }}>
+                <ColHeader emoji="👤" label="Mentees Needing a Mentor" count={visibleMentees.length} color="#c0392b" bg="#fef5f5" />
+                <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: 8 }}>
+                  {visibleMentees.length === 0
+                    ? <p style={{ margin: 0, fontSize: 13, color: "#22a366", fontWeight: 600, padding: "12px 0" }}>✓ None matching this filter</p>
+                    : visibleMentees.map(s => {
+                      const tag = s.needTag ? tagMap[s.needTag] : null;
+                      return (
+                        <Card key={s.slug} border={tag?.border || "#f5c6c6"}>
+                          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: tag ? 4 : 0 }}>
+                            <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{s.first} {s.last}</p>
+                            {tag && (
+                              <span style={{ fontSize: 10, fontWeight: 700, color: tag.color, background: tag.bg, border: `1px solid ${tag.border}`, borderRadius: 6, padding: "2px 8px", flexShrink: 0, whiteSpace: "nowrap" }}>
+                                {tag.label}
+                              </span>
+                            )}
+                          </div>
+                          {s.company && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#6b6480" }}>{s.company}</p>}
+                          {s.assignedMentor && <p style={{ margin: "0 0 1px", fontSize: 11, color: "#9b8fcf" }}>Assigned: {s.assignedMentor}</p>}
+                          {s.needTag === "declined" && s.declinedBy && (
+                            <p style={{ margin: "0 0 1px", fontSize: 11, color: "#b35c00", fontWeight: 600 }}>Declined by {s.declinedBy}</p>
+                          )}
+                          {s.cohort && <p style={{ margin: "2px 0 0", fontSize: 10, color: "#c0b8d8" }}>Cohort {s.cohort} · {COHORT_NAMES_MD[s.cohort]}</p>}
+                        </Card>
+                      );
+                    })
+                  }
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* ── RIGHT: MENTORS ── */}
-        <div>
-          <div style={{ border: "1.5px solid #c4b8f0", borderRadius: 12, overflow: "hidden" }}>
-            <ColHeader emoji="🔍" label="Mentors Who Need a Mentee" count={mentorsNeedingMentee.length} color="#5c4eb5" bg="#f3f0ff" />
-            <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: 8 }}>
-              {mentorsNeedingMentee.length === 0 ? emptyNote : mentorsNeedingMentee.map((m, i) => {
-                const tagStyles = {
-                  "New Applicant":         { color: "#1a6e42", bg: "#e8f8f0", border: "#b8e8d0" },
-                  "Declined — Needs Rematch": { color: "#c0392b", bg: "#fef0f0", border: "#f5c6c6" },
-                  "Mentee Unresponsive":   { color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
-                };
-                const ts = tagStyles[m.label] || { color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" };
-                return (
-                  <Card key={i} border={ts.border}>
-                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
-                      <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{m.name}</p>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: ts.color, background: ts.bg, border: `1px solid ${ts.border}`, borderRadius: 6, padding: "2px 8px", flexShrink: 0, whiteSpace: "nowrap" }}>{m.label}</span>
-                    </div>
-                    {m.menteeName && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#b35c00", fontWeight: 600 }}>Mentee: {m.menteeName} — not yet responsive</p>}
-                    {m.company && <p style={{ margin: "0 0 1px", fontSize: 11, color: "#6b6480" }}>{m.company}{m.title ? ` · ${m.title}` : ""}</p>}
-                    {m.email && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#5c4eb5" }}>{m.email}</p>}
-                    {m.industry && <p style={{ margin: "0 0 1px", fontSize: 10, color: "#9b8fcf" }}>🏷 {m.industry}</p>}
-                    {m.focus && <p style={{ margin: 0, fontSize: 10, color: "#9b8fcf" }}>🎯 {m.focus}</p>}
-                  </Card>
-                );
-              })}
+        {(() => {
+          const MENTOR_TAG_OPTS = [
+            { key: "New Applicant",            color: "#1a6e42", bg: "#e8f8f0", border: "#b8e8d0" },
+            { key: "Declined — Needs Rematch", color: "#c0392b", bg: "#fef0f0", border: "#f5c6c6" },
+            { key: "Mentee Unresponsive",      color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
+          ];
+          const toggleMentor = (key) => setMentorFilters(prev => {
+            const next = new Set(prev);
+            next.has(key) ? next.delete(key) : next.add(key);
+            return next;
+          });
+          const tagStyles = {
+            "New Applicant":            { color: "#1a6e42", bg: "#e8f8f0", border: "#b8e8d0" },
+            "Declined — Needs Rematch": { color: "#c0392b", bg: "#fef0f0", border: "#f5c6c6" },
+            "Mentee Unresponsive":      { color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
+          };
+          const visibleMentors = mentorFilters.size === 0
+            ? mentorsNeedingMentee
+            : mentorsNeedingMentee.filter(m => mentorFilters.has(m.label));
+          return (
+            <div>
+              {/* Filter chips */}
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+                {MENTOR_TAG_OPTS.map(opt => {
+                  const count = mentorsNeedingMentee.filter(m => m.label === opt.key).length;
+                  const active = mentorFilters.size === 0 ? true : mentorFilters.has(opt.key);
+                  return (
+                    <button key={opt.key} onClick={() => toggleMentor(opt.key)} style={{
+                      padding: "5px 12px", borderRadius: 20, fontSize: 11, fontWeight: active ? 700 : 500,
+                      border: `1.5px solid ${active ? opt.border : "#e8e4f5"}`,
+                      background: active ? opt.bg : "#fff",
+                      color: active ? opt.color : "#9b8fcf",
+                      cursor: "pointer", fontFamily: "inherit",
+                      display: "flex", alignItems: "center", gap: 5, transition: "all 0.15s",
+                    }}>
+                      {opt.key}
+                      <span style={{ background: active ? opt.border : "#f0ecff", color: active ? opt.color : "#9b8fcf", borderRadius: 10, padding: "0 6px", fontSize: 10, fontWeight: 700 }}>{count}</span>
+                    </button>
+                  );
+                })}
+                {mentorFilters.size > 0 && (
+                  <button onClick={() => setMentorFilters(new Set())} style={{ padding: "5px 10px", borderRadius: 20, fontSize: 11, border: "1.5px solid #e8e4f5", background: "#fff", color: "#9b8fcf", cursor: "pointer", fontFamily: "inherit" }}>
+                    ✕ Clear
+                  </button>
+                )}
+              </div>
+              <div style={{ border: "1.5px solid #c4b8f0", borderRadius: 12, overflow: "hidden" }}>
+                <ColHeader emoji="🔍" label="Mentors Who Need a Mentee" count={visibleMentors.length} color="#5c4eb5" bg="#f3f0ff" />
+                <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: 8 }}>
+                  {visibleMentors.length === 0
+                    ? <p style={{ margin: 0, fontSize: 13, color: "#22a366", fontWeight: 600, padding: "12px 0" }}>✓ None matching this filter</p>
+                    : visibleMentors.map((m, i) => {
+                      const ts = tagStyles[m.label] || { color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" };
+                      return (
+                        <Card key={i} border={ts.border}>
+                          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
+                            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{m.name}</p>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: ts.color, background: ts.bg, border: `1px solid ${ts.border}`, borderRadius: 6, padding: "2px 8px", flexShrink: 0, whiteSpace: "nowrap" }}>{m.label}</span>
+                          </div>
+                          {m.menteeName && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#b35c00", fontWeight: 600 }}>Mentee: {m.menteeName} — not yet responsive</p>}
+                          {m.company && <p style={{ margin: "0 0 1px", fontSize: 11, color: "#6b6480" }}>{m.company}{m.title ? ` · ${m.title}` : ""}</p>}
+                          {m.email && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#5c4eb5" }}>{m.email}</p>}
+                          {m.industry && <p style={{ margin: "0 0 1px", fontSize: 10, color: "#9b8fcf" }}>🏷 {m.industry}</p>}
+                          {m.focus && <p style={{ margin: 0, fontSize: 10, color: "#9b8fcf" }}>🎯 {m.focus}</p>}
+                        </Card>
+                      );
+                    })
+                  }
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          );
+        })()}
 
       </div>
     </div>
