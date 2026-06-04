@@ -3071,14 +3071,16 @@ function SuggestedMatches({ mentees, mentors, maxPairings, onApproved }) {
 // ─── Need to Send view ────────────────────────────────────────────────────────
 function NeedToSend() {
   const [groups, setGroups] = useState([]);
+  const [sentGroups, setSentGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [markedSent, setMarkedSent] = useState({}); // mentorName → true
   const [copiedEmail, setCopiedEmail] = useState(null);
+  const [sentOpen, setSentOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/pending-assignments")
       .then(r => r.json())
-      .then(d => { setGroups(d.pending || []); setLoading(false); })
+      .then(d => { setGroups(d.pending || []); setSentGroups(d.sent || []); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
 
@@ -3093,6 +3095,8 @@ function NeedToSend() {
   };
 
   const pending = groups.filter(g => !markedSent[g.mentorName]);
+  const sessionSent = groups.filter(g => markedSent[g.mentorName]);
+  const allSent = [...sentGroups, ...sessionSent];
   const sentCount = Object.values(markedSent).filter(Boolean).length;
 
   const exportCSV = () => {
@@ -3222,6 +3226,58 @@ function NeedToSend() {
           </div>
         ))}
       </div>
+
+      {/* ── Already Sent collapsible ── */}
+      {allSent.length > 0 && (
+        <div style={{ marginTop: 32, border: "1.5px solid #b8e8d0", borderRadius: 14, overflow: "hidden" }}>
+          <button
+            onClick={() => setSentOpen(o => !o)}
+            style={{
+              width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "14px 24px", background: "#f0faf4", border: "none", cursor: "pointer",
+              fontFamily: "Inter, system-ui, sans-serif",
+            }}
+          >
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#1a6e42" }}>
+              ✅ Already Sent — {allSent.length} mentor{allSent.length !== 1 ? "s" : ""} awaiting reply
+            </span>
+            <span style={{ fontSize: 16, color: "#1a6e42" }}>{sentOpen ? "▲" : "▼"}</span>
+          </button>
+
+          {sentOpen && (
+            <div style={{ background: "#fff", padding: "16px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
+              {allSent.map((g, i) => (
+                <div key={i} style={{
+                  display: "flex", alignItems: "flex-start", justifyContent: "space-between",
+                  gap: 12, padding: "12px 16px", background: "#f9fef9",
+                  border: "1px solid #d4edda", borderRadius: 10, flexWrap: "wrap",
+                }}>
+                  <div>
+                    <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>🎓 {g.mentorName}</p>
+                    {g.mentorEmail && (
+                      <p style={{ margin: "0 0 8px", fontSize: 11, color: "#9b8fcf" }}>{g.mentorEmail}</p>
+                    )}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {g.mentees.map((m, j) => (
+                        <span key={j} style={{
+                          fontSize: 12, fontWeight: 600, color: "#1a6e42",
+                          background: "#e8f8f0", border: "1px solid #9edbb8",
+                          borderRadius: 6, padding: "3px 10px",
+                        }}>
+                          {m.name || m.slug}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#1a6e42", background: "#e8f8f0", border: "1px solid #9edbb8", borderRadius: 6, padding: "4px 10px", whiteSpace: "nowrap", flexShrink: 0 }}>
+                    Sent · Awaiting reply
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
