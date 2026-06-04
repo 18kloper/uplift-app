@@ -1524,6 +1524,14 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
   const [confirmedMentorFilter, setConfirmedMentorFilter] = useState(false);
   const [pendingMentorFilter, setPendingMentorFilter] = useState(false);
   const [participatedNotOnboardedFilter, setParticipatedNotOnboardedFilter] = useState(false);
+  const [pendingAssignments, setPendingAssignments] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/admin/pending-assignments")
+      .then(r => r.json())
+      .then(d => setPendingAssignments(d.pending || []))
+      .catch(() => {});
+  }, []);
 
   const { mentees = [], pendingReviewCount = 0 } = data;
   const isPreProgram = new Date() < PROGRAM_START;
@@ -1534,6 +1542,14 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
     setStatusFilters([]);
     setMilestoneFilters([]);
   };
+
+  // Build slug → pending assignment lookup from /api/admin/pending-assignments
+  const pendingBySlug = {};
+  for (const g of pendingAssignments) {
+    for (const mentee of (g.mentees || [])) {
+      pendingBySlug[mentee.slug] = { mentorName: g.mentorName, mentorEmail: g.mentorEmail, isRematch: mentee.isRematch, prevMentor: mentee.prevMentor };
+    }
+  }
 
   const filtered = mentees.filter(m => {
     const cohortMatch = activeCohort === "All"
@@ -2021,6 +2037,22 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
                           <span style={{ fontSize: 11, fontWeight: 700, color: "#b35c00", background: "#fff3e0", borderRadius: 4, padding: "2px 7px" }}>
                             Needs Mentor
                           </span>
+                        ) : pendingBySlug[m.slug] ? (
+                          <>
+                            <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 600, color: "#1a1733", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {pendingBySlug[m.slug].mentorName}
+                            </p>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                              <span style={{ fontSize: 10, fontWeight: 700, color: "#0e7c6b", background: "#e8faf7", border: "1px solid #9ee3d8", borderRadius: 4, padding: "2px 7px" }}>
+                                Pending · Needs to Send
+                              </span>
+                              {pendingBySlug[m.slug].isRematch && (
+                                <span style={{ fontSize: 10, fontWeight: 700, color: "#b35c00", background: "#fff3e0", border: "1px solid #f5d9a0", borderRadius: 4, padding: "2px 7px" }}>
+                                  🔄 2nd match
+                                </span>
+                              )}
+                            </div>
+                          </>
                         ) : m.mentorName ? (
                           <>
                             <p style={{ margin: "0 0 1px", fontSize: 13, fontWeight: 600, color: "#1a1733", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 4 }}>
@@ -2466,15 +2498,10 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
       needsMentorList.push({ ...s, needTag: null });
     } else {
       const conf = slugConfirmStatus[s.slug];
-      const isNewMatch = adminMatchedSlugs.has(s.slug);
-      if (!conf) {
-        needsMentorList.push({ ...s, needTag: isNewMatch ? "new-match" : "pending" });
-      } else if (conf.status === "declined") {
+      if (conf && conf.status === "declined") {
         needsMentorList.push({ ...s, needTag: "declined", declinedBy: slugDeclinedBy[s.slug] });
-      } else if (conf.status === "pending") {
-        needsMentorList.push({ ...s, needTag: isNewMatch ? "new-match" : "pending" });
       }
-      // "confirmed" → matched, don't show
+      // "pending", "new-match", "confirmed" → has active/pending match, don't show
     }
   }
 
@@ -2555,8 +2582,6 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
           const MENTEE_TAG_OPTS = [
             { key: "not-invited", label: "Needs Invitation",        color: "#6b3fa0", bg: "#f5f0ff", border: "#d4b8f0" },
             { key: null,          label: "No Mentor",                color: "#c0392b", bg: "#fef5f5", border: "#f5c6c6" },
-            { key: "pending",     label: "Awaiting Confirmation",    color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" },
-            { key: "new-match",   label: "Pending New Match",        color: "#0e7c6b", bg: "#e8faf7", border: "#9ee3d8" },
             { key: "declined",    label: "Mentor Declined",          color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
           ];
           const toggleMentee = (key) => setMenteeFilters(prev => {
@@ -2568,8 +2593,6 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
           const tagMap = {
             "not-invited": { label: "Needs Invitation",                color: "#6b3fa0", bg: "#f5f0ff", border: "#d4b8f0" },
             declined:      { label: "Mentor Declined — Needs Rematch", color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
-            pending:       { label: "Awaiting Mentor Confirmation",    color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" },
-            "new-match":   { label: "Pending New Match",               color: "#0e7c6b", bg: "#e8faf7", border: "#9ee3d8" },
           };
           return (
             <div>
@@ -2621,11 +2644,6 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
                           {s.assignedMentor && <p style={{ margin: "0 0 1px", fontSize: 11, color: "#9b8fcf" }}>Assigned: {s.assignedMentor}</p>}
                           {s.needTag === "declined" && s.declinedBy && (
                             <p style={{ margin: "0 0 1px", fontSize: 11, color: "#b35c00", fontWeight: 600 }}>Declined by {s.declinedBy}</p>
-                          )}
-                          {s.needTag === "pending" && (
-                            <span style={{ display: "inline-block", marginTop: 4, fontSize: 10, fontWeight: 700, color: "#1a6e42", background: "#e8f8f0", border: "1px solid #b8e8d0", borderRadius: 6, padding: "2px 8px" }}>
-                              ✓ Mentee confirmed participation
-                            </span>
                           )}
                           {s.cohort && <p style={{ margin: "4px 0 0", fontSize: 10, color: "#c0b8d8" }}>Cohort {s.cohort} · {COHORT_NAMES_MD[s.cohort]}</p>}
                         </Card>
@@ -3516,15 +3534,25 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
     );
   };
 
+  const [pendingByMentor, setPendingByMentor] = useState({});
+
   useEffect(() => {
     Promise.all([
       fetch("/api/mentor-email-responses").then(r => r.json()),
       fetch("/api/mentor-selections").then(r => r.json()),
       fetch("/api/mentor-applications").then(r => r.json()).catch(() => ({ mentors: [] })),
       fetch("/api/get-mentor-notes").then(r => r.json()).catch(() => ({ notes: {} })),
-    ]).then(([emailData, selData, appData, notesData]) => {
+      fetch("/api/admin/pending-assignments").then(r => r.json()).catch(() => ({ pending: [] })),
+    ]).then(([emailData, selData, appData, notesData, pendingData]) => {
       setResponses(emailData.responses || []);
       if (notesData.notes) setMentorNotes(notesData.notes);
+
+      // Build pendingByMentor map
+      const pbm = {};
+      for (const g of (pendingData.pending || [])) {
+        pbm[g.mentorName] = (g.mentees || []).map(m => ({ name: m.name, slug: m.slug, isRematch: m.isRematch, prevMentor: m.prevMentor }));
+      }
+      setPendingByMentor(pbm);
 
       // Merge MENTEES-assigned mentors with unmatched Typeform applicants
       const assigned = selData.mentors || [];
@@ -3557,13 +3585,15 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
     .filter(m => m.name !== "MJ" && m.name !== "Kennedy") // exclude test accounts
     .map(m => {
       const resp = responseByMentor[m.name];
+      const pendingMentees = pendingByMentor[m.name] || null;
+      const hasPendingAssignment = !!(pendingMentees && pendingMentees.length > 0);
       if (resp) {
         const opts = resp.options || [];
         const confirmed = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] === "confirmed");
         const declined  = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] === "declined");
         const visibleOpts = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] !== "declined");
         const allDeclined = opts.length > 0 && declined.length === opts.length;
-        return { ...resp, opts: visibleOpts, allOpts: opts, matchCount: confirmed.length, needsMentee: confirmed.length === 0, allDeclined, isPending: false };
+        return { ...resp, opts: visibleOpts, allOpts: opts, matchCount: confirmed.length, needsMentee: confirmed.length === 0, allDeclined, isPending: false, pendingMentees, hasPendingAssignment };
       }
       // No email response yet — applicants from Typeform not yet emailed show as Needs a Mentee
       return {
@@ -3571,6 +3601,7 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
         opts: [], allOpts: [], matchCount: 0, needsMentee: true, allDeclined: false,
         isPending: !m.isApplicant,
         isApplicant: m.isApplicant || false,
+        pendingMentees, hasPendingAssignment,
       };
     });
 
@@ -3772,9 +3803,9 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
             // match badge
             const total = r.opts.length;
             const mc = r.matchCount;
-            const badgeLabel = r.isPending ? "No Reply Yet" : r.isApplicant ? "Needs a Mentee" : r.allDeclined ? "Needs Rematch" : mc === 0 ? "Needs a Mentee" : mc === 1 ? "1 Mentee" : "2 Mentees";
-            const badgeColor = r.isPending ? "#6b6480" : r.isApplicant ? "#b35c00" : r.allDeclined ? "#c0392b" : mc === 0 ? "#b35c00" : mc === 2 ? "#1a6e42" : "#5c4eb5";
-            const badgeBg    = r.isPending ? "#f0eef8" : r.isApplicant ? "#fff3e0" : r.allDeclined ? "#fdf0f0" : mc === 0 ? "#fff3e0" : mc === 2 ? "#e8f8f0" : "#f0ecff";
+            const badgeLabel = r.hasPendingAssignment && mc === 0 ? "Needs to Send" : r.isPending ? "No Reply Yet" : r.isApplicant ? "Needs a Mentee" : r.allDeclined ? "Needs Rematch" : mc === 0 ? "Needs a Mentee" : mc === 1 ? "1 Mentee" : "2 Mentees";
+            const badgeColor = r.hasPendingAssignment && mc === 0 ? "#0e7c6b" : r.isPending ? "#6b6480" : r.isApplicant ? "#b35c00" : r.allDeclined ? "#c0392b" : mc === 0 ? "#b35c00" : mc === 2 ? "#1a6e42" : "#5c4eb5";
+            const badgeBg    = r.hasPendingAssignment && mc === 0 ? "#e8faf7" : r.isPending ? "#f0eef8" : r.isApplicant ? "#fff3e0" : r.allDeclined ? "#fdf0f0" : mc === 0 ? "#fff3e0" : mc === 2 ? "#e8f8f0" : "#f0ecff";
 
             const mentorKey = r.mentor.email || r.mentor.name;
             const sk1 = opt1 ? `${mentorKey}|${opt1.slug}` : null;
@@ -3804,10 +3835,11 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
             };
 
             return (
-              <div key={r.mentor.email || r.mentor.name} style={{
+              <div key={r.mentor.email || r.mentor.name}>
+              <div style={{
                 display: "grid", gridTemplateColumns: COLS,
                 padding: "13px 20px", alignItems: "start",
-                borderBottom: i < visible.length - 1 ? "1px solid #f5f3ff" : "none",
+                borderBottom: (i < visible.length - 1 && !r.pendingMentees?.length) ? "1px solid #f5f3ff" : "none",
                 background: i % 2 === 0 ? "#fff" : "#fdfcff",
               }}>
                 {/* Mentor */}
@@ -3847,6 +3879,24 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
                 <div style={{ minWidth: 0 }}>
                   <MentorNote mentorKey={mentorKey} initialValue={mentorNotes[mentorKey] || ""} />
                 </div>
+              </div>
+
+              {/* Pending mentees — Needs to Send */}
+              {r.pendingMentees?.length > 0 && (
+                <div style={{ padding: "8px 20px 12px", background: i % 2 === 0 ? "#fff" : "#fdfcff", borderTop: "1px solid #e8faf7", borderBottom: i < visible.length - 1 ? "1px solid #f5f3ff" : "none" }}>
+                  <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, color: "#0e7c6b" }}>📬 Pending — Needs to Send</p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {r.pendingMentees.map(pm => (
+                      <div key={pm.slug} style={{ background: "#e8faf7", border: "1px solid #9ee3d8", borderRadius: 8, padding: "4px 10px" }}>
+                        <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#0e7c6b" }}>{pm.name || pm.slug}</p>
+                        {pm.isRematch && (
+                          <p style={{ margin: 0, fontSize: 10, color: "#b35c00" }}>🔄 2nd match</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               </div>
             );
           })}
