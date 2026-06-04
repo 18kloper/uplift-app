@@ -2450,11 +2450,14 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
         mentorsNeedingMentee.push({ name: mentor.name, email: mentor.email, label: "Declined — Needs Rematch" });
         continue;
       }
-      // Mentor confirmed a mentee but that mentee hasn't confirmed participation
-      for (const o of opts) {
-        if (confirmations[`${resp.threadId}|${o.slug}`] === "confirmed" && !confirmedParticipantSlugs.has(o.slug)) {
-          mentorsNeedingMentee.push({ name: mentor.name, email: mentor.email, menteeName: o.name, menteeSlug: o.slug, label: "Mentee Unresponsive" });
-        }
+      // Only flag "Mentee Unresponsive" if the mentor has NO mentee who has confirmed participation.
+      // If even one of their confirmed mentees is an active participant, they're covered.
+      const confirmedMentees = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] === "confirmed");
+      const hasActiveMentee = confirmedMentees.some(o => confirmedParticipantSlugs.has(o.slug));
+      if (!hasActiveMentee && confirmedMentees.length > 0) {
+        // All confirmed mentees are unresponsive — flag the mentor once
+        const names = confirmedMentees.map(o => o.name).join(", ");
+        mentorsNeedingMentee.push({ name: mentor.name, email: mentor.email, menteeName: names, label: "Mentee Unresponsive" });
       }
     }
   }
