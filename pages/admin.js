@@ -2667,16 +2667,12 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
         const actionableMentors = mentorsNeedingMentee.filter(m => m.label === "New Applicant" || m.label === "Declined — Needs Rematch");
         if (actionableMentors.length === 0) return null;
 
-        // Use ALL confirmed participants as the mentee pool — each of the 16 available
-        // mentors can be offered to any confirmed mentee (as a second mentor or primary).
-        // This allows up to 16 × 2 = 32 pairings.
-        const allConfirmedMentees = (selData?.selections || []).filter(s =>
-          !TEST_SLUGS_MD.has(s.slug) && confirmedParticipantSlugs.has(s.slug)
-        );
+        // Mentee pool: everyone in the left column —
+        // unmatched (no mentor / needs invitation / declined) + confirmed participants
+        // whose assigned mentor hasn't responded yet
+        if (needsMentorList.length === 0) return null;
 
-        if (allConfirmedMentees.length === 0) return null;
-
-        return <SuggestedMatches mentees={allConfirmedMentees} mentors={actionableMentors} maxPairings={actionableMentors.length * 2} />;
+        return <SuggestedMatches mentees={needsMentorList} mentors={actionableMentors} maxPairings={actionableMentors.length * 2} />;
       })()}
 
     </div>
@@ -2731,7 +2727,7 @@ function SuggestedMatches({ mentees, mentors, maxPairings }) {
         <div>
           <p style={{ margin: "0 0 3px", fontSize: 18, fontWeight: 800, color: "#1a1733" }}>💡 Suggested Matches</p>
           <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>
-            {mentors.length} available mentor{mentors.length !== 1 ? "s" : ""} × up to 2 mentees each = up to {maxPairings || mentors.length * 2} pairings · drawn from {mentees.length} confirmed participants
+            {mentors.length} available mentor{mentors.length !== 1 ? "s" : ""} × up to 2 mentees each = up to {maxPairings || mentors.length * 2} pairings · drawn from {mentees.length} mentees needing a mentor
           </p>
         </div>
         <button
