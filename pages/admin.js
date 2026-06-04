@@ -2401,6 +2401,7 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
         }
       }
       setAdminMatchedSlugs(adminSlugs);
+      setApprovedMenteeSlugs(adminSlugs);   // seed so declined mentees with new match are excluded
       setApprovedMentorNames(adminMentors);
       setLoading(false);
     }).catch(() => setLoading(false));
