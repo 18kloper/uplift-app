@@ -3,276 +3,458 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TechUnited NJ — Leader Member Welcome</title>
+  <title>TechUnited NJ  Leader Member Welcome</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --purple:      #9333EA;
-      --purple-dark: #581C87;
-      --purple-mid:  #7e22ce;
-      --pink:        #ec4899;
-      --ink:         #111827;
-      --ink-2:       #374151;
-      --ink-3:       #9CA3AF;
-      --rule:        #E5E7EB;
-      --bg:          #F9FAFB;
-      --white:       #FFFFFF;
+      --purple:  #9333EA;
+      --pink:    #ec4899;
+      --orange:  #f97316;
+      --blue:    #3b82f6;
+      --ink:     #ffffff;
+      --card:    #f8f7fc;
+      --card2:   #f0eef8;
+      --border:  rgba(0,0,0,0.07);
+      --text:    #111827;
+      --muted:   #6b7280;
+      --white:   #ffffff;
     }
     body {
       font-family: 'Inter', sans-serif;
-      background: #d1d5db;
-      color: var(--ink);
+      background: #e5e7eb;
+      color: var(--text);
       -webkit-font-smoothing: antialiased;
       padding: 48px 0;
     }
 
     /* ============================================================
-       SHEET — 8.5" × 11" at 96 DPI = 816 × 1056px
+       SHEET  8.5" × 11" at 96 DPI = 816 × 1056px
     ============================================================ */
     .sheet {
       width: 816px;
       height: 1056px;
       margin: 0 auto 48px;
-      background: white;
+      background: var(--ink);
       display: flex;
       flex-direction: column;
-      box-shadow: 0 8px 48px rgba(0,0,0,0.18);
+      box-shadow: 0 8px 60px rgba(0,0,0,0.5);
       overflow: hidden;
+      border: 1px solid var(--border);
     }
 
     @media print {
       body { background: white; padding: 0; }
-      .sheet {
-        margin: 0;
-        box-shadow: none;
-        page-break-after: always;
-        width: 8.5in;
-        height: 11in;
-      }
+      .sheet { margin: 0; box-shadow: none; page-break-after: always; width: 8.5in; height: 11in; }
     }
 
+    /* ============================================================
+       SHARED
+    ============================================================ */
     .eyebrow {
       font-size: 8.5px;
       font-weight: 700;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: var(--purple);
+      color: var(--muted);
     }
-
+    .grad-text {
+      background: linear-gradient(90deg, var(--purple), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .grad-text-2 {
+      background: linear-gradient(90deg, var(--blue), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .grad-text-3 {
+      background: linear-gradient(90deg, var(--orange), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
 
     /* ============================================================
-       PAGE 1 — THE COMMUNITY
+       PAGE 1  THE COMMUNITY
     ============================================================ */
 
-    .p1-hero {
-      background: linear-gradient(150deg, var(--purple-dark) 0%, var(--purple-mid) 55%, #a855f7 100%);
-      padding: 26px 44px 22px;
-      position: relative;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-    .p1-orb {
-      position: absolute;
-      border-radius: 50%;
-      pointer-events: none;
-    }
-    .p1-orb-1 { width: 440px; height: 440px; top: -170px; right: -110px; background: radial-gradient(circle, #7e22ce 0%, transparent 65%); opacity: 0.65; }
-    .p1-orb-2 { width: 220px; height: 220px; bottom: -60px; left: -50px; background: radial-gradient(circle, var(--pink) 0%, transparent 65%); opacity: 0.18; }
-
-    .p1-nav {
+    /* Top bar */
+    .p1-topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
-      position: relative; z-index: 2;
+      padding: 20px 36px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
     }
-    .p1-logo { width: 140px; filter: brightness(0) invert(1); }
-    .p1-nav-tag { font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.38); }
+    .p1-logo { width: 130px; }
+    .p1-topbar-right {
+      text-align: right;
+    }
+    .p1-topbar-label { font-size: 8.5px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+    .p1-topbar-tier { font-size: 11px; font-weight: 700; color: var(--text); letter-spacing: 0.04em; }
+
+    /* Hero band */
+    .p1-hero {
+      padding: 28px 36px 24px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .p1-hero-orb {
+      position: absolute; border-radius: 50%; pointer-events: none;
+    }
+    .p1-orb1 { width: 400px; height: 400px; top: -200px; right: -100px; background: radial-gradient(circle, #7e22ce 0%, transparent 65%); opacity: 0.18; }
+    .p1-orb2 { width: 260px; height: 260px; bottom: -120px; left: -60px; background: radial-gradient(circle, #ec4899 0%, transparent 65%); opacity: 0.1; }
 
     .p1-headline {
       position: relative; z-index: 2;
-      font-size: 60px;
+      font-size: 52px;
       font-weight: 900;
-      color: white;
-      line-height: 0.9;
+      line-height: 0.92;
       letter-spacing: -0.04em;
-      margin-bottom: 16px;
+      color: #111827;
+      margin-bottom: 14px;
     }
-    .p1-headline .ghost { color: rgba(255,255,255,0.2); }
+    .p1-headline .ghost { color: rgba(0,0,0,0.12); }
 
+    .p1-hero-bottom {
+      position: relative; z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
     .p1-sub {
-      position: relative; z-index: 2;
-      font-size: 13px;
-      color: rgba(255,255,255,0.6);
-      margin-bottom: 22px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 320px;
     }
-    .p1-sub strong { color: white; }
+    .p1-sub strong { color: #111827; }
 
+    /* Stats row */
     .p1-stats {
-      position: relative; z-index: 2;
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      border-top: 1px solid rgba(255,255,255,0.1);
-      padding-top: 16px;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
     }
-    .p1-stat { border-right: 1px solid rgba(255,255,255,0.08); padding-right: 16px; }
-    .p1-stat:not(:first-child) { padding-left: 16px; }
+    .p1-stat {
+      padding: 16px 20px;
+      border-right: 1px solid var(--border);
+    }
     .p1-stat:last-child { border-right: none; }
-    .p1-stat-n { font-size: 26px; font-weight: 900; color: white; letter-spacing: -0.03em; line-height: 1; }
-    .p1-stat-l { font-size: 9px; color: rgba(255,255,255,0.38); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 5px; }
+    .p1-stat-n {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .p1-stat-l { font-size: 8.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
 
-    /* Body split */
+    /* Body: two columns */
     .p1-body {
       display: grid;
-      grid-template-columns: 208px 1fr;
+      grid-template-columns: 220px 1fr;
       flex: 1;
       min-height: 0;
     }
 
-    .p1-about {
-      padding: 18px 18px 18px 44px;
-      border-right: 1px solid var(--rule);
+    /* Left column */
+    .p1-left {
+      border-right: 1px solid var(--border);
+      padding: 20px 18px 20px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow: hidden;
+    }
+
+    .p1-about-text {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .p1-about-text strong { color: #111827; }
+
+    .p1-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .p1-tag {
+      font-size: 9.5px;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      color: rgba(0,0,0,0.45);
+    }
+    .p1-tag.purple { border-color: rgba(147,51,234,0.4); color: #c084fc; background: rgba(147,51,234,0.1); }
+    .p1-tag.pink   { border-color: rgba(236,72,153,0.4); color: #f9a8d4; background: rgba(236,72,153,0.1); }
+    .p1-tag.blue   { border-color: rgba(59,130,246,0.4); color: #93c5fd; background: rgba(59,130,246,0.1); }
+    .p1-tag.orange { border-color: rgba(249,115,22,0.4); color: #fdba74; background: rgba(249,115,22,0.1); }
+
+    .p1-impact-grid {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .p1-impact-item {
+      flex: 1;
+      padding: 8px 8px;
+      border-right: 1px solid var(--border);
+      background: var(--card);
+    }
+    .p1-impact-item:last-child { border-right: none; }
+    .p1-impact-n { font-size: 14px; font-weight: 900; letter-spacing: -0.02em; line-height: 1; margin-bottom: 3px; white-space: nowrap; }
+    .p1-impact-l { font-size: 7px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; line-height: 1.3; white-space: nowrap; }
+
+    .p1-pillars {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      overflow: hidden;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
     }
-    .p1-about-text {
-      font-size: 11px;
-      color: var(--ink-2);
-      line-height: 1.65;
+    .p1-pillar { font-size: 10.5px; color: var(--muted); line-height: 1.55; }
+    .p1-pillar strong {
+      display: block;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 2px;
     }
-    .p1-about-text strong { color: var(--ink); font-weight: 700; }
+    .p1-pillar.c-community strong { color: #7c3aed; }
+    .p1-pillar.c-events   strong { color: #be185d; }
+    .p1-pillar.c-capital  strong { color: #c2410c; }
+    .p1-pillar.c-policy   strong { color: #1d4ed8; }
 
-    .p1-aud-list { display: flex; flex-direction: column; gap: 5px; }
-    .p1-aud-item { display: flex; align-items: center; gap: 7px; font-size: 10.5px; color: var(--ink-2); }
-    .p1-aud-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--purple); flex-shrink: 0; }
-
-    .p1-pillars { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--rule); padding-top: 12px; }
-    .p1-pillar { font-size: 10.5px; color: var(--ink-3); line-height: 1.5; }
-    .p1-pillar strong { color: var(--ink); font-weight: 700; display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 1px; }
-
-    /* Events */
-    .p1-events {
-      padding: 18px 30px 18px 22px;
+    /* Right column: events */
+    .p1-right {
+      padding: 18px 26px 18px 20px;
       display: flex;
       flex-direction: column;
     }
-    .p1-events-top {
+    .p1-right-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 10px;
       flex-shrink: 0;
     }
-    .p1-access-chip {
-      font-size: 8.5px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--purple);
-      background: #f3e8ff;
-      padding: 3px 9px;
-      border-radius: 100px;
+    .p1-access-pill {
+      font-size: 8.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      background: rgba(147,51,234,0.15);
+      border: 1px solid rgba(147,51,234,0.35);
+      color: #c084fc;
+      padding: 3px 10px; border-radius: 100px;
     }
 
     .p1-ev-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      border: 1px solid var(--rule);
-      border-radius: 10px;
-      overflow: hidden;
+      gap: 6px;
       flex: 1;
     }
     .p1-ev {
-      border-right: 1px solid var(--rule);
-      border-bottom: 1px solid var(--rule);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
     }
-    .p1-ev:nth-child(3n) { border-right: none; }
-    .p1-ev:nth-child(n+4) { border-bottom: none; }
-
     .ev-bar { height: 3px; flex-shrink: 0; }
-    .ev-bar.c1 { background: linear-gradient(90deg, var(--purple-dark), var(--purple)); }
+    .ev-bar.c1 { background: linear-gradient(90deg, #581C87, #9333EA); }
     .ev-bar.c2 { background: linear-gradient(90deg, #7c3aed, #a855f7); }
-    .ev-bar.c3 { background: linear-gradient(90deg, #be185d, var(--pink)); }
+    .ev-bar.c3 { background: linear-gradient(90deg, #be185d, #ec4899); }
     .ev-bar.c4 { background: linear-gradient(90deg, #4f46e5, #7c3aed); }
     .ev-bar.c5 { background: linear-gradient(90deg, #1e1b4b, #4338ca); }
-    .ev-bar.c6 { background: linear-gradient(90deg, #1f2937, #4B5563); }
+    .ev-bar.c6 { background: linear-gradient(90deg, #1f2937, #374151); }
 
-    .p1-ev-inner { padding: 10px 13px 10px; flex: 1; display: flex; flex-direction: column; }
-    .p1-ev-logo-wrap { height: 24px; display: flex; align-items: center; margin-bottom: 6px; flex-shrink: 0; }
-    .p1-ev-logo { max-height: 22px; max-width: 100px; object-fit: contain; object-position: left; }
-    .p1-ev-wordmark { font-size: 12px; font-weight: 800; color: var(--ink); line-height: 1.1; }
-    .p1-ev-type { font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-bottom: 3px; flex-shrink: 0; }
-    .p1-ev-desc { font-size: 10px; color: var(--ink-2); line-height: 1.5; flex: 1; }
+    .p1-ev-inner { padding: 10px 12px; flex: 1; display: flex; flex-direction: column; }
+    .p1-ev-logo-wrap { height: 26px; display: flex; align-items: center; margin-bottom: 6px; flex-shrink: 0; }
+    .p1-ev-logo { max-height: 20px; max-width: 110px; object-fit: contain; object-position: left; }
+    .p1-ev-wordmark { font-size: 11.5px; font-weight: 800; color: #111827; line-height: 1.1; }
+    .p1-ev-type { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); margin-bottom: 3px; flex-shrink: 0; }
+    .p1-ev-desc { font-size: 9.5px; color: #6b7280; line-height: 1.5; flex: 1; }
 
-    /* Page 1 footer */
+    /* Flagship event brands strip */
+    .p1-event-brands {
+      border-top: 1px solid var(--border);
+      padding: 8px 36px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-shrink: 0;
+    }
+    .p1-event-brands-label {
+      font-size: 7.5px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--muted); white-space: nowrap;
+    }
+    .p1-event-brands-list {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .p1-event-brand-chip {
+      font-size: 9.5px; font-weight: 800; padding: 3px 10px; border-radius: 5px;
+      border: 1px solid; letter-spacing: 0.01em;
+    }
+    .p1-event-brand-chip.propelify { color: #7c3aed; border-color: rgba(124,58,237,0.35); background: rgba(124,58,237,0.07); }
+    .p1-event-brand-chip.overdrive { color: #1d4ed8; border-color: rgba(29,78,216,0.35); background: rgba(29,78,216,0.07); }
+
+    /* Partners strip */
+    .p1-partners {
+      border-top: 1px solid var(--border);
+      background: var(--card);
+      padding: 8px 36px;
+      flex-shrink: 0;
+    }
+    .p1-partners-label {
+      font-size: 7.5px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 6px;
+    }
+    .p1-partners-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .p1-partners-list span {
+      font-size: 8.5px;
+      font-weight: 600;
+      color: #6b7280;
+      background: rgba(0,0,0,0.04);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 7px;
+      letter-spacing: 0.02em;
+    }
+
+    /* Footer */
     .p1-footer {
-      background: var(--ink);
-      padding: 13px 44px;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      padding: 10px 36px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-shrink: 0;
     }
-    .p1-footer-logo { width: 100px; filter: brightness(0) invert(1); }
-    .p1-footer-text { font-size: 10px; color: rgba(255,255,255,0.35); }
+    .p1-footer-logo { width: 80px; filter: none; opacity: 0.8; }
+    .p1-footer-contacts { display: flex; gap: 20px; align-items: center; }
+    .p1-footer-contact { text-align: center; }
+    .p1-footer-contact-email { font-size: 9px; font-weight: 700; color: #9333EA; }
+    .p1-footer-contact-role { font-size: 7.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 1px; }
 
 
     /* ============================================================
-       PAGE 2 — YOUR BENEFITS
+       PAGE 1.5, PERSONALIZED: SMART STATE
+    ============================================================ */
+    .ps-topbar { display:flex; justify-content:space-between; align-items:center; padding:18px 36px; border-bottom:1px solid var(--border); flex-shrink:0; }
+    .ps-logo { width:120px; }
+    .ps-badge { font-size:8px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; background:rgba(147,51,234,0.12); border:1px solid rgba(147,51,234,0.3); color:#9333EA; padding:4px 12px; border-radius:100px; }
+    .ps-hero { padding:26px 36px 22px; border-bottom:1px solid var(--border); flex-shrink:0; position:relative; overflow:hidden; background:linear-gradient(135deg,rgba(147,51,234,0.04) 0%,rgba(59,130,246,0.04) 100%); }
+    .ps-hero-orb1 { position:absolute; width:350px; height:350px; top:-180px; right:-80px; border-radius:50%; background:radial-gradient(circle,#7e22ce 0%,transparent 65%); opacity:0.12; pointer-events:none; }
+    .ps-hero-orb2 { position:absolute; width:200px; height:200px; bottom:-100px; left:-40px; border-radius:50%; background:radial-gradient(circle,#3b82f6 0%,transparent 65%); opacity:0.1; pointer-events:none; }
+    .ps-hero-inner { position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+    .ps-welcome-label { font-size:8.5px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+    .ps-headline { font-size:36px; font-weight:900; line-height:1; letter-spacing:-0.03em; color:#111827; margin-bottom:10px; }
+    .ps-sub { font-size:11px; color:var(--muted); line-height:1.6; max-width:380px; }
+    .ps-sub strong { color:#111827; }
+    .ps-company-logo { height:auto; width:220px; max-width:220px; object-fit:contain; object-position:right center; flex-shrink:0; }
+    .ps-body { display:flex; flex-direction:column; flex:1; min-height:0; padding:14px 36px 10px; gap:8px; overflow:hidden; }
+    .ps-pair-header { display:flex; align-items:center; gap:8px; margin-bottom:2px; }
+    .ps-pair-header-arrow { width:28px; flex-shrink:0; }
+    .ps-section-label { font-size:8px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); flex:1; }
+    .ps-pair { display:flex; align-items:stretch; gap:6px; }
+    .ps-pair-arrow { width:28px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:15px; color:#c084fc; font-weight:900; }
+    .ps-goals { display:flex; flex-direction:column; gap:5px; }
+    .ps-goal { display:flex; align-items:flex-start; gap:8px; padding:8px 12px; background:var(--card); border:1px solid var(--border); border-radius:7px; }
+    .ps-goal-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; margin-top:3px; }
+    .ps-goal-title { font-size:10px; font-weight:700; color:var(--text); line-height:1.2; margin-bottom:1px; }
+    .ps-goal-desc { font-size:8.5px; color:var(--muted); line-height:1.4; }
+    .ps-moves { display:flex; flex-direction:column; gap:5px; }
+    .ps-move { display:flex; gap:8px; align-items:flex-start; padding:8px 12px; border-radius:7px; border:1px solid var(--border); background:var(--card); }
+    .ps-move-num { font-size:8px; font-weight:800; color:#9333EA; min-width:12px; margin-top:2px; flex-shrink:0; }
+    .ps-move-body { flex:1; }
+    .ps-move-title { font-size:10px; font-weight:700; color:var(--text); line-height:1.2; margin-bottom:1px; }
+    .ps-move-desc { font-size:8.5px; color:var(--muted); line-height:1.4; }
+    .ps-move-tags { display:flex; gap:4px; margin-top:3px; flex-wrap:wrap; }
+    .ps-tag-inc { font-size:7px; font-weight:700; padding:1px 5px; border-radius:3px; background:rgba(22,163,74,0.1); color:#16a34a; border:1px solid rgba(22,163,74,0.25); }
+    .ps-tag-add { font-size:7px; font-weight:700; padding:1px 5px; border-radius:3px; background:rgba(249,115,22,0.1); color:#ea580c; border:1px solid rgba(249,115,22,0.3); }
+    .ps-footer { background:var(--card); border-top:1px solid var(--border); padding:10px 36px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+    .ps-footer-note { font-size:9px; color:var(--muted); }
+    .ps-footer-contacts { display:flex; gap:20px; }
+    .ps-footer-contact { text-align:center; }
+    .ps-footer-contact-email { font-size:9px; font-weight:700; color:#9333EA; }
+    .ps-footer-contact-role { font-size:7.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; margin-top:1px; }
+
+    /* ============================================================
+       PAGE 2  YOUR BENEFITS
     ============================================================ */
 
-    .p2-header {
-      background: linear-gradient(135deg, var(--purple-dark) 0%, var(--purple) 100%);
-      padding: 22px 44px;
+    .p2-topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 18px 36px;
+      border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
-    .p2-logo { width: 130px; filter: brightness(0) invert(1); }
-    .p2-header-right { text-align: right; }
-    .p2-header-label { font-size: 8.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.38); margin-bottom: 3px; }
-    .p2-header-title { font-size: 18px; font-weight: 900; color: white; letter-spacing: -0.02em; }
+    .p2-logo { width: 120px; filter: none; }
+    .p2-topbar-right { text-align: right; }
+    .p2-topbar-label { font-size: 8.5px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+    .p2-topbar-title { font-size: 17px; font-weight: 900; color: var(--text); letter-spacing: -0.02em; }
 
     .p2-intro {
-      padding: 14px 44px;
-      background: var(--bg);
-      border-bottom: 1px solid var(--rule);
+      padding: 12px 36px;
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 16px;
+      background: var(--card);
       flex-shrink: 0;
     }
-    .p2-intro-text { font-size: 12px; color: var(--ink-2); }
-    .p2-intro-text strong { color: var(--ink); }
-    .p2-intro-chip {
-      font-size: 8.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-      background: var(--purple-dark); color: white;
-      padding: 4px 11px; border-radius: 100px; flex-shrink: 0;
+    .p2-intro-text { font-size: 11.5px; color: var(--muted); }
+    .p2-intro-text strong { color: var(--text); }
+    .p2-intro-badge {
+      font-size: 8px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      background: rgba(147,51,234,0.2); border: 1px solid rgba(147,51,234,0.4);
+      color: #c084fc; padding: 4px 12px; border-radius: 100px; flex-shrink: 0;
     }
 
     .p2-body {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      padding: 18px 44px 14px;
+      padding: 16px 36px 12px;
+      gap: 0;
       flex: 1;
       min-height: 0;
       overflow: hidden;
     }
-
-    .p2-col:first-child { border-right: 1px solid var(--rule); padding-right: 28px; }
-    .p2-col:last-child { padding-left: 28px; }
+    .p2-col:first-child { border-right: 1px solid var(--border); padding-right: 24px; }
+    .p2-col:last-child { padding-left: 24px; }
 
     .p2-col-label {
-      font-size: 8.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--ink-3); margin-bottom: 8px; padding-bottom: 7px;
-      border-bottom: 1px solid var(--rule);
+      font-size: 8px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--muted); padding-bottom: 7px; margin-bottom: 0;
+      border-bottom: 1px solid var(--border);
     }
 
     .p2-benefit {
@@ -280,86 +462,78 @@
       align-items: flex-start;
       gap: 9px;
       padding: 7px 0;
-      border-bottom: 1px solid var(--rule);
+      border-bottom: 1px solid var(--border);
     }
     .p2-benefit:last-child { border-bottom: none; }
 
-    .p2-num { font-size: 8.5px; font-weight: 700; color: var(--ink-3); min-width: 16px; margin-top: 2px; }
-    .p2-bname { font-size: 12px; font-weight: 700; color: var(--ink); line-height: 1.25; }
-    .p2-baction { font-size: 10px; color: var(--ink-3); margin-top: 1px; line-height: 1.4; }
-
+    .p2-num { font-size: 8.5px; font-weight: 700; color: var(--muted); min-width: 16px; margin-top: 2px; }
+    .p2-bname { font-size: 11.5px; font-weight: 700; color: var(--text); line-height: 1.25; }
+    .p2-baction { font-size: 9.5px; color: var(--muted); margin-top: 1px; line-height: 1.4; }
     .p2-btag {
-      margin-left: auto; font-size: 7.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-      padding: 2px 6px; border-radius: 100px; flex-shrink: 0; margin-top: 1px; white-space: nowrap;
+      margin-left: auto; font-size: 7.5px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; margin-top: 1px;
     }
-    .p2-btag.leader { background: #f3e8ff; color: var(--purple); }
-    .p2-btag.all { background: var(--bg); color: var(--ink-3); border: 1px solid var(--rule); }
+    .p2-btag.leader { background: rgba(147,51,234,0.2); color: #c084fc; border: 1px solid rgba(147,51,234,0.3); }
+    .p2-btag.all    { background: var(--card2); color: var(--muted); border: 1px solid var(--border); }
 
-    /* Getting started */
     .p2-started {
-      padding: 14px 44px 16px;
-      border-top: 1px solid var(--rule);
-      background: var(--bg);
+      padding: 12px 36px 14px;
+      border-top: 1px solid var(--border);
+      background: var(--card);
       flex-shrink: 0;
     }
     .p2-started-label {
-      font-size: 8.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--purple); margin-bottom: 10px;
+      font-size: 8px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      color: #c084fc; margin-bottom: 10px;
     }
-    .p2-steps {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-    }
+    .p2-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
     .p2-step {
-      background: white;
-      border: 1px solid var(--rule);
-      border-radius: 8px;
-      padding: 10px 12px;
+      background: var(--card2); border: 1px solid var(--border); border-radius: 7px; padding: 10px 11px;
     }
-    .p2-step-when { font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--purple); margin-bottom: 3px; }
-    .p2-step-title { font-size: 11.5px; font-weight: 700; color: var(--ink); line-height: 1.25; margin-bottom: 2px; }
-    .p2-step-desc { font-size: 10px; color: var(--ink-3); line-height: 1.5; }
+    .p2-step-when { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #c084fc; margin-bottom: 3px; }
+    .p2-step-title { font-size: 11px; font-weight: 700; color: var(--text); line-height: 1.25; margin-bottom: 2px; }
+    .p2-step-desc { font-size: 9.5px; color: var(--muted); line-height: 1.5; }
 
     .p2-footer {
-      background: var(--ink);
-      padding: 13px 44px;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      padding: 11px 36px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-shrink: 0;
     }
-    .p2-footer-text { font-size: 10px; color: rgba(255,255,255,0.4); }
-    .p2-footer-email { font-size: 12px; font-weight: 700; color: #c084fc; }
+    .p2-footer-text { font-size: 9.5px; color: var(--muted); }
+    .p2-footer-email { font-size: 11.5px; font-weight: 700; color: #c084fc; }
 
 
     /* ============================================================
-       PAGE 3 — GO DEEPER: SPONSORSHIP
+       PAGE 3  GO DEEPER: SPONSORSHIP
     ============================================================ */
 
-    .p3-header {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      padding: 22px 44px;
+    .p3-topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 18px 36px;
+      border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
-    .p3-logo { width: 130px; filter: brightness(0) invert(1); }
-    .p3-header-right { text-align: right; }
-    .p3-header-label { font-size: 8.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 3px; }
-    .p3-header-title { font-size: 18px; font-weight: 900; color: white; letter-spacing: -0.02em; }
+    .p3-logo { width: 120px; filter: none; }
+    .p3-topbar-right { text-align: right; }
+    .p3-topbar-label { font-size: 8.5px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+    .p3-topbar-title { font-size: 15px; font-weight: 900; color: var(--text); letter-spacing: -0.02em; }
 
     .p3-intro {
-      padding: 14px 44px;
-      background: var(--bg);
-      border-bottom: 1px solid var(--rule);
-      font-size: 12px;
-      color: var(--ink-2);
+      padding: 12px 36px;
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+      font-size: 11.5px;
+      color: var(--muted);
       line-height: 1.6;
       flex-shrink: 0;
     }
-    .p3-intro strong { color: var(--ink); }
+    .p3-intro strong { color: var(--text); }
 
     .p3-cards {
       display: grid;
@@ -367,75 +541,74 @@
       flex: 1;
       min-height: 0;
     }
-
     .p3-card {
-      border-right: 1px solid var(--rule);
+      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
     .p3-card:last-child { border-right: none; }
 
-    .p3-card-bar { height: 4px; flex-shrink: 0; }
+    .p3-card-bar { height: 3px; flex-shrink: 0; }
     .p3-card-bar.b1 { background: linear-gradient(90deg, #5B8DEF, #9B59B6, #E91E8C); }
     .p3-card-bar.b2 { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
-    .p3-card-bar.b3 { background: linear-gradient(90deg, var(--purple-dark), var(--purple)); }
+    .p3-card-bar.b3 { background: linear-gradient(90deg, #581C87, #9333EA); }
 
     .p3-card-head {
       padding: 16px 18px 14px;
-      border-bottom: 1px solid var(--rule);
+      border-bottom: 1px solid var(--border);
       flex-shrink: 0;
+      background: var(--card);
+      display: flex;
+      flex-direction: column;
+      min-height: 148px;
     }
-    .p3-card-tag { font-size: 8.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px; }
-    .p3-card-name { font-size: 15px; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; margin-bottom: 4px; }
-    .p3-card-desc { font-size: 10.5px; color: var(--ink-3); line-height: 1.5; margin-bottom: 8px; }
-    .p3-card-from { font-size: 8.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3); }
-    .p3-card-price { font-size: 22px; font-weight: 900; color: var(--ink); letter-spacing: -0.02em; }
+    .p3-card-price-wrap { margin-top: auto; }
+    .p3-card-tag { font-size: 8px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .p3-card-name { font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: -0.01em; margin-bottom: 4px; }
+    .p3-card-desc { font-size: 10px; color: var(--muted); line-height: 1.55; margin-bottom: 8px; }
+    .p3-card-from { font-size: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+    .p3-card-price { font-size: 22px; font-weight: 900; letter-spacing: -0.02em; }
 
-    .p3-tiers { padding: 12px 18px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .p3-tiers { padding: 12px 18px; flex: 1; display: flex; flex-direction: column; gap: 7px; }
 
     .p3-tier {
-      background: var(--bg);
-      border: 1px solid var(--rule);
+      background: var(--card);
+      border: 1px solid var(--border);
       border-radius: 7px;
       padding: 10px 12px;
     }
     .p3-tier.feat {
-      background: #f3e8ff;
-      border-color: rgba(147,51,234,0.2);
+      background: rgba(147,51,234,0.08);
+      border-color: rgba(147,51,234,0.3);
     }
-    .p3-tier-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 6px;
-    }
-    .p3-tier-name { font-size: 8.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
-    .p3-tier.feat .p3-tier-name { color: var(--purple); }
-    .p3-tier-price { font-size: 15px; font-weight: 900; color: var(--ink); letter-spacing: -0.02em; }
+    .p3-tier-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+    .p3-tier-name { font-size: 8.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .p3-tier.feat .p3-tier-name { color: #c084fc; }
+    .p3-tier-price { font-size: 15px; font-weight: 900; color: var(--text); letter-spacing: -0.02em; }
     .p3-tier-items { display: flex; flex-direction: column; gap: 4px; }
     .p3-tier-item {
-      font-size: 10.5px; color: var(--ink-2); line-height: 1.4;
+      font-size: 10px; color: rgba(0,0,0,0.45); line-height: 1.4;
       display: flex; gap: 6px; align-items: flex-start;
     }
     .p3-tier-item::before {
-      content: '';
-      width: 3px; height: 3px; border-radius: 50%;
+      content: ''; width: 3px; height: 3px; border-radius: 50%;
       background: var(--purple); flex-shrink: 0; margin-top: 4px;
     }
 
     .p3-cta {
-      background: linear-gradient(135deg, var(--purple-dark), var(--purple-mid));
-      padding: 18px 44px;
+      border-top: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(88,28,135,0.6) 0%, rgba(126,34,206,0.4) 100%);
+      padding: 16px 36px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 20px;
       flex-shrink: 0;
     }
-    .p3-cta-left strong { display: block; font-size: 15px; font-weight: 800; color: white; margin-bottom: 2px; }
-    .p3-cta-left span { font-size: 11px; color: rgba(255,255,255,0.55); }
-    .p3-cta-email { font-size: 18px; font-weight: 900; color: white; letter-spacing: -0.01em; }
+    .p3-cta-left strong { display: block; font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 2px; }
+    .p3-cta-left span { font-size: 10.5px; color: rgba(255,255,255,0.6); }
+    .p3-cta-email { font-size: 18px; font-weight: 900; color: #fff; letter-spacing: -0.01em; }
 
   </style>
 </head>
@@ -446,72 +619,96 @@
 ====================================================================== -->
 <div class="sheet">
 
-  <div class="p1-hero">
-    <div class="p1-orb p1-orb-1"></div>
-    <div class="p1-orb p1-orb-2"></div>
-
-    <div class="p1-nav">
-      <img src="https://techunited.co/wp-content/uploads/2026/03/TechUnitedNJ-Logo-FINAL-Full-Color-Black-Text.png"
-           alt="TechUnited NJ" class="p1-logo" />
-      <div class="p1-nav-tag">Leader Member Welcome</div>
+  <div class="p1-topbar">
+    <img src="https://techunited.co/wp-content/uploads/2026/03/TechUnitedNJ-Logo-FINAL-Full-Color-Black-Text.png"
+         alt="TechUnited NJ" class="p1-logo" />
+    <div class="p1-topbar-right">
+      <div class="p1-topbar-label">Leader Member Welcome</div>
+      <div class="p1-topbar-tier">Innovation Leader</div>
     </div>
+  </div>
 
-    <div class="p1-headline">Welcome<br><span class="ghost">to the</span><br>community.</div>
-    <div class="p1-sub">You are now a <strong>TechUnited Innovation Leader</strong> and part of NJ's innovation community.</div>
+  <div class="p1-hero">
+    <div class="p1-hero-orb p1-orb1"></div>
+    <div class="p1-hero-orb p1-orb2"></div>
+    <div class="p1-headline">
+      Welcome to the<br>
+      <span class="grad-text">TechUnited:NJ</span> <span class="ghost">community.</span>
+    </div>
+    <div class="p1-hero-bottom">
+      <div class="p1-sub">You are now a <strong>TechUnited Innovation Leader</strong>  part of NJ's innovation community since 1996.</div>
+    </div>
+  </div>
 
-    <div class="p1-stats">
-      <div class="p1-stat"><div class="p1-stat-n">60K+</div><div class="p1-stat-l">Community Members</div></div>
-      <div class="p1-stat"><div class="p1-stat-n">200+</div><div class="p1-stat-l">Member Companies</div></div>
-      <div class="p1-stat"><div class="p1-stat-n">13K</div><div class="p1-stat-l">Newsletter Subscribers</div></div>
-      <div class="p1-stat"><div class="p1-stat-n">55%</div><div class="p1-stat-l">Human Open Rate</div></div>
+  <div class="p1-stats">
+    <div class="p1-stat">
+      <div class="p1-stat-n grad-text">30K</div>
+      <div class="p1-stat-l">Distribution List</div>
+    </div>
+    <div class="p1-stat">
+      <div class="p1-stat-n grad-text-3">1.8M</div>
+      <div class="p1-stat-l">Digital Impressions</div>
+    </div>
+    <div class="p1-stat">
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <div class="p1-stat-n grad-text">13K</div>
+        <div class="p1-stat-n grad-text-2" style="font-size:18px">· 55%</div>
+      </div>
+      <div class="p1-stat-l">Newsletter Subscribers · Human Open Rate</div>
+    </div>
+    <div class="p1-stat">
+      <div class="p1-stat-n grad-text-3">200+</div>
+      <div class="p1-stat-l">NJ Companies Trust Us</div>
     </div>
   </div>
 
   <div class="p1-body">
 
-    <div class="p1-about">
+    <div class="p1-left">
       <div>
-        <div class="eyebrow" style="margin-bottom:6px">About TechUnited</div>
-        <div class="p1-about-text">Founded as NJTC in <strong>1996</strong>, TechUnited is NJ's innovation infrastructure — connecting founders, enterprises, investors, policymakers, and students across New Jersey for nearly three decades.</div>
+        <div class="eyebrow" style="margin-bottom:7px">About TechUnited</div>
+        <div class="p1-about-text">Founded as NJTC in <strong>1996</strong>, TechUnited is NJ's innovation infrastructure  connecting founders, enterprises, investors, policymakers, and students for nearly three decades.</div>
+      </div>
+
+      <div>
+        <div class="eyebrow" style="margin-bottom:8px">Impact · By the Numbers</div>
+        <div class="p1-impact-grid">
+          <div class="p1-impact-item">
+            <div class="p1-impact-n grad-text-2">$900M</div>
+            <div class="p1-impact-l">Buying Power</div>
+          </div>
+          <div class="p1-impact-item">
+            <div class="p1-impact-n grad-text">72 NPS</div>
+            <div class="p1-impact-l">Experience Score</div>
+          </div>
+          <div class="p1-impact-item">
+            <div class="p1-impact-n grad-text-3">4.62/5</div>
+            <div class="p1-impact-l">Avg. Satisfaction Rating</div>
+          </div>
+        </div>
       </div>
 
       <div class="p1-pillars">
-        <div class="eyebrow" style="margin-bottom:7px">Our work</div>
-        <div class="p1-pillar"><strong>Community</strong>Membership, newsletter (13K subscribers, 55% open rate), Uplift Mentorship</div>
-        <div class="p1-pillar"><strong>Events</strong>Propelify, OverDrive AI, Catalyst Awards, AI Demo Night, FutureState</div>
-        <div class="p1-pillar"><strong>Capital</strong>Tech Council Ventures, BetterFutureLabs, BetterX, QSBS advisory, Angel Investor Tax Credit</div>
-        <div class="p1-pillar"><strong>Policy</strong>Active with Governor Sherrill, Senator Kim, and NJ's senior leaders</div>
+        <div class="eyebrow" style="margin-bottom:9px">Our Work</div>
+        <div class="p1-pillar c-community"><strong>Community</strong>New Jersey's largest tech community, home to the engineers and technical leaders shaping the next era of AI. State-backed, future-forward, and deeply invested in the people building here. From aspiring founders to enterprise, NJ is where business happens, and we're the community that makes it possible.</div>
       </div>
     </div>
 
-    <div class="p1-events">
-      <div class="p1-events-top">
-        <div class="eyebrow">Flagship Events</div>
-        <div class="p1-access-chip">Free access for your whole team</div>
+    <div class="p1-right">
+      <div class="p1-right-top">
+        <div class="eyebrow">Flagship Events &amp; Programs</div>
+        <div class="p1-access-pill">Free access for your whole team</div>
       </div>
 
       <div class="p1-ev-grid">
 
         <div class="p1-ev">
-          <div class="ev-bar c1"></div>
-          <div class="p1-ev-inner">
-            <div class="p1-ev-logo-wrap">
-              <img src="https://propelify.com/wp-content/uploads/2022/02/propelify_color.svg"
-                   alt="Propelify" class="p1-ev-logo" />
-            </div>
-            <div class="p1-ev-type">Annual Flagship Festival</div>
-            <div class="p1-ev-desc">NJ's largest innovation festival. Thousands of founders, investors, and operators.</div>
-          </div>
-        </div>
-
-        <div class="p1-ev">
           <div class="ev-bar c2"></div>
           <div class="p1-ev-inner">
             <div class="p1-ev-logo-wrap">
-              <img src="https://techunited.co/wp-content/uploads/2025/10/teach.png"
-                   alt="OverDrive AI" class="p1-ev-logo"
+              <img src="/overdrive-logo.png" alt="OverdriveAI" class="p1-ev-logo" style="max-height:26px;max-width:130px"
                    onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
-              <div class="p1-ev-wordmark" style="display:none">OverDrive AI</div>
+              <div class="p1-ev-wordmark" style="display:none">OverdriveAI</div>
             </div>
             <div class="p1-ev-type">Northeast's Premier AI Summit</div>
             <div class="p1-ev-desc">300+ AI practitioners, executives, and investors. Full-day summit.</div>
@@ -519,46 +716,62 @@
         </div>
 
         <div class="p1-ev">
-          <div class="ev-bar c3"></div>
-          <div class="p1-ev-inner">
-            <div class="p1-ev-logo-wrap">
-              <div class="p1-ev-wordmark">Catalyst Awards</div>
-            </div>
-            <div class="p1-ev-type">Annual Recognition Gala</div>
-            <div class="p1-ev-desc">NJ's premier gala honoring leaders, disruptors, and entrepreneurs.</div>
-          </div>
-        </div>
-
-        <div class="p1-ev">
           <div class="ev-bar c4"></div>
           <div class="p1-ev-inner">
             <div class="p1-ev-logo-wrap">
-              <div class="p1-ev-wordmark">AI Demo Night</div>
+              <img src="/aidn-logo.png" alt="AI Demo Night" class="p1-ev-logo"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+              <div class="p1-ev-wordmark" style="display:none;color:#38bdf8;">AI Demo Night</div>
             </div>
             <div class="p1-ev-type">Monthly Showcase · 2,300+ Attendees</div>
-            <div class="p1-ev-desc">Live demos, founder showcases. 11 editions at Stevens Institute.</div>
+            <div class="p1-ev-desc">Live demos, founder showcases. 11 editions across New York and New Jersey.</div>
           </div>
         </div>
 
         <div class="p1-ev">
-          <div class="ev-bar c5"></div>
+          <div class="ev-bar" style="background:linear-gradient(90deg,#1e40af,#ec4899)"></div>
           <div class="p1-ev-inner">
             <div class="p1-ev-logo-wrap">
-              <div class="p1-ev-wordmark">FutureState</div>
+              <img src="/bfl-logo.png" alt="Better Future Labs" class="p1-ev-logo" style="max-height:22px;max-width:110px" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+              <div class="p1-ev-wordmark" style="display:none">BetterFutureLabs</div>
             </div>
-            <div class="p1-ev-type">Policy and Innovation</div>
-            <div class="p1-ev-desc">Where NJ's innovation community meets government to shape the state's future.</div>
+            <div class="p1-ev-type">Venture Studio</div>
+            <div class="p1-ev-desc">TechUnited's venture studio building and backing the next generation of NJ companies.</div>
           </div>
         </div>
 
         <div class="p1-ev">
-          <div class="ev-bar c6"></div>
+          <div class="ev-bar" style="background:linear-gradient(90deg,#7c3aed,#ec4899)"></div>
           <div class="p1-ev-inner">
             <div class="p1-ev-logo-wrap">
-              <div class="p1-ev-wordmark" style="color:var(--ink-3)">Private Events</div>
+              <img src="/uplift-logo.png" alt="Uplift" class="p1-ev-logo"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+              <div class="p1-ev-wordmark" style="display:none">Uplift</div>
             </div>
-            <div class="p1-ev-type">Members Only</div>
-            <div class="p1-ev-desc">Roundtables, fishing trips, and intimate sessions not on public calendars.</div>
+            <div class="p1-ev-type">Mentorship Program</div>
+            <div class="p1-ev-desc">NJ's flagship mentorship program for women and minority founders. Priority admission for members.</div>
+          </div>
+        </div>
+
+        <div class="p1-ev">
+          <div class="ev-bar" style="background:linear-gradient(90deg,#059669,#10b981)"></div>
+          <div class="p1-ev-inner">
+            <div class="p1-ev-logo-wrap">
+              <div class="p1-ev-wordmark" style="background:linear-gradient(90deg,#059669,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Better Future Builders</div>
+            </div>
+            <div class="p1-ev-type">HS Entrepreneurship Certificate</div>
+            <div class="p1-ev-desc">6-week program for NJ high schoolers. Live sessions with STEM and startup leaders, a startup challenge, LinkedIn badge, and a certificate to add to their resume. Brought to you by BetterFutureLabs and TechUnited:NJ.</div>
+          </div>
+        </div>
+
+        <div class="p1-ev" style="background:rgba(194,65,12,0.08);border:1px solid rgba(194,65,12,0.25)">
+          <div class="ev-bar" style="background:linear-gradient(90deg,#c2410c,#f97316)"></div>
+          <div class="p1-ev-inner">
+            <div class="p1-ev-logo-wrap">
+              <div class="p1-ev-wordmark" style="color:#c2410c">🏛️ Policy Advocacy</div>
+            </div>
+            <div class="p1-ev-type" style="color:#c2410c;font-weight:700;opacity:0.85">Active in Trenton + DC</div>
+            <div class="p1-ev-desc" style="color:#92400e">We fight for the policies that fund innovation. <span style="font-weight:700">QSBS</span> and <span style="font-weight:700">Angel Investor Tax Credit</span>, actively working to protect and expand both.</div>
           </div>
         </div>
 
@@ -567,10 +780,117 @@
 
   </div>
 
+  <div class="p1-partners">
+    <div class="p1-partners-label">A Preview of Some Featured Partners</div>
+    <div class="p1-partners-list">
+      <span>Verizon</span><span>Google</span><span>Amazon</span><span>PSEG</span><span>Meta</span><span>Audible</span><span>PNC</span><span>Cross River</span><span>RSM</span><span>EY</span><span>NJEDA</span><span>Edison Partners</span><span>Tech Council Ventures</span><span>DLA Piper</span><span>Rutgers</span><span>NJIT</span><span>Stevens</span><span>Nokia Bell Labs</span>
+    </div>
+  </div>
+
   <div class="p1-footer">
     <img src="https://techunited.co/wp-content/uploads/2026/03/TechUnitedNJ-Logo-FINAL-Full-Color-Black-Text.png"
          alt="TechUnited NJ" class="p1-footer-logo" />
-    <div class="p1-footer-text">techunited.co &nbsp;·&nbsp; mj@techunited.co &nbsp;·&nbsp; Founded 1996</div>
+    <div class="p1-footer-contacts">
+      <div class="p1-footer-contact">
+        <div class="p1-footer-contact-email">aprice@techunited.co</div>
+        <div class="p1-footer-contact-role">CEO</div>
+      </div>
+      <div class="p1-footer-contact">
+        <div class="p1-footer-contact-email">mj@techunited.co</div>
+        <div class="p1-footer-contact-role">COO</div>
+      </div>
+      <div class="p1-footer-contact">
+        <div class="p1-footer-contact-email">kennedy@techunited.co</div>
+        <div class="p1-footer-contact-role">Head of Community &amp; Ops</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- =====================================================================
+     PAGE 1.5: JUST FOR YOU, SMART STATE
+====================================================================== -->
+<div class="sheet">
+
+  <div class="ps-topbar">
+    <img src="https://techunited.co/wp-content/uploads/2026/03/TechUnitedNJ-Logo-FINAL-Full-Color-Black-Text.png" alt="TechUnited NJ" class="ps-logo" />
+  </div>
+
+  <div class="ps-hero">
+    <div class="ps-hero-orb1"></div>
+    <div class="ps-hero-orb2"></div>
+    <div class="ps-hero-inner">
+      <div style="flex:1">
+        <div class="ps-headline">Welcome, <span style="color:#111827">Smart State.</span></div>
+        <div style="margin:8px 0 10px;font-size:10.5px;color:#374151;line-height:1.6;max-width:370px">A tech hub developing entertainment products to boost user experience. Fort Lee, NJ &ndash; building their US presence with a team growing from 20 to 60.</div>
+        <div style="display:inline-block;background:rgba(147,51,234,0.08);border:1px solid rgba(147,51,234,0.2);border-radius:6px;padding:5px 12px;font-size:9.5px;font-weight:600;color:#7c3aed">Membership Active: June 1, 2026 &ndash; June 1, 2027</div>
+      </div>
+      <img src="https://cdn.prod.website-files.com/6994ae1896e7e77cc8c0c06a/69a55464aceed181fd880433_nav-Logo.avif"
+           alt="Smart State" class="ps-company-logo"
+           onerror="this.style.display='none'" />
+    </div>
+  </div>
+
+  <div class="ps-body">
+
+    <div class="ps-pair-header">
+      <div class="ps-section-label">What We Heard</div>
+      <div class="ps-pair-header-arrow"></div>
+      <div class="ps-section-label">How We'll Get There</div>
+    </div>
+
+    <div class="ps-pair">
+      <div class="ps-goal" style="flex:1"><div class="ps-goal-dot" style="background:#9333EA"></div><div><div class="ps-goal-title">Brand visibility in NJ is the year-one priority</div><div class="ps-goal-desc">Smart State is well established in Europe but largely unknown in the US. You want your name, logo, and story in front of NJ's innovation community fast.</div></div></div>
+      <div class="ps-pair-arrow">→</div>
+      <div class="ps-move" style="flex:1"><div class="ps-move-body"><div class="ps-move-title">Website Recognition + Newsletter Spotlight</div><div class="ps-move-desc">Your logo goes live on TechUnited.co. Your Newsletter Spotlight announces Smart State as a new member of the community: your name, your brand, and a warm welcome to NJ's innovation network.</div><div class="ps-move-tags"><span class="ps-tag-inc">✓ Member Benefit</span><span class="ps-tag-inc">✓ Member Benefit</span><span style="font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(14,165,233,0.1);color:#0ea5e9;border:1px solid rgba(14,165,233,0.25);margin-left:auto">First 30-60 Days</span></div></div></div>
+    </div>
+
+    <div class="ps-pair">
+      <div class="ps-goal" style="flex:1"><div class="ps-goal-dot" style="background:#f97316"></div><div><div class="ps-goal-title">You want to contribute, not just recruit</div><div class="ps-goal-desc">You want Smart State known as a company that invests in NJ through expertise and event presence, not just one that hires from it.</div></div></div>
+      <div class="ps-pair-arrow">→</div>
+      <div class="ps-move" style="flex:1"><div class="ps-move-body"><div class="ps-move-title">AI Demo Night Sponsorship</div><div class="ps-move-desc">Slot Smart State into an upcoming AI Demo Night: present, sponsor, or simply show up as a recognized member company.</div><div class="ps-move-tags"><span class="ps-tag-add">+ Sponsorship Add-On</span><span style="font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(14,165,233,0.1);color:#0ea5e9;border:1px solid rgba(14,165,233,0.25);margin-left:auto">Next: August 4th</span></div></div></div>
+    </div>
+
+    <div class="ps-pair">
+      <div class="ps-goal" style="flex:1"><div class="ps-goal-dot" style="background:#3b82f6"></div><div><div class="ps-goal-title">You're tripling headcount in Fort Lee</div><div class="ps-goal-desc">Growing from 20 to 60. Open roles in senior engineering, product, UX, and QA. LinkedIn isn't cutting it for passive senior NJ tech talent.</div></div></div>
+      <div class="ps-pair-arrow">→</div>
+      <div class="ps-move" style="flex:1"><div class="ps-move-body"><div class="ps-move-title">Newsletter Sponsorship</div><div class="ps-move-desc">A full dedicated section in the TechUnited newsletter puts Smart State's story in front of 13,000 NJ subscribers at a 55% open rate. A direct brand moment in the market you're entering, reaching the exact talent and partners you need.</div><div class="ps-move-tags"><span class="ps-tag-add">+ Sponsorship Add-On</span><span style="font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(14,165,233,0.1);color:#0ea5e9;border:1px solid rgba(14,165,233,0.25);margin-left:auto">Ongoing Opportunity</span></div></div></div>
+    </div>
+
+    <div class="ps-pair">
+      <div class="ps-goal" style="flex:1"><div class="ps-goal-dot" style="background:#16a34a"></div><div><div class="ps-goal-title">You're ready to show up in person</div><div class="ps-goal-desc">The team wants face time in the rooms where NJ's founders, operators, and investors actually gather, not just on paper.</div></div></div>
+      <div class="ps-pair-arrow">→</div>
+      <div class="ps-move" style="flex:1"><div class="ps-move-body"><div class="ps-move-title">Free Admission to Every TechUnited Event, for Your Whole Team</div><div class="ps-move-desc">Every person in your membership org gets free general admission to all TechUnited events: AI Demo Night, OverdriveAI, FutureState, and more. Be a champion of TechUnited: bring your people, show up, and help us grow the community you're now part of.</div><div class="ps-move-tags"><span class="ps-tag-inc">✓ Member Benefit</span><span style="font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(14,165,233,0.1);color:#0ea5e9;border:1px solid rgba(14,165,233,0.25);margin-left:auto">Ongoing Opportunity</span></div></div></div>
+    </div>
+
+    <div class="ps-pair">
+      <div class="ps-goal" style="flex:1"><div class="ps-goal-dot" style="background:#0ea5e9"></div><div><div class="ps-goal-title">Strategic introductions are on the roadmap</div><div class="ps-goal-desc">You're looking to connect with NJ enterprise decision-makers, integration partners, and investors who understand B2B entertainment tech.</div></div></div>
+      <div class="ps-pair-arrow">→</div>
+      <div class="ps-move" style="flex:1"><div class="ps-move-body"><div class="ps-move-title">Annual LinkedIn Live, Leading to Curated Introductions</div><div class="ps-move-desc">We'll produce a LinkedIn Live on TechUnited's channel with Smart State as the featured guest. Use it to tell your story to NJ's ecosystem. From there, we identify the right decision-makers, partners, and investors to introduce you to directly.</div><div class="ps-move-tags"><span class="ps-tag-inc">✓ Member Benefit</span><span style="font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(14,165,233,0.1);color:#0ea5e9;border:1px solid rgba(14,165,233,0.25);margin-left:auto">First 180 Days</span></div></div></div>
+    </div>
+
+    <div class="ps-pair">
+      <div class="ps-goal" style="flex:1"><div class="ps-goal-dot" style="background:#ec4899"></div><div><div class="ps-goal-title">You want to post jobs to a broader NJ audience</div><div class="ps-goal-desc">You specifically asked about a jobs board. TechUnited's jobs board (in beta) gives Smart State access to our full 30K NJ tech network.</div></div></div>
+      <div class="ps-pair-arrow">→</div>
+      <div class="ps-move" style="flex:1"><div class="ps-move-body"><div class="ps-move-title">Jobs Board Listing (Beta)</div><div class="ps-move-desc">TechUnited's jobs board is in beta and we'd love Smart State to be one of the first companies featured. 30K reach across NJ's tech community. We'll stay in close contact as this rolls out.</div><div class="ps-move-tags"><span style="font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(107,114,128,0.1);color:#6b7280;border:1px solid rgba(107,114,128,0.25)">Member Benefit · Launching Q3</span></div></div></div>
+    </div>
+
+  </div>
+
+  <div class="ps-footer">
+    <div class="ps-footer-note">Your point of contact is <strong>Olga</strong>. Based on your alignment call on June 1 with Kennedy and MJ. &nbsp;&nbsp;→&nbsp; You'll find a full list of your member benefits on the next page.</div>
+    <div class="ps-footer-contacts">
+      <div class="ps-footer-contact">
+        <div class="ps-footer-contact-email">kennedy@techunited.co</div>
+        <div class="ps-footer-contact-role">Head of Community &amp; Ops</div>
+      </div>
+      <div class="ps-footer-contact">
+        <div class="ps-footer-contact-email">mj@techunited.co</div>
+        <div class="ps-footer-contact-role">COO</div>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -581,18 +901,18 @@
 ====================================================================== -->
 <div class="sheet">
 
-  <div class="p2-header">
+  <div class="p2-topbar">
     <img src="https://techunited.co/wp-content/uploads/2026/03/TechUnitedNJ-Logo-FINAL-Full-Color-Black-Text.png"
          alt="TechUnited NJ" class="p2-logo" />
-    <div class="p2-header-right">
-      <div class="p2-header-label">Leader Member Benefits</div>
-      <div class="p2-header-title">13 Benefits. Here's how to use them.</div>
+    <div class="p2-topbar-right">
+      <div class="p2-topbar-label">Leader Member Benefits</div>
+      <div class="p2-topbar-title">13 Benefits. <span class="grad-text">Here's how to use them.</span></div>
     </div>
   </div>
 
   <div class="p2-intro">
-    <div class="p2-intro-text">Your membership is active. Everything below is unlocked. <strong>Contact your account lead to activate any benefit.</strong></div>
-    <div class="p2-intro-chip">Leader Tier</div>
+    <div class="p2-intro-text">Your membership is active. Everything below is unlocked. <strong>Email membership@techunited.co to activate any benefit.</strong></div>
+    <div class="p2-intro-badge">Leader Tier</div>
   </div>
 
   <div class="p2-body">
@@ -602,43 +922,37 @@
 
       <div class="p2-benefit">
         <div class="p2-num">01</div>
-        <div><div class="p2-bname">Website Recognition</div><div class="p2-baction">Send logo (PNG + SVG) to your account lead.</div></div>
+        <div><div class="p2-bname">Website Recognition</div><div class="p2-baction">Your logo on TechUnited.co as a recognized Innovation Leader for the duration of your membership, visible to founders, investors, partners, and government stakeholders across NJ. <strong>Need:</strong> High-res logo (PNG + SVG) and brand guidelines.</div></div>
         <div class="p2-btag leader">Leader</div>
       </div>
-
       <div class="p2-benefit">
         <div class="p2-num">02</div>
-        <div><div class="p2-bname">6 Team Seats</div><div class="p2-baction">Send names, titles, emails, and LinkedIn URLs for 6 seat holders.</div></div>
+        <div><div class="p2-bname">6 Team Seats</div><div class="p2-baction">Up to 6 team members get full TechUnited access: all programming, RSVP + guest access, and member-only communications. <strong>Need:</strong> Names, titles, emails, and LinkedIn URLs for your 6 seat holders.</div></div>
         <div class="p2-btag leader">Leader</div>
       </div>
-
       <div class="p2-benefit">
         <div class="p2-num">03</div>
-        <div><div class="p2-bname">Free Event Access for Your Whole Team</div><div class="p2-baction">Member code issued before each event. Share internally with company email.</div></div>
+        <div><div class="p2-bname">Free Event Access, Whole Team</div><div class="p2-baction">Every employee gets complimentary admission to AI Demo Night, Propelify, OverdriveAI, Catalyst Awards, and FutureState. A member code is issued before each event. Registrants must use a company email address.</div></div>
         <div class="p2-btag leader">Leader</div>
       </div>
-
       <div class="p2-benefit">
         <div class="p2-num">04</div>
-        <div><div class="p2-bname">Speaking Priority</div><div class="p2-baction">First notified when slots open. Nominate a speaker each quarter.</div></div>
+        <div><div class="p2-bname">Speaking Priority</div><div class="p2-baction">Quarterly, members receive a call for speakers covering upcoming panels, fireside chats, LinkedIn Lives, and keynotes before any external outreach. Nominate leaders from your company or network. We review and respond to every nomination.</div></div>
         <div class="p2-btag leader">Leader</div>
       </div>
-
       <div class="p2-benefit">
         <div class="p2-num">05</div>
-        <div><div class="p2-bname">Annual LinkedIn Live</div><div class="p2-baction">30-min produced broadcast to 15K+ community members. We handle everything.</div></div>
+        <div><div class="p2-bname">Annual LinkedIn Live</div><div class="p2-baction">A fully produced 30-min LinkedIn Live on TechUnited's channel, broadcast to 15,000+ community members. Includes a brainstorming call, prep call, promotion, clips, and a follow-up blog post. You bring the topic and the people.</div></div>
         <div class="p2-btag leader">Leader</div>
       </div>
-
       <div class="p2-benefit">
         <div class="p2-num">06</div>
-        <div><div class="p2-bname">Event Amplification</div><div class="p2-baction">Run one event on the TechUnited platform per year. 45 days notice required.</div></div>
+        <div><div class="p2-bname">Event Amplification</div><div class="p2-baction">Once per year, run an event as a TechUnited Community Event. Includes event page placement, monthly blast, and social promotion. Requires 45 days notice, event URL, imagery, and one point of contact on your team.</div></div>
         <div class="p2-btag leader">Leader</div>
       </div>
-
       <div class="p2-benefit" style="border-bottom:none">
         <div class="p2-num">07</div>
-        <div><div class="p2-bname">Roundtables</div><div class="p2-baction">Share topic interests annually. Invites sent when sessions form.</div></div>
+        <div><div class="p2-bname">Roundtables</div><div class="p2-baction">Invitation-only roundtables across government, industry, and functional disciplines. Capped and curated. Your topic interests submitted annually shape the calendar.</div></div>
         <div class="p2-btag leader">Leader</div>
       </div>
     </div>
@@ -647,95 +961,79 @@
       <div class="p2-col-label">Included at All Insider Plus+ Tiers</div>
 
       <div class="p2-benefit">
-        <div class="p2-num">08</div>
-        <div><div class="p2-bname">Alignment Call</div><div class="p2-baction">30-min strategy session within your first 60 days.</div></div>
+        <div class="p2-num" style="color:#16a34a">✓</div>
+        <div><div class="p2-bname">Alignment Call <span style="color:#16a34a;font-size:9px;font-weight:700;margin-left:6px">✔ Complete</span></div><div class="p2-baction">Your annual 30-min call to map your goals against our programs, partners, and membership benefits. There's a lot included, this call ensures you're making the most of it. <strong>Need:</strong> 30 minutes within your first 60 days.</div></div>
         <div class="p2-btag all">Insider+</div>
       </div>
-
       <div class="p2-benefit">
         <div class="p2-num">09</div>
-        <div><div class="p2-bname">Annual Newsletter Spotlight</div><div class="p2-baction">Send blurb (150 chars max), logo, and optional link.</div></div>
+        <div><div class="p2-bname">Annual Newsletter Spotlight</div><div class="p2-baction">Once per year, featured in the TechUnited newsletter reaching 15,000+ across NJ's ecosystem. Use it for a launch, announcement, or your story, 150 characters with an optional external link, placed in a themed edition. <strong>Need:</strong> Blurb, graphic, and optional link.</div></div>
         <div class="p2-btag all">All Tiers</div>
       </div>
-
       <div class="p2-benefit">
         <div class="p2-num">10</div>
-        <div><div class="p2-bname">Uplift Mentorship Access</div><div class="p2-baction">Priority admission as mentor or mentee. Apply directly.</div></div>
+        <div><div class="p2-bname">Uplift Mentorship Access</div><div class="p2-baction">Priority admission to Uplift, TechUnited's mentorship program for women and minority founders in NJ. Participate as a mentor or mentee. Apply and meet requirements and you're in. We'll host a dedicated info session for your team on request. <strong>Need:</strong> Standard Uplift application.</div></div>
         <div class="p2-btag all">Insider+</div>
       </div>
-
       <div class="p2-benefit">
         <div class="p2-num">11</div>
-        <div><div class="p2-bname">Thought Leadership Blog</div><div class="p2-baction">Up to 8 posts per year. Send draft, bio, headshot, and logo.</div></div>
+        <div><div class="p2-bname">Thought Leadership Blog</div><div class="p2-baction">Up to 8 posts per year (2 per quarter) on TechUnited's platform under your logo, op-eds, opinions, or product announcements. Must align with TechUnited's mission and not conflict with other members. <strong>Need:</strong> Draft post, author bio, headshot, and logo.</div></div>
         <div class="p2-btag all">All Tiers</div>
       </div>
-
       <div class="p2-benefit">
         <div class="p2-num">12</div>
-        <div><div class="p2-bname">Curated Introductions</div><div class="p2-baction">Unlimited intros from TechUnited's exec team. The more specific, the better.</div></div>
+        <div><div class="p2-bname">Curated Introductions</div><div class="p2-baction">Capital, a SaaS partner, a local champion, a key hire, bring a specific ask and we'll make a direct executive introduction, based on <strong>mutual</strong> agreement.</div></div>
         <div class="p2-btag all">Insider+</div>
       </div>
-
-      <div class="p2-benefit">
-        <div class="p2-num">13</div>
-        <div><div class="p2-bname">Priority Event Invitations</div><div class="p2-baction">Direct invites to private, members-only sessions. RSVP when they land.</div></div>
-        <div class="p2-btag all">Insider+</div>
-      </div>
-
       <div class="p2-benefit" style="border-bottom:none">
-        <div class="p2-num"></div>
-        <div><div class="p2-bname">Members Slack + Newsletter</div><div class="p2-baction">Seat holders added automatically.</div></div>
-        <div class="p2-btag all">All Tiers</div>
+        <div class="p2-num">13</div>
+        <div><div class="p2-bname">Priority Event Invitations</div><div class="p2-baction">Executive roundtables, founders' fishing trips, and private sessions reserved exclusively for members of NJ's largest tech community, never on public calendars. You'll be notified directly when scheduled. <strong>Need:</strong> RSVP when invitations land.</div></div>
+        <div class="p2-btag all">Insider+</div>
       </div>
     </div>
 
   </div>
 
   <div class="p2-started">
-    <div class="p2-started-label">Getting Started — Your First 90 Days</div>
-    <div class="p2-steps">
-      <div class="p2-step">
-        <div class="p2-step-when">Week 1</div>
-        <div class="p2-step-title">Submit logo and seat holders</div>
-        <div class="p2-step-desc">Logo files + 6 team member details</div>
+    <div class="p2-started-label">Activate Your Membership  Three Steps</div>
+    <div class="p2-steps" style="grid-template-columns: repeat(3,1fr)">
+      <div class="p2-step" style="border:1px solid rgba(22,163,74,0.3);background:rgba(22,163,74,0.05)">
+        <div class="p2-step-when" style="color:#16a34a">Step 1 &nbsp;✔ Complete</div>
+        <div class="p2-step-title">Schedule your alignment call</div>
+        <div class="p2-step-desc">30 minutes with your account lead to map your goals and prioritize which benefits to activate first.</div>
       </div>
       <div class="p2-step">
-        <div class="p2-step-when">Week 1</div>
-        <div class="p2-step-title">Schedule alignment call</div>
-        <div class="p2-step-desc">Map your goals to the right benefits</div>
+        <div class="p2-step-when">Step 2</div>
+        <div class="p2-step-title">Submit your logo and seat holders</div>
+        <div class="p2-step-desc">Send your logo (PNG + SVG) and the names, titles, emails, and LinkedIn URLs for your 6 seat holders.</div>
       </div>
       <div class="p2-step">
-        <div class="p2-step-when">Month 1</div>
-        <div class="p2-step-title">Submit first blog post</div>
-        <div class="p2-step-desc">Op-ed, opinion, or announcement</div>
-      </div>
-      <div class="p2-step">
-        <div class="p2-step-when">Month 2</div>
-        <div class="p2-step-title">Start your LinkedIn Live</div>
-        <div class="p2-step-desc">Book the brainstorm call with your lead</div>
+        <div class="p2-step-when">Step 3</div>
+        <div class="p2-step-title">Start using your benefits</div>
+        <div class="p2-step-desc">Share event codes with your team, claim your member seats, and begin activating everything that's now unlocked.</div>
       </div>
     </div>
   </div>
 
   <div class="p2-footer">
-    <div class="p2-footer-text">Questions? Your account lead is your first call.</div>
-    <div class="p2-footer-email">mj@techunited.co</div>
+    <div class="p2-footer-text">Questions? Reach out anytime.</div>
+    <div class="p2-footer-email">membership@techunited.co</div>
   </div>
 
 </div>
 
 
 <!-- =====================================================================
-     PAGE 3: GO DEEPER — SPONSORSHIP
+     PAGE 3: GO DEEPER  SPONSORSHIP
 ====================================================================== -->
 <div class="sheet">
 
-  <div class="p3-header">
+  <div class="p3-topbar">
     <img src="https://techunited.co/wp-content/uploads/2026/03/TechUnitedNJ-Logo-FINAL-Full-Color-Black-Text.png"
          alt="TechUnited NJ" class="p3-logo" />
-    <div class="p3-header-right">
-      <div class="p3-header-label">Go Deeper</div>
-      <div class="p3-header-title">Sponsorship Opportunities</div>
+    <div class="p3-topbar-right">
+      <div class="p3-topbar-label">Ready to Dive Deeper</div>
+      <div class="p3-topbar-title">Sponsorship <span class="grad-text">Opportunities Available Now</span></div>
     </div>
   </div>
 
@@ -749,32 +1047,48 @@
       <div class="p3-card-bar b1"></div>
       <div class="p3-card-head">
         <div class="p3-card-tag">Recurring Event Series</div>
-        <div class="p3-card-name">AI Demo Night</div>
-        <div class="p3-card-desc">60-100 founders, operators, and investors. Stevens Institute, Hoboken. 11 editions produced.</div>
-        <div class="p3-card-from">Per event from</div>
-        <div class="p3-card-price">$10,000</div>
+        <div style="margin-bottom:6px;height:28px;display:flex;align-items:center">
+          <img src="/aidn-logo.svg" alt="AI Demo Night" style="max-height:26px;max-width:130px;object-fit:contain;object-position:left" onerror="this.style.display='none'" />
+        </div>
+        <div class="p3-card-name" style="display:none">AI Demo Night</div>
+        <div class="p3-card-desc">2,300+ cumulative attendees and counting. Occurs monthly across New York and New Jersey. 11 editions, 60–100 founders, operators, and investors per night.</div>
+        <div class="p3-card-price-wrap">
+          <div class="p3-card-from">Starting at</div>
+          <div class="p3-card-price grad-text">$5,000</div>
+        </div>
       </div>
       <div class="p3-tiers">
         <div class="p3-tier">
           <div class="p3-tier-top">
-            <div class="p3-tier-name">Single Event</div>
+            <div class="p3-tier-name">Supporting Sponsor</div>
+            <div class="p3-tier-price">$5,000</div>
+          </div>
+          <div class="p3-tier-items">
+            <div class="p3-tier-item">Logo on event materials and signage</div>
+            <div class="p3-tier-item">Brand mention in event communications</div>
+            <div class="p3-tier-item">2 reserved seats</div>
+          </div>
+        </div>
+        <div class="p3-tier">
+          <div class="p3-tier-top">
+            <div class="p3-tier-name">Single Event (Presenting)</div>
             <div class="p3-tier-price">$10,000</div>
           </div>
           <div class="p3-tier-items">
             <div class="p3-tier-item">Presenting credit and full event branding</div>
-            <div class="p3-tier-item">Logo in all comms to 10K+ subscribers</div>
+            <div class="p3-tier-item">Logo in all comms to 13K subscribers</div>
             <div class="p3-tier-item">4 reserved seats and speaker intros</div>
           </div>
         </div>
         <div class="p3-tier feat">
           <div class="p3-tier-top">
-            <div class="p3-tier-name">Quarterly (3 events)</div>
+            <div class="p3-tier-name">Multi-Event (3 events)</div>
             <div class="p3-tier-price">$25,000</div>
           </div>
           <div class="p3-tier-items">
-            <div class="p3-tier-item">Presenting across 3 consecutive events</div>
+            <div class="p3-tier-item">Presenting across 3 selected events</div>
             <div class="p3-tier-item">Save $5,000 vs. single-event rate</div>
-            <div class="p3-tier-item">Co-branded social series + 2027 priority</div>
+            <div class="p3-tier-item">2027 renewal priority</div>
           </div>
         </div>
       </div>
@@ -784,10 +1098,15 @@
       <div class="p3-card-bar b2"></div>
       <div class="p3-card-head">
         <div class="p3-card-tag">Digital / Newsletter</div>
-        <div class="p3-card-name">TechUnited Newsletter</div>
-        <div class="p3-card-desc">NJ's leading tech and innovation newsletter. 13,000 subscribers, 55% human open rate. One exclusive sponsor per issue.</div>
-        <div class="p3-card-from">Starting at</div>
-        <div class="p3-card-price">$1,500</div>
+        <div style="margin-bottom:6px;height:28px;display:flex;align-items:center">
+          <img src="https://techunited.co/wp-content/uploads/2026/03/TechUnitedNJ-Logo-FINAL-Full-Color-Black-Text.png" alt="TechUnited" style="max-height:22px;max-width:130px;object-fit:contain;object-position:left" />
+        </div>
+        <div class="p3-card-name" style="font-size:12px">TechUnited Newsletter</div>
+        <div class="p3-card-desc">13,000 subscribers. 55% human open rate. Published twice monthly. NJ's leading innovation newsletter. One exclusive sponsor per issue.</div>
+        <div class="p3-card-price-wrap">
+          <div class="p3-card-from">Starting at</div>
+          <div class="p3-card-price grad-text-2">$1,500</div>
+        </div>
       </div>
       <div class="p3-tiers">
         <div class="p3-tier">
@@ -803,14 +1122,17 @@
         </div>
         <div class="p3-tier feat">
           <div class="p3-tier-top">
-            <div class="p3-tier-name">Quarterly (3 issues)</div>
+            <div class="p3-tier-name">3-Issue Package</div>
             <div class="p3-tier-price">$3,500</div>
           </div>
           <div class="p3-tier-items">
-            <div class="p3-tier-item">3 consecutive issues, priority placement</div>
+            <div class="p3-tier-item">3 issues, flexible scheduling</div>
             <div class="p3-tier-item">Save $1,000 vs. single-issue rate</div>
-            <div class="p3-tier-item">Consistent presence over a full quarter</div>
+            <div class="p3-tier-item">Reserved placement, no competing brands</div>
           </div>
+        </div>
+        <div style="padding:8px 2px 0;font-size:8.5px;color:var(--muted);line-height:1.5">
+          * Pricing does not include distro list or click list access. Direct outreach to the full list is available at additional cost with limitations on frequency of contact.
         </div>
       </div>
     </div>
@@ -819,10 +1141,15 @@
       <div class="p3-card-bar b3"></div>
       <div class="p3-card-head">
         <div class="p3-card-tag">Flagship Annual Summit</div>
-        <div class="p3-card-name">OverDrive AI Summit</div>
+        <div style="margin-bottom:6px;height:28px;display:flex;align-items:center">
+          <img src="/overdrive-logo.png" alt="OverdriveAI" style="max-height:26px;max-width:140px;object-fit:contain;object-position:left" onerror="this.style.display='none'" />
+        </div>
+        <div class="p3-card-name" style="display:none">OverdriveAI Summit</div>
         <div class="p3-card-desc">NJ's definitive AI gathering. Leaders, builders, and capital. Full day. October 2026.</div>
-        <div class="p3-card-from">Starting at</div>
-        <div class="p3-card-price">$10,000</div>
+        <div class="p3-card-price-wrap">
+          <div class="p3-card-from">Starting at</div>
+          <div class="p3-card-price grad-text-3">$10,000</div>
+        </div>
       </div>
       <div class="p3-tiers">
         <div class="p3-tier">
@@ -832,7 +1159,7 @@
           </div>
           <div class="p3-tier-items">
             <div class="p3-tier-item">Logo on website, signage, and marketing</div>
-            <div class="p3-tier-item">2 summit passes</div>
+            <div class="p3-tier-item">4 summit passes</div>
           </div>
         </div>
         <div class="p3-tier">
@@ -842,18 +1169,18 @@
           </div>
           <div class="p3-tier-items">
             <div class="p3-tier-item">Stage recognition and speaking opportunity</div>
-            <div class="p3-tier-item">Featured in all marketing, 5 passes</div>
+            <div class="p3-tier-item">Featured in all marketing, 10 passes</div>
           </div>
         </div>
         <div class="p3-tier feat">
           <div class="p3-tier-top">
             <div class="p3-tier-name">Title Sponsor</div>
-            <div class="p3-tier-price">$50,000</div>
+            <div class="p3-tier-price">$100,000</div>
           </div>
           <div class="p3-tier-items">
-            <div class="p3-tier-item">Full naming rights</div>
+            <div class="p3-tier-item">Full naming rights  "OverdriveAI presented by [You]"</div>
             <div class="p3-tier-item">Keynote intro, exclusive activation space</div>
-            <div class="p3-tier-item">Year-round co-branding, 10 passes</div>
+            <div class="p3-tier-item">Year-round co-branding, 20 passes</div>
           </div>
         </div>
       </div>
@@ -863,7 +1190,7 @@
 
   <div class="p3-cta">
     <div class="p3-cta-left">
-      <strong>Ready to go deeper?</strong>
+      <strong>Ready to dive deeper?</strong>
       <span>All packages are open for conversation. No commitment to inquire.</span>
     </div>
     <div class="p3-cta-email">mj@techunited.co</div>
