@@ -2277,6 +2277,7 @@ export default function AdminPage() {
               { key: "connections", label: "🤝 Peer Connections" },
               { key: "pulse",       label: "❤️ Weekly Pulse" },
               { key: "matches",     label: "👥 Mentors" },
+              { key: "matching",    label: "🔀 Matching" },
               { key: "emails",      label: "✅ Mentor Confirmation" },
             ].map(({ key, label }) => (
               <button key={key} onClick={() => setAdminTab(key)} style={{
@@ -2300,10 +2301,245 @@ export default function AdminPage() {
           {adminTab === "connections" && <PeerConnections />}
           {adminTab === "pulse"       && <PulseReport />}
           {adminTab === "matches"     && <MentorMatches confirmations={mentorConfirmations} sessions={mentorSessions} onSessionChange={handleMentorSessionChange} mentees={data?.mentees || []} />}
+          {adminTab === "matching"    && <MatchingDashboard confirmations={mentorConfirmations} mentees={data?.mentees || []} />}
           {adminTab === "emails"      && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} />}
         </>
       )}
     </>
+  );
+}
+
+// ─── Matching Dashboard view ──────────────────────────────────────────────────
+function MatchingDashboard({ confirmations = {}, mentees = [] }) {
+  const [selData, setSelData]     = useState(null);
+  const [responses, setResponses] = useState([]);
+  const [newMentors, setNewMentors] = useState([]);
+  const [loading, setLoading]     = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/mentor-selections").then(r => r.json()),
+      fetch("/api/mentor-email-responses").then(r => r.json()),
+      fetch("/api/admin/new-mentor-details").then(r => r.json()).catch(() => ({ mentors: [] })),
+    ]).then(([sel, email, app]) => {
+      setSelData(sel);
+      setResponses(email.responses || []);
+      setNewMentors(app.mentors || []);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, []);
+
+  if (loading) return (
+    <div style={{ padding: 48, textAlign: "center", color: "#9b8fcf", fontFamily: "Inter, system-ui, sans-serif" }}>Loading…</div>
+  );
+
+  const COHORT_NAMES_MD = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
+
+  // Build mentee status lookup from admin-data mentees prop
+  const menteeStatusBySlug = {};
+  for (const m of mentees) {
+    if (m.isTest) continue;
+    menteeStatusBySlug[m.slug] = {
+      participation: m.milestones?.participation || false,
+      churned: m.status === "churned",
+      name: m.name,
+      company: m.company,
+      cohort: m.cohort,
+    };
+  }
+
+  // Build set of slugs that have a mentor assigned in MENTEES
+  const selectionsMap = {}; // slug → mentor name
+  for (const s of (selData?.selections || [])) {
+    if (s.mentor?.name) selectionsMap[s.slug] = s.mentor.name;
+  }
+
+  // Build confirmation sets from mentor email responses
+  const confirmedSlugsByMentor = {}; // mentor name → [slug]
+  const responseByMentor = {};
+  for (const r of responses) {
+    responseByMentor[r.mentor?.name] = r;
+    for (const opt of (r.options || [])) {
+      const key = `${r.threadId}|${opt.slug}`;
+      if (confirmations[key] === "confirmed") {
+        if (!confirmedSlugsByMentor[r.mentor.name]) confirmedSlugsByMentor[r.mentor.name] = [];
+        confirmedSlugsByMentor[r.mentor.name].push(opt.slug);
+      }
+    }
+  }
+
+  // ── 1. Mentees with NO mentor assigned at all ─────────────────────────────
+  const noMentorMentees = (selData?.selections || []).filter(s => {
+    if (s.isTest) return false;
+    return !s.mentor?.name;
+  });
+
+  // ── 2. Mentees whose mentor has NOT confirmed the match yet ───────────────
+  //    i.e. mentor is assigned but no "confirmed" in confirmations for this slug
+  const menteesPendingConfirmation = (selData?.selections || []).filter(s => {
+    if (s.isTest || !s.mentor?.name) return false;
+    const mentorName = s.mentor.name;
+    const confirmed = confirmedSlugsByMentor[mentorName] || [];
+    return !confirmed.includes(s.slug);
+  });
+
+  // ── 3. Mentors who need a mentee ─────────────────────────────────────────
+  //    a) Assigned mentors with 0 confirmed mentees
+  //    b) New Typeform applicants not yet in system
+  const mentorsNeedingMentee = [];
+  for (const mentor of (selData?.mentors || [])) {
+    if (mentor.name === "MJ" || mentor.name === "Kennedy") continue;
+    const confirmed = confirmedSlugsByMentor[mentor.name] || [];
+    const resp = responseByMentor[mentor.name];
+    // If they replied but all were declined, they need a rematch
+    if (resp) {
+      const opts = resp.options || [];
+      const declinedAll = opts.length > 0 && opts.every(o => confirmations[`${resp.threadId}|${o.slug}`] === "declined");
+      const hasConfirmed = opts.some(o => confirmations[`${resp.threadId}|${o.slug}`] === "confirmed");
+      if (!hasConfirmed) {
+        mentorsNeedingMentee.push({ name: mentor.name, email: mentor.email, label: declinedAll ? "Needs Rematch" : "No Reply Yet" });
+      }
+    } else {
+      // No email response at all
+      mentorsNeedingMentee.push({ name: mentor.name, email: mentor.email, label: "No Reply Yet" });
+    }
+  }
+  // New Typeform applicants
+  for (const m of newMentors) {
+    mentorsNeedingMentee.push({ name: m.name, email: m.email, company: m.company, title: m.title, industry: m.industry, focus: m.focus, label: "New Applicant" });
+  }
+
+  // ── 4. Mentor confirmed match, but mentee hasn't confirmed participation ──
+  const mentorConfirmedMenteePending = [];
+  for (const r of responses) {
+    const opts = r.options || [];
+    for (const opt of opts) {
+      if (confirmations[`${r.threadId}|${opt.slug}`] === "confirmed") {
+        const ms = menteeStatusBySlug[opt.slug];
+        if (ms && !ms.participation && !ms.churned) {
+          mentorConfirmedMenteePending.push({
+            mentorName: r.mentor.name,
+            mentorEmail: r.mentor.email,
+            menteeSlug: opt.slug,
+            menteeName: opt.name,
+            menteeCompany: opt.company,
+            menteeCohort: ms?.cohort,
+          });
+        }
+      }
+    }
+  }
+
+  // ─── Sub-section card ──────────────────────────────────────────────────────
+  const Section = ({ emoji, title, count, color, bg, border, children }) => (
+    <div style={{ background: "#fff", borderRadius: 16, border: `1.5px solid ${border}`, overflow: "hidden", marginBottom: 20 }}>
+      <div style={{ background: bg, padding: "16px 22px", display: "flex", alignItems: "center", gap: 12, borderBottom: `1px solid ${border}` }}>
+        <span style={{ fontSize: 20 }}>{emoji}</span>
+        <div style={{ flex: 1 }}>
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color }}>{title}</p>
+        </div>
+        <span style={{ fontSize: 22, fontWeight: 900, color, minWidth: 28, textAlign: "right" }}>{count}</span>
+      </div>
+      <div style={{ padding: count === 0 ? "20px 22px" : "14px 22px" }}>
+        {count === 0
+          ? <p style={{ margin: 0, fontSize: 13, color: "#22a366", fontWeight: 600 }}>✓ All clear — nothing needs attention here.</p>
+          : children
+        }
+      </div>
+    </div>
+  );
+
+  const MenteePill = ({ name, company, cohort, extra }) => (
+    <div style={{ background: "#f7f5ff", border: "1px solid #e0d9f8", borderRadius: 10, padding: "10px 14px", minWidth: 180, flex: "1 1 200px", maxWidth: 300 }}>
+      <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{name}</p>
+      {company && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#6b6480" }}>{company}</p>}
+      {cohort && <p style={{ margin: 0, fontSize: 10, color: "#9b8fcf" }}>Cohort {cohort} · {COHORT_NAMES_MD[cohort]}</p>}
+      {extra && <p style={{ margin: "4px 0 0", fontSize: 11, color: "#b35c00", fontWeight: 600 }}>{extra}</p>}
+    </div>
+  );
+
+  const MentorPill = ({ name, email, company, title, industry, focus, label }) => {
+    const labelColor = label === "New Applicant" ? "#1a6e42" : label === "Needs Rematch" ? "#c0392b" : "#b35c00";
+    const labelBg    = label === "New Applicant" ? "#e8f8f0" : label === "Needs Rematch" ? "#fef0f0" : "#fff3e0";
+    return (
+      <div style={{ background: "#fff", border: "1px solid #e8e4f5", borderRadius: 10, padding: "10px 14px", flex: "1 1 220px", maxWidth: 340 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{name}</p>
+          <span style={{ fontSize: 10, fontWeight: 700, color: labelColor, background: labelBg, borderRadius: 6, padding: "2px 8px", flexShrink: 0 }}>{label}</span>
+        </div>
+        {company && <p style={{ margin: "0 0 1px", fontSize: 11, color: "#6b6480" }}>{company}{title ? ` · ${title}` : ""}</p>}
+        {email && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#5c4eb5" }}>{email}</p>}
+        {industry && <p style={{ margin: "0 0 1px", fontSize: 10, color: "#9b8fcf" }}>🏷 {industry}</p>}
+        {focus && <p style={{ margin: 0, fontSize: 10, color: "#9b8fcf" }}>🎯 {focus}</p>}
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ maxWidth: 960, margin: "0 auto", padding: "32px 24px", fontFamily: "Inter, system-ui, sans-serif" }}>
+      <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Matching Overview</p>
+      <p style={{ margin: "0 0 28px", fontSize: 13, color: "#9b8fcf" }}>
+        At-a-glance view of all matching gaps across mentees and mentors.
+      </p>
+
+      {/* ── 1. Mentees with no mentor ── */}
+      <Section emoji="🚫" title="Mentees Without a Mentor" count={noMentorMentees.length} color="#c0392b" bg="#fef5f5" border="#f5c6c6">
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+          {noMentorMentees.map(s => (
+            <MenteePill key={s.slug} name={`${s.first} ${s.last}`} company={s.company} cohort={s.cohort} extra="No mentor assigned" />
+          ))}
+        </div>
+      </Section>
+
+      {/* ── 2. Mentees pending mentor confirmation ── */}
+      <Section emoji="⏳" title="Mentees — Mentor Not Yet Confirmed Match" count={menteesPendingConfirmation.length} color="#b35c00" bg="#fff8f0" border="#f5d9a0">
+        <p style={{ margin: "0 0 12px", fontSize: 12, color: "#9b8fcf" }}>
+          These mentees have a mentor assigned but the mentor hasn't confirmed via email yet.
+        </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+          {menteesPendingConfirmation.map(s => (
+            <MenteePill key={s.slug} name={`${s.first} ${s.last}`} company={s.company} cohort={s.cohort} extra={`Mentor: ${s.mentor?.name}`} />
+          ))}
+        </div>
+      </Section>
+
+      {/* ── 3. Mentors who need a mentee ── */}
+      <Section emoji="🔍" title="Mentors Who Need a Mentee" count={mentorsNeedingMentee.length} color="#5c4eb5" bg="#f3f0ff" border="#c4b8f0">
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+          {mentorsNeedingMentee.map((m, i) => (
+            <MentorPill key={i} name={m.name} email={m.email} company={m.company} title={m.title} industry={m.industry} focus={m.focus} label={m.label} />
+          ))}
+        </div>
+      </Section>
+
+      {/* ── 4. Mentor confirmed, mentee hasn't confirmed participation ── */}
+      <Section emoji="🟡" title="Mentor Confirmed — Mentee Participation Pending" count={mentorConfirmedMenteePending.length} color="#7a5700" bg="#fffbe6" border="#f5c542">
+        <p style={{ margin: "0 0 12px", fontSize: 12, color: "#9b8fcf" }}>
+          The mentor confirmed this match but the mentee has not yet confirmed their participation in the portal.
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {mentorConfirmedMenteePending.map((row, i) => (
+            <div key={i} style={{ background: "#fff", border: "1px solid #f0e8c0", borderRadius: 10, padding: "10px 16px", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+              <div style={{ minWidth: 160 }}>
+                <p style={{ margin: "0 0 1px", fontSize: 12, fontWeight: 600, color: "#9b8fcf" }}>Mentor</p>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{row.mentorName}</p>
+                <p style={{ margin: 0, fontSize: 11, color: "#5c4eb5" }}>{row.mentorEmail}</p>
+              </div>
+              <span style={{ fontSize: 18, color: "#c4b8f0" }}>→</span>
+              <div style={{ minWidth: 160 }}>
+                <p style={{ margin: "0 0 1px", fontSize: 12, fontWeight: 600, color: "#9b8fcf" }}>Mentee</p>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{row.menteeName}</p>
+                {row.menteeCompany && <p style={{ margin: 0, fontSize: 11, color: "#6b6480" }}>{row.menteeCompany}</p>}
+                {row.menteeCohort && <p style={{ margin: 0, fontSize: 10, color: "#9b8fcf" }}>Cohort {row.menteeCohort} · {COHORT_NAMES_MD[row.menteeCohort]}</p>}
+              </div>
+              <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: "#b35c00", background: "#fff3e0", borderRadius: 6, padding: "3px 10px", flexShrink: 0 }}>
+                Awaiting mentee confirmation
+              </span>
+            </div>
+          ))}
+        </div>
+      </Section>
+    </div>
   );
 }
 
