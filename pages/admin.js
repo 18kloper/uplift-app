@@ -2664,19 +2664,26 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
 
       {/* ── SUGGESTED MATCHES ── */}
       {(() => {
-        const actionableMentees = needsMentorList.filter(m => m.needTag === "not-invited" || m.needTag === null || m.needTag === "declined" || m.needTag === "pending");
         const actionableMentors = mentorsNeedingMentee.filter(m => m.label === "New Applicant" || m.label === "Declined — Needs Rematch");
+        if (actionableMentors.length === 0) return null;
 
-        if (actionableMentees.length === 0 || actionableMentors.length === 0) return null;
+        // Use ALL confirmed participants as the mentee pool — each of the 16 available
+        // mentors can be offered to any confirmed mentee (as a second mentor or primary).
+        // This allows up to 16 × 2 = 32 pairings.
+        const allConfirmedMentees = (selData?.selections || []).filter(s =>
+          !TEST_SLUGS_MD.has(s.slug) && confirmedParticipantSlugs.has(s.slug)
+        );
 
-        return <SuggestedMatches mentees={actionableMentees} mentors={actionableMentors} />;
+        if (allConfirmedMentees.length === 0) return null;
+
+        return <SuggestedMatches mentees={allConfirmedMentees} mentors={actionableMentors} maxPairings={actionableMentors.length * 2} />;
       })()}
 
     </div>
   );
 }
 
-function SuggestedMatches({ mentees, mentors }) {
+function SuggestedMatches({ mentees, mentors, maxPairings }) {
   const [matches, setMatches] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -2700,6 +2707,7 @@ function SuggestedMatches({ mentees, mentors }) {
             industry: m.industry, focus: m.focus, bio: m.bio,
           })),
           menteePendingMentors,
+          maxPairings: maxPairings || mentors.length * 2,
         }),
       });
       const data = await res.json();
@@ -2723,7 +2731,7 @@ function SuggestedMatches({ mentees, mentors }) {
         <div>
           <p style={{ margin: "0 0 3px", fontSize: 18, fontWeight: 800, color: "#1a1733" }}>💡 Suggested Matches</p>
           <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>
-            AI-suggested pairings · includes awaiting-confirmation mentees in case a better fit exists · {mentees.length} mentee{mentees.length !== 1 ? "s" : ""} × {mentors.length} mentor{mentors.length !== 1 ? "s" : ""}
+            {mentors.length} available mentor{mentors.length !== 1 ? "s" : ""} × up to 2 mentees each = up to {maxPairings || mentors.length * 2} pairings · drawn from {mentees.length} confirmed participants
           </p>
         </div>
         <button

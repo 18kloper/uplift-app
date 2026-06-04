@@ -21,7 +21,8 @@ export default async function handler(req, res) {
   }
 
   // Build rich mentee profiles from MENTEES array
-  const { menteeslugs = [], mentors = [], menteePendingMentors = {} } = req.body || {};
+  const { menteeslugs = [], mentors = [], menteePendingMentors = {}, maxPairings } = req.body || {};
+  const targetPairings = maxPairings || mentors.length * 2;
   const menteeProfiles = menteeslugs
     .map(slug => MENTEES.find(m => m.slug === slug))
     .filter(m => m && !TEST_SLUGS.has(m.slug))
@@ -58,34 +59,36 @@ export default async function handler(req, res) {
   ).join("\n\n");
 
   const prompt = `You are helping match startup founders with mentors in a NJ-based accelerator program called Uplift.
-Each mentor can be matched with 1 or 2 mentees. Every mentee below needs a mentor. Make the strongest possible pairings.
+Each mentor should be matched with exactly 2 mentees where possible (1 is acceptable if no second strong fit exists).
+Target: ${targetPairings} total pairings across ${mentors.length} mentors.
 
-MENTEES NEEDING A MENTOR:
+CONFIRMED PROGRAM PARTICIPANTS (choose the best 2 per mentor from this pool):
 ${menteesText}
 
-AVAILABLE MENTORS:
+AVAILABLE MENTORS (each needs 1-2 mentees assigned):
 ${mentorsText}
 
 Return ONLY a JSON array of match objects. Each object must have:
 - "mentorName": exact mentor name as listed
-- "menteeSlugs": array of 1-2 mentee slugs being matched to this mentor
+- "menteeSlugs": array of 1-2 mentee slugs
 - "menteeNames": array of corresponding mentee names
-- "reason": 2-3 sentence explanation of why this pairing works (specific, actionable)
+- "reason": 2-3 sentences explaining why this pairing works (specific, reference their industries/focus areas)
 - "strength": "strong" | "good" | "fair"
 
 Rules:
-- Every mentee must appear in exactly one match
-- A mentor can appear in at most one match object (with 1 or 2 mentees)
-- If there are more mentees than mentors×2, some mentors may get 2 mentees
-- Prioritize industry alignment, then focus area alignment, then stage fit
-- Do not invent mentor or mentee details not listed above
+- Every mentor must appear exactly once
+- Each mentor gets 1-2 mentees; aim for 2 per mentor to reach ${targetPairings} total
+- A mentee can appear in multiple mentor suggestions (they may benefit from multiple mentors, or you're surfacing alternatives)
+- Prioritize: industry alignment → focus area alignment → stage fit → NJ county proximity
+- If a mentee already has a pending mentor noted, you may still suggest them to a new mentor if the fit is meaningfully stronger
+- Do not invent details not listed above
 
 Return only the JSON array, no other text.`;
 
   try {
     const msg = await client.messages.create({
       model: "claude-opus-4-5",
-      max_tokens: 1500,
+      max_tokens: 4000,
       messages: [{ role: "user", content: prompt }],
     });
 
