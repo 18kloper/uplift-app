@@ -2377,28 +2377,58 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
 
   const TEST_SLUGS_MD = new Set(["kennedy", "jackie", "aaron", "mj"]);
 
-  // ── 1. Confirmed participants with NO mentor assigned ─────────────────────
-  const noMentorMentees = (selData?.selections || []).filter(s =>
-    !TEST_SLUGS_MD.has(s.slug) && !s.assignedMentor && isConfirmed(s)
-  );
-
-  // ── 2. Confirmed participants whose mentor actively DECLINED them ──────────
-  const mentorDeclined = [];
-  const slugsDeclined = new Set();
+  // Build a per-mentee-slug confirmation status map from email threads
+  // status: "confirmed" | "declined" | "pending" (thread exists, no answer yet) | null (no thread)
+  const slugConfirmStatus = {}; // slug → { status, mentorName }
+  const slugDeclinedBy = {};    // slug → mentor name who declined
   for (const r of responses) {
     for (const opt of (r.options || [])) {
-      if (!confirmedParticipantSlugs.has(opt.slug)) continue;
-      if (confirmations[`${r.threadId}|${opt.slug}`] !== "declined") continue;
-      // Only flag if no other mentor confirmed them
-      const hasConfirm = responses.some(r2 =>
-        (r2.options || []).some(o => o.slug === opt.slug && confirmations[`${r2.threadId}|${o.slug}`] === "confirmed")
-      );
-      if (!hasConfirm && !slugsDeclined.has(opt.slug)) {
-        slugsDeclined.add(opt.slug);
-        mentorDeclined.push({ slug: opt.slug, name: opt.name, company: opt.company, mentorName: r.mentor.name });
+      const key = `${r.threadId}|${opt.slug}`;
+      const st = confirmations[key]; // "confirmed" | "declined" | undefined
+      const existing = slugConfirmStatus[opt.slug];
+      // "confirmed" wins over everything; "declined" only sets if not confirmed elsewhere
+      if (st === "confirmed") {
+        slugConfirmStatus[opt.slug] = { status: "confirmed", mentorName: r.mentor?.name };
+      } else if (!existing || existing.status !== "confirmed") {
+        if (st === "declined") {
+          slugDeclinedBy[opt.slug] = r.mentor?.name;
+          if (!existing) slugConfirmStatus[opt.slug] = { status: "declined", mentorName: r.mentor?.name };
+        } else if (!existing) {
+          // Thread exists but no answer yet
+          slugConfirmStatus[opt.slug] = { status: "pending", mentorName: r.mentor?.name };
+        }
       }
     }
   }
+
+  // ── Unified mentee needs list ─────────────────────────────────────────────
+  // tag: null = no mentor assigned, "declined" = mentor said no, "pending" = awaiting mentor reply
+  const needsMentorList = [];
+  for (const s of (selData?.selections || [])) {
+    if (TEST_SLUGS_MD.has(s.slug)) continue;
+    if (!isConfirmed(s)) continue;
+
+    if (!s.assignedMentor) {
+      // No mentor assigned at all
+      needsMentorList.push({ ...s, needTag: null });
+    } else {
+      const conf = slugConfirmStatus[s.slug];
+      if (!conf) {
+        // Assigned but no email thread at all — awaiting outreach
+        needsMentorList.push({ ...s, needTag: "pending" });
+      } else if (conf.status === "declined") {
+        needsMentorList.push({ ...s, needTag: "declined", declinedBy: slugDeclinedBy[s.slug] });
+      } else if (conf.status === "pending") {
+        needsMentorList.push({ ...s, needTag: "pending" });
+      }
+      // "confirmed" → don't show, they're matched
+    }
+  }
+
+  // Keep a separate declined list for right-column mentor rematch logic
+  const slugsDeclined = new Set(
+    needsMentorList.filter(m => m.needTag === "declined").map(m => m.slug)
+  );
 
   // ── 3. Mentors who need a mentee ─────────────────────────────────────────
   //    a) All their assigned mentees were declined → rematch
@@ -2449,31 +2479,34 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
 
         {/* ── LEFT: MENTEES ── */}
         <div>
-          <div style={{ border: "1.5px solid #f5c6c6", borderRadius: 12, overflow: "hidden", marginBottom: 16 }}>
-            <ColHeader emoji="👤" label="Need a Mentor" count={noMentorMentees.length} color="#c0392b" bg="#fef5f5" />
+          <div style={{ border: "1.5px solid #f5c6c6", borderRadius: 12, overflow: "hidden" }}>
+            <ColHeader emoji="👤" label="Mentees Needing a Mentor" count={needsMentorList.length} color="#c0392b" bg="#fef5f5" />
             <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: 8 }}>
-              {noMentorMentees.length === 0 ? emptyNote : noMentorMentees.map(s => (
-                <Card key={s.slug} border="#f5c6c6">
-                  <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{s.first} {s.last}</p>
-                  {s.company && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#6b6480" }}>{s.company}</p>}
-                  {s.cohort && <p style={{ margin: 0, fontSize: 10, color: "#9b8fcf" }}>Cohort {s.cohort} · {COHORT_NAMES_MD[s.cohort]}</p>}
-                  {s.industry && <p style={{ margin: "4px 0 0", fontSize: 10, color: "#9b8fcf" }}>🏷 {s.industry}</p>}
-                  {s.stage && <p style={{ margin: "2px 0 0", fontSize: 10, color: "#9b8fcf" }}>📍 {s.stage}</p>}
-                </Card>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ border: "1.5px solid #f5d9a0", borderRadius: 12, overflow: "hidden" }}>
-            <ColHeader emoji="🔄" label="Mentor Declined — Needs Rematch" count={mentorDeclined.length} color="#b35c00" bg="#fff8f0" />
-            <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: 8 }}>
-              {mentorDeclined.length === 0 ? emptyNote : mentorDeclined.map((m, i) => (
-                <Card key={i} border="#f5d9a0">
-                  <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{m.name}</p>
-                  {m.company && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#6b6480" }}>{m.company}</p>}
-                  <p style={{ margin: 0, fontSize: 11, color: "#b35c00", fontWeight: 600 }}>Declined by {m.mentorName}</p>
-                </Card>
-              ))}
+              {needsMentorList.length === 0 ? emptyNote : needsMentorList.map(s => {
+                const tagMap = {
+                  declined: { label: "Mentor Declined — Needs Rematch", color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
+                  pending:  { label: "Awaiting Mentor Confirmation",    color: "#5c4eb5", bg: "#f3f0ff", border: "#c4b8f0" },
+                };
+                const tag = s.needTag ? tagMap[s.needTag] : null;
+                return (
+                  <Card key={s.slug} border={tag?.border || "#f5c6c6"}>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: tag ? 4 : 0 }}>
+                      <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{s.first} {s.last}</p>
+                      {tag && (
+                        <span style={{ fontSize: 10, fontWeight: 700, color: tag.color, background: tag.bg, border: `1px solid ${tag.border}`, borderRadius: 6, padding: "2px 8px", flexShrink: 0, whiteSpace: "nowrap" }}>
+                          {tag.label}
+                        </span>
+                      )}
+                    </div>
+                    {s.company && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#6b6480" }}>{s.company}</p>}
+                    {s.assignedMentor && <p style={{ margin: "0 0 1px", fontSize: 11, color: "#9b8fcf" }}>Assigned: {s.assignedMentor}</p>}
+                    {s.needTag === "declined" && s.declinedBy && (
+                      <p style={{ margin: "0 0 1px", fontSize: 11, color: "#b35c00", fontWeight: 600 }}>Declined by {s.declinedBy}</p>
+                    )}
+                    {s.cohort && <p style={{ margin: "2px 0 0", fontSize: 10, color: "#c0b8d8" }}>Cohort {s.cohort} · {COHORT_NAMES_MD[s.cohort]}</p>}
+                  </Card>
+                );
+              })}
             </div>
           </div>
         </div>
