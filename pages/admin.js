@@ -2278,6 +2278,7 @@ export default function AdminPage() {
               { key: "pulse",       label: "❤️ Weekly Pulse" },
               { key: "matches",     label: "👥 Mentors" },
               { key: "matching",    label: "🔀 Matching" },
+              { key: "need-to-send", label: "📬 Need to Send" },
               { key: "emails",      label: "✅ Mentor Confirmation" },
             ].map(({ key, label }) => (
               <button key={key} onClick={() => setAdminTab(key)} style={{
@@ -2302,6 +2303,7 @@ export default function AdminPage() {
           {adminTab === "pulse"       && <PulseReport />}
           {adminTab === "matches"     && <MentorMatches confirmations={mentorConfirmations} sessions={mentorSessions} onSessionChange={handleMentorSessionChange} mentees={data?.mentees || []} />}
           {adminTab === "matching"    && <MatchingDashboard confirmations={mentorConfirmations} mentees={data?.mentees || []} />}
+          {adminTab === "need-to-send" && <NeedToSend />}
           {adminTab === "emails"      && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} />}
         </>
       )}
@@ -2922,6 +2924,129 @@ function SuggestedMatches({ mentees, mentors, maxPairings }) {
           <p style={{ margin: 0, fontSize: 12, color: "#c0b8d8" }}>Considers industry, focus areas, stage, and mentor background</p>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Need to Send view ────────────────────────────────────────────────────────
+function NeedToSend() {
+  const [groups, setGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [markedSent, setMarkedSent] = useState({}); // mentorName → true
+  const [copiedEmail, setCopiedEmail] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/admin/pending-assignments")
+      .then(r => r.json())
+      .then(d => { setGroups(d.pending || []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const copyEmail = (email) => {
+    navigator.clipboard.writeText(email);
+    setCopiedEmail(email);
+    setTimeout(() => setCopiedEmail(null), 2000);
+  };
+
+  const markSent = (mentorName) => {
+    setMarkedSent(s => ({ ...s, [mentorName]: true }));
+  };
+
+  const pending = groups.filter(g => !markedSent[g.mentorName]);
+  const sentCount = Object.values(markedSent).filter(Boolean).length;
+
+  if (loading) return (
+    <div style={{ padding: 48, textAlign: "center", color: "#9b8fcf", fontFamily: "Inter, system-ui, sans-serif" }}>Loading…</div>
+  );
+
+  return (
+    <div style={{ padding: "32px 40px", fontFamily: "Inter, system-ui, sans-serif", maxWidth: 860, margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ marginBottom: 28 }}>
+        <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>📬 Need to Send</p>
+        <p style={{ margin: 0, fontSize: 14, color: "#9b8fcf" }}>
+          Mentor–mentee pairings that have been approved but not yet sent. Reach out to each mentor to introduce their mentee(s).
+        </p>
+        {sentCount > 0 && (
+          <p style={{ margin: "8px 0 0", fontSize: 13, color: "#1a6e42", fontWeight: 600 }}>
+            ✓ {sentCount} batch{sentCount !== 1 ? "es" : ""} marked as sent this session
+          </p>
+        )}
+      </div>
+
+      {pending.length === 0 && (
+        <div style={{ background: "#f0faf4", border: "1.5px solid #b8e8d0", borderRadius: 14, padding: "32px", textAlign: "center" }}>
+          <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 700, color: "#1a6e42" }}>🎉 All caught up!</p>
+          <p style={{ margin: 0, fontSize: 13, color: "#3a8e5e" }}>No pending assignments waiting to be sent.</p>
+        </div>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {pending.map((g, i) => (
+          <div key={i} style={{
+            background: "#fff", border: "1.5px solid #e0d9f8",
+            borderRadius: 14, padding: "20px 24px",
+            boxShadow: "0 1px 4px rgba(92,78,181,0.06)",
+          }}>
+            {/* Mentor row */}
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <div style={{ background: "#1a1733", borderRadius: 8, padding: "6px 14px" }}>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#fff" }}>🎓 {g.mentorName}</p>
+                  </div>
+                  {g.adminAssigned && (
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#5c4eb5", background: "#f3f0ff", border: "1px solid #c4b8f0", borderRadius: 6, padding: "3px 10px" }}>
+                      AI suggested
+                    </span>
+                  )}
+                </div>
+                {g.mentorEmail && (
+                  <button
+                    onClick={() => copyEmail(g.mentorEmail)}
+                    style={{
+                      marginTop: 6, background: "none", border: "none", padding: 0,
+                      fontSize: 12, color: copiedEmail === g.mentorEmail ? "#1a6e42" : "#9b8fcf",
+                      cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 500,
+                    }}
+                  >
+                    {copiedEmail === g.mentorEmail ? "✓ Copied!" : `📋 ${g.mentorEmail}`}
+                  </button>
+                )}
+              </div>
+
+              <button
+                onClick={() => markSent(g.mentorName)}
+                style={{
+                  background: "linear-gradient(135deg, #1a6e42, #0f4a2c)",
+                  color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px",
+                  fontSize: 13, fontWeight: 700, cursor: "pointer",
+                  fontFamily: "Inter, system-ui, sans-serif", flexShrink: 0,
+                }}
+              >
+                ✓ Mark as Sent
+              </button>
+            </div>
+
+            {/* Mentee chips */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 12, color: "#9b8fcf", marginRight: 4 }}>Mentee{g.mentees.length !== 1 ? "s" : ""}:</span>
+              {g.mentees.map((m, j) => (
+                <div key={j} style={{ background: "#f3f0ff", border: "1.5px solid #c4b8f0", borderRadius: 8, padding: "5px 12px" }}>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#5c4eb5" }}>👤 {m.name || m.slug}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Assigned date */}
+            {g.mentees[0]?.updatedAt && (
+              <p style={{ margin: "10px 0 0", fontSize: 11, color: "#c0b8d8" }}>
+                Assigned {g.mentees[0].updatedAt}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
