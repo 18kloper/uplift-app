@@ -1579,6 +1579,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
     churned:    realMentees.filter(m => m.status === "churned").length,
     onboarding: realMentees.filter(m => m.milestones?.onboarding).length,
     participated: realMentees.filter(m => m.milestones?.participation).length,
+    onboardedWithMentor: realMentees.filter(m => m.milestones?.onboarding && confirmedSlugs.has(m.slug)).length,
   };
 
   const cohortCounts = {};
@@ -1625,6 +1626,13 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
       value: counts.onboarding,
       color: "#2a7fd4", bg: "#e8f4ff",
       desc: "Founders who have attended an onboarding session",
+      statusKey: null,
+    },
+    {
+      label: "🎓 Onboarded + Mentor Confirmed",
+      value: counts.onboardedWithMentor,
+      color: "#0e7c6b", bg: "#e8faf7",
+      desc: "Completed onboarding and have a mentor who has confirmed",
       statusKey: null,
     },
     {
@@ -3548,6 +3556,8 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
   };
 
   const [pendingByMentor, setPendingByMentor] = useState({});
+  const [sentByMentor, setSentByMentor] = useState({});
+  const [sentSectionOpen, setSentSectionOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -3560,12 +3570,17 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
       setResponses(emailData.responses || []);
       if (notesData.notes) setMentorNotes(notesData.notes);
 
-      // Build pendingByMentor map
+      // Build pendingByMentor and sentByMentor maps
       const pbm = {};
       for (const g of (pendingData.pending || [])) {
         pbm[g.mentorName] = (g.mentees || []).map(m => ({ name: m.name, slug: m.slug, isRematch: m.isRematch, prevMentor: m.prevMentor }));
       }
       setPendingByMentor(pbm);
+      const sbm = {};
+      for (const g of (pendingData.sent || [])) {
+        sbm[g.mentorName] = (g.mentees || []).map(m => ({ name: m.name, slug: m.slug }));
+      }
+      setSentByMentor(sbm);
 
       // Merge MENTEES-assigned mentors with unmatched Typeform applicants
       const assigned = selData.mentors || [];
@@ -3914,6 +3929,41 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
             );
           })}
         </div>
+
+        {/* ── Already Sent collapsible ── */}
+        {Object.keys(sentByMentor).length > 0 && (
+          <div style={{ marginTop: 24, border: "1px solid #d4edda", borderRadius: 12, overflow: "hidden" }}>
+            <button
+              onClick={() => setSentSectionOpen(o => !o)}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "12px 20px", background: "#f0faf4", border: "none", cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#1a6e42" }}>
+                ✅ Already Sent — {Object.keys(sentByMentor).length} mentor{Object.keys(sentByMentor).length !== 1 ? "s" : ""} · awaiting their response
+              </span>
+              <span style={{ fontSize: 16, color: "#1a6e42" }}>{sentSectionOpen ? "▲" : "▼"}</span>
+            </button>
+            {sentSectionOpen && (
+              <div style={{ background: "#fff", padding: "12px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
+                {Object.entries(sentByMentor).map(([mentorName, mentees]) => (
+                  <div key={mentorName} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "8px 0", borderBottom: "1px solid #f0f0f0" }}>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733", minWidth: 180 }}>{mentorName}</p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {mentees.map(pm => (
+                        <span key={pm.slug} style={{ fontSize: 12, fontWeight: 600, color: "#1a6e42", background: "#e8f8f0", border: "1px solid #9edbb8", borderRadius: 6, padding: "2px 10px" }}>
+                          {pm.name || pm.slug}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
