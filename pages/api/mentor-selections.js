@@ -81,12 +81,13 @@ export default async function handler(req, res) {
     }
 
     const selections = MENTEES.map(m => ({
-      slug:           m.slug,
-      first:          m.first,
-      last:           m.last,
-      cohort:         m.cohort,
-      company:        m.company || "",
-      assignedMentor: m.mentor?.name || "",
+      slug:            m.slug,
+      first:           m.first,
+      last:            m.last,
+      cohort:          m.cohort,
+      company:         m.company || "",
+      assignedMentor:  m.mentor?.name || "",
+      needsInvitation: m.needsInvitation || false,
       ...(bySlug[m.slug] || { responded: false, selectedMentor: "", responseDate: "", notes: "" }),
     }));
 

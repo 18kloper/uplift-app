@@ -2413,11 +2413,9 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
     if (TEST_SLUGS_MD.has(s.slug)) continue;
 
     if (!isConfirmed(s)) {
-      // Only flag brand-new mentees (no Milestone Dashboard row yet) as needing an invitation.
-      // Mentees who are in the dashboard but haven't confirmed participation are an engagement
-      // issue, not a matching issue — don't inflate the matching list with them.
-      const inDashboard = menteeStatusBySlug[s.slug] !== undefined;
-      if (!inDashboard) needsMentorList.push({ ...s, needTag: "not-invited" });
+      // Explicitly flagged in lib/mentees.js as needing an invitation (not yet onboarded)
+      if (s.needsInvitation) needsMentorList.push({ ...s, needTag: "not-invited" });
+      // Otherwise unconfirmed = engagement issue, not a matching issue — skip
       continue;
     }
 
