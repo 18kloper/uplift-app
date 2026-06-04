@@ -2402,22 +2402,24 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
   }
 
   // ── Unified mentee needs list ─────────────────────────────────────────────
-  // tag: null = no mentor assigned, "declined" = mentor said no, "pending" = awaiting mentor reply
+  // tag: null = no mentor assigned (confirmed participants only)
+  // tag: "declined" = mentor said no (confirmed participants only)
+  // tag: "pending" = assigned but mentor hasn't confirmed yet (ALL non-test mentees)
   const needsMentorList = [];
   for (const s of (selData?.selections || [])) {
     if (TEST_SLUGS_MD.has(s.slug)) continue;
-    if (!isConfirmed(s)) continue;
 
     if (!s.assignedMentor) {
-      // No mentor assigned at all
-      needsMentorList.push({ ...s, needTag: null });
+      // No mentor at all — only flag confirmed participants (active in program)
+      if (isConfirmed(s)) needsMentorList.push({ ...s, needTag: null });
     } else {
       const conf = slugConfirmStatus[s.slug];
       if (!conf) {
         // Assigned but no email thread at all — awaiting outreach
         needsMentorList.push({ ...s, needTag: "pending" });
       } else if (conf.status === "declined") {
-        needsMentorList.push({ ...s, needTag: "declined", declinedBy: slugDeclinedBy[s.slug] });
+        // Only flag declined if they're an active confirmed participant
+        if (isConfirmed(s)) needsMentorList.push({ ...s, needTag: "declined", declinedBy: slugDeclinedBy[s.slug] });
       } else if (conf.status === "pending") {
         needsMentorList.push({ ...s, needTag: "pending" });
       }
