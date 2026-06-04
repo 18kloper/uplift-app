@@ -2368,70 +2368,34 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
     }
   }
 
-  // ── 1. Mentees with NO mentor assigned at all ─────────────────────────────
-  const noMentorMentees = (selData?.selections || []).filter(s => {
-    if (s.isTest) return false;
-    return !s.mentor?.name;
+  // ── 1. Mentees with NO mentor assigned ───────────────────────────────────
+  const noMentorMentees = (selData?.selections || []).filter(s => !s.isTest && !s.mentor?.name);
+
+  // ── 2. Mentees whose mentor has not yet accepted ──────────────────────────
+  //    Has a mentor assigned, but that mentor's email reply hasn't confirmed this slug yet
+  const mentorNotAccepted = (selData?.selections || []).filter(s => {
+    if (s.isTest || !s.mentor?.name) return false;
+    const resp = responseByMentor[s.mentor.name];
+    if (!resp) return true; // mentor never replied
+    const key = `${resp.threadId}|${s.slug}`;
+    return confirmations[key] !== "confirmed"; // not yet confirmed (may be declined or no reply)
   });
 
-  // ── 2. Mentees whose mentor DECLINED them (needs a new match) ────────────
-  const declinedMentees = [];
-  for (const r of responses) {
-    for (const opt of (r.options || [])) {
-      const key = `${r.threadId}|${opt.slug}`;
-      if (confirmations[key] === "declined") {
-        // Only flag if the mentee doesn't have another confirmed mentor
-        const hasAnotherConfirmed = responses.some(r2 =>
-          r2 !== r && (r2.options || []).some(o2 =>
-            o2.slug === opt.slug && confirmations[`${r2.threadId}|${o2.slug}`] === "confirmed"
-          )
-        );
-        if (!hasAnotherConfirmed) {
-          declinedMentees.push({ slug: opt.slug, name: opt.name, company: opt.company, mentorName: r.mentor.name });
-        }
-      }
-    }
-  }
-
   // ── 3. Mentors who need a mentee ─────────────────────────────────────────
-  //    a) Replied but ALL mentees declined → needs rematch
-  //    b) New Typeform applicants not yet assigned
+  //    a) All their assigned mentees were declined → rematch
+  //    b) New Typeform applicants not yet in the system
   const mentorsNeedingMentee = [];
   for (const mentor of (selData?.mentors || [])) {
     if (mentor.name === "MJ" || mentor.name === "Kennedy") continue;
     const resp = responseByMentor[mentor.name];
     if (resp) {
       const opts = resp.options || [];
-      const declinedAll = opts.length > 0 && opts.every(o => confirmations[`${resp.threadId}|${o.slug}`] === "declined");
-      if (declinedAll) {
-        mentorsNeedingMentee.push({ name: mentor.name, email: mentor.email, label: "Needs Rematch" });
-      }
+      const allDeclined = opts.length > 0 && opts.every(o => confirmations[`${resp.threadId}|${o.slug}`] === "declined");
+      if (allDeclined) mentorsNeedingMentee.push({ name: mentor.name, email: mentor.email, label: "Declined — Needs Rematch" });
     }
   }
-  // New Typeform applicants (not yet assigned to any mentee)
   for (const m of newMentors) {
     mentorsNeedingMentee.push({ name: m.name, email: m.email, company: m.company, title: m.title, industry: m.industry, focus: m.focus, label: "New Applicant" });
-  }
-
-  // ── 4. Mentor confirmed match, but mentee hasn't confirmed participation ──
-  const mentorConfirmedMenteePending = [];
-  for (const r of responses) {
-    const opts = r.options || [];
-    for (const opt of opts) {
-      if (confirmations[`${r.threadId}|${opt.slug}`] === "confirmed") {
-        const ms = menteeStatusBySlug[opt.slug];
-        if (ms && !ms.participation && !ms.churned) {
-          mentorConfirmedMenteePending.push({
-            mentorName: r.mentor.name,
-            mentorEmail: r.mentor.email,
-            menteeSlug: opt.slug,
-            menteeName: opt.name,
-            menteeCompany: opt.company,
-            menteeCohort: ms?.cohort,
-          });
-        }
-      }
-    }
   }
 
   // ─── Sub-section card ──────────────────────────────────────────────────────
@@ -2487,7 +2451,7 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
       </p>
 
       {/* ── 1. Mentees with no mentor ── */}
-      <Section emoji="🚫" title="Mentees Without a Mentor" count={noMentorMentees.length} color="#c0392b" bg="#fef5f5" border="#f5c6c6">
+      <Section emoji="🚫" title="Mentees Who Need a Mentor" count={noMentorMentees.length} color="#c0392b" bg="#fef5f5" border="#f5c6c6">
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
           {noMentorMentees.map(s => (
             <MenteePill key={s.slug} name={`${s.first} ${s.last}`} company={s.company} cohort={s.cohort} extra="No mentor assigned" />
@@ -2495,14 +2459,11 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
         </div>
       </Section>
 
-      {/* ── 2. Mentees whose mentor declined them ── */}
-      <Section emoji="🔄" title="Mentees Whose Mentor Declined — Needs New Match" count={declinedMentees.length} color="#b35c00" bg="#fff8f0" border="#f5d9a0">
-        <p style={{ margin: "0 0 12px", fontSize: 12, color: "#9b8fcf" }}>
-          These mentees had their mentor decline the match and need to be reassigned.
-        </p>
+      {/* ── 2. Mentees whose mentor has not yet accepted ── */}
+      <Section emoji="⏳" title="Mentees Whose Mentor Has Not Yet Accepted" count={mentorNotAccepted.length} color="#b35c00" bg="#fff8f0" border="#f5d9a0">
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-          {declinedMentees.map((m, i) => (
-            <MenteePill key={i} name={m.name} company={m.company} extra={`Declined by: ${m.mentorName}`} />
+          {mentorNotAccepted.map(s => (
+            <MenteePill key={s.slug} name={`${s.first} ${s.last}`} company={s.company} cohort={s.cohort} extra={`Mentor: ${s.mentor?.name}`} />
           ))}
         </div>
       </Section>
@@ -2512,34 +2473,6 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
           {mentorsNeedingMentee.map((m, i) => (
             <MentorPill key={i} name={m.name} email={m.email} company={m.company} title={m.title} industry={m.industry} focus={m.focus} label={m.label} />
-          ))}
-        </div>
-      </Section>
-
-      {/* ── 4. Mentor confirmed, mentee hasn't confirmed participation ── */}
-      <Section emoji="🟡" title="Mentor Confirmed — Mentee Participation Pending" count={mentorConfirmedMenteePending.length} color="#7a5700" bg="#fffbe6" border="#f5c542">
-        <p style={{ margin: "0 0 12px", fontSize: 12, color: "#9b8fcf" }}>
-          The mentor confirmed this match but the mentee has not yet confirmed their participation in the portal.
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {mentorConfirmedMenteePending.map((row, i) => (
-            <div key={i} style={{ background: "#fff", border: "1px solid #f0e8c0", borderRadius: 10, padding: "10px 16px", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-              <div style={{ minWidth: 160 }}>
-                <p style={{ margin: "0 0 1px", fontSize: 12, fontWeight: 600, color: "#9b8fcf" }}>Mentor</p>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{row.mentorName}</p>
-                <p style={{ margin: 0, fontSize: 11, color: "#5c4eb5" }}>{row.mentorEmail}</p>
-              </div>
-              <span style={{ fontSize: 18, color: "#c4b8f0" }}>→</span>
-              <div style={{ minWidth: 160 }}>
-                <p style={{ margin: "0 0 1px", fontSize: 12, fontWeight: 600, color: "#9b8fcf" }}>Mentee</p>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{row.menteeName}</p>
-                {row.menteeCompany && <p style={{ margin: 0, fontSize: 11, color: "#6b6480" }}>{row.menteeCompany}</p>}
-                {row.menteeCohort && <p style={{ margin: 0, fontSize: 10, color: "#9b8fcf" }}>Cohort {row.menteeCohort} · {COHORT_NAMES_MD[row.menteeCohort]}</p>}
-              </div>
-              <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: "#b35c00", background: "#fff3e0", borderRadius: 6, padding: "3px 10px", flexShrink: 0 }}>
-                Awaiting mentee confirmation
-              </span>
-            </div>
           ))}
         </div>
       </Section>
