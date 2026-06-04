@@ -2319,6 +2319,13 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
   const [loading, setLoading]     = useState(true);
   const [menteeFilters, setMenteeFilters] = useState(new Set()); // empty = show all
   const [mentorFilters, setMentorFilters] = useState(new Set());
+  const [approvedMenteeSlugs, setApprovedMenteeSlugs] = useState(new Set());
+  const [approvedMentorNames, setApprovedMentorNames] = useState(new Set());
+
+  const handleMatchApproved = (menteeSlugs, mentorName) => {
+    setApprovedMenteeSlugs(prev => { const s = new Set(prev); menteeSlugs.forEach(sl => s.add(sl)); return s; });
+    setApprovedMentorNames(prev => { const s = new Set(prev); s.add(mentorName); return s; });
+  };
 
   useEffect(() => {
     Promise.all([
@@ -2411,7 +2418,7 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
   // tag: "pending"     = confirmed participant, assigned mentor not confirmed yet
   // tag: "declined"    = confirmed participant, mentor explicitly declined
   const needsMentorList = [];
-  for (const s of (selData?.selections || [])) {
+  for (const s of (selData?.selections || []).filter(s => !approvedMenteeSlugs.has(s.slug))) {
     if (TEST_SLUGS_MD.has(s.slug)) continue;
 
     if (!isConfirmed(s)) {
@@ -2468,6 +2475,8 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
     mentorsNeedingMentee.push({ name: m.name, email: m.email, company: m.company, title: m.title, industry: m.industry, focus: m.focus, label: "New Applicant" });
   }
 
+  // Hide mentors that were just approved in this session
+  const visibleMentorsNeedingMentee = mentorsNeedingMentee.filter(m => !approvedMentorNames.has(m.name));
 
   const ColHeader = ({ emoji, label, count, color, bg }) => (
     <div style={{ background: bg, borderRadius: "12px 12px 0 0", padding: "14px 18px", display: "flex", alignItems: "center", gap: 10, borderBottom: "1.5px solid rgba(0,0,0,0.06)" }}>
@@ -2605,14 +2614,14 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
             "Mentee Unresponsive":      { color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
           };
           const visibleMentors = mentorFilters.size === 0
-            ? mentorsNeedingMentee
-            : mentorsNeedingMentee.filter(m => mentorFilters.has(m.label));
+            ? visibleMentorsNeedingMentee
+            : visibleMentorsNeedingMentee.filter(m => mentorFilters.has(m.label));
           return (
             <div>
               {/* Filter chips */}
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
                 {MENTOR_TAG_OPTS.map(opt => {
-                  const count = mentorsNeedingMentee.filter(m => m.label === opt.key).length;
+                  const count = visibleMentorsNeedingMentee.filter(m => m.label === opt.key).length;
                   const active = mentorFilters.size === 0 ? true : mentorFilters.has(opt.key);
                   return (
                     <button key={opt.key} onClick={() => toggleMentor(opt.key)} style={{
@@ -2666,7 +2675,7 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
 
       {/* ── SUGGESTED MATCHES ── */}
       {(() => {
-        const actionableMentors = mentorsNeedingMentee.filter(m => m.label === "New Applicant" || m.label === "Declined — Needs Rematch");
+        const actionableMentors = visibleMentorsNeedingMentee.filter(m => m.label === "New Applicant" || m.label === "Declined — Needs Rematch");
         if (actionableMentors.length === 0) return null;
 
         // Mentee pool: everyone in the left column —
@@ -2674,14 +2683,14 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
         // whose assigned mentor hasn't responded yet
         if (needsMentorList.length === 0) return null;
 
-        return <SuggestedMatches mentees={needsMentorList} mentors={actionableMentors} maxPairings={actionableMentors.length * 2} />;
+        return <SuggestedMatches mentees={needsMentorList} mentors={actionableMentors} maxPairings={actionableMentors.length * 2} onApproved={handleMatchApproved} />;
       })()}
 
     </div>
   );
 }
 
-function SuggestedMatches({ mentees, mentors, maxPairings }) {
+function SuggestedMatches({ mentees, mentors, maxPairings, onApproved }) {
   const [matches, setMatches] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -2748,6 +2757,7 @@ function SuggestedMatches({ mentees, mentors, maxPairings }) {
         if (!d.ok && !d.dev) throw new Error(d.error || "Save failed");
       }
       setCardState(s => ({ ...s, [i]: "approved" }));
+      if (onApproved) onApproved(match.menteeSlugs || [], match.mentorName);
     } catch (e) {
       setSaveError(s => ({ ...s, [i]: e.message }));
     }
@@ -2955,6 +2965,20 @@ function NeedToSend() {
   const pending = groups.filter(g => !markedSent[g.mentorName]);
   const sentCount = Object.values(markedSent).filter(Boolean).length;
 
+  const exportCSV = () => {
+    const rows = [["Mentor Name", "Mentor Email", "Mentee Name", "Mentee Slug", "Assigned Date", "AI Suggested"]];
+    for (const g of pending) {
+      for (const m of g.mentees) {
+        rows.push([g.mentorName, g.mentorEmail, m.name || m.slug, m.slug, m.updatedAt || "", g.adminAssigned ? "Yes" : "No"]);
+      }
+    }
+    const csv = rows.map(r => r.map(v => `"${(v || "").replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "need-to-send.csv"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) return (
     <div style={{ padding: 48, textAlign: "center", color: "#9b8fcf", fontFamily: "Inter, system-ui, sans-serif" }}>Loading…</div>
   );
@@ -2962,15 +2986,29 @@ function NeedToSend() {
   return (
     <div style={{ padding: "32px 40px", fontFamily: "Inter, system-ui, sans-serif", maxWidth: 860, margin: "0 auto" }}>
       {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>📬 Need to Send</p>
-        <p style={{ margin: 0, fontSize: 14, color: "#9b8fcf" }}>
-          Mentor–mentee pairings that have been approved but not yet sent. Reach out to each mentor to introduce their mentee(s).
-        </p>
-        {sentCount > 0 && (
-          <p style={{ margin: "8px 0 0", fontSize: 13, color: "#1a6e42", fontWeight: 600 }}>
-            ✓ {sentCount} batch{sentCount !== 1 ? "es" : ""} marked as sent this session
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 28, flexWrap: "wrap" }}>
+        <div>
+          <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>📬 Need to Send</p>
+          <p style={{ margin: 0, fontSize: 14, color: "#9b8fcf" }}>
+            Mentor–mentee pairings approved but not yet sent. Reach out to each mentor to introduce their mentee(s).
           </p>
+          {sentCount > 0 && (
+            <p style={{ margin: "8px 0 0", fontSize: 13, color: "#1a6e42", fontWeight: 600 }}>
+              ✓ {sentCount} batch{sentCount !== 1 ? "es" : ""} marked as sent this session
+            </p>
+          )}
+        </div>
+        {pending.length > 0 && (
+          <button
+            onClick={exportCSV}
+            style={{
+              background: "#fff", color: "#5c4eb5", border: "1.5px solid #c4b8f0",
+              borderRadius: 8, padding: "8px 18px", fontSize: 13, fontWeight: 700,
+              cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", flexShrink: 0,
+            }}
+          >
+            ⬇ Export CSV
+          </button>
         )}
       </div>
 
