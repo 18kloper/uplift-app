@@ -61,7 +61,8 @@ export default async function handler(req, res) {
   }
 
   // ── 3. Filter to real mentees (cohort 1–5) that are missing ───────────────
-  const realMentees = MENTEES.filter(m => m.cohort >= 1 && m.cohort <= 5);
+  const TEST_SLUGS = new Set(["kennedy", "jackie", "aaron", "mj"]);
+  const realMentees = MENTEES.filter(m => m.cohort >= 1 && m.cohort <= 5 && !TEST_SLUGS.has(m.slug));
   const missing = realMentees.filter(m => !existingSlugs.has(m.slug));
 
   if (missing.length === 0) {
