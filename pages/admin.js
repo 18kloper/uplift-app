@@ -1523,6 +1523,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
   const [needsMentorFilter, setNeedsMentorFilter] = useState(false);
   const [confirmedMentorFilter, setConfirmedMentorFilter] = useState(false);
   const [pendingMentorFilter, setPendingMentorFilter] = useState(false);
+  const [participatedNotOnboardedFilter, setParticipatedNotOnboardedFilter] = useState(false);
 
   const { mentees = [], pendingReviewCount = 0 } = data;
   const isPreProgram = new Date() < PROGRAM_START;
@@ -1548,7 +1549,8 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
     const needsMentorMatch = !needsMentorFilter || declinedSlugs.has(m.slug) || (!m.mentorName && !confirmedSlugs.has(m.slug));
     const confirmedMentorMatch = !confirmedMentorFilter || confirmedSlugs.has(m.slug);
     const pendingMentorMatch = !pendingMentorFilter || (m.mentorName && !respondedMentorNames.has(m.mentorName));
-    return cohortMatch && searchMatch && statusMatch && milestoneMatch && needsMentorMatch && confirmedMentorMatch && pendingMentorMatch;
+    const participatedNotOnboardedMatch = !participatedNotOnboardedFilter || (m.milestones?.participation && !m.milestones?.onboarding);
+    return cohortMatch && searchMatch && statusMatch && milestoneMatch && needsMentorMatch && confirmedMentorMatch && pendingMentorMatch && participatedNotOnboardedMatch;
   });
 
   const realMentees   = mentees.filter(m => !m.isTest);
@@ -1893,6 +1895,24 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: pendingMentorFilter ? "rgba(255,255,255,0.8)" : "#6b6480", flexShrink: 0 }} />
                 Pending Mentor Reply ({pmCount})
                 {pendingMentorFilter && <span style={{ marginLeft: 1 }}>×</span>}
+              </button>
+            );
+          })()}
+
+          {(() => {
+            const count = mentees.filter(m => !m.isTest && m.milestones?.participation && !m.milestones?.onboarding).length;
+            return (
+              <button onClick={() => setParticipatedNotOnboardedFilter(p => !p)} style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+                border: participatedNotOnboardedFilter ? "2px solid #0e7c6b" : "1.5px solid #0e7c6b44",
+                background: participatedNotOnboardedFilter ? "#0e7c6b" : "#e8faf7",
+                color: participatedNotOnboardedFilter ? "#fff" : "#0e7c6b",
+                cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s", userSelect: "none",
+              }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: participatedNotOnboardedFilter ? "rgba(255,255,255,0.8)" : "#0e7c6b", flexShrink: 0 }} />
+                Confirmed · Onboarding Incomplete ({count})
+                {participatedNotOnboardedFilter && <span style={{ marginLeft: 1 }}>×</span>}
               </button>
             );
           })()}
