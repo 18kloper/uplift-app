@@ -16,12 +16,12 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
+  // Build rich mentee profiles from MENTEES array
+  const { menteeslugs = [], mentors = [], menteePendingMentors = {}, maxPairings } = req.body || {};
+
   if (!menteeslugs.length || !mentors.length) {
     return res.status(400).json({ error: "Need at least one mentee and one mentor" });
   }
-
-  // Build rich mentee profiles from MENTEES array
-  const { menteeslugs = [], mentors = [], menteePendingMentors = {}, maxPairings } = req.body || {};
   const targetPairings = maxPairings || mentors.length * 2;
   const menteeProfiles = menteeslugs
     .map(slug => MENTEES.find(m => m.slug === slug))
