@@ -32,6 +32,7 @@ export default async function handler(req, res) {
       eventId: r.eventId,
       eventDate: r.eventDate,
       status: r.status,
+      joinedAt: r.joinedAt || null,
       reviewStatus: r.reviewStatus,
       reviewedAt: r.reviewedAt,
       eventType: classifyEvent(r.eventName),

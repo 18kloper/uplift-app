@@ -25,7 +25,7 @@
       background: #e5e7eb;
       color: var(--text);
       -webkit-font-smoothing: antialiased;
-      padding: 48px 0;
+      padding: 96px 0 48px;
     }
 
     /* ============================================================
@@ -44,8 +44,22 @@
     }
 
     @media print {
-      body { background: white; padding: 0; }
-      .sheet { margin: 0; box-shadow: none; page-break-after: always; width: 8.5in; height: 11in; }
+      @page { size: 8.5in 11in; margin: 0; }
+      html, body { margin: 0; padding: 0; background: white; width: 8.5in; }
+      #export-bar { display: none !important; }
+      .sheet {
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        width: 8.5in !important;
+        height: 11in !important;
+        page-break-after: always;
+        break-after: page;
+        overflow: hidden !important;
+        position: relative;
+      }
+      .sheet:last-child { page-break-after: avoid; break-after: avoid; }
     }
 
     /* ============================================================
@@ -401,7 +415,7 @@
     .ps-footer { background:var(--card); border-top:1px solid var(--border); padding:10px 36px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
     .ps-footer-note { font-size:9px; color:var(--muted); }
     .ps-footer-contacts { display:flex; gap:20px; }
-    .ps-footer-contact { text-align:center; }
+    .ps-footer-contact { text-align:right; }
     .ps-footer-contact-email { font-size:9px; font-weight:700; color:#9333EA; }
     .ps-footer-contact-role { font-size:7.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; margin-top:1px; }
 
@@ -561,7 +575,7 @@
       background: var(--card);
       display: flex;
       flex-direction: column;
-      min-height: 148px;
+      height: 210px;
     }
     .p3-card-price-wrap { margin-top: auto; }
     .p3-card-tag { font-size: 8px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
@@ -613,6 +627,19 @@
   </style>
 </head>
 <body>
+
+<div id="export-bar" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#1f2937;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,0.3)">
+  <span style="color:#9ca3af;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;font-family:'Inter',sans-serif">TechUnited NJ · Leader Member Welcome Packet</span>
+  <button onclick="exportPDF()" style="background:linear-gradient(135deg,#9333ea,#ec4899);color:white;border:none;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:0.02em">⬇ Export as PDF</button>
+</div>
+
+<script>
+function exportPDF() {
+  document.getElementById('export-bar').style.display = 'none';
+  window.print();
+  setTimeout(() => { document.getElementById('export-bar').style.display = 'flex'; }, 1000);
+}
+</script>
 
 <!-- =====================================================================
      PAGE 1: THE COMMUNITY
@@ -706,7 +733,7 @@
           <div class="ev-bar c2"></div>
           <div class="p1-ev-inner">
             <div class="p1-ev-logo-wrap">
-              <img src="/overdrive-logo.png" alt="OverdriveAI" class="p1-ev-logo" style="max-height:26px;max-width:130px"
+              <img src="/overdrive-logo.png" alt="OverdriveAI" class="p1-ev-logo" style="max-height:26px;max-width:130px;object-fit:contain;object-position:left"
                    onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
               <div class="p1-ev-wordmark" style="display:none">OverdriveAI</div>
             </div>
@@ -719,7 +746,7 @@
           <div class="ev-bar c4"></div>
           <div class="p1-ev-inner">
             <div class="p1-ev-logo-wrap">
-              <img src="/aidn-logo.png" alt="AI Demo Night" class="p1-ev-logo"
+              <img src="/aidn-logo.svg" alt="AI Demo Night" class="p1-ev-logo"
                    onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
               <div class="p1-ev-wordmark" style="display:none;color:#38bdf8;">AI Demo Night</div>
             </div>
@@ -732,8 +759,8 @@
           <div class="ev-bar" style="background:linear-gradient(90deg,#1e40af,#ec4899)"></div>
           <div class="p1-ev-inner">
             <div class="p1-ev-logo-wrap">
-              <img src="/bfl-logo.png" alt="Better Future Labs" class="p1-ev-logo" style="max-height:22px;max-width:110px" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
-              <div class="p1-ev-wordmark" style="display:none">BetterFutureLabs</div>
+              <img src="https://betterfuturelabs.com/wp-content/uploads/2024/08/header_logo.svg" alt="Better Future Labs" class="p1-ev-logo" style="max-height:22px;max-width:110px" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+              <div class="p1-ev-wordmark" style="display:none">Better Future Labs</div>
             </div>
             <div class="p1-ev-type">Venture Studio</div>
             <div class="p1-ev-desc">TechUnited's venture studio building and backing the next generation of NJ companies.</div>
@@ -757,7 +784,7 @@
           <div class="ev-bar" style="background:linear-gradient(90deg,#059669,#10b981)"></div>
           <div class="p1-ev-inner">
             <div class="p1-ev-logo-wrap">
-              <div class="p1-ev-wordmark" style="background:linear-gradient(90deg,#059669,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Better Future Builders</div>
+              <div class="p1-ev-wordmark" style="background:linear-gradient(90deg,#059669,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">BetterFutureBuilders</div>
             </div>
             <div class="p1-ev-type">HS Entrepreneurship Certificate</div>
             <div class="p1-ev-desc">6-week program for NJ high schoolers. Live sessions with STEM and startup leaders, a startup challenge, LinkedIn badge, and a certificate to add to their resume. Brought to you by BetterFutureLabs and TechUnited:NJ.</div>
@@ -768,7 +795,7 @@
           <div class="ev-bar" style="background:linear-gradient(90deg,#c2410c,#f97316)"></div>
           <div class="p1-ev-inner">
             <div class="p1-ev-logo-wrap">
-              <div class="p1-ev-wordmark" style="color:#c2410c">🏛️ Policy Advocacy</div>
+              <div class="p1-ev-wordmark" style="color:#c2410c">Policy Advocacy</div>
             </div>
             <div class="p1-ev-type" style="color:#c2410c;font-weight:700;opacity:0.85">Active in Trenton + DC</div>
             <div class="p1-ev-desc" style="color:#92400e">We fight for the policies that fund innovation. <span style="font-weight:700">QSBS</span> and <span style="font-weight:700">Angel Investor Tax Credit</span>, actively working to protect and expand both.</div>
@@ -816,6 +843,10 @@
 
   <div class="ps-topbar">
     <img src="https://techunited.co/wp-content/uploads/2026/03/TechUnitedNJ-Logo-FINAL-Full-Color-Black-Text.png" alt="TechUnited NJ" class="ps-logo" />
+    <div style="text-align:right">
+      <div style="font-size:8.5px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:2px">Leader Member Welcome</div>
+      <div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:0.04em">Innovation Leader</div>
+    </div>
   </div>
 
   <div class="ps-hero">
@@ -838,19 +869,19 @@
     <div class="ps-pair-header">
       <div class="ps-section-label">What We Heard</div>
       <div class="ps-pair-header-arrow"></div>
-      <div class="ps-section-label">How We'll Get There</div>
+      <div class="ps-section-label">How We'll Start</div>
     </div>
 
     <div class="ps-pair">
       <div class="ps-goal" style="flex:1"><div class="ps-goal-dot" style="background:#9333EA"></div><div><div class="ps-goal-title">Brand visibility in NJ is the year-one priority</div><div class="ps-goal-desc">Smart State is well established in Europe but largely unknown in the US. You want your name, logo, and story in front of NJ's innovation community fast.</div></div></div>
       <div class="ps-pair-arrow">→</div>
-      <div class="ps-move" style="flex:1"><div class="ps-move-body"><div class="ps-move-title">Website Recognition + Newsletter Spotlight</div><div class="ps-move-desc">Your logo goes live on TechUnited.co. Your Newsletter Spotlight announces Smart State as a new member of the community: your name, your brand, and a warm welcome to NJ's innovation network.</div><div class="ps-move-tags"><span class="ps-tag-inc">✓ Member Benefit</span><span class="ps-tag-inc">✓ Member Benefit</span><span style="font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(14,165,233,0.1);color:#0ea5e9;border:1px solid rgba(14,165,233,0.25);margin-left:auto">First 30-60 Days</span></div></div></div>
+      <div class="ps-move" style="flex:1"><div class="ps-move-body"><div class="ps-move-title">Website Recognition + Newsletter Spotlight</div><div class="ps-move-desc">Your logo goes live on TechUnited.co. Your Newsletter Spotlight announces Smart State as a new member of the community: your name, your brand, and a warm welcome to NJ's innovation network.</div><div class="ps-move-tags"><span class="ps-tag-inc">✓ Member Benefit</span><span class="ps-tag-inc">✓ Member Benefit</span><span style="font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(14,165,233,0.1);color:#0ea5e9;border:1px solid rgba(14,165,233,0.25);margin-left:auto">First 30 & 60 Days</span></div></div></div>
     </div>
 
     <div class="ps-pair">
       <div class="ps-goal" style="flex:1"><div class="ps-goal-dot" style="background:#f97316"></div><div><div class="ps-goal-title">You want to contribute, not just recruit</div><div class="ps-goal-desc">You want Smart State known as a company that invests in NJ through expertise and event presence, not just one that hires from it.</div></div></div>
       <div class="ps-pair-arrow">→</div>
-      <div class="ps-move" style="flex:1"><div class="ps-move-body"><div class="ps-move-title">AI Demo Night Sponsorship</div><div class="ps-move-desc">Slot Smart State into an upcoming AI Demo Night: present, sponsor, or simply show up as a recognized member company.</div><div class="ps-move-tags"><span class="ps-tag-add">+ Sponsorship Add-On</span><span style="font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(14,165,233,0.1);color:#0ea5e9;border:1px solid rgba(14,165,233,0.25);margin-left:auto">Next: August 4th</span></div></div></div>
+      <div class="ps-move" style="flex:1"><div class="ps-move-body"><div class="ps-move-title">AI Demo Night Sponsorship</div><div class="ps-move-desc">Slot Smart State into an upcoming AI Demo Night: present, sponsor, or simply show up as a recognized member company.</div><div class="ps-move-tags"><span class="ps-tag-add">+ Sponsorship Add-On</span><span style="font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(14,165,233,0.1);color:#0ea5e9;border:1px solid rgba(14,165,233,0.25);margin-left:auto">Next Opportunity: August 4th</span></div></div></div>
     </div>
 
     <div class="ps-pair">
@@ -862,7 +893,7 @@
     <div class="ps-pair">
       <div class="ps-goal" style="flex:1"><div class="ps-goal-dot" style="background:#16a34a"></div><div><div class="ps-goal-title">You're ready to show up in person</div><div class="ps-goal-desc">The team wants face time in the rooms where NJ's founders, operators, and investors actually gather, not just on paper.</div></div></div>
       <div class="ps-pair-arrow">→</div>
-      <div class="ps-move" style="flex:1"><div class="ps-move-body"><div class="ps-move-title">Free Admission to Every TechUnited Event, for Your Whole Team</div><div class="ps-move-desc">Every person in your membership org gets free general admission to all TechUnited events: AI Demo Night, OverdriveAI, FutureState, and more. Be a champion of TechUnited: bring your people, show up, and help us grow the community you're now part of.</div><div class="ps-move-tags"><span class="ps-tag-inc">✓ Member Benefit</span><span style="font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(14,165,233,0.1);color:#0ea5e9;border:1px solid rgba(14,165,233,0.25);margin-left:auto">Ongoing Opportunity</span></div></div></div>
+      <div class="ps-move" style="flex:1"><div class="ps-move-body"><div class="ps-move-title">Your Whole Team Gets Into Every TechUnited Event, Free</div><div class="ps-move-desc">Every person in your membership org gets free general admission to all TechUnited events: AI Demo Night, OverdriveAI, FutureState, and more. Be a champion of TechUnited: bring your people, show up, and help us grow the community you're now part of.</div><div class="ps-move-tags"><span class="ps-tag-inc">✓ Member Benefit</span><span style="font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(14,165,233,0.1);color:#0ea5e9;border:1px solid rgba(14,165,233,0.25);margin-left:auto">Ongoing Opportunity</span></div></div></div>
     </div>
 
     <div class="ps-pair">
@@ -874,13 +905,13 @@
     <div class="ps-pair">
       <div class="ps-goal" style="flex:1"><div class="ps-goal-dot" style="background:#ec4899"></div><div><div class="ps-goal-title">You want to post jobs to a broader NJ audience</div><div class="ps-goal-desc">You specifically asked about a jobs board. TechUnited's jobs board (in beta) gives Smart State access to our full 30K NJ tech network.</div></div></div>
       <div class="ps-pair-arrow">→</div>
-      <div class="ps-move" style="flex:1"><div class="ps-move-body"><div class="ps-move-title">Jobs Board Listing (Beta)</div><div class="ps-move-desc">TechUnited's jobs board is in beta and we'd love Smart State to be one of the first companies featured. 30K reach across NJ's tech community. We'll stay in close contact as this rolls out.</div><div class="ps-move-tags"><span style="font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(107,114,128,0.1);color:#6b7280;border:1px solid rgba(107,114,128,0.25)">Member Benefit · Launching Q3</span></div></div></div>
+      <div class="ps-move" style="flex:1"><div class="ps-move-body"><div class="ps-move-title">Jobs Board Listing (Beta)</div><div class="ps-move-desc">TechUnited's jobs board is in beta and we'd love Smart State to be one of the first companies featured. 30K reach across NJ's tech community. We'll stay in close contact as this rolls out.</div><div class="ps-move-tags"><span style="font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(107,114,128,0.1);color:#6b7280;border:1px solid rgba(107,114,128,0.25)">Launching Q3</span><span style="font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(14,165,233,0.1);color:#0ea5e9;border:1px solid rgba(14,165,233,0.25);margin-left:auto">Coming Soon</span></div></div></div>
     </div>
 
   </div>
 
   <div class="ps-footer">
-    <div class="ps-footer-note">Your point of contact is <strong>Olga</strong>. Based on your alignment call on June 1 with Kennedy and MJ. &nbsp;&nbsp;→&nbsp; You'll find a full list of your member benefits on the next page.</div>
+    <div class="ps-footer-note" style="font-size:9px;color:var(--muted)">See a full list of your member benefits on the following page.</div>
     <div class="ps-footer-contacts">
       <div class="ps-footer-contact">
         <div class="ps-footer-contact-email">kennedy@techunited.co</div>
@@ -932,7 +963,7 @@
       </div>
       <div class="p2-benefit">
         <div class="p2-num">03</div>
-        <div><div class="p2-bname">Free Event Access, Whole Team</div><div class="p2-baction">Every employee gets complimentary admission to AI Demo Night, Propelify, OverdriveAI, Catalyst Awards, and FutureState. A member code is issued before each event. Registrants must use a company email address.</div></div>
+        <div><div class="p2-bname">Free Event Access, Whole Team</div><div class="p2-baction">Every employee gets complimentary admission to all public TechUnited events: AI Demo Night, OverdriveAI, Catalyst Awards, FutureState, and more. A member code is issued before each event. Registrants must use a company email address.</div></div>
         <div class="p2-btag leader">Leader</div>
       </div>
       <div class="p2-benefit">
@@ -1050,7 +1081,7 @@
         <div style="margin-bottom:6px;height:28px;display:flex;align-items:center">
           <img src="/aidn-logo.svg" alt="AI Demo Night" style="max-height:26px;max-width:130px;object-fit:contain;object-position:left" onerror="this.style.display='none'" />
         </div>
-        <div class="p3-card-name" style="display:none">AI Demo Night</div>
+        <div class="p3-card-name" style="font-size:12px;color:#111827">AI Demo Nights</div>
         <div class="p3-card-desc">2,300+ cumulative attendees and counting. Occurs monthly across New York and New Jersey. 11 editions, 60–100 founders, operators, and investors per night.</div>
         <div class="p3-card-price-wrap">
           <div class="p3-card-from">Starting at</div>
@@ -1102,7 +1133,7 @@
           <img src="https://techunited.co/wp-content/uploads/2026/03/TechUnitedNJ-Logo-FINAL-Full-Color-Black-Text.png" alt="TechUnited" style="max-height:22px;max-width:130px;object-fit:contain;object-position:left" />
         </div>
         <div class="p3-card-name" style="font-size:12px">TechUnited Newsletter</div>
-        <div class="p3-card-desc">13,000 subscribers. 55% human open rate. Published twice monthly. NJ's leading innovation newsletter. One exclusive sponsor per issue.</div>
+        <div class="p3-card-desc">13,000 subscribers. 55% open rate. Published twice monthly. NJ's leading innovation newsletter. One exclusive sponsor per issue.</div>
         <div class="p3-card-price-wrap">
           <div class="p3-card-from">Starting at</div>
           <div class="p3-card-price grad-text-2">$1,500</div>
@@ -1144,7 +1175,7 @@
         <div style="margin-bottom:6px;height:28px;display:flex;align-items:center">
           <img src="/overdrive-logo.png" alt="OverdriveAI" style="max-height:26px;max-width:140px;object-fit:contain;object-position:left" onerror="this.style.display='none'" />
         </div>
-        <div class="p3-card-name" style="display:none">OverdriveAI Summit</div>
+        <div class="p3-card-name" style="font-size:12px;color:#111827">OverdriveAI Summit</div>
         <div class="p3-card-desc">NJ's definitive AI gathering. Leaders, builders, and capital. Full day. October 2026.</div>
         <div class="p3-card-price-wrap">
           <div class="p3-card-from">Starting at</div>
@@ -1165,7 +1196,7 @@
         <div class="p3-tier">
           <div class="p3-tier-top">
             <div class="p3-tier-name">Presenting</div>
-            <div class="p3-tier-price">$25,000</div>
+            <div class="p3-tier-price">$50,000</div>
           </div>
           <div class="p3-tier-items">
             <div class="p3-tier-item">Stage recognition and speaking opportunity</div>
@@ -1175,10 +1206,9 @@
         <div class="p3-tier feat">
           <div class="p3-tier-top">
             <div class="p3-tier-name">Title Sponsor</div>
-            <div class="p3-tier-price">$100,000</div>
+            <div class="p3-tier-price">$150,000</div>
           </div>
           <div class="p3-tier-items">
-            <div class="p3-tier-item">Full naming rights  "OverdriveAI presented by [You]"</div>
             <div class="p3-tier-item">Keynote intro, exclusive activation space</div>
             <div class="p3-tier-item">Year-round co-branding, 20 passes</div>
           </div>

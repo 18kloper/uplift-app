@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 70" width="220" height="70">
+  <!-- Pink shadow offset for "AI" -->
+  <text x="5" y="54" font-family="Arial Black, sans-serif" font-weight="900" font-size="52" fill="#E879C0" opacity="0.7" letter-spacing="-2">AI</text>
+  <!-- Main "AI" in periwinkle blue -->
+  <text x="3" y="51" font-family="Arial Black, sans-serif" font-weight="900" font-size="52" fill="#8B9FE8" letter-spacing="-2">AI</text>
+  <!-- "DEMO NIGHTS" text -->
+  <text x="88" y="35" font-family="Arial, sans-serif" font-weight="700" font-size="20" fill="#8B9FE8" letter-spacing="1">DEMO</text>
+  <text x="88" y="58" font-family="Arial, sans-serif" font-weight="700" font-size="20" fill="#8B9FE8" letter-spacing="1">NIGHTS</text>
+</svg>

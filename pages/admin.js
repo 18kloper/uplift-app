@@ -2862,6 +2862,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
   const [adminTab, setAdminTab] = useState("mentees");
+  const [primaryTab, setPrimaryTab] = useState("roster");
   const [mentorConfirmations, setMentorConfirmations] = useState({});
   const [mentorSessions, setMentorSessions] = useState({});
   const [respondedMentorNames, setRespondedMentorNames] = useState(new Set());
@@ -2953,6 +2954,30 @@ export default function AdminPage() {
     </>
   );
 
+  const NAV = [
+    { key: "people",     label: "People",     tabs: [
+      { key: "mentees", label: "Mentees" },
+      { key: "matches", label: "Mentors" },
+    ]},
+    { key: "matching",   label: "Matching",   tabs: [
+      { key: "matching",     label: "Matching" },
+      { key: "match-status", label: "Match Status" },
+      { key: "need-to-send", label: "Need to Send" },
+      { key: "emails",       label: "Confirmations" },
+    ]},
+    { key: "engagement", label: "Engagement", tabs: [
+      { key: "luma",        label: "Attendance" },
+      { key: "prompts",     label: "Prompts" },
+      { key: "connections", label: "Peer Connects" },
+      { key: "pulse",       label: "Pulse" },
+    ]},
+    { key: "analytics",  label: "Analytics",  tabs: [
+      { key: "activity", label: "Activity" },
+      { key: "clicks",   label: "Clicks" },
+    ]},
+  ];
+  const activePrimary = NAV.find(g => g.tabs.some(t => t.key === adminTab)) || NAV[0];
+
   return (
     <>
       <Head>
@@ -2961,55 +2986,67 @@ export default function AdminPage() {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </Head>
-      {loading && (
-        <div style={{
-          minHeight: "100vh", background: "#f7f5ff",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontFamily: "Inter, system-ui, sans-serif", color: "#9b8fcf", fontSize: 15,
-        }}>
-          Loading dashboard data…
-        </div>
-      )}
-      {error && (
-        <div style={{ minHeight: "100vh", background: "#f7f5ff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, system-ui, sans-serif" }}>
-          <div style={{ background: "#fff", borderRadius: 12, padding: 32, maxWidth: 400, textAlign: "center" }}>
-            <p style={{ color: "#c0392b", fontWeight: 700, marginBottom: 8 }}>Failed to load data</p>
-            <p style={{ color: "#6b6480", fontSize: 13 }}>{error}</p>
+
+      <div style={{ minHeight: "100vh", background: "#f7f5ff", fontFamily: "Inter, system-ui, sans-serif" }}>
+
+        {/* ── Top nav bar (always visible) ─────────────────────────── */}
+        <div style={{ position: "sticky", top: 0, zIndex: 100 }}>
+          {/* Primary row */}
+          <div style={{ background: "#0f0729", display: "flex", alignItems: "center", gap: 0, padding: "0 32px" }}>
+            <span style={{ color: "#fff", fontWeight: 800, fontSize: 14, marginRight: 32, letterSpacing: "-0.3px", whiteSpace: "nowrap" }}>
+              Uplift Admin
+            </span>
+            {NAV.map(g => {
+              const isActive = g.key === activePrimary.key;
+              return (
+                <button key={g.key} onClick={() => { setPrimaryTab(g.key); setAdminTab(g.tabs[0].key); }} style={{
+                  background: "none", border: "none",
+                  borderBottom: isActive ? "3px solid #f5c542" : "3px solid transparent",
+                  color: isActive ? "#fff" : "rgba(255,255,255,0.45)",
+                  fontFamily: "Inter, system-ui, sans-serif", fontSize: 13, fontWeight: 700,
+                  padding: "14px 20px", cursor: "pointer", letterSpacing: "0.2px",
+                  transition: "color 0.15s",
+                }}>
+                  {g.label}
+                </button>
+              );
+            })}
+          </div>
+          {/* Secondary row */}
+          <div style={{ background: "#1a0e4f", display: "flex", gap: 0, padding: "0 32px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+            {activePrimary.tabs.map(t => {
+              const isActive = adminTab === t.key;
+              return (
+                <button key={t.key} onClick={() => setAdminTab(t.key)} style={{
+                  background: "none", border: "none",
+                  borderBottom: isActive ? "2px solid #a78bfa" : "2px solid transparent",
+                  color: isActive ? "#fff" : "rgba(255,255,255,0.45)",
+                  fontFamily: "Inter, system-ui, sans-serif", fontSize: 12, fontWeight: 600,
+                  padding: "9px 18px", cursor: "pointer", transition: "color 0.15s",
+                }}>
+                  {t.label}
+                </button>
+              );
+            })}
           </div>
         </div>
-      )}
-      {data && !loading && (
-        <>
-          {/* Top-level admin tab bar */}
-          <div style={{ background: "#1a0e4f", borderBottom: "1px solid rgba(255,255,255,0.1)", display: "flex", flexWrap: "wrap", gap: 4, padding: "0 32px" }}>
-            {[
-              // Roster
-              { key: "mentees",      label: "👥 Mentees" },
-              { key: "matches",      label: "🏫 Mentors" },
-              // Matching flow
-              { key: "matching",     label: "🔀 Matching" },
-              { key: "match-status", label: "🔗 Match Status" },
-              { key: "need-to-send", label: "📬 Need to Send" },
-              { key: "emails",       label: "✅ Confirmations" },
-              // Program activity
-              { key: "luma",         label: "🗓️ Attendance" },
-              { key: "prompts",      label: "📝 Prompts" },
-              { key: "connections",  label: "🤝 Peer Connects" },
-              { key: "pulse",        label: "❤️ Pulse" },
-              // Analytics
-              { key: "activity",     label: "🕐 Activity" },
-              { key: "clicks",       label: "📊 Clicks" },
-            ].map(({ key, label }) => (
-              <button key={key} onClick={() => setAdminTab(key)} style={{
-                background: "none", border: "none", borderBottom: adminTab === key ? "2px solid #f5c542" : "2px solid transparent",
-                color: adminTab === key ? "#fff" : "rgba(255,255,255,0.5)",
-                fontFamily: "Inter, system-ui, sans-serif", fontSize: 13, fontWeight: 600,
-                padding: "12px 18px", cursor: "pointer", transition: "color 0.15s",
-              }}>
-                {label}
-              </button>
-            ))}
+
+        {/* ── Main content ─────────────────────────────────────────── */}
+        {loading && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 32px", color: "#9b8fcf", fontSize: 15 }}>
+            Loading dashboard data…
           </div>
+        )}
+        {error && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 32px" }}>
+            <div style={{ background: "#fff", borderRadius: 12, padding: 32, maxWidth: 400, textAlign: "center" }}>
+              <p style={{ color: "#c0392b", fontWeight: 700, marginBottom: 8 }}>Failed to load data</p>
+              <p style={{ color: "#6b6480", fontSize: 13 }}>{error}</p>
+            </div>
+          </div>
+        )}
+        {data && !loading && (
+          <>
           {(() => {
             const confirmedSlugs = new Set(Object.entries(mentorConfirmations).filter(([,v]) => v === "confirmed").map(([k]) => k.split("|")[1]));
             const declinedSlugs  = new Set(Object.entries(mentorConfirmations).filter(([,v]) => v === "declined").map(([k]) => k.split("|")[1]));
@@ -3034,15 +3071,16 @@ export default function AdminPage() {
           {adminTab === "matching"    && <MatchingDashboard confirmations={mentorConfirmations} mentees={data?.mentees || []} />}
           {adminTab === "need-to-send" && <NeedToSend />}
           {adminTab === "emails"      && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} />}
-          {adminTab === "luma"        && <LumaAttendance />}
+          {adminTab === "luma"        && <LumaAttendance mentees={data?.mentees || []} />}
         </>
-      )}
+        )}
+      </div>
     </>
   );
 }
 
 // ─── Luma Attendance ─────────────────────────────────────────────────────────
-function LumaAttendance() {
+function LumaAttendance({ mentees = [] }) {
   const [pending, setPending] = useState([]);
   const [total, setPendingTotal] = useState(0);
   const [events, setEvents] = useState([]);
@@ -3128,6 +3166,31 @@ function LumaAttendance() {
     }
   };
 
+  // Slug → milestones lookup from parent data
+  const milestonesBySlug = {};
+  for (const m of mentees) { if (m.slug) milestonesBySlug[m.slug] = m.milestones || {}; }
+
+  const [verifyingGuest, setVerifyingGuest] = useState({});
+
+  const handleVerify = async (eventId, menteeSlug) => {
+    const vKey = `${eventId}|${menteeSlug}`;
+    setVerifyingGuest(v => ({ ...v, [vKey]: true }));
+    try {
+      const res = await fetch("/api/luma-approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventId, menteeSlug, approve: true }),
+      });
+      const d = await res.json();
+      showToast(d.milestone ? `✓ Verified — milestone: ${d.milestone}` : "✓ Verified");
+      // Refresh pending list
+      fetchPending();
+    } catch {
+      showToast("Error verifying — check console");
+      setVerifyingGuest(v => ({ ...v, [vKey]: false }));
+    }
+  };
+
   const toggleEvent = async (eventId) => {
     if (expandedEvent === eventId) { setExpandedEvent(null); return; }
     setExpandedEvent(eventId);
@@ -3156,8 +3219,19 @@ function LumaAttendance() {
     );
   };
 
-  const statusBadge = (status) => {
-    if (status === "checked_in") return <span style={{ background: "#e0f5ea", color: "#1a6e42", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>Checked In</span>;
+  const fmtTime = (iso) => iso ? new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : null;
+
+  const statusBadge = (status, checkedInAt, eventPast) => {
+    if (checkedInAt || status === "checked_in") return (
+      <span style={{ background: "#e0f5ea", color: "#1a6e42", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
+        ✓ Joined {checkedInAt ? fmtTime(checkedInAt) : ""}
+      </span>
+    );
+    if (eventPast) return (
+      <span style={{ background: "#fef0f0", color: "#c0392b", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
+        ✗ No Show
+      </span>
+    );
     return <span style={{ background: "#f0f0f4", color: "#777", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>Registered</span>;
   };
 
@@ -3233,7 +3307,7 @@ function LumaAttendance() {
                     <span style={{ fontSize: 14, fontWeight: 600, color: "#1a1733" }}>{a.name || a.menteeSlug || a.slug}</span>
                     {a.email && <span style={{ fontSize: 12, color: "#9b8fcf", marginLeft: 8 }}>{a.email}</span>}
                   </div>
-                  {statusBadge(a.status)}
+                  {statusBadge(a.status, a.checked_in_at, true)}
                   {a.matched !== undefined && (
                     <span style={{ fontSize: 11, color: a.matched ? "#1a6e42" : "#b35c00", fontWeight: 600 }}>{a.matched ? "✓ matched" : "! unmatched"}</span>
                   )}
@@ -3292,13 +3366,28 @@ function LumaAttendance() {
                   ) : (
                     <div>
                       <p style={{ margin: "0 0 10px", fontSize: 12, color: "#9b8fcf", fontWeight: 600 }}>{eventGuests[ev.api_id].length} guests</p>
-                      {eventGuests[ev.api_id].map((g, i) => (
-                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: "1px solid #f7f5ff", flexWrap: "wrap" }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1733", flex: 1 }}>{g.name}</span>
-                          {g.email && <span style={{ fontSize: 12, color: "#9b8fcf" }}>{g.email}</span>}
-                          {statusBadge(g.status)}
-                        </div>
-                      ))}
+                      {eventGuests[ev.api_id].map((g, i) => {
+                        const vKey = `${ev.api_id}|${g.menteeSlug}`;
+                        const isOnboardingVerified = g.menteeSlug && milestonesBySlug[g.menteeSlug]?.onboarding;
+                        const isVerifying = verifyingGuest[vKey];
+                        return (
+                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: "1px solid #f7f5ff", flexWrap: "wrap" }}>
+                            <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1733", flex: 1 }}>{g.name}</span>
+                            {g.email && <span style={{ fontSize: 12, color: "#9b8fcf" }}>{g.email}</span>}
+                            {statusBadge(g.status, g.checked_in_at, new Date(ev.start_at) < new Date())}
+                            {g.menteeSlug && (
+                              isOnboardingVerified
+                                ? <span style={{ background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>✓ Verified</span>
+                                : <button
+                                    onClick={() => handleVerify(ev.api_id, g.menteeSlug)}
+                                    disabled={isVerifying}
+                                    style={{ background: isVerifying ? "#f0eef8" : "#5c4eb5", color: isVerifying ? "#9b8fcf" : "#fff", border: "none", borderRadius: 5, padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: isVerifying ? "default" : "pointer" }}>
+                                    {isVerifying ? "Verifying…" : "Verify"}
+                                  </button>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

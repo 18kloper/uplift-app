@@ -33,11 +33,22 @@ export default async function handler(req, res) {
     const guests = rawGuests.map((entry) => {
       const g = entry.guest || entry;
       const { slug: menteeSlug, matchedBy } = matchMentee(g.email, g.name);
+
+      // Luma uses "going" for virtual attendees; "checked_in" for physical.
+      // Both mean the person actually showed up.
+      const rawStatus = g.status || "";
+      const attended = rawStatus === "checked_in" || rawStatus === "going";
+      const normalizedStatus = attended ? "checked_in" : rawStatus;
+
+      // "Joined Time" in Luma UI = checked_in_at (virtual join) or approved_at
+      const joinedAt = g.checked_in_at || g.approved_at || null;
+
       return {
         name: g.name || "",
         email: g.email || "",
-        status: g.status || "",
-        checked_in_at: g.checked_in_at || null,
+        status: normalizedStatus,
+        rawStatus,
+        checked_in_at: joinedAt,
         menteeSlug: menteeSlug || null,
         matchedBy: matchedBy || null,
       };

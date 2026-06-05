@@ -1,9 +1,12 @@
 // GET /api/luma-pending
-// Returns all pending attendance rows (checked_in or registered, not yet reviewed).
-// Groups results by eventName.
+// Returns pending attendance rows that need admin review:
+//   - Only checked_in rows (registered-only = no action needed)
+//   - Excludes test/staff slugs
 
 import { getSheetsClient } from "../../lib/sheets-helper";
-import { getPendingAttendance } from "../../lib/luma-helper";
+import { getPendingAttendance, getAllMilestones, classifyEvent } from "../../lib/luma-helper";
+
+const TEST_SLUGS = new Set(["kennedy", "jackie", "aaron", "mj"]);
 
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
@@ -20,7 +23,27 @@ export default async function handler(req, res) {
     const sheets = getSheetsClient();
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
-    const pending = await getPendingAttendance(sheets, spreadsheetId);
+    const [all, milestones] = await Promise.all([
+      getPendingAttendance(sheets, spreadsheetId),
+      getAllMilestones(sheets, spreadsheetId),
+    ]);
+
+    // Only show rows where:
+    // 1. Person actually attended (checked_in)
+    // 2. Not a test/staff account
+    // 3. Their milestone for this event type isn't already set
+    const pending = all.filter(row => {
+      if (row.status !== "checked_in") return false;
+      if (TEST_SLUGS.has(row.menteeSlug)) return false;
+      // If their milestone is already set, no need to approve
+      if (row.menteeSlug) {
+        const m = milestones[row.menteeSlug] || {};
+        const eventType = classifyEvent(row.eventName);
+        if (eventType === "onboarding" && m.onboarding) return false;
+        if (eventType === "edu" && m.edu1 && m.edu2 && m.edu3) return false;
+      }
+      return true;
+    });
 
     // Group by eventName
     const groupedByEvent = {};

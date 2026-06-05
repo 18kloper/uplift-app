@@ -3579,6 +3579,107 @@ function ProfileSection({ mentee, slug, cohortMates, allCohortMembers }) {
   );
 }
 
+// ─── Luma Attendance Section ─────────────────────────────────────────────────
+function LumaAttendanceSection({ slug }) {
+  const [attendance, setAttendance] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/luma-mentee-attendance?slug=${encodeURIComponent(slug)}`)
+      .then(r => r.json())
+      .then(d => setAttendance(d.attendance || []))
+      .catch(() => setAttendance([]))
+      .finally(() => setLoading(false));
+  }, [slug]);
+
+  const typeBadge = (type) => {
+    const map = {
+      onboarding:     { label: "Onboarding",       bg: "#e0f0ff", color: "#1a6fa8" },
+      edu:            { label: "Expert Session",    bg: "#f0e8ff", color: "#5c4eb5" },
+      peer_discussion:{ label: "Peer Discussion",  bg: "#e8f5ee", color: "#1a6e42" },
+    };
+    const t = map[type] || { label: "Event", bg: "#f0f0f4", color: "#6b6480" };
+    return (
+      <span style={{ background: t.bg, color: t.color, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700, whiteSpace: "nowrap" }}>
+        {t.label}
+      </span>
+    );
+  };
+
+  const statusPill = (row) => {
+    const { status, reviewStatus } = row;
+    // Fully verified
+    if (reviewStatus === "approved") return (
+      <span style={{ background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "3px 10px", fontSize: 12, fontWeight: 700 }}>
+        ✓ Verified
+      </span>
+    );
+    // Denied / no-show
+    if (reviewStatus === "denied" || reviewStatus === "no_show") return (
+      <span style={{ background: "#fef0f0", color: "#c0392b", borderRadius: 4, padding: "3px 10px", fontSize: 12, fontWeight: 700 }}>
+        ✗ Not verified
+      </span>
+    );
+    // Attended (joined virtual / checked in) but awaiting admin verification
+    if (status === "checked_in") {
+      const joinTime = row.joinedAt
+        ? new Date(row.joinedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
+        : null;
+      return (
+        <span style={{ background: "#fff8e1", color: "#b35c00", borderRadius: 4, padding: "3px 10px", fontSize: 12, fontWeight: 700 }}>
+          ⏳ Attended{joinTime ? ` · Joined ${joinTime}` : ""} · Pending verification
+        </span>
+      );
+    }
+    // Registered but not checked in (event may still be upcoming)
+    return (
+      <span style={{ background: "#f0eef8", color: "#6b6480", borderRadius: 4, padding: "3px 10px", fontSize: 12, fontWeight: 700 }}>
+        📌 Registered
+      </span>
+    );
+  };
+
+  const fmtDate = (iso) => {
+    if (!iso) return "";
+    try { return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }); }
+    catch { return iso; }
+  };
+
+  return (
+    <div style={{ maxWidth: 600 }}>
+      <p style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 700, color: "#1a1733" }}>Event Attendance</p>
+      <p style={{ margin: "0 0 22px", fontSize: 13, color: "#6b6480", lineHeight: 1.6 }}>
+        A log of every Uplift event you've registered for or attended. Attendance is verified manually by the program team — you'll see the status update here once it's confirmed.
+      </p>
+
+      {loading ? (
+        <div style={{ color: "#9b8fcf", fontSize: 14, padding: "16px 0" }}>Loading your attendance…</div>
+      ) : attendance.length === 0 ? (
+        <div style={{ background: "#f7f5ff", borderRadius: 12, padding: "24px 20px", textAlign: "center" }}>
+          <p style={{ margin: 0, fontSize: 14, color: "#9b8fcf" }}>No events recorded yet. Register for an upcoming session using the links in your weekly view.</p>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {attendance.map((row, i) => (
+            <div key={i} style={{ background: "#fff", border: "1px solid #e8e4f5", borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: 180 }}>
+                <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 700, color: "#1a1733" }}>{row.eventName}</p>
+                {row.eventDate && <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>{fmtDate(row.eventDate)}</p>}
+              </div>
+              {typeBadge(row.eventType)}
+              {statusPill(row)}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <p style={{ margin: "20px 0 0", fontSize: 12, color: "#9b8fcf", lineHeight: 1.5 }}>
+        ⏳ <strong>Pending verification</strong> means we have your attendance on record and are in the process of confirming it. This typically updates within a few days. Questions? Email <a href="mailto:uplift@techunited.co" style={{ color: "#5c4eb5", textDecoration: "none" }}>uplift@techunited.co</a>.
+      </p>
+    </div>
+  );
+}
+
 // ─── Main page component ──────────────────────────────────────────────────────
 export default function MenteePage({ menteeData, cohortMates, allCohortMembers }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
