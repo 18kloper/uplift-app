@@ -6,9 +6,11 @@ import { getSheetsClient } from "../../lib/sheets-helper";
 import {
   classifyEvent,
   approveAttendance,
+  logLumaAttendance,
   setMilestone,
   setNextEduMilestone,
 } from "../../lib/luma-helper";
+import { MENTEES } from "../../lib/mentees";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
@@ -30,15 +32,24 @@ export default async function handler(req, res) {
     const sheets = getSheetsClient();
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
-    const { ok, row } = await approveAttendance(sheets, spreadsheetId, eventId, menteeSlug, approve);
+    let { ok, row } = await approveAttendance(sheets, spreadsheetId, eventId, menteeSlug, approve);
 
+    // If no row exists yet (sync never run), create one on-the-fly then approve
     if (!ok) {
-      return res.status(404).json({ ok: false, error: "Attendance row not found" });
+      const mentee = MENTEES.find(m => m.slug === menteeSlug);
+      const menteeName = mentee ? `${mentee.first} ${mentee.last}` : menteeSlug;
+      const timestamp = new Date().toISOString();
+      await logLumaAttendance(sheets, spreadsheetId, [
+        timestamp, "manual-approve", "", eventId, "", menteeName, menteeSlug, "", "checked_in", "manual", "", "",
+      ], "pending");
+      // Now approve the freshly created row
+      ({ ok, row } = await approveAttendance(sheets, spreadsheetId, eventId, menteeSlug, approve));
+      if (!ok) return res.status(500).json({ ok: false, error: "Could not create or find attendance row" });
     }
 
     let milestone = null;
 
-    if (approve && row.status === "checked_in") {
+    if (approve && (row.status === "checked_in" || row.status === "")) {
       const eventType = classifyEvent(row.eventName);
       if (eventType === "onboarding") {
         await setMilestone(sheets, spreadsheetId, menteeSlug, "onboarding");
