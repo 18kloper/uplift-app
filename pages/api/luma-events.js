@@ -47,8 +47,11 @@ export default async function handler(req, res) {
 
     const combined = [...futureRaw.map(normalize), ...pastRaw.map(normalize)];
 
-    // Sort descending by start_at
-    combined.sort((a, b) => new Date(b.start_at) - new Date(a.start_at));
+    // Sort: upcoming first (ascending), then past events descending
+    const now = Date.now();
+    const future = combined.filter(e => new Date(e.start_at) >= now).sort((a, b) => new Date(a.start_at) - new Date(b.start_at));
+    const past   = combined.filter(e => new Date(e.start_at) <  now).sort((a, b) => new Date(b.start_at) - new Date(a.start_at));
+    combined.splice(0, combined.length, ...future, ...past);
 
     return res.status(200).json({ events: combined });
   } catch (err) {
