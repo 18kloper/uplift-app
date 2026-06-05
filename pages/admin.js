@@ -1608,7 +1608,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
     };
   })() : null;
 
-  const statCards = [
+  const statCardsRow1 = [
     {
       label: "Total Mentees",
       value: counts.total,
@@ -1630,6 +1630,16 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
       desc: "Completed onboarding and have a mentor who has confirmed",
       statusKey: null,
     },
+    {
+      label: "🎓 Onboarded + Mentor Pending",
+      value: realMentees.filter(m => m.milestones?.onboarding && m.mentorName && !confirmedSlugs.has(m.slug)).length,
+      color: "#7a5700", bg: "#fffbe6",
+      desc: "Completed onboarding but mentor has not yet confirmed",
+      statusKey: null,
+    },
+  ];
+
+  const statCardsRow2 = [
     {
       label: "On Track",
       value: counts.onTrack,
@@ -1660,6 +1670,8 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
       statusKey: "churned",
     },
   ];
+
+  const statCards = [...statCardsRow1, ...statCardsRow2];
 
   return (
     <div style={{ minHeight: "100vh", background: "#f7f5ff", fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -1701,20 +1713,22 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
         </div>
 
         {/* Summary stat cards — display only */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 16 }}>
-          {statCards.map(({ label, value, color, bg, desc }) => (
-            <div key={label} style={{
-              background: bg, borderRadius: 12, padding: "14px 18px",
-              border: `1px solid ${color}22`,
-            }}>
-              <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 600, color, opacity: 0.8, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</p>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <p style={{ margin: 0, fontSize: 34, fontWeight: 800, color, lineHeight: 1, flexShrink: 0 }}>{value}</p>
-                <p style={{ margin: 0, fontSize: 11, color, opacity: 0.6, fontStyle: "italic", lineHeight: 1.4 }}>{desc}</p>
+        {[statCardsRow1, statCardsRow2].map((row, ri) => (
+          <div key={ri} style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 14 }}>
+            {row.map(({ label, value, color, bg, desc }) => (
+              <div key={label} style={{
+                background: bg, borderRadius: 12, padding: "14px 18px",
+                border: `1px solid ${color}22`,
+              }}>
+                <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 600, color, opacity: 0.8, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</p>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <p style={{ margin: 0, fontSize: 34, fontWeight: 800, color, lineHeight: 1, flexShrink: 0 }}>{value}</p>
+                  <p style={{ margin: 0, fontSize: 11, color, opacity: 0.6, fontStyle: "italic", lineHeight: 1.4 }}>{desc}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ))}
 
         {/* Sessions pending review */}
         <div style={{
