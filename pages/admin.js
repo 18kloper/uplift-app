@@ -2268,44 +2268,35 @@ function MatchStatus({ mentees = [], confirmations = {}, confirmedSlugs, decline
   const TEST_SLUGS = new Set(["kennedy", "jackie", "aaron", "mj"]);
   const real = mentees.filter(m => !m.isTest && !TEST_SLUGS.has(m.slug) && m.status !== "churned");
 
-  // Build pending mentor map (from confirmations that exist but aren't confirmed or declined)
-  // A mentee has a "pending" mentor if they appear in a thread but status is neither confirmed nor declined
-  const pendingSlugMentors = {};
-  for (const [key, val] of Object.entries(confirmations)) {
-    const [, slug] = key.split("|");
-    if (!slug) continue;
-    if (val === "confirmed") continue;
-    if (!confirmedSlugs.has(slug) && !declinedSlugs.has(slug) && val !== "declined") {
-      // pending — the key format is threadId|slug; get mentor from thread
-      // We don't have mentor name here directly, mark as pending
-      if (!pendingSlugMentors[slug]) pendingSlugMentors[slug] = true;
-    }
-  }
-
-  // Categorise each mentee
+  // Categorise each mentee — declined counts as needs-match since they'd need reassignment
   const rows = real.map(m => {
     let matchStatus;
-    if (confirmedSlugs.has(m.slug))       matchStatus = "confirmed";
-    else if (declinedSlugs.has(m.slug))   matchStatus = "declined";
-    else if (m.mentorName)                matchStatus = "pending";
-    else                                   matchStatus = "needs-match";
+    if (confirmedSlugs.has(m.slug))     matchStatus = "confirmed";
+    else if (m.mentorName)              matchStatus = "pending";
+    else                                matchStatus = "needs-match";
     return { ...m, matchStatus };
   });
 
+  // Build mentor → [mentee names] map so we can show "also mentoring X"
+  const mentorToMentees = {};
+  for (const r of rows) {
+    if (!r.mentorName) continue;
+    if (!mentorToMentees[r.mentorName]) mentorToMentees[r.mentorName] = [];
+    mentorToMentees[r.mentorName].push(`${r.first} ${r.last}`);
+  }
+
   const FILTERS = [
-    { key: "all",          label: "All",              color: "#5c4eb5", bg: "#f3f0ff" },
-    { key: "confirmed",    label: "✓ Confirmed Match", color: "#1a6e42", bg: "#e8f8f0" },
-    { key: "pending",      label: "⏳ Pending Match",  color: "#7a5700", bg: "#fffbe6" },
-    { key: "needs-match",  label: "⚠️ Needs a Match",  color: "#c0392b", bg: "#fef0f0" },
-    { key: "declined",     label: "✕ Declined",        color: "#6b6480", bg: "#f0eef8" },
+    { key: "all",         label: "All",               color: "#5c4eb5", bg: "#f3f0ff" },
+    { key: "confirmed",   label: "✓ Confirmed Match",  color: "#1a6e42", bg: "#e8f8f0" },
+    { key: "pending",     label: "⏳ Pending Match",   color: "#7a5700", bg: "#fffbe6" },
+    { key: "needs-match", label: "⚠️ Needs a Match",   color: "#c0392b", bg: "#fef0f0" },
   ];
 
   const counts = {
-    all:         rows.length,
-    confirmed:   rows.filter(r => r.matchStatus === "confirmed").length,
-    pending:     rows.filter(r => r.matchStatus === "pending").length,
+    all:           rows.length,
+    confirmed:     rows.filter(r => r.matchStatus === "confirmed").length,
+    pending:       rows.filter(r => r.matchStatus === "pending").length,
     "needs-match": rows.filter(r => r.matchStatus === "needs-match").length,
-    declined:    rows.filter(r => r.matchStatus === "declined").length,
   };
 
   const q = search.toLowerCase();
@@ -2313,15 +2304,14 @@ function MatchStatus({ mentees = [], confirmations = {}, confirmedSlugs, decline
     .filter(r => filter === "all" || r.matchStatus === filter)
     .filter(r => !q || `${r.first} ${r.last} ${r.company} ${r.mentorName || ""}`.toLowerCase().includes(q))
     .sort((a, b) => {
-      const order = { "needs-match": 0, declined: 1, pending: 2, confirmed: 3 };
+      const order = { "needs-match": 0, pending: 1, confirmed: 2 };
       return (order[a.matchStatus] ?? 9) - (order[b.matchStatus] ?? 9) || `${a.last}${a.first}`.localeCompare(`${b.last}${b.first}`);
     });
 
   const STATUS_STYLE = {
-    confirmed:    { label: "Confirmed",    color: "#1a6e42", bg: "#e8f8f0", dot: "#22a366" },
-    pending:      { label: "Pending",      color: "#7a5700", bg: "#fffbe6", dot: "#f5a623" },
-    "needs-match":{ label: "Needs Match",  color: "#c0392b", bg: "#fef0f0", dot: "#e74c3c" },
-    declined:     { label: "Declined",     color: "#6b6480", bg: "#f0eef8", dot: "#9b8fcf" },
+    confirmed:    { label: "Confirmed",   color: "#1a6e42", bg: "#e8f8f0", dot: "#22a366" },
+    pending:      { label: "Pending",     color: "#7a5700", bg: "#fffbe6", dot: "#f5a623" },
+    "needs-match":{ label: "Needs Match", color: "#c0392b", bg: "#fef0f0", dot: "#e74c3c" },
   };
 
   return (
@@ -2384,8 +2374,20 @@ function MatchStatus({ mentees = [], confirmations = {}, confirmedSlugs, decline
               <div>
                 {m.mentorName ? (
                   <>
-                    <p style={{ margin: "0 0 1px", fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{m.mentorName}</p>
-                    {m.mentorEmail && <p style={{ margin: 0, fontSize: 11, color: "#9b8fcf" }}>{m.mentorEmail}</p>}
+                    <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 600, color: "#1a1733" }}>{m.mentorName}</p>
+                    {m.mentorEmail && <p style={{ margin: "0 0 4px", fontSize: 11, color: "#9b8fcf" }}>{m.mentorEmail}</p>}
+                    {(() => {
+                      const others = (mentorToMentees[m.mentorName] || []).filter(n => n !== `${m.first} ${m.last}`);
+                      return others.length > 0 ? (
+                        <span style={{
+                          display: "inline-block", fontSize: 10, fontWeight: 600,
+                          background: "#f0ecff", color: "#5c4eb5", borderRadius: 4,
+                          padding: "2px 7px",
+                        }}>
+                          Also mentoring {others.join(", ")}
+                        </span>
+                      ) : null;
+                    })()}
                   </>
                 ) : (
                   <span style={{ fontSize: 12, color: "#c0b8d8" }}>No mentor assigned</span>
