@@ -3345,7 +3345,7 @@ function LumaAttendance({ mentees = [] }) {
                             <>
                               {joinTime && (
                                 <span style={{ background: "#f0f8ff", color: "#1a6fa8", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }}>
-                                  Joined {joinTime}
+                                  Logged on {joinTime}
                                 </span>
                               )}
                               <span style={{ background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
@@ -3363,7 +3363,7 @@ function LumaAttendance({ mentees = [] }) {
                           // Anyone who joined the virtual event — matched or not
                           statusEl = (
                             <span style={{ background: "#e8f0ff", color: "#1a4fa8", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
-                              {joinTime ? `Joined ${joinTime}` : "Joined"}
+                              {joinTime ? `Logged on ${joinTime}` : "Logged on"}
                               {g.menteeSlug ? " · Pending" : ""}
                             </span>
                           );
