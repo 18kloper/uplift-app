@@ -3219,26 +3219,23 @@ function LumaAttendance({ mentees = [] }) {
   const toggleEvent = async (eventId) => {
     if (expandedEvent === eventId) { setExpandedEvent(null); return; }
     setExpandedEvent(eventId);
-    if (!eventGuests[eventId]) {
-      setLoadingGuests(g => ({ ...g, [eventId]: true }));
-      try {
-        const res = await fetch(`/api/luma-event-guests?eventId=${encodeURIComponent(eventId)}`);
-        const data = await res.json();
-        const guests = data.guests || [];
-        setEventGuests(g => ({ ...g, [eventId]: guests }));
-        // Restore denied state from sheet
-        const deniedFromSheet = {};
-        for (const g of guests) {
-          if (g.menteeSlug && g.reviewStatus === "denied") {
-            deniedFromSheet[`${eventId}|${g.menteeSlug}`] = true;
-          }
+    // Always re-fetch to get latest review decisions from sheet
+    setLoadingGuests(g => ({ ...g, [eventId]: true }));
+    try {
+      const res = await fetch(`/api/luma-event-guests?eventId=${encodeURIComponent(eventId)}`);
+      const data = await res.json();
+      const guests = data.guests || [];
+      setEventGuests(g => ({ ...g, [eventId]: guests }));
+      // Restore denied state from sheet on every open
+      const deniedFromSheet = {};
+      for (const g of guests) {
+        if (g.menteeSlug && g.reviewStatus === "denied") {
+          deniedFromSheet[`${eventId}|${g.menteeSlug}`] = true;
         }
-        if (Object.keys(deniedFromSheet).length > 0) {
-          setDeniedGuests(d => ({ ...d, ...deniedFromSheet }));
-        }
-      } catch {}
-      setLoadingGuests(g => ({ ...g, [eventId]: false }));
-    }
+      }
+      setDeniedGuests(d => ({ ...d, ...deniedFromSheet }));
+    } catch {}
+    setLoadingGuests(g => ({ ...g, [eventId]: false }));
   };
 
   const typeBadge = (type) => {
@@ -3366,8 +3363,8 @@ function LumaAttendance({ mentees = [] }) {
                           );
                         } else if (isDenied) {
                           statusEl = (
-                            <span style={{ background: "#fff3e0", color: "#b35c00", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }}>
-                              Registered · Did not attend
+                            <span style={{ background: "#fef0f0", color: "#c0392b", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
+                              ✗ Did not attend
                             </span>
                           );
                         } else if (g.status === "checked_in") {
