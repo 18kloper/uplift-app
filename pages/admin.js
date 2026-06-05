@@ -454,6 +454,12 @@ function PromptEngagement() {
   const [cohortInsightLoading, setCohortInsightLoading] = useState({});
   const [cohortInsightError, setCohortInsightError]   = useState({});
 
+  // Cross-analysis state
+  const [crossData, setCrossData]       = useState(null);
+  const [crossLoading, setCrossLoading] = useState(false);
+  const [crossError, setCrossError]     = useState(null);
+  const [crossView, setCrossView]       = useState("cohort"); // "cohort" | "cross"
+
   const SUN_CACHE = "uplift_insights_sun_v2";
   const WED_CACHE = "uplift_insights_wed_v2";
 
@@ -843,6 +849,159 @@ function PromptEngagement() {
       {/* ── BY COHORT TAB ── */}
       {subTab === "cohort" && (
         <div>
+          {/* View toggle */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+            {[{ key: "cohort", label: "🏷️ Per Cohort" }, { key: "cross", label: "🔀 Cross Analysis" }].map(v => (
+              <button key={v.key} onClick={() => setCrossView(v.key)} style={{
+                padding: "7px 18px", borderRadius: 20, fontWeight: 700, fontSize: 13,
+                fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer",
+                border: crossView === v.key ? "2px solid #5c4eb5" : "1.5px solid #d4d0e8",
+                background: crossView === v.key ? "#5c4eb5" : "#fff",
+                color: crossView === v.key ? "#fff" : "#5c4eb5",
+              }}>{v.label}</button>
+            ))}
+          </div>
+
+          {/* Cross Analysis view */}
+          {crossView === "cross" && (
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+                <p style={{ margin: 0, fontSize: 13, color: "#6b6480" }}>
+                  Reads all cohort responses and surfaces key differences, similarities, and standout patterns across the program.
+                </p>
+                <button
+                  onClick={async () => {
+                    setCrossLoading(true); setCrossError(null);
+                    try {
+                      const r = await fetch("/api/prompt-cross-analysis");
+                      const d = await r.json();
+                      if (d.error) throw new Error(d.error);
+                      setCrossData(d);
+                    } catch (e) { setCrossError(e.message); }
+                    finally { setCrossLoading(false); }
+                  }}
+                  disabled={crossLoading}
+                  style={{
+                    flexShrink: 0, padding: "7px 20px", borderRadius: 20,
+                    background: crossLoading ? "#9b8fcf" : "#5c4eb5",
+                    color: "#fff", border: "none", fontWeight: 700, fontSize: 13,
+                    fontFamily: "Inter, system-ui, sans-serif",
+                    cursor: crossLoading ? "default" : "pointer",
+                  }}
+                >{crossLoading ? "Analyzing…" : "✨ Generate Cross Analysis"}</button>
+              </div>
+
+              {crossError && (
+                <div style={{ background: "#fef0f0", borderRadius: 10, padding: "14px 18px", color: "#c0392b", fontSize: 13, marginBottom: 16 }}>Error: {crossError}</div>
+              )}
+
+              {crossLoading && (
+                <div style={{ textAlign: "center", padding: "48px 0", color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>
+                  Comparing all cohorts — this may take a moment…
+                </div>
+              )}
+
+              {crossData && !crossLoading && (() => {
+                const DIFF_COLORS = ["#e74c3c","#e67e22","#2a7fd4","#1a6e42","#7a5700"];
+                return (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                    <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>
+                      Generated {new Date(crossData.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · Responses per cohort: {Object.entries(crossData.responseCounts || {}).map(([c,n]) => `${COHORT_NAMES_PE[c]} ${n}`).join(", ")}
+                    </p>
+
+                    {/* Differences */}
+                    {crossData.differences?.length > 0 && (
+                      <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "20px 24px" }}>
+                        <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 800, color: "#1a1733" }}>⚡ Key Differences Between Cohorts</p>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                          {crossData.differences.map((d, i) => (
+                            <div key={i} style={{ borderLeft: `3px solid ${DIFF_COLORS[i % DIFF_COLORS.length]}`, paddingLeft: 14 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+                                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{d.title}</p>
+                                {(d.cohorts || []).map(c => (
+                                  <span key={c} style={{ fontSize: 10, fontWeight: 700, background: "#f3f0ff", color: "#5c4eb5", borderRadius: 4, padding: "2px 7px" }}>{c}</span>
+                                ))}
+                              </div>
+                              <p style={{ margin: 0, fontSize: 12, color: "#6b6480", lineHeight: 1.6 }}>{d.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Similarities */}
+                    {crossData.similarities?.length > 0 && (
+                      <div style={{ background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)", borderRadius: 14, padding: "20px 24px" }}>
+                        <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 800, color: "#fff" }}>🔗 Shared Across All Cohorts</p>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                          {crossData.similarities.map((s, i) => (
+                            <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                              <span style={{ fontSize: 16, flexShrink: 0 }}>{THEME_ICONS[i] || "•"}</span>
+                              <div>
+                                <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#fff" }}>{s.title}</p>
+                                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.75)", lineHeight: 1.55 }}>{s.description}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Standout cohorts */}
+                    {crossData.standouts?.length > 0 && (
+                      <div style={{ background: "#fffbe6", borderRadius: 14, border: "1px solid #f5d97a", padding: "20px 24px" }}>
+                        <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 800, color: "#7a5700" }}>🌟 Standout Cohorts</p>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                          {crossData.standouts.map((s, i) => (
+                            <div key={i}>
+                              <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#7a5700" }}>
+                                {s.cohort} <span style={{ fontWeight: 400, fontSize: 12 }}>— {s.title}</span>
+                              </p>
+                              <p style={{ margin: 0, fontSize: 12, color: "#7a5700", lineHeight: 1.6, opacity: 0.85 }}>{s.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Recommendations */}
+                    {crossData.recommendations?.length > 0 && (
+                      <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "20px 24px" }}>
+                        <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 800, color: "#1a1733" }}>📋 Program Recommendations</p>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                          {crossData.recommendations.map((r, i) => (
+                            <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                              <span style={{ fontSize: 14, flexShrink: 0 }}>{SESSION_ICONS[i] || "•"}</span>
+                              <div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{r.title}</p>
+                                  <span style={{ fontSize: 10, fontWeight: 700, background: r.scope === "all" ? "#f3f0ff" : "#e8faf7", color: r.scope === "all" ? "#5c4eb5" : "#0e7c6b", borderRadius: 4, padding: "2px 7px" }}>
+                                    {r.scope === "all" ? "All cohorts" : "Cohort-specific"}
+                                  </span>
+                                </div>
+                                <p style={{ margin: 0, fontSize: 12, color: "#6b6480", lineHeight: 1.55 }}>{r.description}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {!crossData && !crossLoading && !crossError && (
+                <div style={{ textAlign: "center", padding: "48px 0", color: "#c0b8d8" }}>
+                  <p style={{ fontSize: 32, margin: "0 0 12px" }}>🔀</p>
+                  <p style={{ fontSize: 14, margin: 0 }}>Press <strong>Generate Cross Analysis</strong> to compare themes across all cohorts.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Per Cohort view */}
+          {crossView === "cohort" && (
+          <div>
           {/* Cohort filter chips */}
           <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap", alignItems: "center" }}>
             {[1,2,3,4,5].map(c => (
@@ -984,6 +1143,8 @@ function PromptEngagement() {
               </div>
             );
           })()}
+          </div>
+          )}
         </div>
       )}
 
