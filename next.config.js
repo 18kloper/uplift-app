@@ -1,7 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ["pdfkit"],
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = [
+        ...(Array.isArray(config.externals) ? config.externals : [config.externals]),
+        "pdfkit",
+      ];
+    }
+    return config;
   },
 };
 

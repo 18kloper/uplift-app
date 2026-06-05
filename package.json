@@ -11,8 +11,10 @@
     "@anthropic-ai/sdk": "^0.100.1",
     "googleapis": "^140.0.1",
     "next": "14.2.3",
+    "pdfkit": "^0.18.0",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "resend": "^6.12.4"
   },
   "devDependencies": {
     "jimp": "^1.6.1"
