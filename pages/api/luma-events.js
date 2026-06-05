@@ -45,7 +45,9 @@ export default async function handler(req, res) {
       };
     };
 
-    const combined = [...futureRaw.map(normalize), ...pastRaw.map(normalize)];
+    const PROGRAM_START = new Date("2026-06-01T00:00:00Z");
+    const combined = [...futureRaw.map(normalize), ...pastRaw.map(normalize)]
+      .filter(e => new Date(e.start_at) >= PROGRAM_START);
 
     // Sort: upcoming first (ascending), then past events descending
     const now = Date.now();
