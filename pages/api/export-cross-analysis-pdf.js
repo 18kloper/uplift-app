@@ -153,6 +153,44 @@ export default async function handler(req, res) {
     doc.moveDown(0.4);
   }
 
+  // ── COHORT SPOTLIGHTS ────────────────────────────────────────────────────
+  if (data.cohortHighlights?.length > 0) {
+    if (doc.y > pageH - 160) doc.addPage();
+    drawRect(doc, margin, doc.y, contentW, 36, "#0f0729", 8);
+    doc.fillColor(hexToRGB(WHITE)).font("Helvetica-Bold").fontSize(12)
+      .text("🏆  Cohort Spotlights", margin + 14, doc.y - 28, { width: contentW - 28 });
+    doc.moveDown(1);
+
+    const SPOTLIGHT_COLORS = ["#2a4db5", "#5c4eb5", "#a0286e", "#1a6e42", "#7a5700"];
+    const SPOTLIGHT_BG     = ["#f0f4ff", "#f5f0ff", "#fff0f8", "#f0fff8", "#fffbf0"];
+
+    data.cohortHighlights.forEach((h, i) => {
+      if (doc.y > pageH - 110) doc.addPage();
+      const col = SPOTLIGHT_COLORS[i % SPOTLIGHT_COLORS.length];
+      const bg  = SPOTLIGHT_BG[i % SPOTLIGHT_BG.length];
+      const cardH = 64;
+
+      drawRect(doc, margin, doc.y, contentW, cardH, bg, 8);
+
+      // Cohort name label
+      doc.font("Helvetica-Bold").fontSize(8).fillColor(hexToRGB(col))
+        .text(h.cohort.toUpperCase(), margin + 14, doc.y - cardH + 10, { width: contentW - 28 });
+
+      // Headline
+      doc.font("Helvetica-Bold").fontSize(11).fillColor(hexToRGB(col))
+        .text(h.headline, margin + 14, doc.y - cardH + 22, { width: contentW - 28 });
+
+      // Description
+      doc.font("Helvetica").fontSize(9.5).fillColor(hexToRGB(col))
+        .text(h.description, margin + 14, doc.y - cardH + 36, { width: contentW - 28, lineGap: 1.5 });
+
+      doc.y = doc.y + 8;
+      doc.moveDown(0.6);
+    });
+
+    doc.moveDown(0.4);
+  }
+
   // ── STANDOUT COHORTS ──────────────────────────────────────────────────────
   if (data.standouts?.length > 0) {
     if (doc.y > pageH - 160) doc.addPage();

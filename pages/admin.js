@@ -1052,6 +1052,42 @@ function PromptEngagement() {
                       </div>
                     )}
 
+                    {/* Cohort Highlights */}
+                    {crossData.cohortHighlights?.length > 0 && (() => {
+                      const HIGHLIGHT_PALETTE = [
+                        { bg: "#f0f4ff", border: "#c5d3ff", name: "#2a4db5", desc: "#3d5080" },
+                        { bg: "#f5f0ff", border: "#d5c5ff", name: "#5c4eb5", desc: "#4a3d8a" },
+                        { bg: "#fff0f8", border: "#ffc5e5", name: "#a0286e", desc: "#7a2050" },
+                        { bg: "#f0fff8", border: "#b5f0d5", name: "#1a6e42", desc: "#154f30" },
+                        { bg: "#fffbf0", border: "#ffe0a0", name: "#7a5700", desc: "#5a3f00" },
+                      ];
+                      return (
+                        <div style={{ borderRadius: 14, border: "1px solid #e8e4f5", overflow: "hidden" }}>
+                          <div style={{ background: "#0f0729", padding: "16px 24px 14px" }}>
+                            <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "#fff" }}>🏆 Cohort Spotlights</p>
+                            <p style={{ margin: "3px 0 0", fontSize: 12, color: "rgba(255,255,255,0.55)" }}>What makes each cohort remarkable</p>
+                          </div>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 0 }}>
+                            {crossData.cohortHighlights.map((h, i) => {
+                              const pal = HIGHLIGHT_PALETTE[i % HIGHLIGHT_PALETTE.length];
+                              return (
+                                <div key={i} style={{
+                                  background: pal.bg,
+                                  borderRight: i < crossData.cohortHighlights.length - 1 ? `1px solid ${pal.border}` : "none",
+                                  borderBottom: "1px solid " + pal.border,
+                                  padding: "18px 20px",
+                                }}>
+                                  <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: pal.name, opacity: 0.7 }}>{h.cohort}</p>
+                                  <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 800, color: pal.name, lineHeight: 1.35 }}>{h.headline}</p>
+                                  <p style={{ margin: 0, fontSize: 11.5, color: pal.desc, lineHeight: 1.6, opacity: 0.9 }}>{h.description}</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
                     {/* Standout cohorts */}
                     {crossData.standouts?.length > 0 && (
                       <div style={{ background: "#fffbe6", borderRadius: 14, border: "1px solid #f5d97a", padding: "20px 24px" }}>

@@ -121,6 +121,8 @@ Please perform a cross-cohort analysis and return a JSON object with:
 
 4. "recommendations" — 3 program-level recommendations based on the cross-cohort patterns. What should the program do differently for specific cohorts vs. all cohorts?
 
+5. "cohortHighlights" — One highlight per cohort that participated. For each cohort, surface something genuinely impressive, energizing, or admirable from their responses. Think: a founder who expressed breakthrough clarity, a cohort-wide mindset that stands out, a bold vision, exceptional coachability, community energy, or a theme that shows real founder maturity. Keep the tone celebratory and specific — this will be shown back to program leadership to recognize each cohort. One "headline" (5-8 words, punchy) and one "description" (2-3 sentences, specific and warm).
+
 Return ONLY valid JSON, no markdown:
 {
   "differences": [
@@ -134,6 +136,9 @@ Return ONLY valid JSON, no markdown:
   ],
   "recommendations": [
     { "title": "Recommendation title", "description": "2 sentences. Be specific.", "scope": "all" | "cohort-specific" }
+  ],
+  "cohortHighlights": [
+    { "cohort": "Cohort name", "headline": "Short punchy headline", "description": "2-3 warm, specific sentences celebrating this cohort." }
   ]
 }`,
         }],
