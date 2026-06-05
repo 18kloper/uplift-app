@@ -3359,10 +3359,12 @@ function LumaAttendance({ mentees = [] }) {
                               Registered · Did not attend
                             </span>
                           );
-                        } else if (g.status === "checked_in" && joinTime) {
+                        } else if (g.status === "checked_in") {
+                          // Anyone who joined the virtual event — matched or not
                           statusEl = (
-                            <span style={{ background: "#fff8e1", color: "#b35c00", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
-                              Joined {joinTime} · Pending
+                            <span style={{ background: "#e8f0ff", color: "#1a4fa8", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
+                              {joinTime ? `Joined ${joinTime}` : "Joined"}
+                              {g.menteeSlug ? " · Pending" : ""}
                             </span>
                           );
                         } else if (eventPast && g.menteeSlug) {
