@@ -253,40 +253,42 @@ export default async function handler(req, res) {
         const mentorEmail = cioRow[12] || mentorByMentee[mentee.slug]?.email || "";
 
         const attributes = {
+          // Standard CIO fields
           email,
-          first_name:  cioRow[1] || mentee.first,
-          last_name:   cioRow[2] || mentee.last,
-          company:     cioRow[3] || mentee.company,
-          cohort:      cohortNum,
-          cohort_name: COHORT_NAMES[cohortNum] || `Cohort ${cohortNum}`,
-          stage,
+          first_name:   cioRow[1] || mentee.first,
+          last_name:    cioRow[2] || mentee.last,
+          company:      cioRow[3] || mentee.company,
           industry,
+          stage,
           county,
           linkedin_url: linkedin,
-          uplift_role:  "mentee",
-          uplift_cohort_year: "2026",
+          last_synced_at: new Date().toISOString(),
 
-          participation_status: statusBySlug[mentee.slug] || "pending",
-          portal_url:           `https://uplift2026.vercel.app/${mentee.slug}`,
+          // Uplift-specific fields
+          uplift_role:                 "mentee",
+          uplift_cohort_year:          "2026",
+          uplift_cohort:               cohortNum,
+          uplift_cohort_name:          COHORT_NAMES[cohortNum] || `Cohort ${cohortNum}`,
+          uplift_participation_status: statusBySlug[mentee.slug] || "pending",
+          uplift_portal_url:           `https://uplift2026.vercel.app/${mentee.slug}`,
+          uplift_mentor_name:          mentorName,
+          uplift_mentor_email:         mentorEmail,
 
-          mentor_name:  mentorName,
-          mentor_email: mentorEmail,
-
-          onboarding_completed:  ms.onboarding     || false,
-          mentor_matched:        ms.mentorMatched   || false,
-          edu1_completed:        ms.edu1            || false,
-          edu2_completed:        ms.edu2            || false,
-          edu3_completed:        ms.edu3            || false,
-          mentor_session_1:      ms.mentorSession1  || false,
-          mentor_session_2:      ms.mentorSession2  || false,
-          mentor_session_3:      ms.mentorSession3  || false,
-          midpoint_attended:     ms.midpoint        || false,
-          end_survey_completed:  ms.endSurvey       || false,
-          summit_attended:       ms.summit          || false,
-          certificate_received:  ms.certificate     || false,
+          // Milestones
+          uplift_onboarding_completed:  ms.onboarding     || false,
+          uplift_mentor_matched:        ms.mentorMatched   || false,
+          uplift_edu1_completed:        ms.edu1            || false,
+          uplift_edu2_completed:        ms.edu2            || false,
+          uplift_edu3_completed:        ms.edu3            || false,
+          uplift_mentor_session_1:      ms.mentorSession1  || false,
+          uplift_mentor_session_2:      ms.mentorSession2  || false,
+          uplift_mentor_session_3:      ms.mentorSession3  || false,
+          uplift_midpoint_attended:     ms.midpoint        || false,
+          uplift_end_survey_completed:  ms.endSurvey       || false,
+          uplift_summit_attended:       ms.summit          || false,
+          uplift_certificate_received:  ms.certificate     || false,
 
           ...eventAttrs,
-          last_synced_at: new Date().toISOString(),
         };
 
         await upsertCIOPerson(email, attributes);
