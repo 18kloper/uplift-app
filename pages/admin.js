@@ -3368,22 +3368,69 @@ function LumaAttendance({ mentees = [] }) {
                       <p style={{ margin: "0 0 10px", fontSize: 12, color: "#9b8fcf", fontWeight: 600 }}>{eventGuests[ev.api_id].length} guests</p>
                       {eventGuests[ev.api_id].map((g, i) => {
                         const vKey = `${ev.api_id}|${g.menteeSlug}`;
-                        const isOnboardingVerified = g.menteeSlug && milestonesBySlug[g.menteeSlug]?.onboarding;
+                        const isVerified = g.menteeSlug && milestonesBySlug[g.menteeSlug]?.onboarding;
                         const isVerifying = verifyingGuest[vKey];
+                        const eventPast = new Date(ev.start_at) < new Date();
+                        const joinTime = g.checked_in_at ? fmtTime(g.checked_in_at) : null;
+
+                        // One unified status — pick exactly one
+                        let statusEl;
+                        if (isVerified) {
+                          // Already verified — show join time if we have it, then verified badge
+                          statusEl = (
+                            <>
+                              {joinTime && (
+                                <span style={{ background: "#f0f8ff", color: "#1a6fa8", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }}>
+                                  Joined {joinTime}
+                                </span>
+                              )}
+                              <span style={{ background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
+                                ✓ Verified
+                              </span>
+                            </>
+                          );
+                        } else if (g.status === "checked_in" && joinTime) {
+                          // Attended but not yet verified
+                          statusEl = (
+                            <span style={{ background: "#fff8e1", color: "#b35c00", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
+                              Joined {joinTime} · Pending
+                            </span>
+                          );
+                        } else if (eventPast && g.menteeSlug) {
+                          // Matched mentee, event over, no join detected
+                          statusEl = (
+                            <span style={{ background: "#fef0f0", color: "#c0392b", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
+                              ✗ No Show
+                            </span>
+                          );
+                        } else if (eventPast && !g.menteeSlug) {
+                          // Unmatched (staff, external), event over
+                          statusEl = (
+                            <span style={{ background: "#f5f5f5", color: "#999", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }}>
+                              Registered · Did not attend
+                            </span>
+                          );
+                        } else {
+                          statusEl = (
+                            <span style={{ background: "#f0f0f4", color: "#777", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }}>
+                              Registered
+                            </span>
+                          );
+                        }
+
                         return (
                           <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: "1px solid #f7f5ff", flexWrap: "wrap" }}>
                             <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1733", flex: 1 }}>{g.name}</span>
                             {g.email && <span style={{ fontSize: 12, color: "#9b8fcf" }}>{g.email}</span>}
-                            {statusBadge(g.status, g.checked_in_at, new Date(ev.start_at) < new Date())}
-                            {g.menteeSlug && (
-                              isOnboardingVerified
-                                ? <span style={{ background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>✓ Verified</span>
-                                : <button
-                                    onClick={() => handleVerify(ev.api_id, g.menteeSlug)}
-                                    disabled={isVerifying}
-                                    style={{ background: isVerifying ? "#f0eef8" : "#5c4eb5", color: isVerifying ? "#9b8fcf" : "#fff", border: "none", borderRadius: 5, padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: isVerifying ? "default" : "pointer" }}>
-                                    {isVerifying ? "Verifying…" : "Verify"}
-                                  </button>
+                            {statusEl}
+                            {/* Verify button only for matched, unverified mentees */}
+                            {g.menteeSlug && !isVerified && (
+                              <button
+                                onClick={() => handleVerify(ev.api_id, g.menteeSlug)}
+                                disabled={isVerifying}
+                                style={{ background: isVerifying ? "#f0eef8" : "#5c4eb5", color: isVerifying ? "#9b8fcf" : "#fff", border: "none", borderRadius: 5, padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: isVerifying ? "default" : "pointer" }}>
+                                {isVerifying ? "Verifying…" : "Verify"}
+                              </button>
                             )}
                           </div>
                         );
