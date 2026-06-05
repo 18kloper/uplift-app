@@ -966,6 +966,34 @@ function PromptEngagement() {
                     cursor: crossLoading ? "default" : "pointer",
                   }}
                 >{crossLoading ? "Analyzing…" : "✨ Generate Cross Analysis"}</button>
+
+                {crossData && !crossLoading && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        const r = await fetch("/api/export-cross-analysis-pdf", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(crossData),
+                        });
+                        if (!r.ok) throw new Error("PDF generation failed");
+                        const blob = await r.blob();
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `uplift-cross-analysis-${new Date().toISOString().slice(0,10)}.pdf`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      } catch (e) { alert("Export failed: " + e.message); }
+                    }}
+                    style={{
+                      flexShrink: 0, padding: "7px 20px", borderRadius: 20,
+                      background: "#1a6e42", color: "#fff", border: "none",
+                      fontWeight: 700, fontSize: 13,
+                      fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer",
+                    }}
+                  >⬇ Export PDF</button>
+                )}
               </div>
 
               {crossError && (
