@@ -4,6 +4,9 @@
 // Auth: ?token=<ADMIN_SECRET>
 
 import { getSheetsClient } from "../../../lib/sheets-helper";
+import { MENTEES } from "../../../lib/mentees";
+
+const MENTEE_MAP = Object.fromEntries(MENTEES.map(m => [m.slug, m]));
 
 const TAB = "Mentor Confirmations";
 
@@ -64,12 +67,19 @@ export default async function handler(req, res) {
             adminAssigned: row.adminAssigned,
           };
         }
+        const menteeData = MENTEE_MAP[row.menteeSlug] || {};
         byMentor[row.mentorName].mentees.push({
           name: row.menteeName,
           slug: row.menteeSlug,
           updatedAt: row.updatedAt,
           isRematch: row.isRematch,
           prevMentor: row.prevMentor,
+          company: menteeData.company || "",
+          stage: menteeData.stage || "",
+          industry: menteeData.industry || "",
+          primaryFocus: menteeData.primaryFocus || "",
+          secondaryFoci: menteeData.secondaryFoci || [],
+          first: menteeData.first || "",
         });
         if (row.adminAssigned) byMentor[row.mentorName].adminAssigned = true;
       }

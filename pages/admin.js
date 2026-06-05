@@ -4174,12 +4174,163 @@ function SuggestedMatches({ mentees, mentors, maxPairings, onApproved }) {
 }
 
 // ─── Need to Send view ────────────────────────────────────────────────────────
+// ─── Email draft helper ───────────────────────────────────────────────────────
+function buildEmail(g) {
+  const mentorFirst = g.mentorName.split(" ")[0];
+  const hasTwo = g.mentees.length >= 2;
+  const deadline = "Wednesday, June 11th";
+
+  const menteeBlock = g.mentees.map((m, i) => {
+    const needs = [m.primaryFocus, ...(m.secondaryFoci || [])].filter(Boolean).join("; ");
+    return `Match ${i + 1}: ${m.name || m.slug}${m.company ? ` — ${m.company}` : ""}
+Stage: ${m.stage || "—"}
+Industry: ${m.industry || "—"}
+Needs: ${needs || "—"}`;
+  }).join("\n\n");
+
+  const choiceBlock = hasTwo ? `Your choice:
+
+Option 1: Mentor both. If you have the bandwidth, we'd love for you to support both. We think you'd be a great fit for each.
+
+Option 2: Pick one. If two mentees feels like too much, we completely understand. Just reply with the mentee who feels like a better fit.
+
+` : "";
+
+  const selectionLine = hasTwo
+    ? `Your mentor-mentee selection: whether you'll be supporting one or both founders, and if one, which founder you're choosing.`
+    : `Your mentor-mentee selection: confirming you're ready to support ${g.mentees[0]?.name || "your mentee"}.`;
+
+  return `Hi ${mentorFirst},
+
+Thank you for volunteering as an Uplift mentor this summer! We shared your match candidate${hasTwo ? "s" : ""} last week and wanted to check in — your match${hasTwo ? "es are" : " is"} still waiting!
+
+After receiving more demand than ever, we were able to accept a record 76 founders as mentees into this summer's cohort. Out of that pool, ${hasTwo ? "two stood out as strong matches for you" : "one stood out as a strong match for you"}.
+
+${hasTwo ? "We'd love for you to mentor both if your schedule allows, but we know your time is limited.\n\n" : ""}${choiceBlock}${hasTwo ? "Either way, you're" : "You're"} making a material difference for a founder who earned their spot in this cohort — and we're grateful for your support!
+
+Please reply to this email by ${deadline} to confirm:
+1. Your participation in the program and that you can attend the in-person midpoint meetup (4pm–7pm on June 23rd in Hoboken, NJ) and the in-person summit (4pm–7pm on August 4th in Hoboken, NJ).
+2. ${selectionLine}
+
+Thank you again for showing up for New Jersey founders! Mentees are completing their onboarding now. If we don't hear from you by ${deadline}, we may need to reassign your mentee${hasTwo ? "s" : ""}.
+
+If your availability has changed, no worries at all — just let us know so we can plan accordingly.
+
+
+Your Match${hasTwo ? "es" : ""}:
+
+${menteeBlock}
+
+
+Best,
+Kennedy
+Team Uplift`;
+}
+
+function EmailDraftModal({ group, onClose, onSent }) {
+  const [body, setBody] = useState(() => buildEmail(group));
+  const [copied, setCopied] = useState(false);
+  const subject = `Your Uplift Mentor Match${group.mentees.length >= 2 ? "es Are" : " Is"} Waiting — Please Confirm`;
+  const toEmail = group.mentorEmail || "";
+  const ccEmail = "team@tacunited.org";
+
+  const copyAll = () => {
+    navigator.clipboard.writeText(body);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const openInMail = () => {
+    const mailto = `mailto:${encodeURIComponent(toEmail)}?cc=${encodeURIComponent(ccEmail)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailto, "_self");
+  };
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 9999,
+      background: "rgba(15,7,41,0.72)", display: "flex", alignItems: "center", justifyContent: "center",
+      padding: 20,
+    }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{
+        background: "#fff", borderRadius: 16, width: "100%", maxWidth: 680,
+        maxHeight: "90vh", display: "flex", flexDirection: "column",
+        boxShadow: "0 24px 80px rgba(15,7,41,0.4)",
+        fontFamily: "Inter, system-ui, sans-serif",
+      }}>
+        {/* Modal header */}
+        <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid #f0eef8", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+          <div>
+            <p style={{ margin: "0 0 3px", fontSize: 16, fontWeight: 800, color: "#1a1733" }}>✉️ Draft Email — {group.mentorName}</p>
+            <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>
+              To: <strong>{toEmail}</strong> &nbsp;·&nbsp; CC: <strong>{ccEmail}</strong>
+            </p>
+            <p style={{ margin: "4px 0 0", fontSize: 12, color: "#9b8fcf" }}>Subject: {subject}</p>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, color: "#9b8fcf", cursor: "pointer", lineHeight: 1, flexShrink: 0 }}>✕</button>
+        </div>
+
+        {/* Email body editor */}
+        <textarea
+          value={body}
+          onChange={e => setBody(e.target.value)}
+          style={{
+            flex: 1, margin: "16px 24px", padding: "14px 16px",
+            fontSize: 13, lineHeight: 1.65, color: "#1a1733",
+            border: "1.5px solid #e0d9f8", borderRadius: 10,
+            resize: "none", fontFamily: "inherit", outline: "none",
+            minHeight: 320,
+          }}
+        />
+
+        {/* Actions */}
+        <div style={{ padding: "0 24px 20px", display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button
+            onClick={openInMail}
+            style={{
+              flex: 1, minWidth: 160, padding: "10px 20px", borderRadius: 8,
+              background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+              color: "#fff", border: "none", fontWeight: 700, fontSize: 13,
+              cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif",
+            }}
+          >
+            📨 Open in Mail App
+          </button>
+          <button
+            onClick={copyAll}
+            style={{
+              padding: "10px 20px", borderRadius: 8,
+              background: copied ? "#e8f8f0" : "#f3f0ff",
+              color: copied ? "#1a6e42" : "#5c4eb5",
+              border: `1.5px solid ${copied ? "#b8e8d0" : "#c4b8f0"}`,
+              fontWeight: 700, fontSize: 13, cursor: "pointer",
+              fontFamily: "Inter, system-ui, sans-serif",
+            }}
+          >
+            {copied ? "✓ Copied!" : "📋 Copy Body"}
+          </button>
+          <button
+            onClick={() => { onSent(group.mentorName); onClose(); }}
+            style={{
+              padding: "10px 20px", borderRadius: 8,
+              background: "linear-gradient(135deg, #1a6e42, #0f4a2c)",
+              color: "#fff", border: "none", fontWeight: 700, fontSize: 13,
+              cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif",
+            }}
+          >
+            ✓ Mark as Sent
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function NeedToSend() {
   const [groups, setGroups] = useState([]);
   const [sentGroups, setSentGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [markedSent, setMarkedSent] = useState({}); // mentorName → true
-  const [copiedEmail, setCopiedEmail] = useState(null);
+  const [draftGroup, setDraftGroup] = useState(null); // currently open modal
   const [sentOpen, setSentOpen] = useState(false);
 
   useEffect(() => {
@@ -4188,12 +4339,6 @@ function NeedToSend() {
       .then(d => { setGroups(d.pending || []); setSentGroups(d.sent || []); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
-
-  const copyEmail = (email) => {
-    navigator.clipboard.writeText(email);
-    setCopiedEmail(email);
-    setTimeout(() => setCopiedEmail(null), 2000);
-  };
 
   const markSent = (mentorName) => {
     setMarkedSent(s => ({ ...s, [mentorName]: true }));
@@ -4224,16 +4369,24 @@ function NeedToSend() {
 
   return (
     <div style={{ padding: "32px 40px", fontFamily: "Inter, system-ui, sans-serif", maxWidth: 860, margin: "0 auto" }}>
+      {draftGroup && (
+        <EmailDraftModal
+          group={draftGroup}
+          onClose={() => setDraftGroup(null)}
+          onSent={markSent}
+        />
+      )}
+
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 28, flexWrap: "wrap" }}>
         <div>
           <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>📬 Need to Send</p>
           <p style={{ margin: 0, fontSize: 14, color: "#9b8fcf" }}>
-            Mentor–mentee pairings approved but not yet sent. Reach out to each mentor to introduce their mentee(s).
+            {pending.length} mentor{pending.length !== 1 ? "s" : ""} waiting — review each draft before sending.
           </p>
           {sentCount > 0 && (
             <p style={{ margin: "8px 0 0", fontSize: 13, color: "#1a6e42", fontWeight: 600 }}>
-              ✓ {sentCount} batch{sentCount !== 1 ? "es" : ""} marked as sent this session
+              ✓ {sentCount} marked as sent this session
             </p>
           )}
         </div>
@@ -4279,50 +4432,50 @@ function NeedToSend() {
                   )}
                 </div>
                 {g.mentorEmail && (
-                  <button
-                    onClick={() => copyEmail(g.mentorEmail)}
-                    style={{
-                      marginTop: 6, background: "none", border: "none", padding: 0,
-                      fontSize: 12, color: copiedEmail === g.mentorEmail ? "#1a6e42" : "#9b8fcf",
-                      cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 500,
-                    }}
-                  >
-                    {copiedEmail === g.mentorEmail ? "✓ Copied!" : `📋 ${g.mentorEmail}`}
-                  </button>
+                  <p style={{ margin: "6px 0 0", fontSize: 12, color: "#9b8fcf" }}>{g.mentorEmail}</p>
                 )}
               </div>
 
+              {/* Draft Email CTA */}
               <button
-                onClick={() => markSent(g.mentorName)}
+                onClick={() => setDraftGroup(g)}
                 style={{
-                  background: "linear-gradient(135deg, #1a6e42, #0f4a2c)",
-                  color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px",
+                  background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+                  color: "#fff", border: "none", borderRadius: 8, padding: "9px 20px",
                   fontSize: 13, fontWeight: 700, cursor: "pointer",
                   fontFamily: "Inter, system-ui, sans-serif", flexShrink: 0,
+                  display: "flex", alignItems: "center", gap: 7,
                 }}
               >
-                ✓ Mark as Sent
+                ✉️ Review &amp; Send
               </button>
             </div>
 
-            {/* Mentee chips */}
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 12, color: "#9b8fcf", marginRight: 4, marginTop: 6 }}>Mentee{g.mentees.length !== 1 ? "s" : ""}:</span>
+            {/* Mentee detail rows */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {g.mentees.map((m, j) => (
-                <div key={j} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  <div style={{ background: "#f3f0ff", border: "1.5px solid #c4b8f0", borderRadius: 8, padding: "5px 12px" }}>
-                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#5c4eb5" }}>👤 {m.name || m.slug}</p>
+                <div key={j} style={{ background: "#f8f6ff", border: "1px solid #e0d9f8", borderRadius: 10, padding: "12px 16px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#5c4eb5" }}>
+                      👤 {m.name || m.slug}{m.company ? ` — ${m.company}` : ""}
+                    </p>
+                    {m.isRematch && (
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "#b35c00", background: "#fff3e0", border: "1px solid #f5d9a0", borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>
+                        🔄 2nd match
+                      </span>
+                    )}
                   </div>
-                  {m.isRematch && (
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "#b35c00", background: "#fff3e0", border: "1px solid #f5d9a0", borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>
-                      🔄 2nd match{m.prevMentor ? ` · prev: ${m.prevMentor}` : ""} — mentor non-responsive
-                    </span>
+                  <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+                    {m.stage && <span style={{ fontSize: 11, color: "#6b6480" }}><strong>Stage:</strong> {m.stage}</span>}
+                    {m.industry && <span style={{ fontSize: 11, color: "#6b6480" }}><strong>Industry:</strong> {m.industry}</span>}
+                  </div>
+                  {m.primaryFocus && (
+                    <p style={{ margin: "5px 0 0", fontSize: 11, color: "#6b6480" }}><strong>Needs:</strong> {m.primaryFocus}</p>
                   )}
                 </div>
               ))}
             </div>
 
-            {/* Assigned date */}
             {g.mentees[0]?.updatedAt && (
               <p style={{ margin: "10px 0 0", fontSize: 11, color: "#c0b8d8" }}>
                 Assigned {g.mentees[0].updatedAt}
