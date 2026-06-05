@@ -3501,6 +3501,7 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
   const [selData, setSelData]     = useState(null);
   const [responses, setResponses] = useState([]);
   const [newMentors, setNewMentors] = useState([]);
+  const [needsMatchMentees, setNeedsMatchMentees] = useState([]);
   const [loading, setLoading]     = useState(true);
   const [menteeFilters, setMenteeFilters] = useState(new Set()); // empty = show all
   const [mentorFilters, setMentorFilters] = useState(new Set());
@@ -3534,8 +3535,9 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
         }
       }
       setAdminMatchedSlugs(adminSlugs);
-      setApprovedMenteeSlugs(adminSlugs);   // seed so declined mentees with new match are excluded
+      setApprovedMenteeSlugs(adminSlugs);
       setApprovedMentorNames(adminMentors);
+      setNeedsMatchMentees(pend.needsMatch || []);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
@@ -3649,6 +3651,17 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
     }
   }
 
+  // Inject demoted "needs-match" mentees from Mentor Confirmations sheet
+  const existingSlugs = new Set(needsMentorList.map(m => m.slug));
+  for (const m of needsMatchMentees) {
+    if (existingSlugs.has(m.slug) || approvedMenteeSlugs.has(m.slug)) continue;
+    needsMentorList.push({
+      slug: m.slug, first: m.name?.split(" ")[0] || "", last: m.name?.split(" ").slice(1).join(" ") || "",
+      company: m.company, stage: m.stage, industry: m.industry, primaryFocus: m.primaryFocus,
+      assignedMentor: m.prevMentor, needTag: "demoted",
+    });
+  }
+
   // Keep a separate declined set for right-column logic
   const slugsDeclined = new Set(
     needsMentorList.filter(m => m.needTag === "declined").map(m => m.slug)
@@ -3729,6 +3742,7 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
             { key: "not-invited", label: "Needs Invitation",        color: "#6b3fa0", bg: "#f5f0ff", border: "#d4b8f0" },
             { key: null,          label: "No Mentor",                color: "#c0392b", bg: "#fef5f5", border: "#f5c6c6" },
             { key: "declined",    label: "Mentor Declined",          color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
+            { key: "demoted",     label: "Needs New Match",          color: "#1a6e42", bg: "#e8f8f0", border: "#9edbb8" },
           ];
           const toggleMentee = (key) => setMenteeFilters(prev => {
             const next = new Set(prev);
@@ -3739,6 +3753,7 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
           const tagMap = {
             "not-invited": { label: "Needs Invitation",                color: "#6b3fa0", bg: "#f5f0ff", border: "#d4b8f0" },
             declined:      { label: "Mentor Declined — Needs Rematch", color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
+            demoted:       { label: "Needs New Match",                 color: "#1a6e42", bg: "#e8f8f0", border: "#9edbb8" },
           };
           return (
             <div>
@@ -3787,7 +3802,8 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
                             )}
                           </div>
                           {s.company && <p style={{ margin: "0 0 2px", fontSize: 11, color: "#6b6480" }}>{s.company}</p>}
-                          {s.assignedMentor && <p style={{ margin: "0 0 1px", fontSize: 11, color: "#9b8fcf" }}>Assigned: {s.assignedMentor}</p>}
+                          {s.needTag === "demoted" && s.assignedMentor && <p style={{ margin: "0 0 1px", fontSize: 11, color: "#1a6e42", fontWeight: 600 }}>Prev mentor awaiting reply: {s.assignedMentor}</p>}
+                          {s.needTag !== "demoted" && s.assignedMentor && <p style={{ margin: "0 0 1px", fontSize: 11, color: "#9b8fcf" }}>Assigned: {s.assignedMentor}</p>}
                           {s.needTag === "declined" && s.declinedBy && (
                             <p style={{ margin: "0 0 1px", fontSize: 11, color: "#b35c00", fontWeight: 600 }}>Declined by {s.declinedBy}</p>
                           )}

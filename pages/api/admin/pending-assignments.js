@@ -52,8 +52,9 @@ export default async function handler(req, res) {
       };
     };
 
-    const pending = rows.filter(r => r[5]?.trim().toLowerCase() === "pending").map(mapRow);
-    const sent    = rows.filter(r => r[5]?.trim().toLowerCase() === "sent").map(mapRow);
+    const pending    = rows.filter(r => r[5]?.trim().toLowerCase() === "pending").map(mapRow);
+    const sent       = rows.filter(r => r[5]?.trim().toLowerCase() === "sent").map(mapRow);
+    const needsMatch = rows.filter(r => r[5]?.trim().toLowerCase() === "needs-match").map(mapRow);
 
     // Group by mentorName
     const groupByMentor = list => {
@@ -86,7 +87,21 @@ export default async function handler(req, res) {
       return Object.values(byMentor);
     };
 
-    return res.status(200).json({ pending: groupByMentor(pending), sent: groupByMentor(sent) });
+    // needsMatch: flat list of mentees (not grouped by mentor — they're unassigned)
+    const needsMatchMentees = needsMatch.map(row => {
+      const menteeData = MENTEE_MAP[row.menteeSlug] || {};
+      return {
+        name: row.menteeName,
+        slug: row.menteeSlug,
+        prevMentor: row.mentorName,
+        company: menteeData.company || "",
+        stage: menteeData.stage || "",
+        industry: menteeData.industry || "",
+        primaryFocus: menteeData.primaryFocus || "",
+      };
+    });
+
+    return res.status(200).json({ pending: groupByMentor(pending), sent: groupByMentor(sent), needsMatch: needsMatchMentees });
   } catch (err) {
     console.error("pending-assignments error:", err.message);
     return res.status(500).json({ error: err.message });
