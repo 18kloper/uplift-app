@@ -4267,9 +4267,9 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
 
   const COLS = "1.4fr 1.6fr 1.6fr 110px 120px 1.8fr";
 
-  const MenteeCell = ({ opt, threadId }) => {
+  const MenteeCell = ({ opt, threadId, isPending }) => {
     if (!opt) return <span style={{ fontSize: 12, color: "#c0b8d8" }}>—</span>;
-    const state = confirmations[`${threadId}|${opt.slug}`] || "";
+    const state = (!isPending && threadId) ? (confirmations[`${threadId}|${opt.slug}`] || "") : "";
     const isConf = state === "confirmed";
     const isDecl = state === "declined";
     const menteeStatus = menteeStatusBySlug[opt.slug];
@@ -4425,8 +4425,11 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
               No mentors match this filter.
             </div>
           ) : visible.map((r, i) => {
-            const opt1 = r.opts[0];
-            const opt2 = r.opts[1] || null;
+            // For pending rows with no email thread, use pendingMentees as the display opts
+            const displayOpts = r.opts.length > 0 ? r.opts
+              : (r.pendingMentees || []).map(pm => ({ slug: pm.slug, name: pm.name, company: "", industry: "", stage: "" }));
+            const opt1 = displayOpts[0] || null;
+            const opt2 = displayOpts[1] || null;
 
             // match badge
             const total = r.opts.length;
@@ -4481,10 +4484,10 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
                 </div>
 
                 {/* Mentee 1 */}
-                <MenteeCell opt={opt1} threadId={r.threadId} />
+                <MenteeCell opt={opt1} threadId={r.threadId} isPending={r.isPending} />
 
                 {/* Mentee 2 */}
-                <MenteeCell opt={opt2} threadId={r.threadId} />
+                <MenteeCell opt={opt2} threadId={r.threadId} isPending={r.isPending} />
 
                 {/* Sessions — one dot row per mentee */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 2 }}>
