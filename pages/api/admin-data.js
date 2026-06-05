@@ -50,7 +50,7 @@ function computeStatus(milestones, today) {
     flags.push("Participation not confirmed");
     if (status !== "at-risk") status = "needs-attention";
   }
-  if (today >= WEEK1_END && !milestones.onboarding) {
+  if (today >= PROGRAM_START && !milestones.onboarding) {
     flags.push("Onboarding not attended");
     if (status !== "at-risk") status = "needs-attention";
   }
