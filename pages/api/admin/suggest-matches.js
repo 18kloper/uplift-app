@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   if (!menteeslugs.length || !mentors.length) {
     return res.status(400).json({ error: "Need at least one mentee and one mentor" });
   }
-  const targetPairings = maxPairings || mentors.length * 2;
+  const targetPairings = maxPairings || Math.min(mentors.length * 2, menteeslugs.length);
   const menteeProfiles = menteeslugs
     .map(slug => MENTEES.find(m => m.slug === slug))
     .filter(m => m && !TEST_SLUGS.has(m.slug))
@@ -59,13 +59,12 @@ export default async function handler(req, res) {
   ).join("\n\n");
 
   const prompt = `You are helping match startup founders with mentors in a NJ-based accelerator program called Uplift.
-Each mentor should be matched with exactly 2 mentees where possible (1 is acceptable if no second strong fit exists).
-Target: ${targetPairings} total pairings across ${mentors.length} mentors.
+Produce the globally optimal set of exclusive one-to-one pairings — each mentee assigned to exactly one mentor, each mentor assigned at most 2 mentees.
 
-CONFIRMED PROGRAM PARTICIPANTS (choose the best 2 per mentor from this pool):
+CONFIRMED PROGRAM PARTICIPANTS (${menteeProfiles.length} total — each must appear AT MOST ONCE across all pairings):
 ${menteesText}
 
-AVAILABLE MENTORS (each needs 1-2 mentees assigned):
+AVAILABLE MENTORS (${mentors.length} total — each gets 1-2 mentees):
 ${mentorsText}
 
 Return ONLY a JSON array of match objects. Each object must have:
@@ -76,11 +75,13 @@ Return ONLY a JSON array of match objects. Each object must have:
 - "strength": "strong" | "good" | "fair"
 
 Rules:
-- Every mentor must appear exactly once
-- Each mentor gets 1-2 mentees; aim for 2 per mentor to reach ${targetPairings} total
-- A mentee can appear in multiple mentor suggestions (they may benefit from multiple mentors, or you're surfacing alternatives)
+- CRITICAL: Each mentee slug must appear in exactly ONE pairing across the entire output — no mentee can be shared or duplicated across mentors
+- Every mentor must appear exactly once in the output
+- Each mentor gets 1-2 mentees; aim for 2 where strong fits exist
+- Think of this as an assignment problem: find the globally strongest set of non-overlapping pairings
 - Prioritize: industry alignment → focus area alignment → stage fit → NJ county proximity
-- If a mentee already has a pending mentor noted, you may still suggest them to a new mentor if the fit is meaningfully stronger
+- If a mentee has a pending mentor noted, only reassign them if a meaningfully stronger fit exists
+- It is acceptable for a mentor to receive only 1 mentee if no second strong fit is available — do not force weak pairings
 - Do not invent details not listed above
 
 Return only the JSON array, no other text.`;
