@@ -46,8 +46,10 @@ export default async function handler(req, res) {
     };
 
     const PROGRAM_START = new Date("2026-06-01T00:00:00Z");
+    const seen = new Set();
     const combined = [...futureRaw.map(normalize), ...pastRaw.map(normalize)]
-      .filter(e => new Date(e.start_at) >= PROGRAM_START);
+      .filter(e => new Date(e.start_at) >= PROGRAM_START)
+      .filter(e => { if (seen.has(e.api_id)) return false; seen.add(e.api_id); return true; });
 
     // Sort: upcoming first (ascending), then past events descending
     const now = Date.now();
