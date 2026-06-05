@@ -1617,13 +1617,6 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
       statusKey: null,
     },
     {
-      label: "Participation Confirmed",
-      value: counts.participated,
-      color: "#1a6e42", bg: "#e8f8f0",
-      desc: "Founders who have accepted their spot in the program",
-      statusKey: null,
-    },
-    {
       label: "Onboarding Completed",
       value: counts.onboarding,
       color: "#2a7fd4", bg: "#e8f4ff",
