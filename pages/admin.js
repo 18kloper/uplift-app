@@ -3684,6 +3684,15 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
   const responseByMentor = {};
   for (const r of responses) responseByMentor[r.mentor.name] = r;
 
+  // Build slug → { participation, churned } from admin mentees data (must be before rows map)
+  const menteeStatusBySlug = {};
+  for (const m of mentees) {
+    menteeStatusBySlug[m.slug] = {
+      participation: m.milestones?.participation || false,
+      churned: m.status === "churned",
+    };
+  }
+
   // Full rows: all mentors, overlay response data if available
   const rows = allMentors
     .filter(m => m.name !== "MJ" && m.name !== "Kennedy") // exclude test accounts
@@ -3697,7 +3706,9 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
         const declined  = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] === "declined");
         const visibleOpts = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] !== "declined");
         const allDeclined = opts.length > 0 && declined.length === opts.length;
-        return { ...resp, opts: visibleOpts, allOpts: opts, matchCount: confirmed.length, needsMentee: confirmed.length === 0, allDeclined, isPending: false, pendingMentees, hasPendingAssignment };
+        // Exclude churned mentees from active match count so mentor re-enters "Needs a Mentee"
+        const activeConfirmed = confirmed.filter(o => !menteeStatusBySlug[o.slug]?.churned);
+        return { ...resp, opts: visibleOpts, allOpts: opts, matchCount: activeConfirmed.length, needsMentee: activeConfirmed.length === 0, allDeclined, isPending: false, pendingMentees, hasPendingAssignment };
       }
       // No email response yet — applicants from Typeform not yet emailed show as Needs a Mentee
       return {
@@ -3708,15 +3719,6 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
         pendingMentees, hasPendingAssignment,
       };
     });
-
-  // Build slug → { participation, churned } from admin mentees data
-  const menteeStatusBySlug = {};
-  for (const m of mentees) {
-    menteeStatusBySlug[m.slug] = {
-      participation: m.milestones?.participation || false,
-      churned: m.status === "churned",
-    };
-  }
 
   // A row has confirmed mentees but at least one hasn't confirmed participation
   const mentorConfirmedMenteePending = r => {
