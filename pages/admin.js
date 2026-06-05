@@ -3224,7 +3224,18 @@ function LumaAttendance({ mentees = [] }) {
       try {
         const res = await fetch(`/api/luma-event-guests?eventId=${encodeURIComponent(eventId)}`);
         const data = await res.json();
-        setEventGuests(g => ({ ...g, [eventId]: data.guests || [] }));
+        const guests = data.guests || [];
+        setEventGuests(g => ({ ...g, [eventId]: guests }));
+        // Restore denied state from sheet
+        const deniedFromSheet = {};
+        for (const g of guests) {
+          if (g.menteeSlug && g.reviewStatus === "denied") {
+            deniedFromSheet[`${eventId}|${g.menteeSlug}`] = true;
+          }
+        }
+        if (Object.keys(deniedFromSheet).length > 0) {
+          setDeniedGuests(d => ({ ...d, ...deniedFromSheet }));
+        }
       } catch {}
       setLoadingGuests(g => ({ ...g, [eventId]: false }));
     }
