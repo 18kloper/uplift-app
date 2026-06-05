@@ -1648,7 +1648,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
       label: "Needs Attention",
       value: counts.attention,
       color: "#b35c00", bg: "#fff3e0",
-      desc: "Has not confirmed participation, or behind on required milestones",
+      desc: "Has confirmed participation but has not attended an onboarding session, or is behind on required milestones",
       statusKey: "needs-attention",
     },
     {
