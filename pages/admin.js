@@ -3172,7 +3172,11 @@ function LumaAttendance({ mentees = [] }) {
 
   const [verifyingGuest, setVerifyingGuest] = useState({});
 
-  const handleVerify = async (eventId, menteeSlug) => {
+  const handleVerify = async (eventId, menteeSlug, isNoShow, guestName) => {
+    if (isNoShow) {
+      const confirmed = window.confirm(`Are you sure you want to verify ${guestName || "this person"}'s attendance?\n\nThey registered but Luma has no record of them joining the virtual event.`);
+      if (!confirmed) return;
+    }
     const vKey = `${eventId}|${menteeSlug}`;
     setVerifyingGuest(v => ({ ...v, [vKey]: true }));
     try {
@@ -3365,7 +3369,7 @@ function LumaAttendance({ mentees = [] }) {
                             {/* Verify button only for matched, unverified mentees */}
                             {g.menteeSlug && !isVerified && (
                               <button
-                                onClick={() => handleVerify(ev.api_id, g.menteeSlug)}
+                                onClick={() => handleVerify(ev.api_id, g.menteeSlug, g.status !== "checked_in", g.name)}
                                 disabled={isVerifying}
                                 style={{ background: isVerifying ? "#f0eef8" : "#5c4eb5", color: isVerifying ? "#9b8fcf" : "#fff", border: "none", borderRadius: 5, padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: isVerifying ? "default" : "pointer" }}>
                                 {isVerifying ? "Verifying…" : "Verify"}
