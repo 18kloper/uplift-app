@@ -189,32 +189,77 @@ export default async function handler(req, res) {
       }
     }
 
+    // ── CIO - Mentees tab (source of truth for emails + profile data) ────────
+    const cioMenteesRes  = await sheets.spreadsheets.values.get({ spreadsheetId, range: "CIO - Mentees!A2:Z500" });
+    const cioMenteesRows = cioMenteesRes.data.values || [];
+
+    // Header: email,first_name,last_name,company,title,industry,stage,county,cohort,primary_focus,linkedin,mentor_name,mentor_email,mentor_company,mentor_title,needs_invitation
+    // Build email -> row map
+    const cioMenteeByEmail = {};
+    for (const row of cioMenteesRows) {
+      const email = row[0]?.trim().toLowerCase();
+      if (email) cioMenteeByEmail[email] = row;
+    }
+
+    // Build slug -> email map from Participation tab (slug in col A, no email there)
+    // and CIO - Mentees tab (email in col A, name in col B+C)
+    // Cross-reference: match CIO-Mentees first_name+last_name to MENTEES array slug
+    const emailBySlug = {};
+    for (const mentee of realMentees) {
+      // Try to find matching row in CIO - Mentees by first+last name
+      for (const row of cioMenteesRows) {
+        const rowFirst = (row[1] || "").trim().toLowerCase();
+        const rowLast  = (row[2] || "").trim().toLowerCase();
+        const mFirst   = (mentee.first || "").toLowerCase();
+        const mLast    = (mentee.last  || "").toLowerCase();
+        if (rowFirst === mFirst && rowLast === mLast) {
+          emailBySlug[mentee.slug] = (row[0] || "").trim().toLowerCase();
+          break;
+        }
+      }
+    }
+
     // ── Sync mentees ─────────────────────────────────────────────────────────
     for (const mentee of realMentees) {
       try {
         const ms     = milestonesBySlug[mentee.slug] || {};
-        const mentor = mentorByMentee[mentee.slug]   || {};
-        const email  = mentee.email || null;
-        const cioId  = email || mentee.slug;
+        const email  = emailBySlug[mentee.slug] || null;
+        if (!email) {
+          console.warn(`sync-to-cio: no email found for ${mentee.slug}, skipping`);
+          failed.push(mentee.slug);
+          errors++;
+          continue;
+        }
+
+        // Get enriched profile from CIO - Mentees tab
+        const cioRow    = cioMenteeByEmail[email] || [];
+        const industry  = cioRow[5]  || mentee.industry || "";
+        const stage     = cioRow[6]  || mentee.stage    || "";
+        const county    = cioRow[7]  || mentee.county   || "";
+        const cohortNum = parseInt(cioRow[8]) || mentee.cohort;
+        const linkedin  = cioRow[10] || "";
+        const mentorName  = cioRow[11] || mentorByMentee[mentee.slug]?.name  || "";
+        const mentorEmail = cioRow[12] || mentorByMentee[mentee.slug]?.email || "";
 
         const attributes = {
-          ...(email ? { email } : {}),
-          first_name:  mentee.first,
-          last_name:   mentee.last,
-          company:     mentee.company,
-          cohort:      mentee.cohort,
-          cohort_name: COHORT_NAMES[mentee.cohort] || `Cohort ${mentee.cohort}`,
-          stage:       mentee.stage,
-          industry:    mentee.industry,
-          county:      mentee.county || "",
-          uplift_role: "mentee",
+          email,
+          first_name:  cioRow[1] || mentee.first,
+          last_name:   cioRow[2] || mentee.last,
+          company:     cioRow[3] || mentee.company,
+          cohort:      cohortNum,
+          cohort_name: COHORT_NAMES[cohortNum] || `Cohort ${cohortNum}`,
+          stage,
+          industry,
+          county,
+          linkedin_url: linkedin,
+          uplift_role:  "mentee",
           uplift_cohort_year: "2026",
 
           participation_status: statusBySlug[mentee.slug] || "pending",
           portal_url:           `https://uplift2026.vercel.app/${mentee.slug}`,
 
-          mentor_name:  mentor.name  || "",
-          mentor_email: mentor.email || "",
+          mentor_name:  mentorName,
+          mentor_email: mentorEmail,
 
           onboarding_completed:  ms.onboarding     || false,
           mentor_matched:        ms.mentorMatched   || false,
@@ -229,13 +274,11 @@ export default async function handler(req, res) {
           summit_attended:       ms.summit          || false,
           certificate_received:  ms.certificate     || false,
 
-          // Upcoming week events (same for all mentees)
           ...eventAttrs,
-
           last_synced_at: new Date().toISOString(),
         };
 
-        await upsertCIOPerson(cioId, attributes);
+        await upsertCIOPerson(email, attributes);
         synced++;
       } catch (err) {
         console.error(`sync-to-cio: error for ${mentee.slug}:`, err.message);
