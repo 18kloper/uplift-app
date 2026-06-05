@@ -71,15 +71,15 @@ export default async function handler(req, res) {
   for (const entry of rawGuests) {
     const g = entry.guest || entry;
     const rawStatus = g.status || "";
-    // "going" = joined virtual event; treat same as checked_in
+    const joinedAt = entry.checked_in_at || entry.joined_at || g.checked_in_at || g.joined_at || g.approved_at || "";
+
+    // Treat as attended if status is checked_in/going OR Luma has a join timestamp
     const status =
-      rawStatus === "checked_in" || rawStatus === "going"
+      rawStatus === "checked_in" || rawStatus === "going" || !!joinedAt
         ? "checked_in"
         : rawStatus === "no_show"
         ? "no_show"
         : "registered";
-
-    const joinedAt = g.checked_in_at || g.approved_at || "";
 
     if (status !== "checked_in" && status !== "no_show" && status !== "registered") {
       skipped++;

@@ -47,15 +47,15 @@ export default async function handler(req, res) {
       const g = entry.guest || entry;
       const { slug: menteeSlug, matchedBy } = matchMentee(g.email, g.name);
 
-      // Luma uses "going" for virtual attendees; "checked_in" for physical.
-      // Both mean the person actually showed up.
-      const rawStatus = g.status || "";
-      const attended = rawStatus === "checked_in" || rawStatus === "going";
-      const normalizedStatus = attended ? "checked_in" : rawStatus;
+      const rawStatus = g.status || entry.status || "";
 
       // "Joined Time" in Luma UI = checked_in_at (virtual join) or approved_at
       // Luma may put this on the entry wrapper OR the nested guest object
       const joinedAt = entry.checked_in_at || entry.joined_at || g.checked_in_at || g.joined_at || g.approved_at || null;
+
+      // Treat as attended if: status is checked_in/going OR Luma has a join timestamp
+      const attended = rawStatus === "checked_in" || rawStatus === "going" || !!joinedAt;
+      const normalizedStatus = attended ? "checked_in" : rawStatus;
 
       const stored = menteeSlug ? (storedMap[menteeSlug] || {}) : {};
       // Use stored joinedAt if Luma didn't return one
