@@ -3264,70 +3264,9 @@ function LumaAttendance({ mentees = [] }) {
           <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Attendance Approvals</p>
           <p style={{ margin: 0, fontSize: 14, color: "#9b8fcf" }}>Review and approve event attendance records from Luma.</p>
         </div>
-        {total > 0 && (
-          <span style={{ background: "#5c4eb5", color: "#fff", borderRadius: 20, padding: "4px 14px", fontSize: 13, fontWeight: 700 }}>
-            {total} pending
-          </span>
-        )}
-        <button onClick={() => { fetchPending(); fetchEvents(); }} style={{ background: "#f7f5ff", border: "1.5px solid #c8bfef", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, color: "#5c4eb5", cursor: "pointer" }}>
+        <button onClick={() => fetchEvents()} style={{ background: "#f7f5ff", border: "1.5px solid #c8bfef", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, color: "#5c4eb5", cursor: "pointer" }}>
           ↻ Refresh
         </button>
-      </div>
-
-      {/* Pending Queue */}
-      <div style={{ marginBottom: 36 }}>
-        <p style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: "#1a1733" }}>Pending Review</p>
-        {loadingPending ? (
-          <div style={{ textAlign: "center", color: "#9b8fcf", padding: 32 }}>Loading…</div>
-        ) : visibleGroups.length === 0 ? (
-          <div style={{ background: "#f0faf5", borderRadius: 12, border: "1px solid #b8e8d0", padding: "28px 32px", textAlign: "center" }}>
-            <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#1a6e42" }}>✓ All caught up — no attendance pending review</p>
-          </div>
-        ) : (
-          visibleGroups.map(group => (
-            <div key={group.eventId || group.eventName} style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 16 }}>
-              {/* Event header */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 15, fontWeight: 700, color: "#1a1733" }}>{group.eventName}</span>
-                {group.eventDate && <span style={{ fontSize: 13, color: "#9b8fcf" }}>{fmt(group.eventDate)}</span>}
-                {group.eventType && typeBadge(group.eventType)}
-                <div style={{ marginLeft: "auto" }}>
-                  <button
-                    onClick={() => handleApproveAllCheckedIn(group.eventId, group.attendees)}
-                    style={{ background: "#e8f5ee", border: "1.5px solid #b8e8d0", borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 700, color: "#1a6e42", cursor: "pointer" }}
-                  >
-                    ✓ Approve All Checked-In
-                  </button>
-                </div>
-              </div>
-              {/* Attendee rows */}
-              {group.attendees.map((a, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: i === 0 ? "1px solid #f0ecff" : "1px solid #f7f5ff", flexWrap: "wrap" }}>
-                  <div style={{ flex: 1, minWidth: 180 }}>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: "#1a1733" }}>{a.name || a.menteeSlug || a.slug}</span>
-                    {a.email && <span style={{ fontSize: 12, color: "#9b8fcf", marginLeft: 8 }}>{a.email}</span>}
-                  </div>
-                  {statusBadge(a.status, a.checked_in_at, true)}
-                  {a.matched !== undefined && (
-                    <span style={{ fontSize: 11, color: a.matched ? "#1a6e42" : "#b35c00", fontWeight: 600 }}>{a.matched ? "✓ matched" : "! unmatched"}</span>
-                  )}
-                  <button
-                    onClick={() => handleApprove(group.eventId, a.menteeSlug || a.slug, true)}
-                    style={{ background: "#e8f5ee", border: "1.5px solid #b8e8d0", borderRadius: 6, padding: "5px 12px", fontSize: 12, fontWeight: 700, color: "#1a6e42", cursor: "pointer" }}
-                  >
-                    ✓ Approve
-                  </button>
-                  <button
-                    onClick={() => handleApprove(group.eventId, a.menteeSlug || a.slug, false)}
-                    style={{ background: "#fef0f0", border: "1.5px solid #f5c8c8", borderRadius: 6, padding: "5px 12px", fontSize: 12, fontWeight: 700, color: "#c0392b", cursor: "pointer" }}
-                  >
-                    ✗ Deny
-                  </button>
-                </div>
-              ))}
-            </div>
-          ))
-        )}
       </div>
 
       {/* Events Section */}
