@@ -4178,71 +4178,121 @@ function SuggestedMatches({ mentees, mentors, maxPairings, onApproved }) {
 function buildEmail(g) {
   const mentorFirst = g.mentorName.split(" ")[0];
   const hasTwo = g.mentees.length >= 2;
-  const deadline = "Wednesday, June 11th";
-
-  const menteeBlock = g.mentees.map((m, i) => {
-    const needs = [m.primaryFocus, ...(m.secondaryFoci || [])].filter(Boolean).join("; ");
-    return `Match ${i + 1}: ${m.name || m.slug}${m.company ? ` — ${m.company}` : ""}
-Stage: ${m.stage || "—"}
-Industry: ${m.industry || "—"}
-Needs: ${needs || "—"}`;
-  }).join("\n\n");
-
-  const choiceBlock = hasTwo ? `Your choice:
-
-Option 1: Mentor both. If you have the bandwidth, we'd love for you to support both. We think you'd be a great fit for each.
-
-Option 2: Pick one. If two mentees feels like too much, we completely understand. Just reply with the mentee who feels like a better fit.
-
-` : "";
+  const deadline = "Monday, June 9th at 4pm";
 
   const selectionLine = hasTwo
     ? `Your mentor-mentee selection: whether you'll be supporting one or both founders, and if one, which founder you're choosing.`
     : `Your mentor-mentee selection: confirming you're ready to support ${g.mentees[0]?.name || "your mentee"}.`;
 
-  return `Hi ${mentorFirst},
+  const menteeBlockHtml = g.mentees.map(m => {
+    const needs = [m.primaryFocus, ...(m.secondaryFoci || [])].filter(Boolean).join("; ");
+    return `<p style="margin:0 0 4px 0"><strong>${m.name || m.slug}${m.company ? ` - ${m.company}` : ""}</strong><br>
+Stage: ${m.stage || "-"}<br>
+Industry: ${m.industry || "-"}<br>
+Needs: ${needs || "-"}</p>`;
+  }).join("<br>");
 
-Thank you for volunteering as an Uplift mentor this summer! We shared your match candidate${hasTwo ? "s" : ""} last week and wanted to check in — your match${hasTwo ? "es are" : " is"} still waiting!
+  const choiceBlockHtml = hasTwo ? `<p><strong>Your choice:</strong></p>
+<p><strong>Option 1: Mentor both.</strong> If you have the bandwidth, we'd love for you to support both. We think you'd be a great fit for each.</p>
+<p><strong>Option 2: Pick one.</strong> If two mentees feels like too much, we completely understand. Just reply with the name of the mentee who feels like a better fit.</p>` : "";
+
+  const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#1a1a1a;max-width:600px">
+<p>Hi ${mentorFirst},</p>
+<p>Thank you so much for raising your hand and volunteering as an Uplift mentor this summer through TechUnited's mentorship program. We are so excited to have you and we found ${hasTwo ? "some great matches" : "a great match"} for you!</p>
+<p>After receiving more demand than ever, we were able to accept a record 76 founders as mentees into this summer's cohort. Out of that pool, ${hasTwo ? "two stood out as strong matches for you" : "one stood out as a strong match for you"}.</p>
+${hasTwo ? `<p>We'd love for you to mentor both if your schedule allows, but we know your time is limited.</p>${choiceBlockHtml}` : ""}
+<p>${hasTwo ? "Either way, you're" : "You're"} making a material difference for a founder who earned their spot in this cohort and we're grateful for your support!</p>
+<p><strong>Please reply to this email by ${deadline} to confirm:</strong></p>
+<ol>
+<li>Your participation in the program and that you can attend the in-person midpoint meetup (4pm-7pm on June 23rd in Hoboken, NJ) and the in-person summit (4pm-7pm on August 4th in Hoboken, NJ).</li>
+<li>${selectionLine}</li>
+</ol>
+<p>Thank you again for showing up for New Jersey founders! Mentees are completing their onboarding now. If we don't hear from you by ${deadline}, we may need to reassign your mentee${hasTwo ? "s" : ""}.</p>
+<p>If your availability has changed, no worries at all, just let us know so we can plan accordingly.</p>
+<br>
+<p><strong>Your Match${hasTwo ? "es" : ""}:</strong></p>
+${menteeBlockHtml}
+<br>
+<p>Best,<br>
+Kennedy<br>
+Head of Community &amp; Operations<br>
+TechUnited:NJ</p>
+</div>`;
+
+  // Plain text version for preview
+  const menteeBlockText = g.mentees.map(m => {
+    const needs = [m.primaryFocus, ...(m.secondaryFoci || [])].filter(Boolean).join("; ");
+    return `${m.name || m.slug}${m.company ? ` - ${m.company}` : ""}
+Stage: ${m.stage || "-"}
+Industry: ${m.industry || "-"}
+Needs: ${needs || "-"}`;
+  }).join("\n\n");
+
+  const text = `Hi ${mentorFirst},
+
+Thank you so much for raising your hand and volunteering as an Uplift mentor this summer through TechUnited's mentorship program. We are so excited to have you and we found ${hasTwo ? "some great matches" : "a great match"} for you!
 
 After receiving more demand than ever, we were able to accept a record 76 founders as mentees into this summer's cohort. Out of that pool, ${hasTwo ? "two stood out as strong matches for you" : "one stood out as a strong match for you"}.
 
-${hasTwo ? "We'd love for you to mentor both if your schedule allows, but we know your time is limited.\n\n" : ""}${choiceBlock}${hasTwo ? "Either way, you're" : "You're"} making a material difference for a founder who earned their spot in this cohort — and we're grateful for your support!
+${hasTwo ? `We'd love for you to mentor both if your schedule allows, but we know your time is limited.
 
-Please reply to this email by ${deadline} to confirm:
-1. Your participation in the program and that you can attend the in-person midpoint meetup (4pm–7pm on June 23rd in Hoboken, NJ) and the in-person summit (4pm–7pm on August 4th in Hoboken, NJ).
+YOUR CHOICE:
+
+Option 1: Mentor both. If you have the bandwidth, we'd love for you to support both. We think you'd be a great fit for each.
+
+Option 2: Pick one. If two mentees feels like too much, we completely understand. Just reply with the name of the mentee who feels like a better fit.
+
+` : ""}${hasTwo ? "Either way, you're" : "You're"} making a material difference for a founder who earned their spot in this cohort and we're grateful for your support!
+
+PLEASE REPLY BY ${deadline.toUpperCase()} TO CONFIRM:
+1. Your participation in the program and that you can attend the in-person midpoint meetup (4pm-7pm on June 23rd in Hoboken, NJ) and the in-person summit (4pm-7pm on August 4th in Hoboken, NJ).
 2. ${selectionLine}
 
 Thank you again for showing up for New Jersey founders! Mentees are completing their onboarding now. If we don't hear from you by ${deadline}, we may need to reassign your mentee${hasTwo ? "s" : ""}.
 
-If your availability has changed, no worries at all — just let us know so we can plan accordingly.
+If your availability has changed, no worries at all, just let us know so we can plan accordingly.
 
 
-Your Match${hasTwo ? "es" : ""}:
+YOUR MATCH${hasTwo ? "ES" : ""}:
 
-${menteeBlock}
+${menteeBlockText}
 
 
 Best,
 Kennedy
-Team Uplift`;
+Head of Community & Operations
+TechUnited:NJ`;
+
+  return { html, text };
 }
 
 function EmailDraftModal({ group, onClose, onSent }) {
-  const [body, setBody] = useState(() => buildEmail(group));
-  const [copied, setCopied] = useState(false);
-  const subject = `Your Uplift Mentor Match${group.mentees.length >= 2 ? "es Are" : " Is"} Waiting — Please Confirm`;
+  const email = buildEmail(group);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState(null);
+  const subject = `Your Uplift Mentor Match${group.mentees.length >= 2 ? "es" : ""} - Please Confirm`;
   const toEmail = group.mentorEmail || "";
-  const ccEmail = "team@tacunited.org";
+  const ccEmail = "uplift@techunited.co";
 
-  const copyAll = () => {
-    navigator.clipboard.writeText(body);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const openInMail = () => {
-    const mailto = `mailto:${encodeURIComponent(toEmail)}?cc=${encodeURIComponent(ccEmail)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(mailto, "_self");
+  const sendEmail = async () => {
+    setSending(true);
+    setError(null);
+    try {
+      const r = await fetch("/api/send-mentor-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: toEmail, subject, html: email.html, text: email.text, mentorName: group.mentorName }),
+      });
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error || "Send failed");
+      setSent(true);
+      setTimeout(() => { onSent(group.mentorName); onClose(); }, 1200);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -4260,64 +4310,47 @@ function EmailDraftModal({ group, onClose, onSent }) {
         {/* Modal header */}
         <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid #f0eef8", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
           <div>
-            <p style={{ margin: "0 0 3px", fontSize: 16, fontWeight: 800, color: "#1a1733" }}>✉️ Draft Email — {group.mentorName}</p>
+            <p style={{ margin: "0 0 3px", fontSize: 16, fontWeight: 800, color: "#1a1733" }}>✉️ {group.mentorName}</p>
             <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>
               To: <strong>{toEmail}</strong> &nbsp;·&nbsp; CC: <strong>{ccEmail}</strong>
             </p>
-            <p style={{ margin: "4px 0 0", fontSize: 12, color: "#9b8fcf" }}>Subject: {subject}</p>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: "#9b8fcf" }}>Subject: {subject}</p>
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, color: "#9b8fcf", cursor: "pointer", lineHeight: 1, flexShrink: 0 }}>✕</button>
         </div>
 
-        {/* Email body editor */}
-        <textarea
-          value={body}
-          onChange={e => setBody(e.target.value)}
-          style={{
-            flex: 1, margin: "16px 24px", padding: "14px 16px",
-            fontSize: 13, lineHeight: 1.65, color: "#1a1733",
-            border: "1.5px solid #e0d9f8", borderRadius: 10,
-            resize: "none", fontFamily: "inherit", outline: "none",
-            minHeight: 320,
-          }}
-        />
+        {/* HTML email preview */}
+        <div style={{
+          flex: 1, overflowY: "auto", margin: "16px 24px",
+          border: "1.5px solid #e0d9f8", borderRadius: 10, padding: "16px 20px",
+          fontSize: 14, lineHeight: 1.6, color: "#1a1a1a",
+        }} dangerouslySetInnerHTML={{ __html: email.html }} />
+
+        {error && (
+          <p style={{ margin: "0 24px 8px", fontSize: 12, color: "#c0392b" }}>Error: {error}</p>
+        )}
 
         {/* Actions */}
         <div style={{ padding: "0 24px 20px", display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button
-            onClick={openInMail}
-            style={{
-              flex: 1, minWidth: 160, padding: "10px 20px", borderRadius: 8,
-              background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
-              color: "#fff", border: "none", fontWeight: 700, fontSize: 13,
-              cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif",
-            }}
-          >
-            📨 Open in Mail App
+          <button onClick={onClose} style={{
+            padding: "10px 20px", borderRadius: 8, background: "#f3f0ff",
+            color: "#5c4eb5", border: "1.5px solid #c4b8f0",
+            fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif",
+          }}>
+            Cancel
           </button>
           <button
-            onClick={copyAll}
+            onClick={sendEmail}
+            disabled={sending || sent}
             style={{
-              padding: "10px 20px", borderRadius: 8,
-              background: copied ? "#e8f8f0" : "#f3f0ff",
-              color: copied ? "#1a6e42" : "#5c4eb5",
-              border: `1.5px solid ${copied ? "#b8e8d0" : "#c4b8f0"}`,
-              fontWeight: 700, fontSize: 13, cursor: "pointer",
+              flex: 1, padding: "10px 20px", borderRadius: 8,
+              background: sent ? "#1a6e42" : sending ? "#9b8fcf" : "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+              color: "#fff", border: "none", fontWeight: 700, fontSize: 13,
+              cursor: sending || sent ? "default" : "pointer",
               fontFamily: "Inter, system-ui, sans-serif",
             }}
           >
-            {copied ? "✓ Copied!" : "📋 Copy Body"}
-          </button>
-          <button
-            onClick={() => { onSent(group.mentorName); onClose(); }}
-            style={{
-              padding: "10px 20px", borderRadius: 8,
-              background: "linear-gradient(135deg, #1a6e42, #0f4a2c)",
-              color: "#fff", border: "none", fontWeight: 700, fontSize: 13,
-              cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif",
-            }}
-          >
-            ✓ Mark as Sent
+            {sent ? "✓ Sent!" : sending ? "Sending..." : `📨 Send to ${group.mentorName.split(" ")[0]}`}
           </button>
         </div>
       </div>

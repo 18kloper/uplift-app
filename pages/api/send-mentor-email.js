@@ -7,8 +7,8 @@ import { Resend } from "resend";
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { to, subject, body, mentorName } = req.body || {};
-  if (!to || !subject || !body) {
+  const { to, subject, html, text, mentorName } = req.body || {};
+  if (!to || !subject || !html) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
@@ -23,10 +23,11 @@ export default async function handler(req, res) {
     const { data, error } = await resend.emails.send({
       from: "Kennedy Loper <kennedy@techunited.co>",
       to: [to],
-      cc: ["team@techunited.co"],
+      cc: ["uplift@techunited.co"],
       reply_to: "kennedy@techunited.co",
       subject,
-      text: body,
+      html,
+      text: text || "",
     });
 
     if (error) {
