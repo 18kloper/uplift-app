@@ -930,11 +930,9 @@ function PeerConnections() {
           return { ...conn, pairKey: slugs.join("|") };
         });
         const freshKeys = new Set(freshConns.map(c => c.pairKey));
-        // Mark existing as not-new
-        const existingUpdated = existingConnections
-          .filter(c => freshKeys.has(c.pairKey))
-          .map(c => ({ ...c, isNew: false }));
-        // Find truly new pairs
+        // Keep ALL existing connections (never drop old pairs), just mark as not-new
+        const existingUpdated = existingConnections.map(c => ({ ...c, isNew: false }));
+        // Find truly new pairs not seen before
         const newOnes = freshConns
           .filter(c => !existingKeys.has(c.pairKey))
           .map(c => ({ ...c, isNew: true, addedAt: now, status: null }));
