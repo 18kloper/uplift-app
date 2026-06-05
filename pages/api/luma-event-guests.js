@@ -41,7 +41,8 @@ export default async function handler(req, res) {
       const normalizedStatus = attended ? "checked_in" : rawStatus;
 
       // "Joined Time" in Luma UI = checked_in_at (virtual join) or approved_at
-      const joinedAt = g.checked_in_at || g.approved_at || null;
+      // Luma may put this on the entry wrapper OR the nested guest object
+      const joinedAt = entry.checked_in_at || entry.joined_at || g.checked_in_at || g.joined_at || g.approved_at || null;
 
       return {
         name: g.name || "",

@@ -3367,8 +3367,8 @@ function LumaAttendance({ mentees = [] }) {
                           );
                         } else if (eventPast && g.menteeSlug) {
                           statusEl = (
-                            <span style={{ background: "#fef0f0", color: "#c0392b", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
-                              ✗ No Show
+                            <span style={{ background: "#fff3e0", color: "#b35c00", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }}>
+                              Registered · Did not attend
                             </span>
                           );
                         } else if (eventPast && !g.menteeSlug) {
