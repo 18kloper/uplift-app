@@ -448,6 +448,12 @@ function PromptEngagement() {
 
   const [selectedHistoryKey, setSelectedHistoryKey] = useState(null);
 
+  // Cohort insights state
+  const [cohortInsightCohort, setCohortInsightCohort] = useState(1);
+  const [cohortInsightData, setCohortInsightData]     = useState({}); // cohort# → data
+  const [cohortInsightLoading, setCohortInsightLoading] = useState({});
+  const [cohortInsightError, setCohortInsightError]   = useState({});
+
   const SUN_CACHE = "uplift_insights_sun_v2";
   const WED_CACHE = "uplift_insights_wed_v2";
 
@@ -657,6 +663,14 @@ function PromptEngagement() {
           fontWeight: subTab === "ai" ? 700 : 500,
           padding: "8px 16px", cursor: "pointer", marginBottom: -2,
         }}>✨ AI Insights</button>
+        <button onClick={() => setSubTab("cohort")} style={{
+          background: "none", border: "none",
+          borderBottom: subTab === "cohort" ? "2px solid #5c4eb5" : "2px solid transparent",
+          color: subTab === "cohort" ? "#5c4eb5" : "#9b8fcf",
+          fontFamily: "Inter, system-ui, sans-serif", fontSize: 13,
+          fontWeight: subTab === "cohort" ? 700 : 500,
+          padding: "8px 16px", cursor: "pointer", marginBottom: -2,
+        }}>🏷️ By Cohort</button>
       </div>
 
       {/* ── WEEK TAB ── */}
@@ -819,6 +833,153 @@ function PromptEngagement() {
                       </div>
                     )}
                   </>
+                )}
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* ── BY COHORT TAB ── */}
+      {subTab === "cohort" && (
+        <div>
+          {/* Cohort filter chips */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap", alignItems: "center" }}>
+            {[1,2,3,4,5].map(c => (
+              <button key={c} onClick={() => setCohortInsightCohort(c)} style={{
+                padding: "7px 18px", borderRadius: 20, fontWeight: 700, fontSize: 13,
+                fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer",
+                border: cohortInsightCohort === c ? "2px solid #5c4eb5" : "1.5px solid #d4d0e8",
+                background: cohortInsightCohort === c ? "#5c4eb5" : "#fff",
+                color: cohortInsightCohort === c ? "#fff" : "#5c4eb5",
+              }}>
+                Cohort {c} · {COHORT_NAMES_PE[c]}
+              </button>
+            ))}
+            <button
+              onClick={async () => {
+                const c = cohortInsightCohort;
+                setCohortInsightLoading(prev => ({ ...prev, [c]: true }));
+                setCohortInsightError(prev => ({ ...prev, [c]: null }));
+                try {
+                  const r = await fetch(`/api/prompt-themes?cohort=${c}`);
+                  const d = await r.json();
+                  if (d.error) throw new Error(d.error);
+                  setCohortInsightData(prev => ({ ...prev, [c]: d }));
+                } catch (e) {
+                  setCohortInsightError(prev => ({ ...prev, [c]: e.message }));
+                } finally {
+                  setCohortInsightLoading(prev => ({ ...prev, [c]: false }));
+                }
+              }}
+              disabled={cohortInsightLoading[cohortInsightCohort]}
+              style={{
+                marginLeft: "auto", padding: "7px 20px", borderRadius: 20,
+                background: cohortInsightLoading[cohortInsightCohort] ? "#9b8fcf" : "#5c4eb5",
+                color: "#fff", border: "none", fontWeight: 700, fontSize: 13,
+                fontFamily: "Inter, system-ui, sans-serif",
+                cursor: cohortInsightLoading[cohortInsightCohort] ? "default" : "pointer",
+              }}
+            >
+              {cohortInsightLoading[cohortInsightCohort] ? "Generating…" : "✨ Generate"}
+            </button>
+          </div>
+
+          {/* Results for selected cohort */}
+          {(() => {
+            const c = cohortInsightCohort;
+            const d = cohortInsightData[c];
+            const loading = cohortInsightLoading[c];
+            const err = cohortInsightError[c];
+
+            if (loading) return (
+              <div style={{ textAlign: "center", padding: "48px 0", color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>
+                Analyzing Cohort {c} · {COHORT_NAMES_PE[c]} responses…
+              </div>
+            );
+            if (err) return (
+              <div style={{ background: "#fef0f0", borderRadius: 10, padding: "16px 20px", color: "#c0392b", fontSize: 13 }}>
+                Error: {err}
+              </div>
+            );
+            if (!d) return (
+              <div style={{ textAlign: "center", padding: "48px 0", color: "#c0b8d8" }}>
+                <p style={{ fontSize: 32, margin: "0 0 12px" }}>🏷️</p>
+                <p style={{ fontSize: 14, margin: 0 }}>Select a cohort and press <strong>Generate</strong> to analyze their prompt responses.</p>
+              </div>
+            );
+
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>
+                  Generated {new Date(d.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · {d.totalResponses || 0} responses from Cohort {c} · {COHORT_NAMES_PE[c]}
+                </p>
+
+                {/* Top themes */}
+                {d.themes?.length > 0 && (
+                  <div style={{ background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)", borderRadius: 14, padding: "20px 24px" }}>
+                    <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 800, color: "#fff" }}>🔍 Top Themes — Cohort {c} · {COHORT_NAMES_PE[c]}</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {d.themes.map((t, i) => (
+                        <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                          <span style={{ fontSize: 16, flexShrink: 0 }}>{THEME_ICONS[i] || "•"}</span>
+                          <div>
+                            <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#fff" }}>{t.title}</p>
+                            <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.55 }}>{t.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Session ideas */}
+                {d.sessionIdeas?.length > 0 && (
+                  <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "20px 24px" }}>
+                    <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 800, color: "#1a1733" }}>🎤 Session Ideas for This Cohort</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {d.sessionIdeas.map((s, i) => (
+                        <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", borderLeft: "3px solid #c4b8f0", paddingLeft: 12 }}>
+                          <span style={{ fontSize: 14, flexShrink: 0 }}>{SESSION_ICONS[i] || "•"}</span>
+                          <div>
+                            <p style={{ margin: "0 0 1px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{s.title}</p>
+                            <p style={{ margin: 0, fontSize: 12, color: "#6b6480", lineHeight: 1.55 }}>{s.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Weekly themes by section */}
+                {Object.keys(d.weeklyThemes || {}).length > 0 && (
+                  <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "20px 24px" }}>
+                    <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 800, color: "#1a1733" }}>📋 Themes by Prompt Section</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                      {Object.entries(d.weeklyThemes).map(([key, sec]) => (
+                        <div key={key}>
+                          <p style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: "#5c4eb5", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                            {sec.label} <span style={{ fontWeight: 400, color: "#9b8fcf" }}>({sec.count} responses)</span>
+                          </p>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                            {sec.themes.map((t, i) => (
+                              <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                                <span style={{ fontSize: 13, flexShrink: 0, color: "#5c4eb5" }}>{THEME_ICONS[i] || "•"}</span>
+                                <div>
+                                  <p style={{ margin: "0 0 1px", fontSize: 12, fontWeight: 700, color: "#1a1733" }}>{t.title}</p>
+                                  <p style={{ margin: 0, fontSize: 11, color: "#6b6480", lineHeight: 1.5 }}>{t.description}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {d.themes?.length === 0 && d.sessionIdeas?.length === 0 && (
+                  <p style={{ color: "#9b8fcf", fontSize: 13, fontStyle: "italic" }}>No responses found for this cohort yet.</p>
                 )}
               </div>
             );

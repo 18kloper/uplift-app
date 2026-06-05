@@ -23,7 +23,10 @@ export default async function handler(req, res) {
   if (!hasSheets) return res.status(200).json({ themes: [], sessionIdeas: [], weeklyThemes: {}, error: "Sheets not configured" });
   if (!process.env.ANTHROPIC_API_KEY) return res.status(200).json({ themes: [], sessionIdeas: [], weeklyThemes: {}, error: "ANTHROPIC_API_KEY not configured" });
 
-  const realMentees = MENTEES.filter(m => !TEST_SLUGS.includes(m.slug));
+  const cohortParam = req.query.cohort ? parseInt(req.query.cohort) : null;
+  const realMentees = MENTEES.filter(m =>
+    !TEST_SLUGS.includes(m.slug) && (!cohortParam || m.cohort === cohortParam)
+  );
   const sheets = getSheetsClient();
   const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
