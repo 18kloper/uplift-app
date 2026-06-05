@@ -1965,7 +1965,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
 
         {/* Table — sticky header, scrollable rows */}
         {(() => {
-          const COLS = "1.3fr 1.2fr 78px 118px 110px 86px 76px 1.3fr 70px 1.9fr";
+          const COLS = "1.3fr 1.2fr 78px 118px 110px 86px 76px 1.3fr 82px 1.9fr";
           return (
             /* overflow: clip clips rounded corners without breaking position:sticky */
             <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", overflow: "clip" }}>
@@ -2170,8 +2170,8 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
                             onChurnChange?.(m.slug, newVal);
                           }}
                           style={{
-                            fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 6,
-                            border: "1px solid",
+                            fontSize: 10, fontWeight: 700, padding: "3px 7px", borderRadius: 6,
+                            border: "1px solid", whiteSpace: "nowrap",
                             cursor: "pointer",
                             background: m.status === "churned" ? "#f0eef8" : "#fff",
                             color: m.status === "churned" ? "#6b6480" : "#c0b8d8",
