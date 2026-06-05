@@ -1965,7 +1965,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
 
         {/* Table — sticky header, scrollable rows */}
         {(() => {
-          const COLS = "1.3fr 1.2fr 78px 118px 110px 86px 76px 1.3fr 1.9fr";
+          const COLS = "1.3fr 1.2fr 78px 118px 110px 86px 76px 1.3fr 70px 1.9fr";
           return (
             /* overflow: clip clips rounded corners without breaking position:sticky */
             <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", overflow: "clip" }}>
@@ -1978,7 +1978,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
                   padding: "11px 20px", background: "#f7f5ff",
                   borderBottom: "1px solid #e8e4f5",
                 }}>
-                  {["Mentee", "Mentor", "Cohort", "Status", "Milestones", "Sessions", "Edu", "Flags"].map(h => (
+                  {["Mentee", "Mentor", "Cohort", "Status", "Milestones", "Sessions", "Edu", "Flags", ""].map(h => (
                     <p key={h} style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                       {h}
                     </p>
@@ -2150,6 +2150,33 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
                             </span>
                           ))
                         )}
+                      </div>
+
+                      {/* Churn toggle */}
+                      <div style={{ display: "flex", alignItems: "flex-start", paddingTop: 2 }}>
+                        <button
+                          title={m.status === "churned" ? "Un-churn (restore portal access)" : "Mark as churned (freeze portal)"}
+                          onClick={async () => {
+                            const newVal = m.status !== "churned";
+                            await fetch("/api/set-churned", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ slug: m.slug, churned: newVal }),
+                            });
+                            window.location.reload();
+                          }}
+                          style={{
+                            fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 6,
+                            border: "1px solid",
+                            cursor: "pointer",
+                            background: m.status === "churned" ? "#f0eef8" : "#fff",
+                            color: m.status === "churned" ? "#6b6480" : "#c0b8d8",
+                            borderColor: m.status === "churned" ? "#c4b8e8" : "#e0daf0",
+                            transition: "all 0.15s",
+                          }}
+                        >
+                          {m.status === "churned" ? "↩ Restore" : "Churn"}
+                        </button>
                       </div>
 
                       {/* Notes */}
