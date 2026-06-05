@@ -2158,6 +2158,10 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
                           title={m.status === "churned" ? "Un-churn (restore portal access)" : "Mark as churned (freeze portal)"}
                           onClick={async () => {
                             const newVal = m.status !== "churned";
+                            if (newVal) {
+                              const ok = window.confirm(`Are you sure you want to churn ${m.first} ${m.last}?\n\nThis will freeze their portal and they will no longer be able to access it until restored.`);
+                              if (!ok) return;
+                            }
                             await fetch("/api/set-churned", {
                               method: "POST",
                               headers: { "Content-Type": "application/json" },
