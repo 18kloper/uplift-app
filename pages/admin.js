@@ -1515,7 +1515,7 @@ function PortalActivity() {
 }
 
 // ─── Main dashboard ────────────────────────────────────────────────────────────
-function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlugs = new Set(), respondedMentorNames = new Set() }) {
+function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlugs = new Set(), respondedMentorNames = new Set(), onChurnChange }) {
   const [activeCohort, setActiveCohort] = useState("All");
   const [search, setSearch] = useState("");
   const [statusFilters, setStatusFilters] = useState([]);
@@ -2167,7 +2167,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
                               headers: { "Content-Type": "application/json" },
                               body: JSON.stringify({ slug: m.slug, churned: newVal }),
                             });
-                            window.location.reload();
+                            onChurnChange?.(m.slug, newVal);
                           }}
                           style={{
                             fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 6,
@@ -2405,7 +2405,12 @@ export default function AdminPage() {
           {(() => {
             const confirmedSlugs = new Set(Object.entries(mentorConfirmations).filter(([,v]) => v === "confirmed").map(([k]) => k.split("|")[1]));
             const declinedSlugs  = new Set(Object.entries(mentorConfirmations).filter(([,v]) => v === "declined").map(([k]) => k.split("|")[1]));
-            return adminTab === "mentees" && <Dashboard data={data} refreshedAt={data.generatedAt} confirmedSlugs={confirmedSlugs} declinedSlugs={declinedSlugs} respondedMentorNames={respondedMentorNames} />;
+            return adminTab === "mentees" && <Dashboard data={data} refreshedAt={data.generatedAt} confirmedSlugs={confirmedSlugs} declinedSlugs={declinedSlugs} respondedMentorNames={respondedMentorNames} onChurnChange={(slug, churned) => {
+              setData(prev => ({
+                ...prev,
+                mentees: prev.mentees.map(m => m.slug === slug ? { ...m, status: churned ? "churned" : "needs-attention" } : m),
+              }));
+            }} />;
           })()}
           {adminTab === "clicks"   && <ClickEngagement />}
           {adminTab === "prompts"     && <PromptEngagement />}
