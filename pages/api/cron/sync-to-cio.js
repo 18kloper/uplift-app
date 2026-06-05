@@ -152,12 +152,18 @@ export default async function handler(req, res) {
 
   try {
     // ── Participation ────────────────────────────────────────────────────────
-    const partRes  = await sheets.spreadsheets.values.get({ spreadsheetId, range: "Participation!A6:E500" });
+    const partRes  = await sheets.spreadsheets.values.get({ spreadsheetId, range: "Participation!A6:G500" });
     const partRows = partRes.data.values || [];
     const statusBySlug = {};
+    const emailBySlugDirect = {};
     for (const row of partRows) {
-      const slug = row[0]?.trim(); const status = row[4]?.trim();
-      if (slug) statusBySlug[slug] = status || "";
+      const slug   = row[0]?.trim();
+      const status = row[4]?.trim();
+      const email  = row[6]?.trim()?.toLowerCase();
+      if (slug) {
+        statusBySlug[slug] = status || "";
+        if (email) emailBySlugDirect[slug] = email;
+      }
     }
 
     // ── Milestone Dashboard ──────────────────────────────────────────────────
@@ -206,7 +212,12 @@ export default async function handler(req, res) {
     // Cross-reference: match CIO-Mentees first_name+last_name to MENTEES array slug
     const emailBySlug = {};
     for (const mentee of realMentees) {
-      // Try to find matching row in CIO - Mentees by first+last name
+      // Prefer email directly from Participation tab col G
+      if (emailBySlugDirect[mentee.slug]) {
+        emailBySlug[mentee.slug] = emailBySlugDirect[mentee.slug];
+        continue;
+      }
+      // Fall back to name matching against CIO - Mentees tab
       for (const row of cioMenteesRows) {
         const rowFirst = (row[1] || "").trim().toLowerCase();
         const rowLast  = (row[2] || "").trim().toLowerCase();
