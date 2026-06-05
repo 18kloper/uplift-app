@@ -1,5 +1,7 @@
 // GET /api/prompt-themes
 // Reads all prompt responses, calls Claude to surface:
+
+export const config = { api: { responseLimit: false }, maxDuration: 60 };
 //   - Top 5 overall themes
 //   - Top 5 session ideas
 //   - Top 3 themes per prompt section (week-by-week)
@@ -85,12 +87,15 @@ export default async function handler(req, res) {
 
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    const message = await anthropic.messages.create({
-      model: "claude-haiku-4-5",
-      max_tokens: 3000,
-      messages: [{
-        role: "user",
-        content: `You are analyzing prompt responses from early-stage startup founders in a 9-week mentorship accelerator in New Jersey. Founders span AI/ML, SaaS, consumer, and social impact.
+    let message;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        message = await anthropic.messages.create({
+          model: "claude-sonnet-4-5",
+          max_tokens: 3000,
+          messages: [{
+            role: "user",
+            content: `You are analyzing prompt responses from early-stage startup founders in a 9-week mentorship accelerator in New Jersey. Founders span AI/ML, SaaS, consumer, and social impact.
 
 Here are their responses organized by prompt section:
 
@@ -120,8 +125,21 @@ Return ONLY valid JSON, no markdown fences, no explanation:
     ]
   }
 }`,
-      }],
-    });
+          }],
+        });
+        break;
+      } catch (err) {
+        const msg = (err.message || "").toLowerCase();
+        const isOverloaded = err.status === 529 || err.statusCode === 529 || msg.includes("overload") || msg.includes("529");
+        if (isOverloaded && attempt < 5) {
+          const delay = attempt * 3000; // 3s, 6s, 9s, 12s
+          console.warn(`Claude overloaded (attempt ${attempt}), retrying in ${delay}ms…`);
+          await new Promise(r => setTimeout(r, delay));
+          continue;
+        }
+        throw err;
+      }
+    }
 
     const raw = message.content[0]?.text || "";
     const jsonMatch = raw.match(/\{[\s\S]*\}/);

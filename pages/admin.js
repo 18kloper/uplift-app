@@ -358,35 +358,6 @@ function getProgramWeekNum() {
 
 const INSIGHTS_HISTORY_KEY = "uplift_insights_history_v1";
 
-function saveInsightToHistory(data, dayKey) {
-  // dayKey: "sunday" | "wednesday"
-  try {
-    const stored = localStorage.getItem(INSIGHTS_HISTORY_KEY);
-    const history = stored ? JSON.parse(stored) : {};
-    const weekNum = getProgramWeekNum();
-    const key = `${weekNum}_${dayKey}`;
-    const dayLabel = dayKey === "sunday" ? "Sunday" : "Wednesday";
-    history[key] = {
-      weekNum,
-      day: dayKey,
-      label: `Week ${weekNum} · ${dayLabel}`,
-      generatedAt: data.generatedAt,
-      themes: data.themes || [],
-      weeklyThemes: data.weeklyThemes || {},
-      sessionIdeas: data.sessionIdeas || [],
-      totalResponses: data.totalResponses || 0,
-    };
-    localStorage.setItem(INSIGHTS_HISTORY_KEY, JSON.stringify(history));
-  } catch (_) {}
-}
-
-function loadInsightsHistory() {
-  try {
-    const stored = localStorage.getItem(INSIGHTS_HISTORY_KEY);
-    return stored ? JSON.parse(stored) : {};
-  } catch (_) { return {}; }
-}
-
 // Returns true if AI cache should be refreshed.
 // Refreshes on Sunday (0) and Wednesday (3) nights at 9pm — or if no cache.
 function isAICacheStale(generatedAt) {
@@ -447,18 +418,21 @@ function PromptEngagement() {
 
 
   const [selectedHistoryKey, setSelectedHistoryKey] = useState(null);
+  const [insightsHistory, setInsightsHistory] = useState({});
 
   // Cohort insights state
   const [cohortInsightCohort, setCohortInsightCohort] = useState(1);
   const [cohortInsightData, setCohortInsightData]     = useState({}); // cohort# → data
   const [cohortInsightLoading, setCohortInsightLoading] = useState({});
   const [cohortInsightError, setCohortInsightError]   = useState({});
+  const [cacheSaveError, setCacheSaveError]           = useState(null);
 
   // Cross-analysis state
   const [crossData, setCrossData]       = useState(null);
   const [crossLoading, setCrossLoading] = useState(false);
   const [crossError, setCrossError]     = useState(null);
   const [crossView, setCrossView]       = useState("cohort"); // "cohort" | "cross"
+  const [cohortWeekFilter, setCohortWeekFilter] = useState("overall"); // "overall" | week number
 
   const SUN_CACHE = "uplift_insights_sun_v2";
   const WED_CACHE = "uplift_insights_wed_v2";
@@ -486,10 +460,41 @@ function PromptEngagement() {
 
   const fetchSnapshot = (cacheKey, isStale, setter, setLoad, setErr, force = false, dayKey = "sunday") => {
     if (!force) {
-      try {
-        const c = localStorage.getItem(cacheKey);
-        if (c) { const p = JSON.parse(c); if (!isStale(p.generatedAt)) { setter(p); return; } }
-      } catch (_) {}
+      fetch(`/api/admin/ai-cache?key=${cacheKey}`)
+        .then(r => r.json())
+        .then(({ value }) => {
+          if (value && !isStale(value.generatedAt)) {
+            setter(value);
+          } else {
+            // Cache missing or stale — fetch fresh
+            setLoad(true); setErr(null);
+            fetch("/api/prompt-themes")
+              .then(r => r.json())
+              .then(d => {
+                if (d.error) { setErr(d.error); }
+                else {
+                  setter(d);
+                  saveToCache(cacheKey, d);
+                  saveInsightToHistory(d, dayKey, insightsHistory);
+                }
+                setLoad(false);
+              })
+              .catch(e => { setErr(e.message); setLoad(false); });
+          }
+        })
+        .catch(() => {
+          // Network error reading cache — fetch fresh anyway
+          setLoad(true); setErr(null);
+          fetch("/api/prompt-themes")
+            .then(r => r.json())
+            .then(d => {
+              if (d.error) { setErr(d.error); }
+              else { setter(d); saveInsightToHistory(d, dayKey, insightsHistory); }
+              setLoad(false);
+            })
+            .catch(e => { setErr(e.message); setLoad(false); });
+        });
+      return;
     }
     setLoad(true); setErr(null);
     fetch("/api/prompt-themes")
@@ -498,12 +503,54 @@ function PromptEngagement() {
         if (d.error) { setErr(d.error); }
         else {
           setter(d);
-          try { localStorage.setItem(cacheKey, JSON.stringify(d)); } catch (_) {}
-          saveInsightToHistory(d, dayKey);
+          saveToCache(cacheKey, d);
+          saveInsightToHistory(d, dayKey, insightsHistory);
         }
         setLoad(false);
       })
       .catch(e => { setErr(e.message); setLoad(false); });
+  };
+
+  const COHORT_INSIGHTS_KEY = "cohort_insights_v1";
+  const CROSS_ANALYSIS_KEY  = "cross_analysis_v1";
+
+  const saveToCache = (key, value) => {
+    setCacheSaveError(null);
+    return fetch("/api/admin/ai-cache", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, value }),
+    })
+      .then(r => r.json())
+      .then(d => { if (d.error) throw new Error(d.error); })
+      .catch(e => {
+        console.error("AICache save failed:", e.message);
+        setCacheSaveError(e.message);
+      });
+  };
+
+  const saveInsightToHistory = (data, dayKey, currentHistory) => {
+    const weekNum = getProgramWeekNum();
+    const key = `${weekNum}_${dayKey}`;
+    const dayLabel = dayKey === "sunday" ? "Sunday" : "Wednesday";
+    const next = {
+      ...currentHistory,
+      [key]: {
+        weekNum, day: dayKey,
+        label: `Week ${weekNum} · ${dayLabel}`,
+        generatedAt: data.generatedAt,
+        themes: data.themes || [],
+        weeklyThemes: data.weeklyThemes || {},
+        sessionIdeas: data.sessionIdeas || [],
+        totalResponses: data.totalResponses || 0,
+      },
+    };
+    setInsightsHistory(next);
+    fetch("/api/admin/ai-cache", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: INSIGHTS_HISTORY_KEY, value: next }),
+    }).catch(() => {});
   };
 
   useEffect(() => {
@@ -513,7 +560,37 @@ function PromptEngagement() {
       .catch(() => setStatsLoading(false));
     fetchSnapshot(SUN_CACHE, isSundayCacheStale, setSunData, setLoadingSun, setErrorSun, false, "sunday");
     fetchSnapshot(WED_CACHE, isWednesdayCacheStale, setWedData, setLoadingWed, setErrorWed, false, "wednesday");
+    // Load insights history from Sheets
+    fetch(`/api/admin/ai-cache?key=${INSIGHTS_HISTORY_KEY}`)
+      .then(r => r.json())
+      .then(d => { if (d.value) setInsightsHistory(d.value); })
+      .catch(() => {});
+    // Load persisted cohort insights and cross-analysis from Sheets
+    fetch(`/api/admin/ai-cache?key=${COHORT_INSIGHTS_KEY}`)
+      .then(r => r.json())
+      .then(d => { if (d.value) setCohortInsightData(d.value); })
+      .catch(() => {});
+    fetch(`/api/admin/ai-cache?key=${CROSS_ANALYSIS_KEY}`)
+      .then(r => r.json())
+      .then(d => { if (d.value) setCrossData(d.value); })
+      .catch(() => {});
   }, []);
+
+  // Persist cohort insights to Sheets whenever data changes (skip initial empty state)
+  const cohortInsightLoadedRef = useRef(false);
+  useEffect(() => {
+    if (!cohortInsightLoadedRef.current) { cohortInsightLoadedRef.current = true; return; }
+    if (Object.keys(cohortInsightData).length === 0) return;
+    saveToCache(COHORT_INSIGHTS_KEY, cohortInsightData);
+  }, [cohortInsightData]);
+
+  // Persist cross-analysis to Sheets whenever it changes
+  const crossDataLoadedRef = useRef(false);
+  useEffect(() => {
+    if (!crossDataLoadedRef.current) { crossDataLoadedRef.current = true; return; }
+    if (!crossData) return;
+    saveToCache(CROSS_ANALYSIS_KEY, crossData);
+  }, [crossData]);
 
   const toggle = (key) => setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
 
@@ -680,7 +757,7 @@ function PromptEngagement() {
       </div>
 
       {/* ── WEEK TAB ── */}
-      {subTab !== "ai" && (
+      {subTab !== "ai" && subTab !== "cohort" && (
         <div>
           {statsLoading
             ? <p style={{ color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>Loading…</p>
@@ -759,7 +836,7 @@ function PromptEngagement() {
 
           {/* ── History section ── */}
           {(() => {
-            const history = loadInsightsHistory();
+            const history = insightsHistory;
             const historyEntries = Object.entries(history).sort((a, b) => {
               const [wA, dA] = a[0].split("_");
               const [wB, dB] = b[0].split("_");
@@ -850,7 +927,7 @@ function PromptEngagement() {
       {subTab === "cohort" && (
         <div>
           {/* View toggle */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
             {[{ key: "cohort", label: "🏷️ Per Cohort" }, { key: "cross", label: "🔀 Cross Analysis" }].map(v => (
               <button key={v.key} onClick={() => setCrossView(v.key)} style={{
                 padding: "7px 18px", borderRadius: 20, fontWeight: 700, fontSize: 13,
@@ -1003,7 +1080,7 @@ function PromptEngagement() {
           {crossView === "cohort" && (
           <div>
           {/* Cohort filter chips */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
             {[1,2,3,4,5].map(c => (
               <button key={c} onClick={() => setCohortInsightCohort(c)} style={{
                 padding: "7px 18px", borderRadius: 20, fontWeight: 700, fontSize: 13,
@@ -1044,6 +1121,12 @@ function PromptEngagement() {
             </button>
           </div>
 
+          {cacheSaveError && (
+            <div style={{ background: "#fef0f0", borderRadius: 8, padding: "8px 14px", fontSize: 12, color: "#c0392b", marginBottom: 12 }}>
+              ⚠️ Save failed: {cacheSaveError} — your results are visible now but may not persist after reload.
+            </div>
+          )}
+
           {/* Results for selected cohort */}
           {(() => {
             const c = cohortInsightCohort;
@@ -1052,7 +1135,7 @@ function PromptEngagement() {
             const err = cohortInsightError[c];
 
             if (loading) return (
-              <div style={{ textAlign: "center", padding: "48px 0", color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>
+              <div style={{ textAlign: "center", padding: "24px 0", color: "#9b8fcf", fontSize: 14, fontStyle: "italic" }}>
                 Analyzing Cohort {c} · {COHORT_NAMES_PE[c]} responses…
               </div>
             );
@@ -1062,11 +1145,21 @@ function PromptEngagement() {
               </div>
             );
             if (!d) return (
-              <div style={{ textAlign: "center", padding: "48px 0", color: "#c0b8d8" }}>
-                <p style={{ fontSize: 32, margin: "0 0 12px" }}>🏷️</p>
-                <p style={{ fontSize: 14, margin: 0 }}>Select a cohort and press <strong>Generate</strong> to analyze their prompt responses.</p>
+              <div style={{ textAlign: "center", padding: "20px 0 8px", color: "#c0b8d8" }}>
+                <p style={{ fontSize: 28, margin: "0 0 8px" }}>🏷️</p>
+                <p style={{ fontSize: 13, margin: 0 }}>Select a cohort and press <strong>Generate</strong> to analyze their prompt responses.</p>
               </div>
             );
+
+            // Week filter: figure out which weeklyTheme keys belong to the selected week
+            const weeklyThemeEntries = Object.entries(d.weeklyThemes || {});
+            const weeksWithData = [...new Set(
+              weeklyThemeEntries.map(([key]) => SECTION_WEEK[key]).filter(Boolean)
+            )].sort((a, b) => a - b);
+
+            const filteredSections = cohortWeekFilter === "overall"
+              ? weeklyThemeEntries
+              : weeklyThemeEntries.filter(([key]) => SECTION_WEEK[key] === cohortWeekFilter);
 
             return (
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -1074,48 +1167,70 @@ function PromptEngagement() {
                   Generated {new Date(d.generatedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })} · {d.totalResponses || 0} responses from Cohort {c} · {COHORT_NAMES_PE[c]}
                 </p>
 
-                {/* Top themes */}
-                {d.themes?.length > 0 && (
-                  <div style={{ background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)", borderRadius: 14, padding: "20px 24px" }}>
-                    <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 800, color: "#fff" }}>🔍 Top Themes — Cohort {c} · {COHORT_NAMES_PE[c]}</p>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                      {d.themes.map((t, i) => (
-                        <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                          <span style={{ fontSize: 16, flexShrink: 0 }}>{THEME_ICONS[i] || "•"}</span>
-                          <div>
-                            <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#fff" }}>{t.title}</p>
-                            <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.55 }}>{t.description}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                {/* Week filter row */}
+                {weeksWithData.length > 0 && (
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {["overall", ...weeksWithData].map(w => (
+                      <button key={w} onClick={() => setCohortWeekFilter(w)} style={{
+                        padding: "5px 14px", borderRadius: 16, fontSize: 12, fontWeight: 700,
+                        fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer",
+                        border: cohortWeekFilter === w ? "2px solid #5c4eb5" : "1.5px solid #d4d0e8",
+                        background: cohortWeekFilter === w ? "#5c4eb5" : "#f7f5ff",
+                        color: cohortWeekFilter === w ? "#fff" : "#5c4eb5",
+                      }}>
+                        {w === "overall" ? "Overall" : `Week ${w}`}
+                      </button>
+                    ))}
                   </div>
                 )}
 
-                {/* Session ideas */}
-                {d.sessionIdeas?.length > 0 && (
-                  <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "20px 24px" }}>
-                    <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 800, color: "#1a1733" }}>🎤 Session Ideas for This Cohort</p>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                      {d.sessionIdeas.map((s, i) => (
-                        <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", borderLeft: "3px solid #c4b8f0", paddingLeft: 12 }}>
-                          <span style={{ fontSize: 14, flexShrink: 0 }}>{SESSION_ICONS[i] || "•"}</span>
-                          <div>
-                            <p style={{ margin: "0 0 1px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{s.title}</p>
-                            <p style={{ margin: 0, fontSize: 12, color: "#6b6480", lineHeight: 1.55 }}>{s.description}</p>
-                          </div>
+                {/* Overall view: top themes + session ideas */}
+                {cohortWeekFilter === "overall" && (
+                  <>
+                    {d.themes?.length > 0 && (
+                      <div style={{ background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)", borderRadius: 14, padding: "20px 24px" }}>
+                        <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 800, color: "#fff" }}>🔍 Top Themes — Cohort {c} · {COHORT_NAMES_PE[c]}</p>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                          {d.themes.map((t, i) => (
+                            <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                              <span style={{ fontSize: 16, flexShrink: 0 }}>{THEME_ICONS[i] || "•"}</span>
+                              <div>
+                                <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#fff" }}>{t.title}</p>
+                                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.55 }}>{t.description}</p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                      </div>
+                    )}
+
+                    {d.sessionIdeas?.length > 0 && (
+                      <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "20px 24px" }}>
+                        <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 800, color: "#1a1733" }}>🎤 Session Ideas for This Cohort</p>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                          {d.sessionIdeas.map((s, i) => (
+                            <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", borderLeft: "3px solid #c4b8f0", paddingLeft: 12 }}>
+                              <span style={{ fontSize: 14, flexShrink: 0 }}>{SESSION_ICONS[i] || "•"}</span>
+                              <div>
+                                <p style={{ margin: "0 0 1px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{s.title}</p>
+                                <p style={{ margin: 0, fontSize: 12, color: "#6b6480", lineHeight: 1.55 }}>{s.description}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
 
-                {/* Weekly themes by section */}
-                {Object.keys(d.weeklyThemes || {}).length > 0 && (
+                {/* Themes by section (all sections for overall, filtered for specific week) */}
+                {filteredSections.length > 0 && (
                   <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "20px 24px" }}>
-                    <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 800, color: "#1a1733" }}>📋 Themes by Prompt Section</p>
+                    <p style={{ margin: "0 0 14px", fontSize: 14, fontWeight: 800, color: "#1a1733" }}>
+                      {cohortWeekFilter === "overall" ? "📋 Themes by Prompt Section" : `📋 Week ${cohortWeekFilter} Themes — Cohort ${c} · ${COHORT_NAMES_PE[c]}`}
+                    </p>
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                      {Object.entries(d.weeklyThemes).map(([key, sec]) => (
+                      {filteredSections.map(([key, sec]) => (
                         <div key={key}>
                           <p style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: "#5c4eb5", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                             {sec.label} <span style={{ fontWeight: 400, color: "#9b8fcf" }}>({sec.count} responses)</span>
@@ -1137,7 +1252,11 @@ function PromptEngagement() {
                   </div>
                 )}
 
-                {d.themes?.length === 0 && d.sessionIdeas?.length === 0 && (
+                {cohortWeekFilter !== "overall" && filteredSections.length === 0 && (
+                  <p style={{ color: "#9b8fcf", fontSize: 13, fontStyle: "italic" }}>No data for Week {cohortWeekFilter} in this cohort yet.</p>
+                )}
+
+                {cohortWeekFilter === "overall" && d.themes?.length === 0 && d.sessionIdeas?.length === 0 && filteredSections.length === 0 && (
                   <p style={{ color: "#9b8fcf", fontSize: 13, fontStyle: "italic" }}>No responses found for this cohort yet.</p>
                 )}
               </div>
@@ -1217,14 +1336,14 @@ function PeerConnections() {
   useEffect(() => {
     (async () => {
       try {
-        const stored = localStorage.getItem(STORE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          const baseConns = parsed.connections || [];
-          if (!isPeerStale(parsed.lastRunAt)) {
+        const res = await fetch(`/api/admin/ai-cache?key=${STORE_KEY}`);
+        const { value } = await res.json();
+        if (value) {
+          const baseConns = value.connections || [];
+          if (!isPeerStale(value.lastRunAt)) {
             const synced = await applySheetStatuses(baseConns);
             setConnections(synced);
-            setLastRunAt(parsed.lastRunAt);
+            setLastRunAt(value.lastRunAt);
             return;
           } else {
             runAnalysis(baseConns);
@@ -1262,7 +1381,7 @@ function PeerConnections() {
         applySheetStatuses(merged).then(synced => {
           setConnections(synced);
           setLastRunAt(now);
-          try { localStorage.setItem(STORE_KEY, JSON.stringify({ connections: synced, lastRunAt: now })); } catch (_) {}
+          saveToCache(STORE_KEY, { connections: synced, lastRunAt: now });
           setLoading(false);
         });
       })
@@ -1286,7 +1405,7 @@ function PeerConnections() {
     });
 
     setConnections(updated);
-    try { localStorage.setItem(STORE_KEY, JSON.stringify({ connections: updated, lastRunAt })); } catch (_) {}
+    saveToCache(STORE_KEY, { connections: updated, lastRunAt });
 
     // Undo toast
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
@@ -1317,7 +1436,7 @@ function PeerConnections() {
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
     setConnections(prev => {
       const updated = prev.map(c => c.pairKey === undoState.pairKey ? { ...c, status: undoState.prevStatus, ...undoState.prevStamps } : c);
-      try { localStorage.setItem(STORE_KEY, JSON.stringify({ connections: updated, lastRunAt })); } catch (_) {}
+      saveToCache(STORE_KEY, { connections: updated, lastRunAt });
       return updated;
     });
     setUndoState(null);
@@ -2463,14 +2582,14 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
                             Mentor declined — needs reassignment
                           </span>
                         )}
-                        {m.flags.length === 0 && !declinedSlugs.has(m.slug) ? (
+                        {m.status === "churned" ? null : m.flags.length === 0 && !declinedSlugs.has(m.slug) ? (
                           <span style={{ fontSize: 11, color: "#27ae60", fontWeight: 600 }}>✓ All clear</span>
                         ) : (
                           m.flags.slice(0, 3).map((f, fi) => (
                             <span key={fi} style={{
                               fontSize: 10, fontWeight: 600, lineHeight: 1.3,
-                              background: m.status === "at-risk" ? "#fef0f0" : m.status === "churned" ? "#f0eef8" : "#fff3e0",
-                              color: m.status === "at-risk" ? "#c0392b" : m.status === "churned" ? "#6b6480" : "#b35c00",
+                              background: m.status === "at-risk" ? "#fef0f0" : "#fff3e0",
+                              color: m.status === "at-risk" ? "#c0392b" : "#b35c00",
                               borderRadius: 4, padding: "2px 5px",
                             }}>
                               {f}
@@ -2487,6 +2606,9 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
                             const newVal = m.status !== "churned";
                             if (newVal) {
                               const ok = window.confirm(`Are you sure you want to churn ${m.first} ${m.last}?\n\nThis will freeze their portal and they will no longer be able to access it until restored.`);
+                              if (!ok) return;
+                            } else {
+                              const ok = window.confirm(`Are you sure you want to re-enroll ${m.first} ${m.last}?\n\nThis will restore their portal access.`);
                               if (!ok) return;
                             }
                             await fetch("/api/set-churned", {
@@ -2859,19 +2981,24 @@ export default function AdminPage() {
       {data && !loading && (
         <>
           {/* Top-level admin tab bar */}
-          <div style={{ background: "#1a0e4f", borderBottom: "1px solid rgba(255,255,255,0.1)", display: "flex", gap: 4, padding: "0 32px", overflowX: "auto" }}>
+          <div style={{ background: "#1a0e4f", borderBottom: "1px solid rgba(255,255,255,0.1)", display: "flex", flexWrap: "wrap", gap: 4, padding: "0 32px" }}>
             {[
-              { key: "mentees",     label: "👥 Mentees" },
+              // Roster
+              { key: "mentees",      label: "👥 Mentees" },
+              { key: "matches",      label: "🏫 Mentors" },
+              // Matching flow
+              { key: "matching",     label: "🔀 Matching" },
               { key: "match-status", label: "🔗 Match Status" },
-              { key: "clicks",      label: "📊 Click Engagement" },
-              { key: "prompts",     label: "📝 Prompt Engagement" },
-              { key: "activity",    label: "🕐 Portal Activity" },
-              { key: "connections", label: "🤝 Peer Connections" },
-              { key: "pulse",       label: "❤️ Weekly Pulse" },
-              { key: "matches",     label: "👥 Mentors" },
-              { key: "matching",    label: "🔀 Matching" },
               { key: "need-to-send", label: "📬 Need to Send" },
-              { key: "emails",      label: "✅ Mentor Confirmation" },
+              { key: "emails",       label: "✅ Confirmations" },
+              // Program activity
+              { key: "luma",         label: "🗓️ Attendance" },
+              { key: "prompts",      label: "📝 Prompts" },
+              { key: "connections",  label: "🤝 Peer Connects" },
+              { key: "pulse",        label: "❤️ Pulse" },
+              // Analytics
+              { key: "activity",     label: "🕐 Activity" },
+              { key: "clicks",       label: "📊 Clicks" },
             ].map(({ key, label }) => (
               <button key={key} onClick={() => setAdminTab(key)} style={{
                 background: "none", border: "none", borderBottom: adminTab === key ? "2px solid #f5c542" : "2px solid transparent",
@@ -2907,9 +3034,280 @@ export default function AdminPage() {
           {adminTab === "matching"    && <MatchingDashboard confirmations={mentorConfirmations} mentees={data?.mentees || []} />}
           {adminTab === "need-to-send" && <NeedToSend />}
           {adminTab === "emails"      && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} />}
+          {adminTab === "luma"        && <LumaAttendance />}
         </>
       )}
     </>
+  );
+}
+
+// ─── Luma Attendance ─────────────────────────────────────────────────────────
+function LumaAttendance() {
+  const [pending, setPending] = useState([]);
+  const [total, setPendingTotal] = useState(0);
+  const [events, setEvents] = useState([]);
+  const [loadingPending, setLoadingPending] = useState(true);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [expandedEvent, setExpandedEvent] = useState(null);
+  const [eventGuests, setEventGuests] = useState({});
+  const [loadingGuests, setLoadingGuests] = useState({});
+  const [syncingEvent, setSyncingEvent] = useState({});
+  const [syncResults, setSyncResults] = useState({});
+  const [toastMsg, setToastMsg] = useState(null);
+  const [dismissed, setDismissed] = useState({}); // eventId+slug → true
+
+  const showToast = (msg) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const fetchPending = () => {
+    setLoadingPending(true);
+    fetch("/api/luma-pending")
+      .then(r => r.json())
+      .then(d => { setPending(d.pending || []); setPendingTotal(d.total || 0); })
+      .catch(() => {})
+      .finally(() => setLoadingPending(false));
+  };
+
+  const fetchEvents = () => {
+    setLoadingEvents(true);
+    fetch("/api/luma-events")
+      .then(r => r.json())
+      .then(d => setEvents(d.events || []))
+      .catch(() => {})
+      .finally(() => setLoadingEvents(false));
+  };
+
+  useEffect(() => { fetchPending(); fetchEvents(); }, []);
+
+  const handleApprove = async (eventId, menteeSlug, approve) => {
+    const key = `${eventId}|${menteeSlug}`;
+    setDismissed(d => ({ ...d, [key]: true }));
+    try {
+      const res = await fetch("/api/luma-approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventId, menteeSlug, approve }),
+      });
+      const data = await res.json();
+      if (data.milestone) {
+        showToast(`${approve ? "✓ Approved" : "✗ Denied"} — milestone: ${data.milestone}`);
+      } else {
+        showToast(approve ? "✓ Approved" : "✗ Denied");
+      }
+    } catch {
+      showToast("Error updating — check console");
+      setDismissed(d => ({ ...d, [key]: false }));
+    }
+  };
+
+  const handleApproveAllCheckedIn = async (eventId, attendees) => {
+    const checkedIn = attendees.filter(a => a.status === "checked_in");
+    for (const a of checkedIn) {
+      await handleApprove(eventId, a.menteeSlug || a.slug, true);
+    }
+  };
+
+  const handleSync = async (eventId) => {
+    setSyncingEvent(s => ({ ...s, [eventId]: true }));
+    try {
+      const res = await fetch("/api/luma-sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventId }),
+      });
+      const data = await res.json();
+      setSyncResults(s => ({ ...s, [eventId]: data }));
+      showToast(`Sync complete — logged: ${data.logged}, skipped: ${data.skipped}, not matched: ${data.notMatched}`);
+      fetchPending();
+    } catch {
+      showToast("Sync failed");
+    } finally {
+      setSyncingEvent(s => ({ ...s, [eventId]: false }));
+    }
+  };
+
+  const toggleEvent = async (eventId) => {
+    if (expandedEvent === eventId) { setExpandedEvent(null); return; }
+    setExpandedEvent(eventId);
+    if (!eventGuests[eventId]) {
+      setLoadingGuests(g => ({ ...g, [eventId]: true }));
+      try {
+        const res = await fetch(`/api/luma-event-guests?eventId=${encodeURIComponent(eventId)}`);
+        const data = await res.json();
+        setEventGuests(g => ({ ...g, [eventId]: data.guests || [] }));
+      } catch {}
+      setLoadingGuests(g => ({ ...g, [eventId]: false }));
+    }
+  };
+
+  const typeBadge = (type) => {
+    const map = {
+      onboarding: { label: "Onboarding", bg: "#e0f0ff", color: "#1a6fa8" },
+      expert_session: { label: "Expert Session", bg: "#f0e8ff", color: "#5c4eb5" },
+      peer_discussion: { label: "Peer Discussion", bg: "#e8f5ee", color: "#1a6e42" },
+    };
+    const t = map[type] || { label: type || "Event", bg: "#f0f0f0", color: "#666" };
+    return (
+      <span style={{ background: t.bg, color: t.color, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
+        {t.label}
+      </span>
+    );
+  };
+
+  const statusBadge = (status) => {
+    if (status === "checked_in") return <span style={{ background: "#e0f5ea", color: "#1a6e42", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>Checked In</span>;
+    return <span style={{ background: "#f0f0f4", color: "#777", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>Registered</span>;
+  };
+
+  // Group pending by eventName
+  const pendingGrouped = {};
+  for (const item of pending) {
+    const key = item.eventId || item.eventName;
+    if (!pendingGrouped[key]) pendingGrouped[key] = { eventName: item.eventName, eventDate: item.eventDate, eventType: item.eventType, eventId: item.eventId, attendees: [] };
+    pendingGrouped[key].attendees.push(item);
+  }
+  const visibleGroups = Object.values(pendingGrouped).map(g => ({
+    ...g,
+    attendees: g.attendees.filter(a => !dismissed[`${g.eventId}|${a.menteeSlug || a.slug}`]),
+  })).filter(g => g.attendees.length > 0);
+
+  const fmt = (iso) => iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+
+  return (
+    <div style={{ padding: "32px 40px", fontFamily: "Inter, system-ui, sans-serif", maxWidth: 900, margin: "0 auto" }}>
+      {/* Toast */}
+      {toastMsg && (
+        <div style={{ position: "fixed", top: 24, right: 24, background: "#1a1733", color: "#fff", borderRadius: 10, padding: "12px 20px", fontSize: 14, fontWeight: 600, zIndex: 9999, boxShadow: "0 4px 20px rgba(0,0,0,0.3)" }}>
+          {toastMsg}
+        </div>
+      )}
+
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28, flexWrap: "wrap" }}>
+        <div style={{ flex: 1 }}>
+          <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Attendance Approvals</p>
+          <p style={{ margin: 0, fontSize: 14, color: "#9b8fcf" }}>Review and approve event attendance records from Luma.</p>
+        </div>
+        {total > 0 && (
+          <span style={{ background: "#5c4eb5", color: "#fff", borderRadius: 20, padding: "4px 14px", fontSize: 13, fontWeight: 700 }}>
+            {total} pending
+          </span>
+        )}
+        <button onClick={() => { fetchPending(); fetchEvents(); }} style={{ background: "#f7f5ff", border: "1.5px solid #c8bfef", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 600, color: "#5c4eb5", cursor: "pointer" }}>
+          ↻ Refresh
+        </button>
+      </div>
+
+      {/* Pending Queue */}
+      <div style={{ marginBottom: 36 }}>
+        <p style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: "#1a1733" }}>Pending Review</p>
+        {loadingPending ? (
+          <div style={{ textAlign: "center", color: "#9b8fcf", padding: 32 }}>Loading…</div>
+        ) : visibleGroups.length === 0 ? (
+          <div style={{ background: "#f0faf5", borderRadius: 12, border: "1px solid #b8e8d0", padding: "28px 32px", textAlign: "center" }}>
+            <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#1a6e42" }}>✓ All caught up — no attendance pending review</p>
+          </div>
+        ) : (
+          visibleGroups.map(group => (
+            <div key={group.eventId || group.eventName} style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 16 }}>
+              {/* Event header */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 15, fontWeight: 700, color: "#1a1733" }}>{group.eventName}</span>
+                {group.eventDate && <span style={{ fontSize: 13, color: "#9b8fcf" }}>{fmt(group.eventDate)}</span>}
+                {group.eventType && typeBadge(group.eventType)}
+                <div style={{ marginLeft: "auto" }}>
+                  <button
+                    onClick={() => handleApproveAllCheckedIn(group.eventId, group.attendees)}
+                    style={{ background: "#e8f5ee", border: "1.5px solid #b8e8d0", borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 700, color: "#1a6e42", cursor: "pointer" }}
+                  >
+                    ✓ Approve All Checked-In
+                  </button>
+                </div>
+              </div>
+              {/* Attendee rows */}
+              {group.attendees.map((a, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: i === 0 ? "1px solid #f0ecff" : "1px solid #f7f5ff", flexWrap: "wrap" }}>
+                  <div style={{ flex: 1, minWidth: 180 }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "#1a1733" }}>{a.name || a.menteeSlug || a.slug}</span>
+                    {a.email && <span style={{ fontSize: 12, color: "#9b8fcf", marginLeft: 8 }}>{a.email}</span>}
+                  </div>
+                  {statusBadge(a.status)}
+                  {a.matched !== undefined && (
+                    <span style={{ fontSize: 11, color: a.matched ? "#1a6e42" : "#b35c00", fontWeight: 600 }}>{a.matched ? "✓ matched" : "! unmatched"}</span>
+                  )}
+                  <button
+                    onClick={() => handleApprove(group.eventId, a.menteeSlug || a.slug, true)}
+                    style={{ background: "#e8f5ee", border: "1.5px solid #b8e8d0", borderRadius: 6, padding: "5px 12px", fontSize: 12, fontWeight: 700, color: "#1a6e42", cursor: "pointer" }}
+                  >
+                    ✓ Approve
+                  </button>
+                  <button
+                    onClick={() => handleApprove(group.eventId, a.menteeSlug || a.slug, false)}
+                    style={{ background: "#fef0f0", border: "1.5px solid #f5c8c8", borderRadius: 6, padding: "5px 12px", fontSize: 12, fontWeight: 700, color: "#c0392b", cursor: "pointer" }}
+                  >
+                    ✗ Deny
+                  </button>
+                </div>
+              ))}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Events Section */}
+      <div>
+        <p style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: "#1a1733" }}>All Luma Events</p>
+        {loadingEvents ? (
+          <div style={{ textAlign: "center", color: "#9b8fcf", padding: 32 }}>Loading events…</div>
+        ) : events.length === 0 ? (
+          <div style={{ color: "#9b8fcf", fontSize: 14, padding: "16px 0" }}>No events found.</div>
+        ) : (
+          events.map(ev => (
+            <div key={ev.api_id} style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", marginBottom: 12, overflow: "hidden" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "16px 20px", flexWrap: "wrap", cursor: "pointer" }} onClick={() => toggleEvent(ev.api_id)}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#1a1733", flex: 1 }}>{ev.name}</span>
+                {ev.start_at && <span style={{ fontSize: 13, color: "#9b8fcf" }}>{fmt(ev.start_at)}</span>}
+                {ev.type && typeBadge(ev.type)}
+                {ev.guest_count !== undefined && <span style={{ fontSize: 12, color: "#9b8fcf" }}>{ev.guest_count} attendees</span>}
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleSync(ev.api_id); }}
+                  disabled={syncingEvent[ev.api_id]}
+                  style={{ background: "#f7f5ff", border: "1.5px solid #c8bfef", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, color: "#5c4eb5", cursor: "pointer", opacity: syncingEvent[ev.api_id] ? 0.6 : 1 }}
+                >
+                  {syncingEvent[ev.api_id] ? "Syncing…" : "↻ Sync"}
+                </button>
+                {syncResults[ev.api_id] && (
+                  <span style={{ fontSize: 11, color: "#1a6e42", fontWeight: 600 }}>logged: {syncResults[ev.api_id].logged}</span>
+                )}
+                <span style={{ fontSize: 13, color: "#c8bfef" }}>{expandedEvent === ev.api_id ? "▲" : "▼"}</span>
+              </div>
+              {expandedEvent === ev.api_id && (
+                <div style={{ borderTop: "1px solid #f0ecff", padding: "16px 20px" }}>
+                  {loadingGuests[ev.api_id] ? (
+                    <div style={{ color: "#9b8fcf", fontSize: 13 }}>Loading guests…</div>
+                  ) : !eventGuests[ev.api_id] || eventGuests[ev.api_id].length === 0 ? (
+                    <div style={{ color: "#9b8fcf", fontSize: 13 }}>No guests found.</div>
+                  ) : (
+                    <div>
+                      <p style={{ margin: "0 0 10px", fontSize: 12, color: "#9b8fcf", fontWeight: 600 }}>{eventGuests[ev.api_id].length} guests</p>
+                      {eventGuests[ev.api_id].map((g, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: "1px solid #f7f5ff", flexWrap: "wrap" }}>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1733", flex: 1 }}>{g.name}</span>
+                          {g.email && <span style={{ fontSize: 12, color: "#9b8fcf" }}>{g.email}</span>}
+                          {statusBadge(g.status)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -4189,7 +4587,25 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
         const e = (m.email || "").toLowerCase().trim();
         return !assignedNames.has(n) && !(e && assignedEmails.has(e));
       });
-      setAllMentors([...assigned, ...newApplicants.map(m => ({ name: m.name, email: m.email, isApplicant: true }))]);
+      const newApplicantNames = new Set(newApplicants.map(m => m.name.toLowerCase().trim()));
+      // Also include mentors who have pending/sent assignments but aren't yet in mentees.js or Typeform list
+      const pendingSent = [...(pendingData.pending || []), ...(pendingData.sent || [])];
+      const pendingOnlyMentors = pendingSent
+        .filter(g => {
+          const n = g.mentorName.toLowerCase().trim();
+          const e = (g.mentorEmail || "").toLowerCase().trim();
+          return !assignedNames.has(n) && !newApplicantNames.has(n) && !(e && assignedEmails.has(e));
+        })
+        .map(g => ({ name: g.mentorName, email: g.mentorEmail || "", isPendingOnly: true }));
+      // Deduplicate by name
+      const seenPending = new Set();
+      const uniquePendingOnly = pendingOnlyMentors.filter(m => {
+        const n = m.name.toLowerCase().trim();
+        if (seenPending.has(n)) return false;
+        seenPending.add(n);
+        return true;
+      });
+      setAllMentors([...assigned, ...newApplicants.map(m => ({ name: m.name, email: m.email, isApplicant: true })), ...uniquePendingOnly]);
 
       // Build slug → { email, cohort } lookup
       const emails = selData.menteeEmails || {};

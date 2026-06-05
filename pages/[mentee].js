@@ -112,9 +112,10 @@ const PRIMARY_TABS = [
   { id: "resources",  label: "Resources",                    tip: "External links, tools, and resources curated for you — things you should know about as a founder in this program." },
   { id: "profile",    label: "Cohort Directory",             tip: "See who's in your cohort and explore the other cohorts too — get to know your fellow founders." },
   { id: "support",    label: "Support",                      tip: "Having trouble with something? Find out how to reach the Uplift team here." },
+  { id: "attendance", label: "📋 Event Attendance",          tip: "A log of all Luma events you registered for or attended, along with their verification status." },
 ];
 const TAB_ROW_1 = ["journey", "goals", "milestones", "meetings", "edu"];
-const TAB_ROW_2 = ["calendar", "profile", "resources", "support"];
+const TAB_ROW_2 = ["calendar", "profile", "resources", "support", "attendance"];
 
 // ─── Tab tooltip wrapper ───────────────────────────────────────────────────────
 function TabTooltip({ tip, children, direction = "up" }) {
@@ -3858,6 +3859,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
           </p>
         </div>
       );
+      case "attendance": return <LumaAttendanceSection slug={slug} />;
       default: return null;
     }
   };

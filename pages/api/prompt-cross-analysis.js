@@ -2,6 +2,8 @@
 // Reads all prompt responses grouped by cohort, then asks Claude to surface
 // key differences, similarities, and standout patterns across cohorts.
 
+export const config = { api: { responseLimit: false }, maxDuration: 60 };
+
 import Anthropic from "@anthropic-ai/sdk";
 import { getSheetsClient } from "../../lib/sheets-helper";
 import { MENTEES } from "../../lib/mentees";
@@ -94,9 +96,13 @@ export default async function handler(req, res) {
 
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    const message = await anthropic.messages.create({
-      model: "claude-opus-4-5",
-      max_tokens: 4000,
+    // Retry up to 3 times on overload (529) errors
+    let message;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        message = await anthropic.messages.create({
+          model: "claude-sonnet-4-5",
+          max_tokens: 4000,
       messages: [{
         role: "user",
         content: `You are analyzing prompt responses from early-stage startup founders across 5 cohorts in a 9-week NJ-based mentorship accelerator called Uplift. Each cohort is a group of ~15 founders.
@@ -130,8 +136,21 @@ Return ONLY valid JSON, no markdown:
     { "title": "Recommendation title", "description": "2 sentences. Be specific.", "scope": "all" | "cohort-specific" }
   ]
 }`,
-      }],
-    });
+        }],
+        });
+        break; // success — exit retry loop
+      } catch (err) {
+        const msg = (err.message || "").toLowerCase();
+        const isOverloaded = err.status === 529 || err.statusCode === 529 || msg.includes("overload") || msg.includes("529");
+        if (isOverloaded && attempt < 5) {
+          const delay = attempt * 3000; // 3s, 6s, 9s, 12s
+          console.warn(`Claude overloaded (attempt ${attempt}), retrying in ${delay}ms…`);
+          await new Promise(r => setTimeout(r, delay));
+          continue;
+        }
+        throw err;
+      }
+    }
 
     const raw = message.content[0]?.text || "";
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
