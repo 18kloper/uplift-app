@@ -2155,7 +2155,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
                       {/* Churn toggle */}
                       <div style={{ display: "flex", alignItems: "flex-start", paddingTop: 2 }}>
                         <button
-                          title={m.status === "churned" ? "Un-churn (restore portal access)" : "Mark as churned (freeze portal)"}
+                          title={m.status === "churned" ? "Re-enroll into program (restore portal access)" : "Mark as churned (freeze portal)"}
                           onClick={async () => {
                             const newVal = m.status !== "churned";
                             if (newVal) {
@@ -2179,7 +2179,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
                             transition: "all 0.15s",
                           }}
                         >
-                          {m.status === "churned" ? "↩ Restore" : "Churn"}
+                          {m.status === "churned" ? "↩ Re-enroll" : "Churn"}
                         </button>
                       </div>
 
