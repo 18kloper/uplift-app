@@ -3666,6 +3666,41 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
     return <PasswordGate slug={slug} onAuthenticated={() => setIsAuthenticated(true)} />;
   }
 
+  if (liveMilestones?.churned) {
+    return (
+      <div style={{
+        minHeight: "100vh", background: "#f7f5ff",
+        fontFamily: "'Inter', system-ui, sans-serif",
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        <div style={{
+          background: "#fff", borderRadius: 16, padding: "44px 48px",
+          maxWidth: 420, width: "calc(100% - 48px)",
+          boxShadow: "0 4px 32px rgba(92,78,181,0.12)", textAlign: "center",
+        }}>
+          <img src="/uplift-logo.png" alt="Uplift" style={{ height: 44, margin: "0 auto 24px", display: "block" }} />
+          <div style={{ fontSize: 36, marginBottom: 16 }}>👋</div>
+          <h1 style={{ margin: "0 0 12px", fontSize: 22, fontWeight: 700, color: "#1a1733" }}>
+            Hi there, {mentee.first}
+          </h1>
+          <p style={{ margin: "0 0 24px", fontSize: 15, color: "#6b6480", lineHeight: 1.7 }}>
+            We haven't heard from you in a while. To continue with the program, please reach out to us at:
+          </p>
+          <a
+            href="mailto:uplift@techunited.co"
+            style={{
+              display: "inline-block", padding: "12px 28px", borderRadius: 8,
+              background: "#5c4eb5", color: "#fff", fontWeight: 700,
+              fontSize: 15, textDecoration: "none",
+            }}
+          >
+            uplift@techunited.co
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   const primaryKey = getFocusKey(mentee.primaryFocus);
   const secondaryKey = mentee.secondaryFoci && mentee.secondaryFoci.length > 0
     ? getFocusKey(mentee.secondaryFoci[0]) : null;
