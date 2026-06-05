@@ -3525,10 +3525,10 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
       setSelData(sel);
       setResponses(email.responses || []);
       setNewMentors(app.mentors || []);
-      // Build sets of slugs/mentor names that have a fresh admin-approved (not-yet-sent) match
+      // Build sets of slugs/mentor names that have an admin-assigned match (pending OR sent)
       const adminSlugs = new Set();
       const adminMentors = new Set();
-      for (const g of (pend.pending || [])) {
+      for (const g of [...(pend.pending || []), ...(pend.sent || [])]) {
         if (g.adminAssigned) {
           adminMentors.add(g.mentorName);
           for (const m of (g.mentees || [])) adminSlugs.add(m.slug);
@@ -4214,7 +4214,7 @@ Needs: ${needs || "-"}</p>`;
 
   const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#1a1a1a;max-width:600px">
 <p>Hi ${mentorFirst},</p>
-<p>Thank you so much for raising your hand and volunteering as an Uplift mentor this summer through TechUnited's mentorship program. We are so excited to have you and we found ${hasTwo ? "some great matches" : "a great match"} for you!</p>
+<p>Thank you for volunteering as an Uplift mentor this summer! Your willingness to show up is part of what makes the TechUnited community so special.</p>
 <p>After receiving more demand than ever, we were able to accept a record 76 founders as mentees into this summer's cohort. Out of that pool, ${hasTwo ? "two stood out as strong matches for you" : "one stood out as a strong match for you"}.</p>
 ${hasTwo ? `<p>We'd love for you to mentor both if your schedule allows, but we know your time is limited.</p>${choiceBlockHtml}` : ""}
 <p>${hasTwo ? "Either way, you're" : "You're"} making a material difference for a founder who earned their spot in this cohort and we're grateful for your support!</p>
@@ -4246,17 +4246,17 @@ Needs: ${needs || "-"}`;
 
   const text = `Hi ${mentorFirst},
 
-Thank you so much for raising your hand and volunteering as an Uplift mentor this summer through TechUnited's mentorship program. We are so excited to have you and we found ${hasTwo ? "some great matches" : "a great match"} for you!
+Thank you for volunteering as an Uplift mentor this summer! Your willingness to show up is part of what makes the TechUnited community so special.
 
 After receiving more demand than ever, we were able to accept a record 76 founders as mentees into this summer's cohort. Out of that pool, ${hasTwo ? "two stood out as strong matches for you" : "one stood out as a strong match for you"}.
 
 ${hasTwo ? `We'd love for you to mentor both if your schedule allows, but we know your time is limited.
 
-YOUR CHOICE:
+Your choice:
 
 Option 1: Mentor both. If you have the bandwidth, we'd love for you to support both. We think you'd be a great fit for each.
 
-Option 2: Pick one. If two mentees feels like too much, we completely understand. Just reply with the name of the mentee who feels like a better fit.
+Option 2: Pick one. If two mentees feels like too much, we completely understand. Just reply with the mentee who feels like a better fit.
 
 ` : ""}${hasTwo ? "Either way, you're" : "You're"} making a material difference for a founder who earned their spot in this cohort and we're grateful for your support!
 
