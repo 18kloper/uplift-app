@@ -3093,6 +3093,7 @@ function LumaAttendance({ mentees = [] }) {
   const [syncResults, setSyncResults] = useState({});
   const [toastMsg, setToastMsg] = useState(null);
   const [dismissed, setDismissed] = useState({}); // eventId+slug → true
+  const [deniedGuests, setDeniedGuests] = useState({}); // eventId|slug → true
 
   const showToast = (msg) => {
     setToastMsg(msg);
@@ -3191,6 +3192,26 @@ function LumaAttendance({ mentees = [] }) {
       fetchPending();
     } catch {
       showToast("Error verifying — check console");
+      setVerifyingGuest(v => ({ ...v, [vKey]: false }));
+    }
+  };
+
+  const handleDenyGuest = async (eventId, menteeSlug, guestName) => {
+    const confirmed = window.confirm(`Mark ${guestName || "this person"} as did not attend?\n\nThis will record their attendance as denied.`);
+    if (!confirmed) return;
+    const vKey = `${eventId}|${menteeSlug}`;
+    setVerifyingGuest(v => ({ ...v, [vKey]: true }));
+    try {
+      await fetch("/api/luma-approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventId, menteeSlug, approve: false }),
+      });
+      setDeniedGuests(d => ({ ...d, [vKey]: true }));
+      showToast("✗ Marked as did not attend");
+    } catch {
+      showToast("Error — check console");
+    } finally {
       setVerifyingGuest(v => ({ ...v, [vKey]: false }));
     }
   };
@@ -3312,6 +3333,7 @@ function LumaAttendance({ mentees = [] }) {
                       {eventGuests[ev.api_id].map((g, i) => {
                         const vKey = `${ev.api_id}|${g.menteeSlug}`;
                         const isVerified = g.menteeSlug && milestonesBySlug[g.menteeSlug]?.onboarding;
+                        const isDenied = deniedGuests[vKey];
                         const isVerifying = verifyingGuest[vKey];
                         const eventPast = new Date(ev.start_at) < new Date();
                         const joinTime = g.checked_in_at ? fmtTime(g.checked_in_at) : null;
@@ -3319,7 +3341,6 @@ function LumaAttendance({ mentees = [] }) {
                         // One unified status — pick exactly one
                         let statusEl;
                         if (isVerified) {
-                          // Already verified — show join time if we have it, then verified badge
                           statusEl = (
                             <>
                               {joinTime && (
@@ -3332,22 +3353,25 @@ function LumaAttendance({ mentees = [] }) {
                               </span>
                             </>
                           );
+                        } else if (isDenied) {
+                          statusEl = (
+                            <span style={{ background: "#fef0f0", color: "#c0392b", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
+                              ✗ Denied
+                            </span>
+                          );
                         } else if (g.status === "checked_in" && joinTime) {
-                          // Attended but not yet verified
                           statusEl = (
                             <span style={{ background: "#fff8e1", color: "#b35c00", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
                               Joined {joinTime} · Pending
                             </span>
                           );
                         } else if (eventPast && g.menteeSlug) {
-                          // Matched mentee, event over, no join detected
                           statusEl = (
                             <span style={{ background: "#fef0f0", color: "#c0392b", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
                               ✗ No Show
                             </span>
                           );
                         } else if (eventPast && !g.menteeSlug) {
-                          // Unmatched (staff, external), event over
                           statusEl = (
                             <span style={{ background: "#f5f5f5", color: "#999", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600 }}>
                               Registered · Did not attend
@@ -3366,14 +3390,22 @@ function LumaAttendance({ mentees = [] }) {
                             <span style={{ fontSize: 13, fontWeight: 600, color: "#1a1733", flex: 1 }}>{g.name}</span>
                             {g.email && <span style={{ fontSize: 12, color: "#9b8fcf" }}>{g.email}</span>}
                             {statusEl}
-                            {/* Verify button only for matched, unverified mentees */}
-                            {g.menteeSlug && !isVerified && (
-                              <button
-                                onClick={() => handleVerify(ev.api_id, g.menteeSlug, g.status !== "checked_in", g.name)}
-                                disabled={isVerifying}
-                                style={{ background: isVerifying ? "#f0eef8" : "#5c4eb5", color: isVerifying ? "#9b8fcf" : "#fff", border: "none", borderRadius: 5, padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: isVerifying ? "default" : "pointer" }}>
-                                {isVerifying ? "Verifying…" : "Verify"}
-                              </button>
+                            {/* Verify + Do Not Verify buttons for matched, unresolved mentees */}
+                            {g.menteeSlug && !isVerified && !isDenied && (
+                              <>
+                                <button
+                                  onClick={() => handleVerify(ev.api_id, g.menteeSlug, g.status !== "checked_in", g.name)}
+                                  disabled={isVerifying}
+                                  style={{ background: isVerifying ? "#f0eef8" : "#5c4eb5", color: isVerifying ? "#9b8fcf" : "#fff", border: "none", borderRadius: 5, padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: isVerifying ? "default" : "pointer" }}>
+                                  {isVerifying ? "…" : "Verify"}
+                                </button>
+                                <button
+                                  onClick={() => handleDenyGuest(ev.api_id, g.menteeSlug, g.name)}
+                                  disabled={isVerifying}
+                                  style={{ background: "#fef0f0", color: "#c0392b", border: "1.5px solid #f5c8c8", borderRadius: 5, padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: isVerifying ? "default" : "pointer" }}>
+                                  Do Not Verify
+                                </button>
+                              </>
                             )}
                           </div>
                         );
