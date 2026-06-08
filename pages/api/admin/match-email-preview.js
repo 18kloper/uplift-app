@@ -82,12 +82,7 @@ function checkItem(text) {
 
 function sectionLabel(text) {
   return `
-  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin-bottom:12px">
-    <tr>
-      <td style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#9b8fcf;white-space:nowrap;padding-right:8px">${esc(text)}</td>
-      <td width="100%" style="border-top:1px solid #e8e4f5"></td>
-    </tr>
-  </table>`;
+  <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#9b8fcf;border-bottom:1px solid #e8e4f5;padding-bottom:6px;margin-bottom:12px">${esc(text)}</div>`;
 }
 
 // Demo data, injected when ?demo=1 to show fully populated email
