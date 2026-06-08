@@ -7,7 +7,7 @@ import { getSheetsClient } from "../../../lib/sheets-helper";
 
 const SEL_TAB = "Mentor Selections";
 const CONF_TAB = "Mentor Confirmations";
-const CONF_HEADERS = ["Thread ID", "Mentor Name", "Mentor Email", "Mentee Name", "Mentee Slug", "Status", "Updated At", "Notes"];
+const CONF_HEADERS = ["Thread ID", "Mentor Name", "Mentor Email", "Mentee Name", "Mentee Slug", "Status", "Updated At", "Notes", "Match Reason"];
 
 async function ensureConfTab(sheets, spreadsheetId) {
   const meta = await sheets.spreadsheets.get({ spreadsheetId });
@@ -89,19 +89,19 @@ export default async function handler(req, res) {
     if (existingIdx === -1) {
       await sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: `${CONF_TAB}!A:H`,
+        range: `${CONF_TAB}!A:I`,
         valueInputOption: "USER_ENTERED",
         requestBody: {
-          values: [[threadId, mentorName, mentorEmail || "", menteeName || "", menteeSlug, "pending", updatedAt, confNote]],
+          values: [[threadId, mentorName, mentorEmail || "", menteeName || "", menteeSlug, "pending", updatedAt, confNote, ""]],
         },
       });
     } else {
       const sheetRow = existingIdx + 2;
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `${CONF_TAB}!A${sheetRow}:H${sheetRow}`,
+        range: `${CONF_TAB}!A${sheetRow}:I${sheetRow}`,
         valueInputOption: "USER_ENTERED",
-        requestBody: { values: [[threadId, mentorName, mentorEmail || "", menteeName || "", menteeSlug, "pending", updatedAt, confNote]] },
+        requestBody: { values: [[threadId, mentorName, mentorEmail || "", menteeName || "", menteeSlug, "pending", updatedAt, confNote, ""]] },
       });
     }
 
