@@ -12,11 +12,11 @@
 import { getSheetsClient } from "../../../lib/sheets-helper";
 import { MENTEES, MENTEE_EMAILS, MENTOR_EMAILS } from "../../../lib/mentees";
 import { Resend } from "resend";
+import { buildMatchEmailPayload } from "./match-email-data";
+import { renderHTML } from "./match-email-preview";
 
 const CONF_TAB = "Mentor Confirmations";
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://uplift2026.vercel.app";
 
 // ── Fetch confirmed slugs from Mentor Confirmations sheet ──────────────────
 async function fetchConfirmedSlugs(sheets, spreadsheetId) {
@@ -69,15 +69,10 @@ async function fetchOnboardedSlugs(sheets, spreadsheetId) {
   return onboarded;
 }
 
-// ── Render email HTML by calling the preview endpoint ─────────────────────
+// ── Render email HTML directly (no HTTP calls) ────────────────────────────
 async function renderEmail(slug) {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || "https://uplift-app-mocha.vercel.app";
-  const bypassToken = process.env.VERCEL_BYPASS_TOKEN || "Q3svTw6xaP7zryAhKiI5PYKRYw2B3QnW";
-  const res = await fetch(`${base}/api/admin/match-email-preview?slug=${encodeURIComponent(slug)}`, {
-    headers: { "x-vercel-protection-bypass": bypassToken },
-  });
-  if (!res.ok) throw new Error(`Preview render failed for ${slug}: ${res.status}`);
-  return res.text();
+  const data = await buildMatchEmailPayload(slug);
+  return renderHTML(data);
 }
 
 export default async function handler(req, res) {
@@ -166,6 +161,20 @@ export default async function handler(req, res) {
       });
 
       if (error) throw new Error(error.message);
+
+      // Set mentorMatched = true on the Milestone Dashboard
+      try {
+        const base = process.env.NEXT_PUBLIC_BASE_URL || "https://uplift-app-mocha.vercel.app";
+        await fetch(`${base}/api/update-milestone`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-vercel-protection-bypass": process.env.VERCEL_BYPASS_TOKEN || "Q3svTw6xaP7zryAhKiI5PYKRYw2B3QnW",
+          },
+          body: JSON.stringify({ slug: m.slug, milestone: "mentorMatched", value: true }),
+        });
+      } catch (_) { /* non-fatal — email already sent */ }
+
       results.push({ slug: m.slug, status: "sent", id: data.id, mentee: menteeEmail, mentor: mentorEmail });
     } catch (err) {
       results.push({ slug: m.slug, status: "error", reason: err.message });

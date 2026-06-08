@@ -174,6 +174,57 @@ async function fetchSheetReflections(slug, sheets, spreadsheetId) {
   }
 }
 
+// ── Exported builder (used by send-match-emails directly, no HTTP) ────────
+export async function buildMatchEmailPayload(slug) {
+  const menteeRecord = MENTEES.find(m => m.slug === slug);
+  if (!menteeRecord) throw new Error(`No mentee found for slug: ${slug}`);
+
+  const token = process.env.TYPEFORM_TOKEN;
+  const hasSheets =
+    process.env.GOOGLE_SHEET_ID &&
+    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
+    process.env.GOOGLE_PRIVATE_KEY;
+
+  const sheetsClient = hasSheets ? getSheetsClient() : null;
+  const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+
+  const [menteeTypeform, mentorTypeform, sheetReflections, matchReason] = await Promise.all([
+    token
+      ? fetchTypeformProfile(MENTEE_FORM_ID, `${menteeRecord.first} ${menteeRecord.last}`.trim(), MENTEE_EMAILS[slug] || "", token)
+      : Promise.resolve({ bio: "", linkedin: "", availability: "" }),
+    token && menteeRecord.mentor?.name
+      ? fetchTypeformProfile(MENTOR_FORM_ID, menteeRecord.mentor.name, menteeRecord.mentor.email || "", token)
+      : Promise.resolve({ bio: "", linkedin: "", availability: "" }),
+    sheetsClient ? fetchSheetReflections(slug, sheetsClient, spreadsheetId) : Promise.resolve({ primaryGoalRefined: "", secondaryGoalRefined: "", mostImportantContext: "", currentlyStuckOn: "", successFirstMeeting: "" }),
+    sheetsClient ? fetchMatchReason(slug, sheetsClient, spreadsheetId) : Promise.resolve(""),
+  ]);
+
+  const mentorPhoto = await fetchLinkedInPhoto(mentorTypeform.linkedin || menteeRecord.mentor?.linkedin || "");
+
+  return {
+    mentee: {
+      name: `${menteeRecord.first} ${menteeRecord.last}`.trim(),
+      first: menteeRecord.first, last: menteeRecord.last,
+      email: MENTEE_EMAILS[slug] || "",
+      photo: menteeRecord.photo || "",
+      company: menteeRecord.company || "", stage: menteeRecord.stage || "",
+      industry: menteeRecord.industry || "", cohort: menteeRecord.cohort || "",
+      primaryFocus: menteeRecord.primaryFocus || "", secondaryFoci: menteeRecord.secondaryFoci || [],
+      bio: menteeTypeform.bio, linkedin: menteeRecord.linkedin || menteeTypeform.linkedin,
+      availability: menteeTypeform.availability, reflections: sheetReflections,
+    },
+    mentor: {
+      name: menteeRecord.mentor?.name || "", email: menteeRecord.mentor?.email || "",
+      company: menteeRecord.mentor?.company || "", title: menteeRecord.mentor?.title || "",
+      tags: menteeRecord.mentor?.tags || [],
+      bio: mentorTypeform.bio, linkedin: mentorTypeform.linkedin,
+      availability: mentorTypeform.availability, motivation: mentorTypeform.motivation,
+      photo: mentorPhoto,
+    },
+    matchReason, slug,
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
 

@@ -116,7 +116,7 @@ function absoluteUrl(path) {
   return `${BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
-function renderHTML(d) {
+export function renderHTML(d) {
   const { mentee, mentor, matchReason } = d;
   const r = mentee.reflections || {};
 
