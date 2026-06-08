@@ -155,11 +155,11 @@ export default async function handler(req, res) {
       const emailPayload = {
         from: "Uplift by TechUnited:NJ <kennedy@techunited.co>",
         to,
+        cc: cc?.length ? cc : ["uplift@techunited.co"],
         reply_to: ["kennedy@techunited.co", "uplift@techunited.co"],
         subject,
         html,
       };
-      if (cc?.length) emailPayload.cc = cc;
 
       const { data, error } = await resend.emails.send(emailPayload);
 
