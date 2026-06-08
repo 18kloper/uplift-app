@@ -29,9 +29,10 @@ function reflectionRow(label, value) {
 
 function profileCard(role, data, isMentor) {
   const roleColor = isMentor ? "#1a1733" : "#5c4eb5";
+  const hasExtra = data.bio || data.availability;
   const linkedinBtn = data.linkedin
     ? `<a href="${esc(data.linkedin)}" target="_blank" rel="noopener"
-         style="display:inline-flex;align-items:center;gap:5px;background:#f0ecff;color:#5c4eb5;font-size:11.5px;font-weight:600;text-decoration:none;padding:4px 11px;border-radius:100px;margin-bottom:14px;border:1px solid #c4b8f0">
+         style="display:inline-flex;align-items:center;gap:5px;background:#f0ecff;color:#5c4eb5;font-size:11.5px;font-weight:600;text-decoration:none;padding:4px 11px;border-radius:100px;margin-bottom:${hasExtra ? "14px" : "0"};border:1px solid #c4b8f0">
          <svg width="12" height="12" viewBox="0 0 24 24" fill="#5c4eb5"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
          LinkedIn
        </a>`
@@ -46,7 +47,7 @@ function profileCard(role, data, isMentor) {
     : `${esc(data.company)}${data.company && data.stage ? " · " : ""}${esc(data.stage)}`;
 
   return `
-  <td valign="top" style="border:1.5px solid #e8e4f5;border-radius:14px;padding:24px 18px 20px;text-align:center;background:#fafafa;width:46%">
+  <td valign="top" style="border:1.5px solid #e8e4f5;border-radius:14px;padding:24px 18px ${hasExtra ? "20px" : "24px"};text-align:center;background:#fafafa;width:46%">
     <div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;padding:4px 14px;border-radius:100px;white-space:nowrap;background:${roleColor};color:#fff;display:inline-block;margin-bottom:14px">${esc(role)}</div><br/>
     <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 auto 12px">
       <tr><td align="center" valign="middle" style="padding:0">${avatarInner}</td></tr>
