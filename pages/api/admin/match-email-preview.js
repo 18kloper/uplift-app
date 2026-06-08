@@ -127,14 +127,11 @@ export function renderHTML(d) {
 
   // Goals section, only show rows that have data
   const goalsRows = [
-    mentee.primaryFocus || r.primaryGoalRefined
-      ? reflectionRow(
-          "Primary focus",
-          r.primaryGoalRefined
-            ? `${mentee.primaryFocus}${r.primaryGoalRefined !== mentee.primaryFocus ? `, ${r.primaryGoalRefined}` : ""}`
-            : mentee.primaryFocus
-        )
-      : "",
+    r.primaryGoalRefined
+      ? reflectionRow("What they're working toward", r.primaryGoalRefined)
+      : mentee.primaryFocus
+        ? reflectionRow("Primary focus", mentee.primaryFocus)
+        : "",
     mentee.secondaryFoci?.length
       ? `<div style="padding:14px 20px;border-bottom:1px solid #f0ecff">
            <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9b8fcf;margin-bottom:7px">Secondary focus areas</div>
