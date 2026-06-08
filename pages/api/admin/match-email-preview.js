@@ -302,7 +302,7 @@ export function renderHTML(d) {
 
     <!-- Reply nudge -->
     <div style="text-align:center;margin-bottom:8px">
-      <div style="font-size:13px;color:#6b6480">Questions? Reply to this email anytime.</div>
+      <div style="font-size:13px;color:#6b6480">Questions? Contact us at <a href="mailto:uplift@techunited.co" style="color:#5c4eb5;text-decoration:none">uplift@techunited.co</a></div>
     </div>
 
   </div>
