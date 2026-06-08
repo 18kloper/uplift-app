@@ -47,7 +47,7 @@ function profileCard(role, data, isMentor) {
     : `${esc(data.company)}${data.company && data.stage ? " · " : ""}${esc(data.stage)}`;
 
   return `
-  <td valign="top" style="border:1.5px solid #e8e4f5;border-radius:14px;padding:24px 18px ${hasExtra ? "20px" : "24px"};text-align:center;background:#fafafa;width:46%">
+  <td valign="top" style="border:1.5px solid #e8e4f5;border-radius:14px;padding:24px 18px ${hasExtra ? "20px" : "24px"};text-align:center;background:#fafafa;width:100%">
     <div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;padding:4px 14px;border-radius:100px;white-space:nowrap;background:${roleColor};color:#fff;display:inline-block;margin-bottom:14px">${esc(role)}</div><br/>
     <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 auto 12px">
       <tr><td align="center" valign="middle" style="padding:0">${avatarInner}</td></tr>
@@ -194,16 +194,12 @@ export function renderHTML(d) {
       </p>
     </div>
 
-    <!-- Profile cards -->
+    <!-- Profile cards (stacked) -->
     ${sectionLabel("Your match")}
     <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin-bottom:${mentor.motivation ? "16px" : "28px"}">
-      <tr>
-        ${profileCard("Mentor", { name: mentor.name, title: mentor.title, company: mentor.company, bio: mentor.bio, linkedin: mentor.linkedin, availability: mentor.availability, photo: mentor.photo }, true)}
-        <td align="center" valign="middle" style="width:32px;padding:0 6px">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9b8fcf" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </td>
-        ${profileCard("Mentee", { name: mentee.name, company: mentee.company, stage: mentee.stage, bio: mentee.bio, linkedin: mentee.linkedin, availability: mentee.availability, photo: mentee.photo }, false)}
-      </tr>
+      <tr>${profileCard("Mentor", { name: mentor.name, title: mentor.title, company: mentor.company, bio: mentor.bio, linkedin: mentor.linkedin, availability: mentor.availability, photo: mentor.photo }, true)}</tr>
+      <tr><td height="12" style="font-size:0;line-height:0">&nbsp;</td></tr>
+      <tr>${profileCard("Mentee", { name: mentee.name, company: mentee.company, stage: mentee.stage, bio: mentee.bio, linkedin: mentee.linkedin, availability: mentee.availability, photo: mentee.photo }, false)}</tr>
     </table>
 
     <!-- Contact block -->
