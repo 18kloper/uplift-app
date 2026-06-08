@@ -1,7 +1,8 @@
 // GET /api/admin/match-email-preview?slug=xxx[&token=xxx]
 // Returns a fully-rendered HTML match introduction email for a given mentee slug.
-// Pulls live data from match-email-data, renders the template server-side.
 // Auth: ?token=<ADMIN_SECRET>
+
+import { buildMatchEmailPayload } from "./match-email-data";
 
 export const config = { api: { responseLimit: false } };
 
@@ -342,19 +343,7 @@ export default async function handler(req, res) {
   if (!slug) return res.status(400).send("Missing ?slug=");
 
   try {
-    // Fetch assembled data from the data endpoint
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
-    const bypassToken = process.env.VERCEL_BYPASS_TOKEN || "Q3svTw6xaP7zryAhKiI5PYKRYw2B3QnW";
-    const dataRes = await fetch(`${baseUrl}/api/admin/match-email-data?slug=${encodeURIComponent(slug)}${token ? `&token=${encodeURIComponent(token)}` : ""}`, {
-      headers: { "x-vercel-protection-bypass": bypassToken },
-    });
-
-    if (!dataRes.ok) {
-      const err = await dataRes.json();
-      return res.status(dataRes.status).send(`Error: ${err.error}`);
-    }
-
-    let data = await dataRes.json();
+    let data = await buildMatchEmailPayload(slug);
     if (req.query.demo === "1") data = injectDemoData(data);
     const html = renderHTML(data);
 
