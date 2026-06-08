@@ -109,6 +109,16 @@ export default async function handler(req, res) {
   // 4. Final eligible list
   const eligible = candidates.filter(m => onboardedSlugs.has(m.slug));
 
+  const { debug } = req.body || {};
+  if (debug) {
+    return res.status(200).json({
+      confirmedSlugs: [...confirmedSlugs],
+      onboardedSlugs: [...onboardedSlugs],
+      candidateCount: candidates.length,
+      candidates: candidates.map(m => ({ slug: m.slug, confirmed: confirmedSlugs.has(m.slug), onboarded: onboardedSlugs.has(m.slug) })),
+    });
+  }
+
   if (dryRun) {
     return res.status(200).json({
       dryRun: true,
