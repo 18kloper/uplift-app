@@ -84,7 +84,7 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const { dryRun = false, slugs: slugFilter } = req.body || {};
+  const { dryRun = false, slugs: slugFilter, testEmail } = req.body || {};
 
   const spreadsheetId = process.env.GOOGLE_SHEET_ID;
   const hasSheets = spreadsheetId && process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY;
@@ -149,11 +149,16 @@ export default async function handler(req, res) {
     try {
       const html = await renderEmail(m.slug, port);
 
+      const to = testEmail ? [testEmail] : [menteeEmail, mentorEmail];
+      const subject = testEmail
+        ? `[TEST: ${m.slug}] Welcome to Uplift — meet your match`
+        : "Welcome to Uplift — meet your match";
+
       const { data, error } = await resend.emails.send({
         from: "Uplift by TechUnited NJ <kennedy@techunited.co>",
-        to: [menteeEmail, mentorEmail],
+        to,
         reply_to: ["kennedy@techunited.co", "uplift@techunited.co"],
-        subject: "Welcome to Uplift — meet your match",
+        subject,
         html,
       });
 
