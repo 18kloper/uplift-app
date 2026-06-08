@@ -313,7 +313,7 @@ export function renderHTML(d) {
   <div style="background:#1a1733;border-radius:0 0 16px 16px;padding:24px 40px;text-align:center">
     <p style="font-size:12px;color:#6b6480;line-height:1.7">
       You're receiving this because you're part of the Uplift Summer 2026 Mentorship Program.<br/>
-      <a href="#" style="color:#9b8fcf;text-decoration:underline">Unsubscribe</a> · <a href="#" style="color:#9b8fcf;text-decoration:underline">Program FAQ</a>
+      <a href="#" style="color:#9b8fcf;text-decoration:underline">Unsubscribe</a>
     </p>
   </div>
 
