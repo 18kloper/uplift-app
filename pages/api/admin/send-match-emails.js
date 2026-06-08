@@ -70,8 +70,12 @@ async function fetchOnboardedSlugs(sheets, spreadsheetId) {
 }
 
 // ── Render email HTML by calling the preview endpoint ─────────────────────
-async function renderEmail(slug, port) {
-  const res = await fetch(`http://localhost:${port}/api/admin/match-email-preview?slug=${encodeURIComponent(slug)}`);
+async function renderEmail(slug) {
+  const base = process.env.NEXT_PUBLIC_BASE_URL || "https://uplift-app-mocha.vercel.app";
+  const bypassToken = process.env.VERCEL_BYPASS_TOKEN || "Q3svTw6xaP7zryAhKiI5PYKRYw2B3QnW";
+  const res = await fetch(`${base}/api/admin/match-email-preview?slug=${encodeURIComponent(slug)}`, {
+    headers: { "x-vercel-protection-bypass": bypassToken },
+  });
   if (!res.ok) throw new Error(`Preview render failed for ${slug}: ${res.status}`);
   return res.text();
 }
@@ -134,7 +138,6 @@ export default async function handler(req, res) {
   }
 
   // 5. Send emails one by one
-  const port = process.env.PORT || 3000;
   const results = [];
 
   for (const m of eligible) {
@@ -147,7 +150,7 @@ export default async function handler(req, res) {
     }
 
     try {
-      const html = await renderEmail(m.slug, port);
+      const html = await renderEmail(m.slug);
 
       const to = testEmail ? [testEmail] : [menteeEmail, mentorEmail];
       const subject = testEmail
