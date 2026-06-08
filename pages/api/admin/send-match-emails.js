@@ -35,26 +35,37 @@ async function fetchConfirmedSlugs(sheets, spreadsheetId) {
   return confirmed;
 }
 
-// ── Check if mentee has completed onboarding via their sheet tab ───────────
-async function fetchOnboardedSlugs(sheets, spreadsheetId, slugs) {
+// ── Fetch onboarded slugs from the milestone Dashboard tab ────────────────
+async function fetchOnboardedSlugs(sheets, spreadsheetId) {
+  const DASHBOARD_NAMES = ["Dashboard", "Milestone Dashboard", "Master Tracker", "Milestones", "Tracker"];
   const onboarded = new Set();
-  await Promise.all(slugs.map(async (slug) => {
+
+  for (const tabName of DASHBOARD_NAMES) {
     try {
       const res = await sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: `${slug}!A:D`,
+        range: `${tabName}!A1:Z500`,
       });
       const rows = res.data.values || [];
-      const hasOnboarding = rows.some(r => {
-        const fieldKey = (r[1] || "").toLowerCase();
-        const value = (r[3] || "").trim();
-        return (fieldKey.includes("onboard") || fieldKey === "onboarding_block") && value && value !== "false";
-      });
-      if (hasOnboarding) onboarded.add(slug);
+      if (rows.length < 2) continue;
+
+      const headers = rows[0].map(h => (h || "").toLowerCase());
+      const slugIdx = headers.findIndex(h => h.includes("slug"));
+      const onboardIdx = headers.findIndex(h => h.includes("onboard"));
+      if (slugIdx === -1 || onboardIdx === -1) continue;
+
+      for (let i = 1; i < rows.length; i++) {
+        const slug = rows[i][slugIdx]?.trim();
+        const val = rows[i][onboardIdx];
+        if (slug && (val === "TRUE" || val === true || val === "1")) {
+          onboarded.add(slug);
+        }
+      }
+      break; // found and parsed a valid tab
     } catch {
-      // tab doesn't exist or error — skip
+      continue;
     }
-  }));
+  }
   return onboarded;
 }
 
@@ -92,8 +103,8 @@ export default async function handler(req, res) {
     return true;
   });
 
-  // 3. Check onboarding milestone for each candidate
-  const onboardedSlugs = await fetchOnboardedSlugs(sheets, spreadsheetId, candidates.map(m => m.slug));
+  // 3. Check onboarding milestone from Dashboard tab
+  const onboardedSlugs = await fetchOnboardedSlugs(sheets, spreadsheetId);
 
   // 4. Final eligible list
   const eligible = candidates.filter(m => onboardedSlugs.has(m.slug));
