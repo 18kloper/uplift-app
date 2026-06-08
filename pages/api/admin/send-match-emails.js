@@ -153,7 +153,7 @@ export default async function handler(req, res) {
         : "Welcome to Uplift — meet your match";
 
       const emailPayload = {
-        from: "Uplift by TechUnited NJ <kennedy@techunited.co>",
+        from: "Uplift by TechUnited:NJ <kennedy@techunited.co>",
         to,
         reply_to: ["kennedy@techunited.co", "uplift@techunited.co"],
         subject,
