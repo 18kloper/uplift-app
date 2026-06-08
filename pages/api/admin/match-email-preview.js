@@ -40,7 +40,9 @@ function profileCard(role, data, isMentor) {
 
   const avatarInner = data.photo
     ? `<img src="${esc(data.photo)}" alt="${esc(data.name)}" width="72" height="72" style="width:72px;height:72px;border-radius:36px;display:block;object-fit:cover;border:2px solid #d4d0e8">`
-    : `<img src="https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&size=72&background=e8e4f5&color=5c4eb5&bold=true&rounded=true" alt="${esc(data.name)}" width="72" height="72" style="width:72px;height:72px;border-radius:36px;display:block;border:2px solid #d4d0e8">`;
+    : isMentor
+      ? `<div style="width:72px;height:72px;border-radius:36px;background:#1a1733;display:inline-block;text-align:center;line-height:72px;font-size:34px;border:2px solid #d4d0e8">🧑‍💼</div>`
+      : `<img src="https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&size=72&background=e8e4f5&color=5c4eb5&bold=true&rounded=true" alt="${esc(data.name)}" width="72" height="72" style="width:72px;height:72px;border-radius:36px;display:block;border:2px solid #d4d0e8">`;
 
   const subtitle = isMentor
     ? `${esc(data.title)}${data.title && data.company ? " · " : ""}${esc(data.company)}`
