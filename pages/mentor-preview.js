@@ -966,6 +966,8 @@ function SupportTicket() {
   const TOPICS = ["My mentee hasn't responded","I need to reschedule","I have concerns about the match","Technical issue","Question about the program","Other"];
   const [topic, setTopic]     = useState(null);
   const [message, setMessage] = useState("");
+  const [name, setName]       = useState("");
+  const [email, setEmail]     = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   if (submitted) return (
@@ -996,6 +998,14 @@ function SupportTicket() {
         </div>
       </div>
       <div style={{ padding: "16px 18px", borderBottom: `1px solid ${BORDER}` }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="Your name"
+            style={{ padding: "9px 12px", borderRadius: 9, border: `1.5px solid ${BORDER}`,
+              background: SOFT, color: TEXT, fontFamily: "inherit", fontSize: 13, outline: "none" }} />
+          <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Your email"
+            style={{ padding: "9px 12px", borderRadius: 9, border: `1.5px solid ${BORDER}`,
+              background: SOFT, color: TEXT, fontFamily: "inherit", fontSize: 13, outline: "none" }} />
+        </div>
         <p style={{ margin: "0 0 9px", fontWeight: 600, fontSize: 13.5, color: TEXT }}>
           Tell us more <span style={{ fontWeight: 400, color: MUTED }}>(optional)</span>
         </p>
@@ -1021,7 +1031,7 @@ function SupportTicket() {
             await fetch("/api/support-ticket", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ topic, message }),
+              body: JSON.stringify({ topic, message, name, email }),
             });
           } catch (_) {}
           setSubmitted(true);
