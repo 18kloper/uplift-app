@@ -975,7 +975,7 @@ function SupportTicket() {
         display: "flex", alignItems: "center", justifyContent: "center",
         fontSize: 20, margin: "0 auto 12px" }}>✓</div>
       <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 16, color: TEXT }}>Ticket submitted</p>
-      <p style={{ margin: 0, fontSize: 13, color: MUTED, lineHeight: 1.7 }}>We'll follow up at your email within 1 business day.</p>
+      <p style={{ margin: 0, fontSize: 13, color: MUTED, lineHeight: 1.7 }}>Your message has been sent to the Uplift team.</p>
     </div>
   );
 
@@ -1015,7 +1015,17 @@ function SupportTicket() {
             <p style={{ margin: 0, fontSize: 11, color: MUTED }}>Responds within 1 business day</p>
           </div>
         </div>
-        <GradButton onClick={() => topic && setSubmitted(true)} disabled={!topic}>Send →</GradButton>
+        <GradButton onClick={async () => {
+          if (!topic) return;
+          try {
+            await fetch("/api/support-ticket", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ topic, message }),
+            });
+          } catch (_) {}
+          setSubmitted(true);
+        }} disabled={!topic}>Send →</GradButton>
       </div>
     </div>
   );
