@@ -69,15 +69,13 @@ export default function ProgramSchedule() {
           ],
         },
         {
-          week: "Post-Program",
+          week: "Week 10",
           dates: "August TBD",
-          title: "Uplift Summit",
+          title: "Post-Program Pulse Check",
           done: false,
           active: false,
           items: [
-            "Uplift Summit — end-of-program celebration and founder demo day",
-            "Mentor certificates distributed",
-            "Attend as available — details coming soon",
+            "Optional post-program reflection — sent after the program wraps up",
           ],
         },
       ]}
