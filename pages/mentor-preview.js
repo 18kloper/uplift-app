@@ -1267,27 +1267,6 @@ export default function MentorPreview() {
             ]}
           />
 
-          {/* End of Program Report — Week 8, required */}
-          <div style={{ background: SOFT, border: `1px solid ${BORDER}`, borderRadius: 13, padding: "13px 18px", marginBottom: 10, opacity: 0.65 }}>
-            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <div style={{ width: 34, height: 34, borderRadius: 17, background: CARD, flexShrink: 0,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontWeight: 800, fontSize: 13, color: MUTED, border: `1px solid ${BORDER}` }}>8</div>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  <span style={{ fontWeight: 700, fontSize: 14, color: "#555" }}>End of Program Report</span>
-                  <Tip text="Opens in Week 8 — required for all mentors.\nA short reflection on your mentorship: what you covered, how your mentee progressed, and any notes for the team.">
-                    <span style={{ fontSize: 10.5, fontWeight: 700, color: MUTED2, background: CARD,
-                      borderRadius: 100, padding: "2px 10px", border: `1px solid ${BORDER}`, cursor: "default" }}>🔒 Week 8</span>
-                  </Tip>
-                  <span style={{ fontSize: 10.5, fontWeight: 700, color: "#c0392b", background: "#fff0ef",
-                    borderRadius: 100, padding: "2px 8px", border: "1px solid #f5c6c4" }}>Required</span>
-                </div>
-                <p style={{ margin: "2px 0 0", fontSize: 12, color: MUTED }}>Mentor sign-off form — opens at the start of Week 8</p>
-              </div>
-            </div>
-          </div>
-
           {/* Post-Program Pulse Check — Week 9, optional */}
           <div style={{ background: SOFT, border: `1px solid ${BORDER}`, borderRadius: 13, padding: "13px 18px", opacity: 0.6 }}>
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -1307,6 +1286,40 @@ export default function MentorPreview() {
             </div>
           </div>
         </Section>
+
+        {/* ── End of Program ── */}
+        <div id="eop" style={{ background: "#faf5ff", border: "1px solid #ddd6fe",
+          borderRadius: 16, padding: "26px 28px", marginBottom: 12 }}>
+          <Label>End of Program</Label>
+          <div style={{ background: "#ede9fd", border: "1px solid #c4b5fd",
+            borderRadius: 12, padding: "15px 17px", marginBottom: 14 }}>
+            <p style={{ margin: "0 0 3px", fontWeight: 700, fontSize: 14, color: "#5B2D8E" }}>🔒 Sign-off opens Week 8</p>
+            <p style={{ margin: 0, fontSize: 13, color: "#666", lineHeight: 1.65 }}>
+              Once all sessions are logged, the review and sign-off form unlock. Share a reflection on your mentee's growth and receive your official Uplift Mentor certificate.
+            </p>
+          </div>
+          {[
+            { icon: "📜", l: "Sign-Off Report", required: true, d: "Confirms participation · generates your certificate", tip: "REQUIRED. Your official sign-off confirms program completion and triggers your Uplift Mentor certificate." },
+          ].map(({ icon, l, d, tip, required }) => (
+            <Tip key={l} text={tip}>
+              <div style={{ display: "flex", gap: 12, alignItems: "center", cursor: "default",
+                padding: "12px 14px", borderRadius: 11, background: CARD,
+                border: `1px solid ${required ? "#fca5a5" : BORDER}`, marginBottom: 7, opacity: 0.55 }}>
+                <span style={{ fontSize: 18 }}>{icon}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 1 }}>
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: 13.5, color: TEXT }}>{l}</p>
+                    {required && <span style={{ fontSize: 9.5, fontWeight: 800, color: "#ef4444",
+                      background: "#fef2f2", borderRadius: 100, padding: "1px 7px",
+                      border: "1px solid #fca5a5", textTransform: "uppercase", letterSpacing: "0.5px" }}>Required</span>}
+                  </div>
+                  <p style={{ margin: 0, fontSize: 12, color: MUTED }}>{d}</p>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: MUTED2 }}>Locked</span>
+              </div>
+            </Tip>
+          ))}
+        </div>
 
         {/* ── Guide ── */}
         <Section id="guide">
@@ -1371,40 +1384,6 @@ export default function MentorPreview() {
             { q: "What if I have additional questions?", a: "Email uplift@techunited.co — we're here to help and respond within 1 business day." },
           ]} />
         </Section>
-
-        {/* ── End of Program ── */}
-        <div id="eop" style={{ background: "#faf5ff", border: "1px solid #ddd6fe",
-          borderRadius: 16, padding: "26px 28px", marginBottom: 12 }}>
-          <Label>End of Program</Label>
-          <div style={{ background: "#ede9fd", border: "1px solid #c4b5fd",
-            borderRadius: 12, padding: "15px 17px", marginBottom: 14 }}>
-            <p style={{ margin: "0 0 3px", fontWeight: 700, fontSize: 14, color: "#5B2D8E" }}>🔒 Sign-off opens Week 8</p>
-            <p style={{ margin: 0, fontSize: 13, color: "#666", lineHeight: 1.65 }}>
-              Once all sessions are logged, the review and sign-off form unlock. Share a reflection on your mentee's growth and receive your official Uplift Mentor certificate.
-            </p>
-          </div>
-          {[
-            { icon: "📜", l: "Sign-Off Report", required: true, d: "Confirms participation · generates your certificate", tip: "REQUIRED. Your official sign-off confirms program completion and triggers your Uplift Mentor certificate." },
-          ].map(({ icon, l, d, tip, required }) => (
-            <Tip key={l} text={tip}>
-              <div style={{ display: "flex", gap: 12, alignItems: "center", cursor: "default",
-                padding: "12px 14px", borderRadius: 11, background: CARD,
-                border: `1px solid ${required ? "#fca5a5" : BORDER}`, marginBottom: 7, opacity: 0.55 }}>
-                <span style={{ fontSize: 18 }}>{icon}</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 1 }}>
-                    <p style={{ margin: 0, fontWeight: 700, fontSize: 13.5, color: TEXT }}>{l}</p>
-                    {required && <span style={{ fontSize: 9.5, fontWeight: 800, color: "#ef4444",
-                      background: "#fef2f2", borderRadius: 100, padding: "1px 7px",
-                      border: "1px solid #fca5a5", textTransform: "uppercase", letterSpacing: "0.5px" }}>Required</span>}
-                  </div>
-                  <p style={{ margin: 0, fontSize: 12, color: MUTED }}>{d}</p>
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 700, color: MUTED2 }}>Locked</span>
-              </div>
-            </Tip>
-          ))}
-        </div>
 
         {/* ── Support ── */}
         <Section id="support">
