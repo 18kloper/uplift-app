@@ -1403,7 +1403,7 @@ export default function MentorPreview() {
         <Section id="support">
           <Label>Contact Support</Label>
           <p style={{ margin: "0 0 14px", fontSize: 13.5, color: MUTED, lineHeight: 1.65 }}>
-            Need help? Fill out the form below — we'll get back to you within 1 business day.
+            Need help? Fill out the form below and we'll get back to you.
           </p>
           <SupportTicket />
         </Section>
