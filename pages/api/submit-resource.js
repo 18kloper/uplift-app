@@ -1,8 +1,50 @@
 // POST /api/submit-resource
 // Appends a mentor-submitted resource to the "Resource Submissions" tab in Google Sheets.
-// Row format: Timestamp | Status | Type | Title | URL | Note | MentorSlug
+// Auto-creates the tab + headers if they don't exist.
 
 import { getSheetsClient } from "../../lib/sheets-helper";
+
+const TAB = "Resource Submissions";
+const HEADERS = ["Timestamp", "Status", "Type", "Title", "URL", "Note", "Mentor"];
+
+async function ensureTab(sheets, spreadsheetId) {
+  // Check if tab exists
+  const meta = await sheets.spreadsheets.get({ spreadsheetId });
+  const exists = (meta.data.sheets || []).some(
+    s => s.properties.title === TAB
+  );
+
+  if (!exists) {
+    // Create the tab
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [{ addSheet: { properties: { title: TAB } } }],
+      },
+    });
+    // Write headers
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `${TAB}!A1:G1`,
+      valueInputOption: "RAW",
+      requestBody: { values: [HEADERS] },
+    });
+  } else {
+    // Tab exists — make sure headers are there
+    const check = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `${TAB}!A1:G1`,
+    });
+    if (!check.data.values || check.data.values.length === 0) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `${TAB}!A1:G1`,
+        valueInputOption: "RAW",
+        requestBody: { values: [HEADERS] },
+      });
+    }
+  }
+}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
@@ -12,34 +54,13 @@ export default async function handler(req, res) {
 
   const spreadsheetId = process.env.GOOGLE_SHEET_ID;
   if (!spreadsheetId || !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
-    // No sheets config — still return success so the UI works in dev
     console.log("No Google Sheets config — resource not saved:", { type, title, url, note });
     return res.status(200).json({ ok: true, saved: false });
   }
 
   try {
     const sheets = getSheetsClient();
-    const TAB = "Resource Submissions";
-
-    // Ensure header row exists
-    try {
-      const check = await sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range: `${TAB}!A1:G1`,
-      });
-      if (!check.data.values || check.data.values.length === 0) {
-        await sheets.spreadsheets.values.update({
-          spreadsheetId,
-          range: `${TAB}!A1:G1`,
-          valueInputOption: "RAW",
-          requestBody: {
-            values: [["Timestamp", "Status", "Type", "Title", "URL", "Note", "Mentor"]],
-          },
-        });
-      }
-    } catch (_) {
-      // Tab may not exist yet — append will create rows but not the tab itself
-    }
+    await ensureTab(sheets, spreadsheetId);
 
     await sheets.spreadsheets.values.append({
       spreadsheetId,
