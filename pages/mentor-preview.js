@@ -429,7 +429,7 @@ const COHORT = {
     { emoji: "⏱️", stat: "3.76",     label: "hrs of mentoring/mentor",      tip: "3.76 hrs was the average from our last program. Can you beat it?", rainbow: false },
     { emoji: "🗓️", stat: "286",      label: "total mentor hours this summer", tip: "Every mentor is required to complete 3 sessions — 76 founders × 3.76 hrs avg = 286 hours of mentorship this summer.", rainbow: false },
     { emoji: "⭐", stat: "5",        label: "returning mentors",             tip: "5 mentors are back from a previous Uplift cohort — returning because they believed in the program enough to do it again.", rainbow: false },
-    { emoji: "🌱", stat: "2x",       label: "survival rate with a mentor",  tip: "Mentored businesses are 2x more likely to survive past 5 years compared to those without a mentor.\n\nYour time this summer matters more than you think.", rainbow: false },
+    { emoji: "🛡️", stat: "2x",       label: "survival rate with a mentor",  tip: "Mentored businesses are 2x more likely to survive past 5 years compared to those without a mentor.\n\nYour time this summer matters more than you think.", rainbow: false },
     { emoji: "💰", stat: "7x",       label: "more funding with a mentor",   tip: "Mentored founders raise 7x more funding on average than founders who go it alone.", rainbow: false },
   ],
   patterns: [
