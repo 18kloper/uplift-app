@@ -1355,8 +1355,6 @@ export default function MentorPreview() {
             <p style={{ margin: "0 0 12px", fontWeight: 700, fontSize: 14, color: TEXT }}>Mentor Responsibilities</p>
             <Check>Provide a <strong>minimum of 3 mentorship sessions</strong> (60 min each) with your assigned mentee(s)</Check>
             <Check>Attend the <strong>midpoint meetup</strong> — a program milestone event at the halfway point</Check>
-            <Check>Keep all mentee conversations <strong>confidential</strong></Check>
-            <Check>Focus on their stated goals — specific guidance, not generic advice</Check>
             <Check>Attend the <strong>Uplift Summit</strong> — our end-of-program celebration (August 4)</Check>
             <Check>Complete the <strong>End of Program Report</strong> — required to receive your mentor certificate</Check>
             <p style={{ margin: "10px 0 0", fontSize: 12, color: MUTED, fontStyle: "italic", lineHeight: 1.6 }}>
