@@ -648,12 +648,14 @@ function BubbleMap({ avgAge = 36 }) {
           <button onClick={() => setOpen(o => !o)}
             style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none",
               cursor: "pointer", padding: "6px 0", marginBottom: open ? 10 : 0 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#9B59B6", letterSpacing: "0.3px" }}>
-              {open ? "▾" : "▸"} Cohort Insights
+            <span style={{
+              fontSize: 12.5, fontWeight: 800, letterSpacing: "0.2px",
+              background: "linear-gradient(90deg,#5B8DEF,#9B59B6,#E91E8C,#f59e0b,#10b981)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
+            }}>
+              {open ? "▾" : "▸"} See more program insights
             </span>
-            <span style={{ fontSize: 11, color: MUTED, fontStyle: "italic" }}>
-              {open ? "— hover tiles for details" : "— 20 stats about your cohort"}
-            </span>
+            {open && <span style={{ fontSize: 11, color: MUTED, fontStyle: "italic" }}>— hover tiles for details</span>}
           </button>
           {open && <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gridAutoRows: "110px", gap: 8 }}>
             {COHORT.funFacts.map(f => {
@@ -1075,7 +1077,6 @@ function Section({ id, children }) {
 const SECTIONS = [
   { id: "mentees",  label: "Mentees" },
   { id: "summary",  label: "Summary" },
-  { id: "checkins", label: "Check-Ins" },
   { id: "guide",    label: "Guide" },
   { id: "eop",      label: "End of Program" },
   { id: "support",  label: "Support" },
@@ -1324,51 +1325,60 @@ export default function MentorPreview() {
             </p>
           </div>
 
-          <Label>Program Timeline</Label>
-          <div style={{ position: "relative", paddingLeft: 26 }}>
-            <div style={{ position: "absolute", left: 7, top: 8, bottom: 8, width: 2,
-              background: "linear-gradient(180deg,#5B8DEF,#E91E8C)", borderRadius: 1 }} />
-            {[
-              { wk: "Week 1–2",  title: "Onboarding, Matching & Session 1", active: true, note: "Introductions, align on goals, complete Session 1", tip: "📍 You are here\nThis is the onboarding and matching phase. Mentees completed their intake forms, got matched, and are scheduling their first 60-min session with you now.\n\nIf you haven't had your first session yet — this is the week to make it happen." },
-              { wk: "Week 3",    title: "Makeup Week + Touchpoint",         note: "Catch up on Session 1 if needed · quick check-in",     tip: "Buffer week for any pairs who haven't completed Session 1 yet.\n\nTechUnited will do a quick touchpoint to make sure everyone is connected and on track. No action required unless you haven't had your first session." },
-              { wk: "Week 4",    title: "Midpoint Meetup",                   note: "In-person event · all mentors + mentees · June 23", register: "https://luma.com/zfr1e2gt", tip: "Uplift Midpoint Meetup — an in-person gathering for all mentor-mentee pairs.\n\nJune 23 · Attendance required. If you can't make it, email uplift@techunited.co as soon as possible." },
-              { wk: "Week 5",    title: "Session 2",                         note: "Deep-dive on core challenge",                          tip: "Your second 60-min session with your mentee. By now you know each other — go deep on their biggest blocker. GTM, fundraising narrative, product decisions. Push past surface-level and challenge the underlying assumptions." },
-              { wk: "Week 6",    title: "Makeup Week",                       note: "Buffer week · catch up if needed",                     tip: "Makeup week if Session 2 hasn't happened yet. Also a good time for a quick async check-in — a message asking how things are going goes a long way." },
-              { wk: "Week 7",    title: "Session 3",                         note: "Final session · focus on what's next",                 tip: "Your third and final required session. Shift focus to what happens after the program — specific next steps, intros you can make, and momentum they can carry forward.\n\nSpecific > general. 'Email this person by Friday' > 'you should network more.'" },
-              { wk: "Week 8",    title: "End of Program Sign-Off",           note: "Mentor reflection + sign-off form · required",         tip: "Sign-off form unlocks and is REQUIRED to receive your certificate.\n\nComplete your mentor reflection, fill out the Mentee Momentum Check, and confirm all sessions are logged and approved before August 4." },
-              { wk: "Week 9",    title: "Uplift Summit",                     note: "End-of-program celebration · founder showcase · Aug 4", register: "https://luma.com/c8we4c2b", tip: "The Uplift Summit — TechUnited's end-of-summer founder showcase and celebration.\n\nAugust 4 · Attendance required. Mentor certificates distributed here." },
-              { wk: "Week 10", title: "Post-Program Pulse Check", note: "Optional · sent after the program wraps up", tip: "A short optional reflection on your experience as a mentor this summer. Sent after the Uplift Summit." },
-            ].map(({ wk, title, done, active, note, tip, register }) => (
-              <div key={wk} style={{ position: "relative", paddingBottom: 14 }}>
-                <Tip text={tip} width={380}>
-                  <div style={{ position: "absolute", left: -22, top: 3, width: 16, height: 16, borderRadius: 8,
-                    background: done || active ? G135 : CARD, border: done || active ? "none" : `2px solid ${BORDER}`,
-                    display: "flex", alignItems: "center", justifyContent: "center", cursor: "default" }}>
-                    {done && <svg width="8" height="8" viewBox="0 0 12 12" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2 6 5 9 10 3"/></svg>}
-                    {active && <div style={{ width: 5, height: 5, borderRadius: 3, background: "#fff" }} />}
+          {(() => { const [tlOpen, setTlOpen] = useState(false); return (
+            <div style={{ margin: "0 0 8px" }}>
+              <button onClick={() => setTlOpen(o => !o)}
+                style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none",
+                  cursor: "pointer", padding: "4px 0", marginBottom: tlOpen ? 14 : 0 }}>
+                <Label style={{ margin: 0 }}>Program Timeline</Label>
+                <span style={{ fontSize: 13, color: MUTED, marginLeft: 4 }}>{tlOpen ? "▾" : "▸"}</span>
+              </button>
+              {tlOpen && <div style={{ position: "relative", paddingLeft: 26 }}>
+                <div style={{ position: "absolute", left: 7, top: 8, bottom: 8, width: 2,
+                  background: "linear-gradient(180deg,#5B8DEF,#E91E8C)", borderRadius: 1 }} />
+                {[
+                  { wk: "Week 1–2",  title: "Onboarding, Matching & Session 1", active: true, note: "Introductions, align on goals, complete Session 1", tip: "📍 You are here\nThis is the onboarding and matching phase. Mentees completed their intake forms, got matched, and are scheduling their first 60-min session with you now.\n\nIf you haven't had your first session yet — this is the week to make it happen." },
+                  { wk: "Week 3",    title: "Makeup Week + Touchpoint",         note: "Catch up on Session 1 if needed · quick check-in",     tip: "Buffer week for any pairs who haven't completed Session 1 yet.\n\nTechUnited will do a quick touchpoint to make sure everyone is connected and on track. No action required unless you haven't had your first session." },
+                  { wk: "Week 4",    title: "Midpoint Meetup",                   note: "In-person event · all mentors + mentees · June 23", register: "https://luma.com/zfr1e2gt", tip: "Uplift Midpoint Meetup — an in-person gathering for all mentor-mentee pairs.\n\nJune 23 · Attendance required. If you can't make it, email uplift@techunited.co as soon as possible." },
+                  { wk: "Week 5",    title: "Session 2",                         note: "Deep-dive on core challenge",                          tip: "Your second 60-min session with your mentee. By now you know each other — go deep on their biggest blocker. GTM, fundraising narrative, product decisions. Push past surface-level and challenge the underlying assumptions." },
+                  { wk: "Week 6",    title: "Makeup Week",                       note: "Buffer week · catch up if needed",                     tip: "Makeup week if Session 2 hasn't happened yet. Also a good time for a quick async check-in — a message asking how things are going goes a long way." },
+                  { wk: "Week 7",    title: "Session 3",                         note: "Final session · focus on what's next",                 tip: "Your third and final required session. Shift focus to what happens after the program — specific next steps, intros you can make, and momentum they can carry forward.\n\nSpecific > general. 'Email this person by Friday' > 'you should network more.'" },
+                  { wk: "Week 8",    title: "End of Program Sign-Off",           note: "Mentor reflection + sign-off form · required",         tip: "Sign-off form unlocks and is REQUIRED to receive your certificate.\n\nComplete your mentor reflection, fill out the Mentee Momentum Check, and confirm all sessions are logged and approved before August 4." },
+                  { wk: "Week 9",    title: "Uplift Summit",                     note: "End-of-program celebration · founder showcase · Aug 4", register: "https://luma.com/c8we4c2b", tip: "The Uplift Summit — TechUnited's end-of-summer founder showcase and celebration.\n\nAugust 4 · Attendance required. Mentor certificates distributed here." },
+                  { wk: "Week 10", title: "Post-Program Pulse Check", note: "Optional · sent after the program wraps up", tip: "A short optional reflection on your experience as a mentor this summer. Sent after the Uplift Summit." },
+                ].map(({ wk, title, done, active, note, tip, register }) => (
+                  <div key={wk} style={{ position: "relative", paddingBottom: 14 }}>
+                    <Tip text={tip} width={380}>
+                      <div style={{ position: "absolute", left: -22, top: 3, width: 16, height: 16, borderRadius: 8,
+                        background: done || active ? G135 : CARD, border: done || active ? "none" : `2px solid ${BORDER}`,
+                        display: "flex", alignItems: "center", justifyContent: "center", cursor: "default" }}>
+                        {done && <svg width="8" height="8" viewBox="0 0 12 12" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2 6 5 9 10 3"/></svg>}
+                        {active && <div style={{ width: 5, height: 5, borderRadius: 3, background: "#fff" }} />}
+                      </div>
+                    </Tip>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: active ? "#9B59B6" : MUTED2,
+                        textTransform: "uppercase", letterSpacing: "0.6px" }}>{wk}</span>
+                      <span style={{ fontSize: 14, fontWeight: active ? 700 : 600,
+                        color: done ? MUTED2 : active ? TEXT : "#444" }}>{title}</span>
+                      {active && <span style={{ fontSize: 10, fontWeight: 700,
+                        background: G, color: "#fff", borderRadius: 100, padding: "2px 9px" }}>Now</span>}
+                      {register && (
+                        <a href={register} target="_blank" rel="noreferrer"
+                          style={{ fontSize: 10.5, fontWeight: 700, color: "#fff",
+                            background: "linear-gradient(90deg,#5B8DEF,#9B59B6)",
+                            borderRadius: 100, padding: "2px 10px", textDecoration: "none",
+                            letterSpacing: "0.2px" }}>
+                          Register →
+                        </a>
+                      )}
+                    </div>
+                    <p style={{ margin: "2px 0 0", fontSize: 12, color: MUTED }}>{note}</p>
                   </div>
-                </Tip>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: active ? "#9B59B6" : MUTED2,
-                    textTransform: "uppercase", letterSpacing: "0.6px" }}>{wk}</span>
-                  <span style={{ fontSize: 14, fontWeight: active ? 700 : 600,
-                    color: done ? MUTED2 : active ? TEXT : "#444" }}>{title}</span>
-                  {active && <span style={{ fontSize: 10, fontWeight: 700,
-                    background: G, color: "#fff", borderRadius: 100, padding: "2px 9px" }}>Now</span>}
-                  {register && (
-                    <a href={register} target="_blank" rel="noreferrer"
-                      style={{ fontSize: 10.5, fontWeight: 700, color: "#fff",
-                        background: "linear-gradient(90deg,#5B8DEF,#9B59B6)",
-                        borderRadius: 100, padding: "2px 10px", textDecoration: "none",
-                        letterSpacing: "0.2px" }}>
-                      Register →
-                    </a>
-                  )}
-                </div>
-                <p style={{ margin: "2px 0 0", fontSize: 12, color: MUTED }}>{note}</p>
-              </div>
-            ))}
-          </div>
+                ))}
+              </div>}
+            </div>
+          ); })()}
 
           {/* Cohort map embedded in Summary */}
           <div style={{ marginTop: 24 }}>
@@ -1385,41 +1395,6 @@ export default function MentorPreview() {
           </div>
         </Section>
 
-        {/* ── Check-Ins ── */}
-        <Section id="checkins">
-          <Label>Touchbases & Check-Ins</Label>
-          <p style={{ margin: "0 0 16px", fontSize: 13.5, color: MUTED, lineHeight: 1.65 }}>
-            Quick optional pulse checks — no meetings, no calls. A few questions so we can support you and flag anything that needs attention.
-          </p>
-
-          <PulseCheck num="1" title="Mid-Program Pulse Check"
-            status="locked" unlockDate="Week 3" dueDate="end of Week 3"
-            questions={[
-              { id: "q1", label: "How is the mentorship going so far?", type: "scale", low: "Struggling", high: "Going great" },
-              { id: "q2", label: "Have you had at least one session with your mentee?", type: "yesno" },
-              { id: "q3", label: "Anything blocking you or your mentee we should know about?", type: "text", placeholder: "Optional..." },
-            ]}
-          />
-
-          {/* Post-Program Pulse Check — Week 9, optional */}
-          <div style={{ background: SOFT, border: `1px solid ${BORDER}`, borderRadius: 13, padding: "13px 18px", opacity: 0.6 }}>
-            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <div style={{ width: 34, height: 34, borderRadius: 17, background: CARD, flexShrink: 0,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontWeight: 800, fontSize: 13, color: MUTED, border: `1px solid ${BORDER}` }}>✦</div>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontWeight: 700, fontSize: 14, color: "#555" }}>Post-Program Pulse Check</span>
-                  <Tip text="Sent to you after the Uplift Summit (Week 10).\nA quick optional reflection on your experience as a mentor this summer.">
-                    <span style={{ fontSize: 10.5, fontWeight: 700, color: MUTED2, background: CARD,
-                      borderRadius: 100, padding: "2px 10px", border: `1px solid ${BORDER}`, cursor: "default" }}>🔒 Week 10</span>
-                  </Tip>
-                </div>
-                <p style={{ margin: "2px 0 0", fontSize: 12, color: MUTED }}>Optional · sent after the program wraps up</p>
-              </div>
-            </div>
-          </div>
-        </Section>
 
         {/* ── End of Program ── */}
         <div id="eop" style={{ background: "#faf5ff", border: "1px solid #ddd6fe",
@@ -1527,11 +1502,13 @@ export default function MentorPreview() {
 
         {/* ── Support ── */}
         <Section id="support">
-          <Label>Contact Support</Label>
-          <p style={{ margin: "0 0 14px", fontSize: 13.5, color: MUTED, lineHeight: 1.65 }}>
-            Need help? Fill out the form below and we'll get back to you.
+          <Label>Support</Label>
+          <p style={{ margin: 0, fontSize: 15, color: MUTED, lineHeight: 1.7 }}>
+            Need support?{" "}
+            <a href="mailto:uplift@techunited.co" style={{ color: "#9B59B6", fontWeight: 600, textDecoration: "none" }}>
+              uplift@techunited.co
+            </a>
           </p>
-          <SupportTicket mentorName="Preview User" mentorEmail="" />
         </Section>
 
 
