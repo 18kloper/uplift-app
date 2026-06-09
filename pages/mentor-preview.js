@@ -541,21 +541,41 @@ function BubbleMap({ avgAge = 36 }) {
           const sessionCount = 1 + Math.floor(daysSinceStart / 4);
           const stat = f.stat === "COUNTDOWN" ? String(daysLeft) : f.stat === "SESSIONS" ? String(sessionCount) : f.stat === "AVG_AGE" ? String(avgAge || 36) : f.stat;
           const isCountdown = f.stat === "COUNTDOWN";
+          const totalDays = Math.ceil((new Date("2026-08-04") - new Date("2026-06-01")) / (1000 * 60 * 60 * 24));
+          const pctLeft = isCountdown ? Math.max(0, Math.min(1, daysLeft / totalDays)) : 0;
+
+          if (isCountdown) return (
+            <Tip key={f.label} text={f.tip} width={f.tipWidth || 300}>
+              <div style={{ flex: "1 1 90px", border: `1px solid ${BORDER}`,
+                borderRadius: 14, padding: "13px 14px", textAlign: "center", cursor: "default",
+                background: "linear-gradient(135deg,#fff5fb,#f5f0ff,#f0f5ff)" }}>
+                <div style={{ fontSize: 18, marginBottom: 4 }}>⏳</div>
+                <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1.1,
+                  background: "linear-gradient(90deg,#5B8DEF,#9B59B6,#E91E8C)",
+                  WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{daysLeft}</div>
+                <div style={{ fontSize: 10.5, color: "#9B59B6", marginTop: 2, fontWeight: 700, marginBottom: 7 }}>{f.label}</div>
+                {/* Progress bar */}
+                <div style={{ height: 5, borderRadius: 100, background: "#e8e2f8", overflow: "hidden" }}>
+                  <div style={{ height: "100%", borderRadius: 100, width: `${pctLeft * 100}%`,
+                    background: "linear-gradient(90deg,#5B8DEF,#9B59B6,#E91E8C)",
+                    transition: "width 0.4s ease" }} />
+                </div>
+              </div>
+            </Tip>
+          );
+
           return (
             <Tip key={f.label} text={f.tip} width={f.tipWidth || 300}>
               <div style={{ flex: "1 1 90px", border: `1px solid ${BORDER}`,
                 borderRadius: 14, padding: "13px 14px", textAlign: "center", cursor: "default",
-                background: f.rainbow || isCountdown ? "linear-gradient(135deg,#fff5fb,#f5f0ff,#f0f5ff)" : CARD,
-                outline: isCountdown ? "2px solid #e0d9f533" : "none" }}>
-                <div style={{ fontSize: 18, marginBottom: 3 }}>{isCountdown ? "⏳" : f.emoji}</div>
+                background: f.rainbow ? "linear-gradient(135deg,#fff5fb,#f5f0ff,#f0f5ff)" : CARD }}>
+                <div style={{ fontSize: 18, marginBottom: 3 }}>{f.emoji}</div>
                 <div style={{ fontSize: stat.length > 4 ? 13 : 20, fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1.15,
-                  background: f.rainbow || isCountdown
-                    ? "linear-gradient(90deg,#5B8DEF,#9B59B6,#E91E8C,#f59e0b,#10b981)"
-                    : G,
+                  background: f.rainbow ? "linear-gradient(90deg,#5B8DEF,#9B59B6,#E91E8C,#f59e0b,#10b981)" : G,
                   WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
                   whiteSpace: "pre-line" }}>{stat}</div>
-                <div style={{ fontSize: 10.5, color: f.rainbow || isCountdown ? "#9B59B6" : MUTED,
-                  marginTop: 2, lineHeight: 1.4, fontWeight: f.rainbow || isCountdown ? 700 : 400 }}>{f.label}</div>
+                <div style={{ fontSize: 10.5, color: f.rainbow ? "#9B59B6" : MUTED,
+                  marginTop: 2, lineHeight: 1.4, fontWeight: f.rainbow ? 700 : 400 }}>{f.label}</div>
               </div>
             </Tip>
           );
