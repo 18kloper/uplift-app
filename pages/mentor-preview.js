@@ -646,8 +646,12 @@ function BubbleMap({ avgAge = 36 }) {
       {(() => { const [open, setOpen] = useState(false); return (
         <div style={{ margin: "12px 0" }}>
           <button onClick={() => setOpen(o => !o)}
-            style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none",
-              cursor: "pointer", padding: "6px 0", marginBottom: open ? 10 : 0 }}>
+            style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+              width: "100%", background: "none", cursor: "pointer", marginBottom: open ? 10 : 0,
+              border: "1.5px solid transparent",
+              backgroundImage: "linear-gradient(white,white), linear-gradient(90deg,#5B8DEF,#9B59B6,#E91E8C,#f59e0b,#10b981)",
+              backgroundOrigin: "border-box", backgroundClip: "padding-box, border-box",
+              borderRadius: 8, padding: "7px 14px" }}>
             <span style={{
               fontSize: 12.5, fontWeight: 800, letterSpacing: "0.2px",
               background: "linear-gradient(90deg,#5B8DEF,#9B59B6,#E91E8C,#f59e0b,#10b981)",
@@ -655,7 +659,7 @@ function BubbleMap({ avgAge = 36 }) {
             }}>
               {open ? "▾" : "▸"} See more program insights
             </span>
-            {open && <span style={{ fontSize: 11, color: MUTED, fontStyle: "italic" }}>— hover tiles for details</span>}
+            {open && <span style={{ fontSize: 11, color: MUTED, fontStyle: "italic", WebkitTextFillColor: MUTED }}>hover tiles for details</span>}
           </button>
           {open && <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gridAutoRows: "110px", gap: 8 }}>
             {COHORT.funFacts.map(f => {
@@ -1078,7 +1082,6 @@ const SECTIONS = [
   { id: "mentees",  label: "Mentees" },
   { id: "summary",  label: "Summary" },
   { id: "guide",    label: "Guide" },
-  { id: "eop",      label: "End of Program" },
   { id: "support",  label: "Support" },
 ];
 
@@ -1319,19 +1322,20 @@ export default function MentorPreview() {
           <Label>Program Summary</Label>
           <div style={{ background: "linear-gradient(135deg,#EEF4FF,#faf5ff)",
             border: "1px solid #c4b5fd", borderRadius: 13, padding: "15px 18px", marginBottom: 20 }}>
-            <p style={{ margin: "0 0 3px", fontWeight: 700, fontSize: 14, color: "#5B2D8E" }}>🎉 Week 3 of 10</p>
+            <p style={{ margin: "0 0 3px", fontWeight: 700, fontSize: 14, color: "#5B2D8E" }}>🎉 Week 2 of 10</p>
             <p style={{ margin: 0, fontSize: 13, color: "#555", lineHeight: 1.7 }}>
               Priya's first session is logged — great start. Marcus hasn't had his first session yet. Week 3 is the makeup week, so now is the time to get that scheduled.
             </p>
           </div>
 
-          {(() => { const [tlOpen, setTlOpen] = useState(false); return (
+          {(() => { const [tlOpen, setTlOpen] = useState(true); return (
             <div style={{ margin: "0 0 8px" }}>
               <button onClick={() => setTlOpen(o => !o)}
-                style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none",
-                  cursor: "pointer", padding: "4px 0", marginBottom: tlOpen ? 14 : 0 }}>
-                <Label style={{ margin: 0 }}>Program Timeline</Label>
-                <span style={{ fontSize: 13, color: MUTED, marginLeft: 4 }}>{tlOpen ? "▾" : "▸"}</span>
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+                  width: "100%", background: SOFT, border: `1px solid ${BORDER}`,
+                  borderRadius: 8, padding: "7px 14px", cursor: "pointer", marginBottom: tlOpen ? 14 : 0 }}>
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: TEXT }}>Program Timeline</span>
+                <span style={{ fontSize: 12, color: MUTED }}>{tlOpen ? "▾" : "▸"}</span>
               </button>
               {tlOpen && <div style={{ position: "relative", paddingLeft: 26 }}>
                 <div style={{ position: "absolute", left: 7, top: 8, bottom: 8, width: 2,
@@ -1410,27 +1414,6 @@ export default function MentorPreview() {
               You'll also receive this directly to the email we have on file for you.
             </p>
           </div>
-          {[
-            { icon: "📜", l: "Sign-Off Report", required: true, d: "Confirms participation · generates your certificate", tip: "REQUIRED. Your official sign-off confirms program completion and triggers your Uplift Mentor certificate." },
-          ].map(({ icon, l, d, tip, required }) => (
-            <Tip key={l} text={tip}>
-              <div style={{ display: "flex", gap: 12, alignItems: "center", cursor: "default",
-                padding: "12px 14px", borderRadius: 11, background: CARD,
-                border: `1px solid ${required ? "#fca5a5" : BORDER}`, marginBottom: 7, opacity: 0.55 }}>
-                <span style={{ fontSize: 18 }}>{icon}</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 1 }}>
-                    <p style={{ margin: 0, fontWeight: 700, fontSize: 13.5, color: TEXT }}>{l}</p>
-                    {required && <span style={{ fontSize: 9.5, fontWeight: 800, color: "#ef4444",
-                      background: "#fef2f2", borderRadius: 100, padding: "1px 7px",
-                      border: "1px solid #fca5a5", textTransform: "uppercase", letterSpacing: "0.5px" }}>Required</span>}
-                  </div>
-                  <p style={{ margin: 0, fontSize: 12, color: MUTED }}>{d}</p>
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 700, color: MUTED2 }}>Locked</span>
-              </div>
-            </Tip>
-          ))}
         </div>
 
         {/* ── Guide ── */}
@@ -1469,18 +1452,20 @@ export default function MentorPreview() {
             { icon: "🗓️", label: "Uplift Program Schedule",          href: "/resources/program-schedule",   desc: "Key dates, milestones, and events" },
             { icon: "💡", label: "How to Give Feedback to Founders",  href: "/resources/feedback-guide",     desc: "Practical tips for high-impact mentor feedback" },
             { icon: "🌐", label: "NJ Startup Ecosystem Overview",     href: "/resources/nj-ecosystem",       desc: "Key players, resources, and networks in NJ" },
-          ].map(({ icon, label, href, desc }) => (
-            <a key={label} href={href} target="_blank" rel="noreferrer"
+            { icon: "📜", label: "Sign-Off Report",                   href: "#eop",                          desc: "🔒 Unlocks Week 8 · required for mentee program completion", locked: true },
+          ].map(({ icon, label, href, desc, locked }) => (
+            <a key={label} href={href} target={locked ? undefined : "_blank"} rel="noreferrer"
               style={{ display: "flex", alignItems: "center", gap: 11,
                 padding: "11px 13px", borderRadius: 10, background: CARD,
-                border: `1px solid ${BORDER}`, marginBottom: 5, cursor: "pointer",
-                textDecoration: "none" }}>
+                border: `1px solid ${BORDER}`, marginBottom: 5,
+                cursor: locked ? "default" : "pointer",
+                textDecoration: "none", opacity: locked ? 0.55 : 1 }}>
               <span style={{ fontSize: 16 }}>{icon}</span>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 600, color: "#333" }}>{label}</div>
                 <div style={{ fontSize: 11.5, color: MUTED }}>{desc}</div>
               </div>
-              <GradText>↗</GradText>
+              {locked ? <span style={{ fontSize: 11, fontWeight: 700, color: MUTED2 }}>Locked</span> : <GradText>↗</GradText>}
             </a>
           ))}
 
