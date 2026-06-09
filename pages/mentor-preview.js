@@ -934,17 +934,17 @@ function ContributeResource() {
           <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Title or name"
             style={{ padding: "10px 12px", borderRadius: 9, border: `1.5px solid ${BORDER}`,
               background: SOFT, color: TEXT, fontFamily: "inherit", fontSize: 13, outline: "none" }} />
-          <input value={url} onChange={e => setUrl(e.target.value)} placeholder="Link (optional)"
+          <input value={url} onChange={e => setUrl(e.target.value)} placeholder="Link"
             style={{ padding: "10px 12px", borderRadius: 9, border: `1.5px solid ${BORDER}`,
               background: SOFT, color: TEXT, fontFamily: "inherit", fontSize: 13, outline: "none" }} />
         </div>
         <textarea value={note} onChange={e => setNote(e.target.value)}
-          placeholder="Why is this helpful for founders? (optional)"
+          placeholder="Why is this helpful for founders?"
           rows={2} style={{ width: "100%", padding: "10px 12px", borderRadius: 9, resize: "vertical",
             border: `1.5px solid ${BORDER}`, fontFamily: "inherit", fontSize: 13,
             color: TEXT, background: SOFT, outline: "none", boxSizing: "border-box", marginBottom: 10 }} />
         <GradButton onClick={async () => {
-          if (!type || !title) return;
+          if (!type || !title || !url || !note) return;
           try {
             await fetch("/api/submit-resource", {
               method: "POST",
@@ -953,7 +953,7 @@ function ContributeResource() {
             });
           } catch (_) {}
           setSubmitted(true);
-        }} disabled={!type || !title}>
+        }} disabled={!type || !title || !url || !note}>
           Submit resource →
         </GradButton>
       </div>
