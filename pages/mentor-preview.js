@@ -1163,7 +1163,7 @@ export default function MentorPreview() {
               { val: "2",      label: "Mentees",        tip: "Number of founders assigned to you this cohort." },
               { val: "1",      label: "Sessions logged", tip: "Total 60-min sessions logged across your mentees.\n3 sessions per mentee required." },
               { val: "Week 3", label: "of 10",           tip: "Current week of the program.\nProgram runs June 1 – August 4." },
-              { val: "38%",    label: "Program complete", tip: "You're in Week 3 of 8 — 38% of the program has elapsed.\nYou still have 5 weeks and 2 sessions to go." },
+              { val: "Jun 23", label: "Midpoint Meetup", tip: "📍 Reminder: June 23rd is our Midpoint Meetup — an in-person event for all mentors and mentees.\n\nAttendance is required. If you can't make it, please email uplift@techunited.co as soon as possible." },
             ].map(({ val, label, tip }) => (
               <Tip key={label} text={tip}>
                 <div style={{ flex: 1, background: SOFT, border: `1px solid ${BORDER}`,
