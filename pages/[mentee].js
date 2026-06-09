@@ -112,10 +112,9 @@ const PRIMARY_TABS = [
   { id: "resources",  label: "Resources",                    tip: "External links, tools, and resources curated for you — things you should know about as a founder in this program." },
   { id: "profile",    label: "Cohort Directory",             tip: "See who's in your cohort and explore the other cohorts too — get to know your fellow founders." },
   { id: "support",    label: "Support",                      tip: "Having trouble with something? Find out how to reach the Uplift team here." },
-  { id: "attendance", label: "📋 Event Attendance",          tip: "A log of all Luma events you registered for or attended, along with their verification status." },
 ];
 const TAB_ROW_1 = ["journey", "goals", "milestones", "meetings", "edu"];
-const TAB_ROW_2 = ["calendar", "profile", "resources", "support", "attendance"];
+const TAB_ROW_2 = ["calendar", "profile", "resources", "support"];
 
 // ─── Tab tooltip wrapper ───────────────────────────────────────────────────────
 function TabTooltip({ tip, children, direction = "up" }) {
@@ -467,30 +466,78 @@ function MentorCard({ mentee, revealed }) {
       </div>
     );
   }
+  const m = mentee.mentor;
   return (
-    <div style={{
-      background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
-      padding: "24px 28px", marginBottom: 24,
-      display: "flex", alignItems: "flex-start", gap: 20,
-    }}>
-      <div style={{
-        width: 52, height: 52, borderRadius: "50%",
-        background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
-        color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-        fontWeight: 700, fontSize: 18, flexShrink: 0,
-      }}>
-        {mentee.mentor.initials}
+    <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "28px 28px 24px", marginBottom: 24, boxShadow: "0 2px 12px rgba(92,78,181,0.06)" }}>
+      {/* Header row */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 18, marginBottom: 20 }}>
+        <div style={{
+          width: 56, height: 56, borderRadius: "50%",
+          background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+          color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+          fontWeight: 700, fontSize: 19, flexShrink: 0,
+        }}>
+          {m.initials}
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 18, color: "#1a1733" }}>{m.name}</p>
+            {m.linkedin && (
+              <a href={m.linkedin} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#5c4eb5", fontWeight: 600, textDecoration: "none", background: "#f0ecff", borderRadius: 20, padding: "2px 10px" }}>
+                LinkedIn ↗
+              </a>
+            )}
+          </div>
+          <p style={{ margin: "3px 0 0", fontSize: 14, color: "#6b6480" }}>{m.title} · {m.company}</p>
+        </div>
       </div>
-      <div style={{ flex: 1 }}>
-        <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 17, color: "#1a1733" }}>{mentee.mentor.name}</p>
-        <p style={{ margin: "0 0 10px", fontSize: 14, color: "#6b6480" }}>{mentee.mentor.title} · {mentee.mentor.company}</p>
+
+      {/* Expertise tags */}
+      <div style={{ marginBottom: 18 }}>
+        <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.07em" }}>Expertise</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-          {mentee.mentor.tags.map((tag, i) => (
-            <span key={i} style={{ background: "#f0ecff", color: "#5c4eb5", borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 500 }}>
+          {m.tags.map((tag, i) => (
+            <span key={i} style={{ background: "#f0ecff", color: "#5c4eb5", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 500 }}>
               {tag}
             </span>
           ))}
         </div>
+      </div>
+
+      {/* Bio */}
+      {m.bio && (
+        <div style={{ marginBottom: 18 }}>
+          <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.07em" }}>About</p>
+          <p style={{ margin: 0, fontSize: 14, color: "#3d3558", lineHeight: 1.65 }}>{m.bio}</p>
+        </div>
+      )}
+
+      {/* Why they mentor */}
+      {m.whyMentor && (
+        <div style={{ marginBottom: 18, background: "#f7f5ff", borderRadius: 10, padding: "14px 16px", borderLeft: "3px solid #5c4eb5" }}>
+          <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, color: "#5c4eb5", textTransform: "uppercase", letterSpacing: "0.07em" }}>Why I Mentor</p>
+          <p style={{ margin: 0, fontSize: 14, color: "#3d3558", lineHeight: 1.65, fontStyle: "italic" }}>&ldquo;{m.whyMentor}&rdquo;</p>
+        </div>
+      )}
+
+      {/* Contact */}
+      <div style={{ borderTop: "1px solid #f0ecff", paddingTop: 16, display: "flex", gap: 24, flexWrap: "wrap" }}>
+        <div>
+          <p style={{ margin: "0 0 3px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.07em" }}>Email</p>
+          <a href={`mailto:${m.email}`} style={{ fontSize: 14, color: "#5c4eb5", fontWeight: 600, textDecoration: "none" }}>{m.email}</a>
+        </div>
+        {m.linkedin && (
+          <div>
+            <p style={{ margin: "0 0 3px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.07em" }}>LinkedIn</p>
+            <a href={m.linkedin.startsWith("http") ? m.linkedin : `https://${m.linkedin}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, color: "#5c4eb5", fontWeight: 600, textDecoration: "none" }}>{m.linkedin.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "")}</a>
+          </div>
+        )}
+        {m.availability && (
+          <div style={{ flexBasis: "100%", marginTop: 4 }}>
+            <p style={{ margin: "0 0 3px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.07em" }}>Availability</p>
+            <p style={{ margin: 0, fontSize: 14, color: "#3d3558" }}>{m.availability}</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2401,7 +2448,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
 }
 
 // ─── Educational Sessions tab ─────────────────────────────────────────────────
-function EduSessionsSection({ milestones }) {
+function EduSessionsSection({ milestones, slug }) {
   const REQUIRED = 3;
   const completed = [milestones?.edu1, milestones?.edu2, milestones?.edu3].filter(Boolean).length;
   const pct = Math.min(Math.round((completed / REQUIRED) * 100), 100);
@@ -2607,6 +2654,11 @@ function EduSessionsSection({ milestones }) {
             )}
           </div>
         ))}
+      </div>
+
+      {/* ─── Event Attendance log ─────────────────────────────────────── */}
+      <div style={{ marginTop: 36, paddingTop: 28, borderTop: "1px solid #e8e4f5" }}>
+        <LumaAttendanceSection slug={slug} />
       </div>
     </div>
   );
@@ -2828,7 +2880,7 @@ function MilestoneSection({ milestones, onNavigate }) {
   const items = [
     { key: "participation",   label: "Confirmed Participation",        auto: true, due: "By Jun 3",  week: 1 },
     { key: "onboarding",      label: "Onboarding Session Attended",  due: "By Jun 7",  contactMsg: "If you haven't attended an onboarding session yet, please reach out to us directly — we can help get you sorted." },
-    { key: "mentorMatched",   label: "Matched with a Mentor",        due: "By Jun 7",  contactMsg: "If you haven't been matched with a mentor yet, it likely means we don't have you recorded for an onboarding session. Please contact us directly so we can help." },
+    { key: "mentorMatched",   label: "Matched with a Mentor",        due: "By Jun 9",  contactMsg: "If you haven't been matched with a mentor yet, it likely means we don't have you recorded for an onboarding session. Please contact us directly so we can help." },
     { key: "edu1",            label: "Educational Session 1",                       due: "By Aug 4",  week: 2 },
     { key: "edu2",            label: "Educational Session 2",                       due: "By Aug 4",  week: 3 },
     { key: "edu3",            label: "Educational Session 3",                       due: "By Aug 4",  week: 8 },
@@ -3143,6 +3195,7 @@ function CalendarSection({ milestones = {} }) {
 function ResourcesSection({ slug, menteeName }) {
   const storageKey = `${slug}_resource_favorites`;
   const [favorites, setFavorites] = useState([]);
+  const [communityResources, setCommunityResources] = useState([]);
 
   useEffect(() => {
     try {
@@ -3150,6 +3203,13 @@ function ResourcesSection({ slug, menteeName }) {
       if (saved) setFavorites(JSON.parse(saved));
     } catch (_) {}
   }, [storageKey]);
+
+  useEffect(() => {
+    fetch("/api/community-resources")
+      .then(r => r.json())
+      .then(d => { if (d.resources?.length) setCommunityResources(d.resources); })
+      .catch(() => {});
+  }, []);
 
   const toggleFavorite = (itemKey) => {
     setFavorites(prev => {
@@ -3265,6 +3325,25 @@ function ResourcesSection({ slug, menteeName }) {
           </div>
         </div>
       ))}
+
+      {/* Mentor-submitted community resources */}
+      {communityResources.length > 0 && (
+        <div style={{ marginBottom: 28 }}>
+          <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+            From Your Mentors
+          </p>
+          <div style={{ display: "grid", gap: 8 }}>
+            {communityResources.map((item, i) => (
+              <ResourceRow key={i} item={{
+                title: item.title,
+                url: item.url || "#",
+                description: item.note || item.type,
+                _key: `community::${item.title}`,
+              }} showHeart={true} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -3950,7 +4029,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} onNavigate={(week) => { setActiveTab("journey"); setActiveWeek(week); }} />;
       case "goals": return <GoalsSection mentee={mentee} slug={slug} />;
       case "meetings": return <MeetingsSection slug={slug} milestones={liveMilestones || mentee.milestones || {}} onMilestoneUpdate={(key) => setLiveMilestones(prev => ({ ...(prev || mentee.milestones || {}), [key]: true }))} />;
-      case "edu": return <EduSessionsSection milestones={liveMilestones || mentee.milestones || {}} />;
+      case "edu": return <EduSessionsSection milestones={liveMilestones || mentee.milestones || {}} slug={slug} />;
       case "profile": return <ProfileSection mentee={mentee} slug={slug} cohortMates={cohortMates} allCohortMembers={allCohortMembers} />;
       case "support": return (
         <div style={{ maxWidth: 520 }}>
@@ -3960,7 +4039,6 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
           </p>
         </div>
       );
-      case "attendance": return <LumaAttendanceSection slug={slug} />;
       default: return null;
     }
   };

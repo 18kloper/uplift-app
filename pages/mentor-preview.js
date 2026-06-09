@@ -923,7 +923,17 @@ function ContributeResource() {
           rows={2} style={{ width: "100%", padding: "10px 12px", borderRadius: 9, resize: "vertical",
             border: `1.5px solid ${BORDER}`, fontFamily: "inherit", fontSize: 13,
             color: TEXT, background: SOFT, outline: "none", boxSizing: "border-box", marginBottom: 10 }} />
-        <GradButton onClick={() => (type && title) && setSubmitted(true)} disabled={!type || !title}>
+        <GradButton onClick={async () => {
+          if (!type || !title) return;
+          try {
+            await fetch("/api/submit-resource", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ type, title, url, note }),
+            });
+          } catch (_) {}
+          setSubmitted(true);
+        }} disabled={!type || !title}>
           Submit resource →
         </GradButton>
       </div>
