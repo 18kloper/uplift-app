@@ -1249,7 +1249,7 @@ export default function MentorPreview() {
 
           {/* Cohort map embedded in Summary */}
           <div style={{ marginTop: 24 }}>
-            <Label>Summer 2026 Cohort</Label>
+            <Label>Summer 2026 Program</Label>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <div>
                 <h2 style={{ margin: "0 0 3px", fontSize: 20, fontWeight: 800, color: TEXT, letterSpacing: "-0.5px" }}>
