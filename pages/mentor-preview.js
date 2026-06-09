@@ -958,12 +958,12 @@ function ContributeResource() {
 }
 
 // ─── Support Ticket ───────────────────────────────────────────────────────────
-function SupportTicket() {
+function SupportTicket({ mentorName = "", mentorEmail = "" }) {
   const TOPICS = ["My mentee hasn't responded","I need to reschedule","I have concerns about the match","Technical issue","Question about the program","Other"];
   const [topic, setTopic]     = useState(null);
   const [message, setMessage] = useState("");
-  const [name, setName]       = useState("");
-  const [email, setEmail]     = useState("");
+  const [name] = useState(mentorName);
+  const [email] = useState(mentorEmail);
   const [submitted, setSubmitted] = useState(false);
 
 
@@ -984,14 +984,6 @@ function SupportTicket() {
         </div>
       </div>
       <div style={{ padding: "16px 18px", borderBottom: `1px solid ${BORDER}` }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="Your name"
-            style={{ padding: "9px 12px", borderRadius: 9, border: `1.5px solid ${BORDER}`,
-              background: SOFT, color: TEXT, fontFamily: "inherit", fontSize: 13, outline: "none" }} />
-          <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Your email"
-            style={{ padding: "9px 12px", borderRadius: 9, border: `1.5px solid ${BORDER}`,
-              background: SOFT, color: TEXT, fontFamily: "inherit", fontSize: 13, outline: "none" }} />
-        </div>
         <p style={{ margin: "0 0 9px", fontWeight: 600, fontSize: 13.5, color: TEXT }}>
           Tell us more <span style={{ fontWeight: 400, color: MUTED }}>(optional)</span>
         </p>
@@ -1413,7 +1405,7 @@ export default function MentorPreview() {
           <p style={{ margin: "0 0 14px", fontSize: 13.5, color: MUTED, lineHeight: 1.65 }}>
             Need help? Fill out the form below and we'll get back to you.
           </p>
-          <SupportTicket />
+          <SupportTicket mentorName="Preview User" mentorEmail="" />
         </Section>
 
         {/* ── About ── */}
