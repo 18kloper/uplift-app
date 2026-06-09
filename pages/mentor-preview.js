@@ -1208,14 +1208,14 @@ export default function MentorPreview() {
             {[
               { wk: "Week 1–2",  title: "Onboarding, Matching & Session 1", active: true, note: "Introductions, align on goals, complete Session 1", tip: "📍 You are here\nThis is the onboarding and matching phase. Mentees completed their intake forms, got matched, and are scheduling their first 60-min session with you now.\n\nIf you haven't had your first session yet — this is the week to make it happen." },
               { wk: "Week 3",    title: "Makeup Week + Touchpoint",         note: "Catch up on Session 1 if needed · quick check-in",     tip: "Buffer week for any pairs who haven't completed Session 1 yet.\n\nTechUnited will do a quick touchpoint to make sure everyone is connected and on track. No action required unless you haven't had your first session." },
-              { wk: "Week 4",    title: "Midpoint Meetup",                   note: "In-person event · all mentors + mentees",              tip: "Uplift Midpoint Meetup — an in-person gathering for all mentor-mentee pairs.\n\nGreat chance to meet other mentors, see how the cohort is doing, and reconnect with your mentee in a group setting. Date TBD — watch for details from TechUnited." },
+              { wk: "Week 4",    title: "Midpoint Meetup",                   note: "In-person event · all mentors + mentees · June 23", register: "https://luma.com/zfr1e2gt", tip: "Uplift Midpoint Meetup — an in-person gathering for all mentor-mentee pairs.\n\nJune 23 · Attendance required. If you can't make it, email uplift@techunited.co as soon as possible." },
               { wk: "Week 5",    title: "Session 2",                         note: "Deep-dive on core challenge",                          tip: "Your second 60-min session with your mentee. By now you know each other — go deep on their biggest blocker. GTM, fundraising narrative, product decisions. Push past surface-level and challenge the underlying assumptions." },
               { wk: "Week 6",    title: "Makeup Week",                       note: "Buffer week · catch up if needed",                     tip: "Makeup week if Session 2 hasn't happened yet. Also a good time for a quick async check-in — a message asking how things are going goes a long way." },
               { wk: "Week 7",    title: "Session 3",                         note: "Final session · focus on what's next",                 tip: "Your third and final required session. Shift focus to what happens after the program — specific next steps, intros you can make, and momentum they can carry forward.\n\nSpecific > general. 'Email this person by Friday' > 'you should network more.'" },
               { wk: "Week 8",    title: "End of Program Sign-Off",           note: "Mentor reflection + sign-off form · required",         tip: "Sign-off form unlocks and is REQUIRED to receive your certificate.\n\nComplete your mentor reflection, fill out the Mentee Momentum Check, and confirm all sessions are logged and approved before August 4." },
               { wk: "Week 9",    title: "Uplift Summit",                     note: "End-of-program celebration · founder showcase",        tip: "The Uplift Summit — TechUnited's end-of-summer founder showcase and celebration.\n\nAttend if you can. It's a chance to see what your mentee has built, meet the full cohort, and celebrate the work. Mentor certificates distributed here." },
               { wk: "Post-Program", title: "Uplift Summit",             note: "Certificate + Uplift Summit",            tip: "🎉 Celebration time. Uplift Summit is TechUnited's end-of-summer founder showcase. Attend if you can — it's a great way to see what your mentee has built and meet the full cohort." },
-            ].map(({ wk, title, done, active, note, tip }) => (
+            ].map(({ wk, title, done, active, note, tip, register }) => (
               <div key={wk} style={{ position: "relative", paddingBottom: 14 }}>
                 <Tip text={tip} width={380}>
                   <div style={{ position: "absolute", left: -22, top: 3, width: 16, height: 16, borderRadius: 8,
@@ -1225,12 +1225,23 @@ export default function MentorPreview() {
                     {active && <div style={{ width: 5, height: 5, borderRadius: 3, background: "#fff" }} />}
                   </div>
                 </Tip>
-                <span style={{ fontSize: 10, fontWeight: 700, color: active ? "#9B59B6" : MUTED2,
-                  textTransform: "uppercase", letterSpacing: "0.6px", marginRight: 8 }}>{wk}</span>
-                <span style={{ fontSize: 14, fontWeight: active ? 700 : 600,
-                  color: done ? MUTED2 : active ? TEXT : "#444" }}>{title}</span>
-                {active && <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700,
-                  background: G, color: "#fff", borderRadius: 100, padding: "2px 9px" }}>Now</span>}
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: active ? "#9B59B6" : MUTED2,
+                    textTransform: "uppercase", letterSpacing: "0.6px" }}>{wk}</span>
+                  <span style={{ fontSize: 14, fontWeight: active ? 700 : 600,
+                    color: done ? MUTED2 : active ? TEXT : "#444" }}>{title}</span>
+                  {active && <span style={{ fontSize: 10, fontWeight: 700,
+                    background: G, color: "#fff", borderRadius: 100, padding: "2px 9px" }}>Now</span>}
+                  {register && (
+                    <a href={register} target="_blank" rel="noreferrer"
+                      style={{ fontSize: 10.5, fontWeight: 700, color: "#fff",
+                        background: "linear-gradient(90deg,#5B8DEF,#9B59B6)",
+                        borderRadius: 100, padding: "2px 10px", textDecoration: "none",
+                        letterSpacing: "0.2px" }}>
+                      Register →
+                    </a>
+                  )}
+                </div>
                 <p style={{ margin: "2px 0 0", fontSize: 12, color: MUTED }}>{note}</p>
               </div>
             ))}
