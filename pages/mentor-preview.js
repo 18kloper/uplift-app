@@ -1287,9 +1287,9 @@ export default function MentorPreview() {
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontWeight: 700, fontSize: 14, color: "#555" }}>Post-Program Pulse Check</span>
-                  <Tip text="Sent to you after the Uplift Summit (Week 9).\nA quick optional reflection on your experience as a mentor this summer.">
+                  <Tip text="Sent to you after the Uplift Summit (Week 10).\nA quick optional reflection on your experience as a mentor this summer.">
                     <span style={{ fontSize: 10.5, fontWeight: 700, color: MUTED2, background: CARD,
-                      borderRadius: 100, padding: "2px 10px", border: `1px solid ${BORDER}`, cursor: "default" }}>🔒 Week 9</span>
+                      borderRadius: 100, padding: "2px 10px", border: `1px solid ${BORDER}`, cursor: "default" }}>🔒 Week 10</span>
                   </Tip>
                 </div>
                 <p style={{ margin: "2px 0 0", fontSize: 12, color: MUTED }}>Optional · sent after the program wraps up</p>
