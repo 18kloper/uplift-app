@@ -895,22 +895,6 @@ function ContributeResource() {
   const [note, setNote]   = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  if (submitted) return (
-    <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 12,
-      padding: "14px 16px", display: "flex", gap: 12, alignItems: "center" }}>
-      <div style={{ width: 30, height: 30, borderRadius: 15, background: G135, flexShrink: 0,
-        display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>✓</div>
-      <div style={{ flex: 1 }}>
-        <p style={{ margin: 0, fontWeight: 700, fontSize: 13.5, color: TEXT }}>Resource submitted!</p>
-        <p style={{ margin: 0, fontSize: 12, color: MUTED }}>We'll review and add it to the mentee library.</p>
-      </div>
-      <button onClick={() => { setSubmitted(false); setType(null); setUrl(""); setTitle(""); setNote(""); }}
-        style={{ fontSize: 12, color: MUTED, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
-        Submit another
-      </button>
-    </div>
-  );
-
   return (
     <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 12, overflow: "hidden" }}>
       <div style={{ padding: "13px 15px", borderBottom: `1px solid ${BORDER}`, background: SOFT }}>
@@ -953,9 +937,21 @@ function ContributeResource() {
             });
           } catch (_) {}
           setSubmitted(true);
+          setTimeout(() => { setSubmitted(false); setType(null); setUrl(""); setTitle(""); setNote(""); }, 4000);
         }} disabled={!type || !title || !url || !note}>
           Submit resource →
         </GradButton>
+        {submitted && (
+          <div style={{ marginTop: 10, background: "#f0fdf4", border: "1px solid #bbf7d0",
+            borderRadius: 9, padding: "10px 14px", display: "flex", alignItems: "center", gap: 9,
+            animation: "fadeIn 0.2s ease" }}>
+            <span style={{ fontSize: 15 }}>✅</span>
+            <div>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: "#166534" }}>Resource submitted!</p>
+              <p style={{ margin: 0, fontSize: 11.5, color: "#4ade80" }}>We'll review and add it to the mentee library.</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -970,16 +966,6 @@ function SupportTicket() {
   const [email, setEmail]     = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  if (submitted) return (
-    <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 14,
-      padding: "26px 20px", textAlign: "center" }}>
-      <div style={{ width: 46, height: 46, borderRadius: 23, background: G135,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 20, margin: "0 auto 12px" }}>✓</div>
-      <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 16, color: TEXT }}>Ticket submitted</p>
-      <p style={{ margin: 0, fontSize: 13, color: MUTED, lineHeight: 1.7 }}>Your message has been sent to the Uplift team.</p>
-    </div>
-  );
 
   return (
     <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: "hidden" }}>
@@ -1015,16 +1001,7 @@ function SupportTicket() {
             border: `1.5px solid ${BORDER}`, fontFamily: "inherit", fontSize: 13.5,
             color: TEXT, background: SOFT, outline: "none", boxSizing: "border-box", lineHeight: 1.6 }} />
       </div>
-      <div style={{ padding: "13px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 16, background: G135,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 11, fontWeight: 700, color: "#fff" }}>KO</div>
-          <div>
-            <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: "#444" }}>Kennedy Okonkwo</p>
-            <p style={{ margin: 0, fontSize: 11, color: MUTED }}>Responds within 1 business day</p>
-          </div>
-        </div>
+      <div style={{ padding: "13px 18px", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
         <GradButton onClick={async () => {
           if (!topic) return;
           try {
@@ -1035,8 +1012,19 @@ function SupportTicket() {
             });
           } catch (_) {}
           setSubmitted(true);
+          setTimeout(() => setSubmitted(false), 4000);
         }} disabled={!topic}>Send →</GradButton>
       </div>
+      {submitted && (
+        <div style={{ margin: "0 18px 14px", background: "#f0fdf4", border: "1px solid #bbf7d0",
+          borderRadius: 9, padding: "10px 14px", display: "flex", alignItems: "center", gap: 9 }}>
+          <span style={{ fontSize: 15 }}>✅</span>
+          <div>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: "#166534" }}>Message sent!</p>
+            <p style={{ margin: 0, fontSize: 11.5, color: "#4ade80" }}>The Uplift team will be in touch.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1359,7 +1347,7 @@ export default function MentorPreview() {
             {[
               { l: "Duration",        v: "10 Weeks · June – August 2026" },
               { l: "Your Commitment", v: "3 sessions · 60 min each" },
-              { l: "Format",          v: "1-on-1 · video or in person" },
+              { l: "Format",          v: "1-on-1 · video, phone, or in person" },
               { l: "All sessions by", v: "August 4, 2026" },
             ].map(({ l, v }) => (
               <div key={l} style={{ background: SOFT, border: `1px solid ${BORDER}`, borderRadius: 11, padding: "12px 14px" }}>
