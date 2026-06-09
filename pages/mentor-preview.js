@@ -1458,16 +1458,20 @@ export default function MentorPreview() {
               </div>
               <div>
                 <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: TEXT, letterSpacing: "-0.4px" }}>About TechUnited NJ</h3>
-                <p style={{ margin: 0, fontSize: 12.5, color: MUTED }}>New Jersey's Tech & Startup Community</p>
+                <p style={{ margin: 0, fontSize: 12.5, color: MUTED }}>Empowering entrepreneurs and innovators who invent the future</p>
               </div>
             </div>
+            <p style={{ margin: "0 0 6px", fontSize: 13.5, color: "#444", lineHeight: 1.8 }}>
+              TechUnited:NJ unites innovators across New Jersey — connecting entrepreneurs, investors, and corporate leaders with the capital, customers, and community they need to grow.
+            </p>
             <p style={{ margin: "0 0 12px", fontSize: 13.5, color: "#444", lineHeight: 1.8 }}>
-              Our mission is to empower and inspire entrepreneurs and innovators to build a better future for all.
+              Founded in 1996, we represent 60,000+ community members and 200+ member companies. Through events, mentorship, venture programs, and policy advocacy, we make New Jersey a better place to build.
             </p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {[
-{ emoji: "🤝", text: "Founders · Investors · Corporates" },
-                { emoji: "🎤", text: "Events, programs & community" },
+                { emoji: "🤝", text: "60,000+ community members" },
+                { emoji: "🏢", text: "200+ member companies" },
+                { emoji: "🎤", text: "Events, programs & advocacy" },
                 { emoji: "✉️", text: "uplift@techunited.co" },
               ].map(x => (
                 <div key={x.text} style={{ display: "flex", alignItems: "center", gap: 7,
