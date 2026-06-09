@@ -537,58 +537,6 @@ function BubbleMap({ avgAge = 36 }) {
 
   return (
     <div>
-      {/* Fun facts strip */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
-        {COHORT.funFacts.map(f => {
-          const endDate   = new Date("2026-08-04");
-          const startDate = new Date("2026-06-01");
-          const today     = new Date();
-          today.setHours(0,0,0,0);
-          const daysLeft    = Math.max(0, Math.ceil((endDate - today) / (1000 * 60 * 60 * 24)));
-          const daysSinceStart = Math.max(0, Math.floor((today - startDate) / (1000 * 60 * 60 * 24)));
-          const sessionCount = 1 + Math.floor(daysSinceStart / 4);
-          const stat = f.stat === "COUNTDOWN" ? String(daysLeft) : f.stat === "SESSIONS" ? String(sessionCount) : f.stat === "AVG_AGE" ? String(avgAge || 36) : f.stat;
-          const isCountdown = f.stat === "COUNTDOWN";
-          const totalDays = Math.ceil((new Date("2026-08-04") - new Date("2026-06-01")) / (1000 * 60 * 60 * 24));
-          const pctLeft = isCountdown ? Math.max(0, Math.min(1, daysLeft / totalDays)) : 0;
-
-          if (isCountdown) return (
-            <Tip key={f.label} text={f.tip} width={f.tipWidth || 300}>
-              <div style={{ flex: "1 1 90px", border: `1px solid ${BORDER}`,
-                borderRadius: 14, padding: "13px 14px", textAlign: "center", cursor: "default",
-                background: "linear-gradient(135deg,#fff5fb,#f5f0ff,#f0f5ff)" }}>
-                <div style={{ fontSize: 18, marginBottom: 4 }}>⏳</div>
-                <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1.1,
-                  background: "linear-gradient(90deg,#5B8DEF,#9B59B6,#E91E8C)",
-                  WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{daysLeft}</div>
-                <div style={{ fontSize: 10.5, color: "#9B59B6", marginTop: 2, fontWeight: 700, marginBottom: 7 }}>{f.label}</div>
-                {/* Progress bar */}
-                <div style={{ height: 5, borderRadius: 100, background: "#e8e2f8", overflow: "hidden" }}>
-                  <div style={{ height: "100%", borderRadius: 100, width: `${pctLeft * 100}%`,
-                    background: "linear-gradient(90deg,#5B8DEF,#9B59B6,#E91E8C)",
-                    transition: "width 0.4s ease" }} />
-                </div>
-              </div>
-            </Tip>
-          );
-
-          return (
-            <Tip key={f.label} text={f.tip} width={f.tipWidth || 300}>
-              <div style={{ flex: "1 1 90px", border: `1px solid ${BORDER}`,
-                borderRadius: 14, padding: "13px 14px", textAlign: "center", cursor: "default",
-                background: f.rainbow ? "linear-gradient(135deg,#fff5fb,#f5f0ff,#f0f5ff)" : CARD }}>
-                <div style={{ fontSize: 18, marginBottom: 3 }}>{f.emoji}</div>
-                <div style={{ fontSize: stat.length > 4 ? 13 : 20, fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1.15,
-                  background: f.rainbow ? "linear-gradient(90deg,#5B8DEF,#9B59B6,#E91E8C,#f59e0b,#10b981)" : G,
-                  WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                  whiteSpace: "pre-line" }}>{stat}</div>
-                <div style={{ fontSize: 10.5, color: f.rainbow ? "#9B59B6" : MUTED,
-                  marginTop: 2, lineHeight: 1.4, fontWeight: f.rainbow ? 700 : 400 }}>{f.label}</div>
-              </div>
-            </Tip>
-          );
-        })}
-      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "stretch" }}>
 
@@ -693,6 +641,90 @@ function BubbleMap({ avgAge = 36 }) {
 
       {/* County inline pills with hover popup */}
       <CountyStrip />
+
+      {/* Fun facts — collapsible */}
+      {(() => { const [open, setOpen] = useState(false); return (
+        <div style={{ margin: "12px 0" }}>
+          <button onClick={() => setOpen(o => !o)}
+            style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none",
+              cursor: "pointer", padding: "6px 0", marginBottom: open ? 10 : 0 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#9B59B6", letterSpacing: "0.3px" }}>
+              {open ? "▾" : "▸"} Cohort Insights
+            </span>
+            <span style={{ fontSize: 11, color: MUTED, fontStyle: "italic" }}>
+              {open ? "— hover tiles for details" : "— 20 stats about your cohort"}
+            </span>
+          </button>
+          {open && <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gridAutoRows: "110px", gap: 8 }}>
+            {COHORT.funFacts.map(f => {
+              const endDate = new Date("2026-08-04");
+              const startDate = new Date("2026-06-01");
+              const today = new Date(); today.setHours(0,0,0,0);
+              const daysLeft = Math.max(0, Math.ceil((endDate - today) / (1000*60*60*24)));
+              const daysSinceStart = Math.max(0, Math.floor((today - startDate) / (1000*60*60*24)));
+              const sessionCount = 1 + Math.floor(daysSinceStart / 4);
+              const sessionTarget = 129;
+              const stat = f.stat === "COUNTDOWN" ? String(daysLeft) : f.stat === "SESSIONS" ? String(sessionCount) : f.stat === "AVG_AGE" ? String(avgAge || 36) : f.stat;
+              const tip = f.tip === "SESSIONS_DYNAMIC" ? `${sessionCount} sessions logged this summer — and counting.\n\nEvery session moves the needle. Keep logging yours.` : f.tip;
+              const isCountdown = f.stat === "COUNTDOWN";
+              const isSessions = f.stat === "SESSIONS";
+              const totalDays = Math.ceil((new Date("2026-08-04") - new Date("2026-06-01")) / (1000*60*60*24));
+              const pctLeft = isCountdown ? Math.max(0, Math.min(1, daysLeft / totalDays)) : 0;
+              const sessionPct = Math.min(1, sessionCount / sessionTarget);
+
+              if (isSessions) return (
+                <Tip key={f.label} text={`${sessionCount} sessions logged this summer — and counting.\n\nEvery session moves the needle. Keep logging yours.`} width={240} block>
+                  <div style={{ height: "100%", border: `1px solid ${BORDER}`, boxSizing: "border-box",
+                    borderRadius: 14, padding: "13px 14px", textAlign: "center", cursor: "default",
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    background: "linear-gradient(135deg,#fff5fb,#f5f0ff,#f0f5ff)" }}>
+                    <div style={{ fontSize: 18, marginBottom: 3 }}>⚡</div>
+                    <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1.15,
+                      background: "linear-gradient(90deg,#5B8DEF,#9B59B6,#E91E8C,#f59e0b,#10b981)",
+                      WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{sessionCount}</div>
+                    <div style={{ fontSize: 10.5, color: "#9B59B6", marginTop: 2, fontWeight: 700 }}>{f.label}</div>
+                  </div>
+                </Tip>
+              );
+
+              if (isCountdown) return (
+                <Tip key={f.label} text={`${daysLeft} days left in the program.\n\nThe program ends August 4, 2026. Make sure your sessions are scheduled before the deadline.`} width={240} block>
+                  <div style={{ height: "100%", border: `1px solid ${BORDER}`, boxSizing: "border-box",
+                    borderRadius: 14, padding: "13px 14px", textAlign: "center", cursor: "default",
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    background: "linear-gradient(135deg,#fff5fb,#f5f0ff,#f0f5ff)" }}>
+                    <div style={{ fontSize: 18, marginBottom: 6 }}>⏳</div>
+                    <div style={{ fontSize: 10.5, color: "#9B59B6", fontWeight: 700, marginBottom: 8 }}>{f.label}</div>
+                    <div style={{ width: "100%", height: 6, borderRadius: 100, background: "#e8e2f8", overflow: "hidden" }}>
+                      <div style={{ height: "100%", borderRadius: 100, width: `${pctLeft * 100}%`,
+                        background: "linear-gradient(90deg,#10b981,#f59e0b,#E91E8C,#9B59B6,#5B8DEF)",
+                        transition: "width 0.4s ease" }} />
+                    </div>
+                    <div style={{ fontSize: 10, color: MUTED, marginTop: 5 }}>{daysLeft} days left</div>
+                  </div>
+                </Tip>
+              );
+
+              return (
+                <Tip key={f.label} text={tip} width={f.tipWidth || 300} block>
+                  <div style={{ height: "100%", border: `1px solid ${BORDER}`, boxSizing: "border-box",
+                    borderRadius: 14, padding: "13px 14px", textAlign: "center", cursor: "default",
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    background: f.rainbow ? "linear-gradient(135deg,#fff5fb,#f5f0ff,#f0f5ff)" : CARD }}>
+                    <div style={{ fontSize: 18, marginBottom: 3 }}>{f.emoji}</div>
+                    <div style={{ fontSize: stat.length > 4 ? 13 : 20, fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1.15,
+                      background: f.rainbow ? "linear-gradient(90deg,#5B8DEF,#9B59B6,#E91E8C,#f59e0b,#10b981)" : G,
+                      WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                      whiteSpace: "pre-line" }}>{stat}</div>
+                    <div style={{ fontSize: 10.5, color: f.rainbow ? "#9B59B6" : MUTED,
+                      marginTop: 2, lineHeight: 1.4, fontWeight: f.rainbow ? 700 : 400 }}>{f.label}</div>
+                  </div>
+                </Tip>
+              );
+            })}
+          </div>}
+        </div>
+      ); })()}
 
       {/* Patterns */}
       <div style={{ marginTop: 12 }}>
@@ -1047,7 +1079,6 @@ const SECTIONS = [
   { id: "guide",    label: "Guide" },
   { id: "eop",      label: "End of Program" },
   { id: "support",  label: "Support" },
-  { id: "about",    label: "About" },
 ];
 
 // ─── Sample data ──────────────────────────────────────────────────────────────
@@ -1086,9 +1117,12 @@ const MENTEES_DATA = [
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function MentorPreview() {
-  const [authed, setAuthed] = useState(false);
-  const [pw, setPw]         = useState("");
-  const [err, setErr]       = useState(false);
+  const [authed, setAuthed]       = useState(false);
+  const [username, setUsername]   = useState("");
+  const [pw, setPw]               = useState("");
+  const [err, setErr]             = useState(false);
+  const [mentorName, setMentorName]   = useState("");
+  const [mentorEmail, setMentorEmail] = useState("");
   const [active, setActive] = useState("mentees");
   const [avgAge, setAvgAge] = useState(null);
 
@@ -1109,31 +1143,64 @@ export default function MentorPreview() {
     return () => obs.disconnect();
   }, [authed]);
 
-  const attempt = () => {
-    if (pw.trim().toLowerCase() === "ed") setAuthed(true);
-    else { setErr(true); setTimeout(() => setErr(false), 1800); setPw(""); }
+  const attempt = async () => {
+    try {
+      const res = await fetch("/api/mentor-auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username.trim(), password: pw.trim() }),
+      });
+      const data = await res.json();
+      if (data.ok) { setMentorName(data.name || ""); setMentorEmail(data.email || ""); setAuthed(true); }
+      else { setErr(true); setTimeout(() => setErr(false), 1800); setPw(""); }
+    } catch (_) {
+      setErr(true); setTimeout(() => setErr(false), 1800);
+    }
   };
 
   // ── Password gate ─────────────────────────────────────────────────────────
   if (!authed) return (
     <div style={{ minHeight: "100vh", background: SOFT, fontFamily: "'Inter', system-ui, sans-serif",
-      display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-      <div style={{ width: "100%", maxWidth: 380 }}>
+      display: "flex", alignItems: "center", justifyContent: "center", padding: 16, position: "relative", overflow: "hidden" }}>
+
+      {/* Step-and-repeat backdrop */}
+      <div aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: 0, overflow: "hidden" }}>
+        {Array.from({ length: 14 }).map((_, row) => (
+          <div key={row} style={{ display: "flex", gap: 48, marginLeft: row % 2 === 0 ? 0 : 56, marginBottom: 32 }}>
+            {Array.from({ length: 12 }).map((_, col) => (
+              <img key={col} src="/techunited-logo.png" alt=""
+                style={{ width: 72, objectFit: "contain", flexShrink: 0,
+                  opacity: 0.08, filter: "saturate(0) brightness(0.5)" }} />
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <div style={{ width: "100%", maxWidth: 380, position: "relative", zIndex: 1 }}>
         <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 20,
           padding: "44px 40px", textAlign: "center", boxShadow: "0 8px 40px rgba(91,141,239,0.08)" }}>
-          <div style={{ width: 54, height: 54, borderRadius: 27, background: G135,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            margin: "0 auto 18px", fontSize: 24 }}>🧑‍🏫</div>
+          <img src="/uplift-logo.png" alt="Uplift"
+            style={{ height: 48, marginBottom: 22, objectFit: "contain" }}
+            onError={e => { e.target.style.display = "none"; }} />
           <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: TEXT, letterSpacing: "-0.5px" }}>Mentor Portal</p>
-          <p style={{ margin: "0 0 26px", fontSize: 13, color: MUTED }}>Uplift Summer 2026 · TechUnited NJ</p>
-          <input type="password" value={pw} onChange={e => setPw(e.target.value)}
+          <p style={{ margin: "0 0 26px", fontSize: 13, color: MUTED }}>Uplift Summer 2026 · TechUnited:NJ</p>
+          <input type="text" value={username} onChange={e => setUsername(e.target.value)}
             onKeyDown={e => e.key === "Enter" && attempt()}
-            placeholder="Your first name, lowercase"
+            placeholder="First 2 letters of first name"
+            autoComplete="username"
             style={{ width: "100%", padding: "12px 14px", fontSize: 14, borderRadius: 10,
               fontFamily: "inherit", background: SOFT, color: TEXT, outline: "none",
               boxSizing: "border-box", marginBottom: 10,
               border: `1.5px solid ${err ? "#f87171" : BORDER}`, transition: "border-color 0.2s" }} />
-          {err && <p style={{ margin: "0 0 10px", fontSize: 12, color: "#ef4444", fontWeight: 600 }}>Incorrect password</p>}
+          <input type="password" value={pw} onChange={e => setPw(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && attempt()}
+            placeholder="Password"
+            autoComplete="current-password"
+            style={{ width: "100%", padding: "12px 14px", fontSize: 14, borderRadius: 10,
+              fontFamily: "inherit", background: SOFT, color: TEXT, outline: "none",
+              boxSizing: "border-box", marginBottom: 10,
+              border: `1.5px solid ${err ? "#f87171" : BORDER}`, transition: "border-color 0.2s" }} />
+          {err && <p style={{ margin: "0 0 10px", fontSize: 12, color: "#ef4444", fontWeight: 600 }}>Incorrect — check your username and password</p>}
           <GradButton onClick={attempt}>Enter Portal →</GradButton>
         </div>
       </div>
@@ -1143,7 +1210,55 @@ export default function MentorPreview() {
   // ── Portal ────────────────────────────────────────────────────────────────
   return (
     <div style={{ background: SOFT, minHeight: "100vh",
-      fontFamily: "'Inter', system-ui, sans-serif", color: TEXT }}>
+      fontFamily: "'Inter', system-ui, sans-serif", color: TEXT, position: "relative", overflowX: "hidden" }}>
+
+      {/* Background blobs */}
+      <div aria-hidden="true" style={{ pointerEvents: "none", position: "fixed", inset: 0, zIndex: 0, overflow: "hidden" }}>
+        {[
+          { top: "4%",  left: -30,  rotate: -18, scale: 0.85, opacity: 0.09 },
+          { top: "19%", left: -18,  rotate:  12, scale: 0.70, opacity: 0.07 },
+          { top: "35%", left: -24,  rotate:  -8, scale: 0.90, opacity: 0.08 },
+          { top: "52%", left: -32,  rotate:  20, scale: 0.75, opacity: 0.075 },
+          { top: "68%", left: -20,  rotate: -14, scale: 0.80, opacity: 0.09 },
+          { top: "83%", left: -28,  rotate:   6, scale: 0.70, opacity: 0.07 },
+        ].map((p, i) => (
+          <img key={`ll${i}`} src="/techunited-logo.png" alt=""
+            style={{ position: "absolute", top: p.top, left: p.left, width: 180, opacity: p.opacity,
+              transform: `rotate(${p.rotate}deg) scale(${p.scale})`,
+              filter: "saturate(0) brightness(0.6)", userSelect: "none" }} />
+        ))}
+        {[
+          { top: "8%",  right: -28, rotate:  15, scale: 0.80, opacity: 0.08 },
+          { top: "23%", right: -36, rotate: -10, scale: 0.90, opacity: 0.09 },
+          { top: "40%", right: -22, rotate:  22, scale: 0.72, opacity: 0.07 },
+          { top: "57%", right: -30, rotate: -18, scale: 0.85, opacity: 0.085 },
+          { top: "73%", right: -20, rotate:   8, scale: 0.76, opacity: 0.075 },
+          { top: "88%", right: -34, rotate:  -6, scale: 0.88, opacity: 0.08 },
+        ].map((p, i) => (
+          <img key={`rl${i}`} src="/techunited-logo.png" alt=""
+            style={{ position: "absolute", top: p.top, right: p.right, width: 180, opacity: p.opacity,
+              transform: `rotate(${p.rotate}deg) scale(${p.scale})`,
+              filter: "saturate(0) brightness(0.6)", userSelect: "none" }} />
+        ))}
+        <div style={{ position: "absolute", top: "-120px", left: "-160px", width: 420, height: 420,
+          borderRadius: "60% 40% 55% 45% / 50% 60% 40% 50%",
+          background: "radial-gradient(ellipse at 40% 40%, rgba(91,141,239,0.18) 0%, rgba(155,89,182,0.10) 60%, transparent 100%)",
+          filter: "blur(32px)", transform: "rotate(-15deg)" }} />
+        <div style={{ position: "absolute", top: "38%", left: "-100px", width: 300, height: 340,
+          borderRadius: "45% 55% 40% 60% / 60% 40% 55% 45%",
+          background: "radial-gradient(ellipse at 50% 50%, rgba(233,30,140,0.11) 0%, rgba(155,89,182,0.09) 55%, transparent 100%)",
+          filter: "blur(28px)", transform: "rotate(10deg)" }} />
+        <div style={{ position: "absolute", top: "-80px", right: "-140px", width: 380, height: 380,
+          borderRadius: "50% 50% 40% 60% / 55% 45% 60% 40%",
+          background: "radial-gradient(ellipse at 60% 40%, rgba(233,30,140,0.14) 0%, rgba(155,89,182,0.10) 60%, transparent 100%)",
+          filter: "blur(30px)", transform: "rotate(20deg)" }} />
+        <div style={{ position: "absolute", top: "45%", right: "-120px", width: 320, height: 360,
+          borderRadius: "40% 60% 55% 45% / 50% 45% 55% 50%",
+          background: "radial-gradient(ellipse at 55% 45%, rgba(91,141,239,0.12) 0%, rgba(155,89,182,0.08) 60%, transparent 100%)",
+          filter: "blur(26px)", transform: "rotate(-8deg)" }} />
+      </div>
+
+      <div style={{ position: "relative", zIndex: 1 }}>
       <Nav sections={SECTIONS} active={active} />
 
       {/* Hero — light */}
@@ -1313,8 +1428,11 @@ export default function MentorPreview() {
           <div style={{ background: "#ede9fd", border: "1px solid #c4b5fd",
             borderRadius: 12, padding: "15px 17px", marginBottom: 14 }}>
             <p style={{ margin: "0 0 3px", fontWeight: 700, fontSize: 14, color: "#5B2D8E" }}>🔒 Sign-off opens Week 8</p>
-            <p style={{ margin: 0, fontSize: 13, color: "#666", lineHeight: 1.65 }}>
-              Once all sessions are logged, the review and sign-off form unlock. Share a reflection on your mentee's growth and receive your official Uplift Mentor certificate.
+            <p style={{ margin: "0 0 8px", fontSize: 13, color: "#666", lineHeight: 1.65 }}>
+              Once all sessions are logged, the sign-off form unlocks. Share a reflection on your mentee's growth — completing this is required for your mentee to officially complete the Uplift program.
+            </p>
+            <p style={{ margin: 0, fontSize: 12.5, color: "#888", lineHeight: 1.6, fontStyle: "italic" }}>
+              You'll also receive this directly to the email we have on file for you.
             </p>
           </div>
           {[
@@ -1416,89 +1534,15 @@ export default function MentorPreview() {
           <SupportTicket mentorName="Preview User" mentorEmail="" />
         </Section>
 
-        {/* ── About ── */}
-        <Section id="about">
-          <Label>About</Label>
-
-          {/* About Uplift */}
-          <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16,
-            padding: "24px 26px", marginBottom: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
-              <div style={{ width: 46, height: 46, borderRadius: 14, background: G135, flexShrink: 0,
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>🚀</div>
-              <div>
-                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: TEXT, letterSpacing: "-0.4px" }}>About Uplift</h3>
-                <p style={{ margin: 0, fontSize: 12.5, color: MUTED }}>TechUnited NJ's Founder Mentorship Program</p>
-              </div>
-            </div>
-            <p style={{ margin: "0 0 12px", fontSize: 13.5, color: "#444", lineHeight: 1.8 }}>
-              Uplift is TechUnited NJ's summer mentorship program for <strong>women and minority founders</strong> building companies in New Jersey. We connect early-stage founders with experienced mentors for a focused 8-week sprint — matching by stage, industry, and need, then getting out of the way.
-            </p>
-            <p style={{ margin: "0 0 16px", fontSize: 13.5, color: "#444", lineHeight: 1.8 }}>
-              The program runs June through August and wraps with the Uplift Summit — an end-of-summer celebration and founder showcase. In 2026 we have 76 founders across 8 industries and 10 NJ counties — all based right here in New Jersey.
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-              {[
-                { emoji: "🎯", label: "Focus", val: "Early-stage NJ founders" },
-                { emoji: "📅", label: "Timeline", val: "June 1 – August 4, 2026" },
-                { emoji: "🏆", label: "Goal", val: "Clarity, confidence, direction" },
-              ].map(x => (
-                <div key={x.label} style={{ background: SOFT, border: `1px solid ${BORDER}`,
-                  borderRadius: 11, padding: "11px 13px", textAlign: "center" }}>
-                  <div style={{ fontSize: 18, marginBottom: 4 }}>{x.emoji}</div>
-                  <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 700, textTransform: "uppercase",
-                    letterSpacing: "0.6px", color: MUTED2 }}>{x.label}</p>
-                  <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: TEXT }}>{x.val}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* About TechUnited */}
-          <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16,
-            padding: "24px 26px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
-              <div style={{ width: 46, height: 46, borderRadius: 14, flexShrink: 0,
-                background: "#fff", border: `1px solid ${BORDER}`,
-                display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: 6 }}>
-                <img src="https://techunited.co/wp-content/uploads/2026/03/TechUnitedNJ-Logo-FINAL-Full-Color-Black-Text.png"
-                  alt="TechUnited NJ" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-              </div>
-              <div>
-                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: TEXT, letterSpacing: "-0.4px" }}>About TechUnited NJ</h3>
-                <p style={{ margin: 0, fontSize: 12.5, color: MUTED }}>Empowering entrepreneurs and innovators who invent the future</p>
-              </div>
-            </div>
-            <p style={{ margin: "0 0 6px", fontSize: 13.5, color: "#444", lineHeight: 1.8 }}>
-              TechUnited:NJ unites innovators across New Jersey — connecting entrepreneurs, investors, and corporate leaders with the capital, customers, and community they need to grow.
-            </p>
-            <p style={{ margin: "0 0 12px", fontSize: 13.5, color: "#444", lineHeight: 1.8 }}>
-              Founded in 1996, we represent 60,000+ community members and 200+ member companies. Through events, mentorship, venture programs, and policy advocacy, we make New Jersey a better place to build.
-            </p>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {[
-                { emoji: "🤝", text: "60,000+ community members" },
-                { emoji: "🏢", text: "200+ member companies" },
-                { emoji: "🎤", text: "Events, programs & advocacy" },
-                { emoji: "✉️", text: "uplift@techunited.co" },
-              ].map(x => (
-                <div key={x.text} style={{ display: "flex", alignItems: "center", gap: 7,
-                  background: SOFT, border: `1px solid ${BORDER}`, borderRadius: 100,
-                  padding: "6px 13px", fontSize: 12.5, color: "#444", fontWeight: 500 }}>
-                  <span>{x.emoji}</span>{x.text}
-                </div>
-              ))}
-            </div>
-          </div>
-        </Section>
 
         <div style={{ textAlign: "center", padding: "24px 0 0" }}>
           <p style={{ margin: 0, fontSize: 12, color: MUTED2, lineHeight: 1.8 }}>
-            TechUnited NJ · Uplift Summer 2026 ·{" "}
+            TechUnited:NJ · Uplift Summer 2026 ·{" "}
             <a href="mailto:uplift@techunited.co" style={{ color: MUTED2 }}>uplift@techunited.co</a>
           </p>
         </div>
       </div>
+      </div>{/* /zIndex wrapper */}
     </div>
   );
 }
