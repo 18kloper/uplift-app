@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 
 const COHORT_NAMES = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
-const COHORTS = ["All", 1, 2, 3, 4, 5, "Test"];
+const COHORTS = ["All", 1, 2, 3, 4, 5];
 
 const STATUS_CONFIG = {
   "at-risk":         { label: "At Risk",              color: "#c0392b", bg: "#fef0f0", dot: "#e74c3c" },
@@ -3584,7 +3584,7 @@ function MatchingDashboard({ confirmations = {}, mentees = [], nonResponsiveMent
       setSelData(sel);
       setResponses(email.responses || []);
       setNewMentors(app.mentors || []);
-      // Build sets of slugs/mentor names that have an admin-assigned match (pending OR sent)
+      // Build sets of slugs/mentor names that have an admin-assigned match (pending OR sent OR confirmed)
       const adminSlugs = new Set();
       const adminMentors = new Set();
       for (const g of [...(pend.pending || []), ...(pend.sent || [])]) {
@@ -3592,6 +3592,11 @@ function MatchingDashboard({ confirmations = {}, mentees = [], nonResponsiveMent
           adminMentors.add(g.mentorName);
           for (const m of (g.mentees || [])) adminSlugs.add(m.slug);
         }
+      }
+      // Also exclude confirmed mentees — they have a match, don't show as needing one
+      for (const g of (pend.confirmed || [])) {
+        adminMentors.add(g.mentorName);
+        for (const m of (g.mentees || [])) adminSlugs.add(m.slug);
       }
       setAdminMatchedSlugs(adminSlugs);
       setApprovedMenteeSlugs(adminSlugs);
@@ -5105,7 +5110,7 @@ function MentorSelections() {
     }
   };
 
-  const cohorts = ["All", 1, 2, 3, 4, 5, "Test"];
+  const cohorts = ["All", 1, 2, 3, 4, 5];
   const TEST_SLUGS = ["kennedy", "jackie", "aaron", "mj"];
 
   const FILTERS = [
