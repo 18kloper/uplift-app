@@ -25,6 +25,7 @@ const RESPONSES = [
       { name: "Daniel Patton", company: "DreamEngine AI", slug: "daniel-patton", stage: "MVP / Early build", industry: "AI / Data / ML", needs: "Fundraising strategy & investor readiness" },
     ],
     selected: "Sharon Joseph",
+    note: "Sharon Joseph churned Jun 2026 — Joe has 1 open slot.",
   },
   {
     threadId: "19e805a83a423d5b",
@@ -211,7 +212,7 @@ const RESPONSES = [
       { name: "Jhamar Youngblood", company: "Brickcity", slug: "jhamar-youngblood", stage: "Early traction", industry: "Other", needs: "Go-to-market & customer acquisition" },
       { name: "Ekaterina Kashkina", company: "Stealth-mode molecular diagnostics startup", slug: "ekaterina-kashkina", stage: "MVP / Early build", industry: "Other", needs: "Fundraising strategy & investor readiness" },
     ],
-    selected: "Both",
+    selected: "Jhamar Youngblood",
   },
   {
     threadId: "19e8a636cf9d51c1",
@@ -223,6 +224,7 @@ const RESPONSES = [
       { name: "Harshil Thakkar", company: "Newyorklife", slug: "harshil-thakkar", stage: "Revenue-generating", industry: "Finance / Fintech", needs: "Understanding the NJ/regional startup ecosystem" },
     ],
     selected: "Both",
+    note: "Shounak Thaker churned Jun 2026 — Bruno continues with Harshil only, has 1 open slot.",
   },
   {
     threadId: "19e8df6aa13f18e4",
@@ -235,9 +237,257 @@ const RESPONSES = [
     ],
     selected: "Both",
   },
+  // --- Confirmed via individual Kennedy emails / other channels ---
+  {
+    threadId: "19e9449ad7f9946a",
+    mentor: { name: "Vishal Goyal", email: "vishal0073@gmail.com" },
+    replyDate: "2026-06-04",
+    reply: "Hello, I accept mentoring Elune Health. Could you please suggest other mentees in the digital health, life sciences, hospitals, or biotech space. I am flexible to mentor 2 mentees.",
+    options: [
+      { name: "Elaf Mahmoud", company: "Elune Health", slug: "elaf-mahmoud", stage: "Idea stage", industry: "CPG / Consumer Brands", needs: "Refining pitch or company narrative" },
+    ],
+    selected: "Elaf Mahmoud",
+  },
+  {
+    threadId: "19e8e9f2d22d5f8c",
+    mentor: { name: "Soojin Choung", email: "soojin@witnesspartners.us" },
+    replyDate: "2026-06-03",
+    reply: "Forwarded confirmation to Kennedy — confirmed for Andrea Ferguson Peterson.",
+    options: [
+      { name: "Andrea Ferguson Peterson", company: "Everyday Unstoppable", slug: "andrea-ferguson-peterson", stage: "Revenue-generating", industry: "Retail / Marketplace / E-commerce", needs: "Clarifying near-term company priorities" },
+    ],
+    selected: "Andrea Ferguson Peterson",
+  },
+  {
+    threadId: "19e9eeff03786c49",
+    mentor: { name: "Stella Alvo", email: "stella.alvo@gmail.com" },
+    replyDate: "2026-06-06",
+    reply: "I want to mentor only one person. Please let me know where the meetings in Hoboken will be held when the information becomes available. The person I choose is: Abhaya Pawar — Ilika LLC.",
+    options: [
+      { name: "Abhaya Pawar", company: "Ilika LLC", slug: "abhaya-pawar", stage: "Early traction", industry: "Climate / Energy", needs: "Go-to-market & customer acquisition" },
+      { name: "Andrea Vernengo", company: "TrueSkin", slug: "andrea-vernengo", stage: "MVP / Early build", industry: "Hardware / Manufacturing", needs: "Fundraising strategy & investor readiness" },
+    ],
+    selected: "Abhaya Pawar",
+  },
+  {
+    threadId: "19e9d101fac187d0",
+    mentor: { name: "Kenneth Jones", email: "kenjonesnj@gmail.com" },
+    replyDate: "2026-06-06",
+    reply: "Hello. I am away this weekend, doing both is ok with me.",
+    options: [
+      { name: "Radha Ratnala", company: "Rekogni AI", slug: "radha-ratnala", stage: "MVP / Early build", industry: "Enterprise SaaS / B2B", needs: "Go-to-market & customer acquisition" },
+      { name: "Rajesh Ivaturi", company: "SekurAI", slug: "rajesh-ivaturi", stage: "MVP / Early build", industry: "Enterprise SaaS / B2B", needs: "Go-to-market & customer acquisition" },
+    ],
+    selected: "Both",
+  },
+  {
+    threadId: "19e9938344ea45b9",
+    mentor: { name: "Michael Baer", email: "michael.baer@techcxo.com" },
+    replyDate: "2026-06-05",
+    reply: "Confirmed via direct reply to Kennedy — confirmed for Soheil Khosravinejad.",
+    options: [
+      { name: "Soheil Khosravinejad", company: "DRIFTLANE", slug: "soheil-khosravinejad", stage: "Early traction", industry: "Media / Marketing / Advertising", needs: "Preparing for a major inflection point (raise, launch, pivot, expansion)" },
+    ],
+    selected: "Soheil Khosravinejad",
+  },
+  {
+    threadId: "19e9938344ea45b9",
+    mentor: { name: "Stephen Makinen", email: "stephen.makinen@gmail.com" },
+    replyDate: "2026-06-08",
+    reply: "Hello Kennedy! Thank you for accepting my application to volunteer as a mentor. I confirm that I can satisfy the two specified requirements. I look forward to supporting this program and my paired mentee, Andrea Vernengo.",
+    options: [
+      { name: "Andrea Vernengo", company: "TrueSkin", slug: "andrea-vernengo", stage: "MVP / Early build", industry: "Hardware / Manufacturing", needs: "Fundraising strategy & investor readiness" },
+    ],
+    selected: "Andrea Vernengo",
+  },
+  {
+    threadId: "19e9939c45d1d71e",
+    mentor: { name: "Anatole Norland", email: "anorland@rewritingthecode.org" },
+    replyDate: "2026-06-08",
+    reply: "I confirm!",
+    options: [
+      { name: "Gunjan Aggarwal", company: "Virre", slug: "gunjan-aggarwal", stage: "Early traction", industry: "AI / Data / ML", needs: "Fundraising strategy & investor readiness" },
+    ],
+    selected: "Gunjan Aggarwal",
+  },
+  {
+    threadId: "19e9936a895afb8e",
+    mentor: { name: "Anand Rai", email: "arai2@stevens.edu" },
+    replyDate: "2026-06-05",
+    reply: "Yes can attend the in-person midpoint meetup and the in-person summit. Not sure what is the commitment — I would love to help both but if I have to pick in order I will do 1) Evan Peneiras - Nooriva 2) Nina Mladenovski - Zenia Graph.",
+    options: [
+      { name: "Evan Peneiras", company: "Nooriva", slug: "evan-peneiras", stage: "MVP / Early build", industry: "AI / Data / ML", needs: "Understanding the NJ/regional startup ecosystem" },
+      { name: "Nina Mladenovski", company: "Zenia Graph", slug: "nina-mladenovski", stage: "Revenue-generating", industry: "AI / Data / ML", needs: "Go-to-market & customer acquisition" },
+    ],
+    selected: "Evan Peneiras",
+  },
+  {
+    threadId: "admin-confirmed-christina-dorando",
+    mentor: { name: "Christina Dorando", email: "cdorando@cresthillacademy.com" },
+    replyDate: "2026-06-05",
+    reply: "Confirmed via admin — mentoring both Sarah Inoue and Aliya Laliwala.",
+    options: [
+      { name: "Sarah Inoue", company: "Crafty Dessert LLC", slug: "sarah-inoue", stage: "Early traction", industry: "Retail / Marketplace / E-commerce", needs: "Preparing for a major inflection point (raise, launch, pivot, expansion)" },
+      { name: "Aliya Laliwala", company: "Campus Marketplace", slug: "aliya-laliwala", stage: "Early traction", industry: "Retail / Marketplace / E-commerce", needs: "Preparing for a major inflection point (raise, launch, pivot, expansion)" },
+    ],
+    selected: "Both",
+  },
+  {
+    threadId: "admin-confirmed-marc-kaufman",
+    mentor: { name: "Marc Kaufman", email: "mkaufman@potomaclaw.com" },
+    replyDate: "2026-06-05",
+    reply: "Confirmed via admin — mentoring both Daniel Lee and Han Nguyen.",
+    options: [
+      { name: "Daniel Lee", company: "Bruce AI (OnwardJustice Inc.)", slug: "daniel-lee", stage: "Revenue-generating", industry: "AI / Data / ML", needs: "Fundraising strategy & investor readiness" },
+      { name: "Han Nguyen", company: "Ox Group", slug: "han-nguyen", stage: "Early traction", industry: "Finance / Fintech", needs: "Fundraising strategy & investor readiness" },
+    ],
+    selected: "Both",
+  },
+  {
+    threadId: "admin-confirmed-pavan-kumar",
+    mentor: { name: "Pavan Kumar", email: "pavan@3pmventures.com" },
+    replyDate: "2026-06-05",
+    reply: "Confirmed via admin — mentoring Rajesh Ivaturi.",
+    options: [
+      { name: "Rajesh Ivaturi", company: "SekurAI", slug: "rajesh-ivaturi", stage: "MVP / Early build", industry: "Enterprise SaaS / B2B", needs: "Go-to-market & customer acquisition" },
+    ],
+    selected: "Rajesh Ivaturi",
+  },
+  {
+    threadId: "admin-confirmed-miquel-dequadras",
+    mentor: { name: "Miquel de Quadras", email: "mquadras@atomian.com" },
+    replyDate: "2026-06-05",
+    reply: "Confirmed Nina Mladenovski — declined Jerry Primus (chose Nina only).",
+    options: [
+      { name: "Nina Mladenovski", company: "Zenia Graph", slug: "nina-mladenovski", stage: "Revenue-generating", industry: "AI / Data / ML", needs: "Go-to-market & customer acquisition" },
+      { name: "Jerry Primus", company: "PCLinkup", slug: "jerry-primus", stage: "Revenue-generating", industry: "AI / Data / ML", needs: "Go-to-market & customer acquisition" },
+    ],
+    selected: "Nina Mladenovski",
+  },
+  {
+    threadId: "19f2a8c3jennifer-dangelo-confirmed",
+    mentor: { name: "Jennifer D'Angelo", email: "jennifer.dangelo@njii.com" },
+    replyDate: "2026-06-08",
+    reply: "Hi Yes I'm available.",
+    options: [
+      { name: "Shell Bobev", company: "Disrupt The Gap", slug: "shell-bobev", stage: "Revenue-generating", industry: "Government / Civic / Policy", needs: "Product strategy & roadmap decisions" },
+      { name: "Angela Aricatt", company: "", slug: "angela-aricatt", stage: "", industry: "Government / Civic / Policy", needs: "Hiring & leadership" },
+    ],
+    selected: "Both",
+  },
+
+  // ─── Jun 10–11 confirmations ──────────────────────────────────────────────────
+
+  {
+    threadId: "admin-confirmed-aditi-sinha",
+    mentor: { name: "Aditi Sinha", email: "aditiisinhaaa@gmail.com" },
+    replyDate: "2026-06-10",
+    reply: "I missed replying to your email yesterday but I am still available and interested in volunteering. I am traveling this week but available next week for intros or calls.",
+    options: [
+      { name: "Eliana Zebro", company: "EleCare", slug: "eliana-zebro", stage: "MVP / Early build", industry: "Healthcare / Wellness", needs: "Go-to-market & customer acquisition" },
+      { name: "Adeola Adeoye-Davids", company: "AfroFusion", slug: "adeola-adeoye-davids", stage: "Early traction", industry: "Retail / Marketplace / E-commerce", needs: "Go-to-market & customer acquisition" },
+    ],
+    selected: "Both",
+  },
+  {
+    threadId: "admin-confirmed-dee-marshall",
+    mentor: { name: "Dee Marshall", email: "dee.c.marshall@aitrainingplus.com" },
+    replyDate: "2026-06-08",
+    reply: "Yes I'm in. I can be live on June 23, August 4 I'll be out town.",
+    options: [
+      { name: "Stephanie Cwynar", company: "StepUp Eats", slug: "stephanie-cwynar", stage: "Early traction", industry: "Food / Restaurant / Hospitality", needs: "Go-to-market & customer acquisition" },
+      { name: "Jeremy Ruiz Villavicencio", company: "Nooriva", slug: "jeremy-ruiz-villavicencio", stage: "MVP / Early build", industry: "AI / Data / ML", needs: "Understanding NJ startup ecosystem" },
+    ],
+    selected: "Both",
+  },
+  {
+    threadId: "admin-confirmed-dennis-yuscavitch",
+    mentor: { name: "Dennis Yuscavitch", email: "dennis.yuscavitch@njeda.com" },
+    replyDate: "2026-06-08",
+    reply: "yes, was looking forward to participating",
+    options: [
+      { name: "Kevin Navarro", company: "Navarro Digital Media LLC", slug: "kevin-navarro", stage: "Early traction", industry: "Media / Marketing / Advertising", needs: "Go-to-market & customer acquisition" },
+    ],
+    selected: "Kevin Navarro",
+  },
+  {
+    threadId: "admin-confirmed-clare-denicola",
+    mentor: { name: "Clare DeNicola", email: "claredenicola@gmail.com" },
+    replyDate: "2026-06-09",
+    reply: "Confirmed. I can do it.",
+    options: [
+      { name: "Logan Jones", company: "Elroi", slug: "logan-jones", stage: "Early traction", industry: "Enterprise SaaS / B2B", needs: "Go-to-market & customer acquisition" },
+    ],
+    selected: "Logan Jones",
+  },
+  {
+    threadId: "admin-confirmed-goncalo-esteves",
+    mentor: { name: "Goncalo Esteves", email: "estevesgoncalo@gmail.com" },
+    replyDate: "2026-06-08",
+    reply: "Yes I can mentor both.",
+    options: [
+      { name: "Neha Chopade", company: "Chopade Solutions", slug: "neha-chopade", stage: "Early traction", industry: "Enterprise SaaS / B2B", needs: "Go-to-market & customer acquisition" },
+      { name: "Jasmin Jones", company: "JJ Creative", slug: "jasmin-jones", stage: "Idea stage", industry: "Media / Marketing / Advertising", needs: "Refining pitch or company narrative" },
+    ],
+    selected: "Both",
+  },
+  {
+    threadId: "admin-confirmed-malak-atut",
+    mentor: { name: "Malak Atut", email: "malakatut@gmail.com" },
+    replyDate: "2026-06-08",
+    reply: "I would be happy to mentor both of these entrepreneurs. Please confirm I will be able to do the one on one meetings over Zoom.",
+    options: [
+      { name: "Angie Tirado", company: "Tirado Consulting", slug: "angie-tirado", stage: "Revenue-generating", industry: "Other", needs: "Scaling & operations" },
+      { name: "Mohammad Saleh Nikoopayan Tak", company: "Unnamed", slug: "mohammad-saleh-nikoopayan-tak", stage: "Idea stage", industry: "AI / Data / ML", needs: "Go-to-market & customer acquisition" },
+    ],
+    selected: "Both",
+  },
+  {
+    threadId: "admin-confirmed-connie-pascal",
+    mentor: { name: "Connie Pascal", email: "cpascal@comminfo.rutgers.edu" },
+    replyDate: "2026-06-08",
+    reply: "I have time for one team this summer and the team I believe I'm best aligned with — Britney Medich",
+    options: [
+      { name: "Britney Medich", company: "The Medich Group", slug: "britney-medich", stage: "Revenue-generating", industry: "Media / Marketing / Advertising", needs: "Scaling & operations" },
+      { name: "Alok Rai", company: "Rai Ventures", slug: "alok-rai", stage: "Idea stage", industry: "Other", needs: "Go-to-market & customer acquisition" },
+    ],
+    selected: "Britney Medich",
+  },
+
+  // ─── Non-responsive mentors (no reply received) ───────────────────────────────
+
+  {
+    threadId: "no-reply-tom-oser",
+    mentor: { name: "Tom Oser", email: "tomoser@pipeline-strategies.com" },
+    replyDate: null,
+    reply: null,
+    noReply: true,
+    options: [],
+    selected: null,
+  },
+  {
+    threadId: "no-reply-rikin-diwan",
+    mentor: { name: "Rikin Diwan", email: "rikin@lowercaseb2b.com" },
+    replyDate: null,
+    reply: null,
+    noReply: true,
+    options: [],
+    selected: null,
+  },
+  {
+    threadId: "no-reply-joseph-gadino",
+    mentor: { name: "Joseph Gadino", email: "jgadino414@gmail.com" },
+    replyDate: null,
+    reply: null,
+    noReply: true,
+    options: [
+      { name: "Annalyce D'Agostino-Gavin", company: "DAG Digital", slug: "annalyce-dagostino-gavin", stage: "Early traction", industry: "Media / Marketing / Advertising", needs: "Go-to-market & customer acquisition" },
+    ],
+    selected: null,
+  },
 ];
 
 export default function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
-  return res.status(200).json({ responses: RESPONSES, lastRefreshed: "2026-06-03" });
+  return res.status(200).json({ responses: RESPONSES, lastRefreshed: "2026-06-11" });
 }

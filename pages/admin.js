@@ -1331,9 +1331,6 @@ function PromptEngagement() {
         </div>
       )}
 
-      <p style={{ margin: "28px 0 0", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
-        📋 To view individual responses, please go directly to the master tracker sheet.
-      </p>
     </div>
   );
 }
@@ -2066,11 +2063,11 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
     const statusMatch = statusFilters.length === 0 || statusFilters.includes(m.status);
     const milestoneMatch = milestoneFilters.length === 0 ||
       MILESTONE_FILTERS.filter(f => milestoneFilters.includes(f.key)).some(f => f.test(m));
-    const needsMentorMatch = !needsMentorFilter || declinedSlugs.has(m.slug) || (!m.mentorName && !confirmedSlugs.has(m.slug));
-    const confirmedMentorMatch = !confirmedMentorFilter || confirmedSlugs.has(m.slug);
-    const pendingMentorMatch = !pendingMentorFilter || (m.mentorName && !respondedMentorNames.has(m.mentorName));
-    const participatedNotOnboardedMatch = !participatedNotOnboardedFilter || (m.milestones?.participation && !m.milestones?.onboarding);
-    const onboardedPendingMentorMatch = !onboardedPendingMentorFilter || (m.milestones?.onboarding && m.mentorName && !confirmedSlugs.has(m.slug));
+    const needsMentorMatch = !needsMentorFilter || (!m.isTest && (declinedSlugs.has(m.slug) || (!m.mentorName && !confirmedSlugs.has(m.slug))));
+    const confirmedMentorMatch = !confirmedMentorFilter || (!m.isTest && confirmedSlugs.has(m.slug));
+    const pendingMentorMatch = !pendingMentorFilter || (!m.isTest && m.mentorName && !respondedMentorNames.has(m.mentorName));
+    const participatedNotOnboardedMatch = !participatedNotOnboardedFilter || (!m.isTest && m.milestones?.participation && !m.milestones?.onboarding);
+    const onboardedPendingMentorMatch = !onboardedPendingMentorFilter || (!m.isTest && m.milestones?.onboarding && m.mentorName && !confirmedSlugs.has(m.slug));
     return cohortMatch && searchMatch && statusMatch && milestoneMatch && needsMentorMatch && confirmedMentorMatch && pendingMentorMatch && participatedNotOnboardedMatch && onboardedPendingMentorMatch;
   });
 
@@ -2213,6 +2210,59 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
             <strong>For internal use only.</strong> This dashboard is a high-level overview designed to assist the tracking and support of the Uplift program. Data is synced from Google Sheets and may not reflect the most recent manual updates.{" "}
             <strong>Please verify against the master tracker sheet before approving, flagging, or making any program decisions.</strong>
           </p>
+        </div>
+
+        {/* Onboarding + Match Distributed highlight bar */}
+        <div style={{
+          display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14,
+        }}>
+          {[
+            {
+              label: "Onboarding Completed",
+              value: counts.onboarding,
+              total: activeMentees.length,
+              color: "#1a6fa8", bg: "linear-gradient(135deg, #e0f0ff 0%, #c8e4f8 100%)",
+              border: "#a0cce8",
+              icon: "🎓",
+              desc: `of ${activeMentees.length} active participants`,
+            },
+            {
+              label: "Match Distributed",
+              value: realMentees.filter(m => m.milestones?.mentorMatched).length,
+              total: activeMentees.length,
+              color: "#0e7c6b", bg: "linear-gradient(135deg, #e0faf5 0%, #c0f0e8 100%)",
+              border: "#80d8c8",
+              icon: "🤝",
+              desc: `mentees who received their mentor reveal email`,
+            },
+          ].map(({ label, value, total, color, bg, border, icon, desc }) => (
+            <div key={label} style={{
+              background: bg, borderRadius: 14, padding: "20px 24px",
+              border: `1.5px solid ${border}`,
+              display: "flex", alignItems: "center", gap: 20,
+            }}>
+              <div style={{
+                width: 56, height: 56, borderRadius: "50%",
+                background: "rgba(255,255,255,0.7)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 26, flexShrink: 0,
+              }}>{icon}</div>
+              <div style={{ flex: 1 }}>
+                <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, color, textTransform: "uppercase", letterSpacing: "0.06em", opacity: 0.8 }}>{label}</p>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                  <span style={{ fontSize: 42, fontWeight: 900, color, lineHeight: 1 }}>{value}</span>
+                  <span style={{ fontSize: 13, color, opacity: 0.6 }}>{desc}</span>
+                </div>
+                {/* Progress bar */}
+                <div style={{ marginTop: 8, height: 6, background: "rgba(255,255,255,0.5)", borderRadius: 4, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${Math.round((value / total) * 100)}%`, background: color, borderRadius: 4, transition: "width 0.4s" }} />
+                </div>
+              </div>
+              <div style={{
+                fontSize: 28, fontWeight: 900, color, opacity: 0.25, flexShrink: 0,
+              }}>{Math.round((value / total) * 100)}%</div>
+            </div>
+          ))}
         </div>
 
         {/* Summary stat cards — display only */}
@@ -2778,6 +2828,7 @@ function MatchStatus({ mentees = [], confirmations = {}, confirmedSlugs, decline
   const rows = real.map(m => {
     let matchStatus;
     if (confirmedSlugs.has(m.slug))     matchStatus = "confirmed";
+    else if (declinedSlugs.has(m.slug)) matchStatus = "needs-match";
     else if (m.mentorName)              matchStatus = "pending";
     else                                matchStatus = "needs-match";
     return { ...m, matchStatus };
@@ -2987,7 +3038,7 @@ export default function AdminPage() {
       fetch("/api/get-mentor-sessions").then(r => r.json()).catch(() => ({})),
     ]).then(([d, emailData, confData, sessData]) => {
       setData(d);
-      setRespondedMentorNames(new Set((emailData.responses || []).map(r => r.mentor.name)));
+      setRespondedMentorNames(new Set((emailData.responses || []).filter(r => !r.noReply).map(r => r.mentor.name)));
       // Sheet is source of truth — merge over localStorage
       if (confData.confirmations && Object.keys(confData.confirmations).length > 0) {
         setMentorConfirmations(prev => ({ ...prev, ...confData.confirmations }));
@@ -3113,7 +3164,8 @@ export default function AdminPage() {
           <>
           {(() => {
             const confirmedSlugs = new Set(Object.entries(mentorConfirmations).filter(([,v]) => v === "confirmed").map(([k]) => k.split("|")[1]));
-            const declinedSlugs  = new Set(Object.entries(mentorConfirmations).filter(([,v]) => v === "declined").map(([k]) => k.split("|")[1]));
+            const activeSlugs    = new Set(Object.entries(mentorConfirmations).filter(([,v]) => v === "confirmed" || v === "sent" || v === "pending").map(([k]) => k.split("|")[1]));
+            const declinedSlugs  = new Set(Object.entries(mentorConfirmations).filter(([,v]) => v === "declined" || v === "needs-match").map(([k]) => k.split("|")[1]).filter(slug => !activeSlugs.has(slug)));
             return adminTab === "mentees" && <Dashboard data={data} refreshedAt={data.generatedAt} confirmedSlugs={confirmedSlugs} declinedSlugs={declinedSlugs} respondedMentorNames={respondedMentorNames} onChurnChange={(slug, churned) => {
               setData(prev => ({
                 ...prev,
@@ -3123,7 +3175,10 @@ export default function AdminPage() {
           })()}
           {adminTab === "match-status" && (() => {
             const confirmedSlugs = new Set(Object.entries(mentorConfirmations).filter(([,v]) => v === "confirmed").map(([k]) => k.split("|")[1]));
-            const declinedSlugs  = new Set(Object.entries(mentorConfirmations).filter(([,v]) => v === "declined").map(([k]) => k.split("|")[1]));
+            // activeSlugs: mentees with at least one sent/confirmed/pending row (i.e. they have a current assignment in progress)
+            const activeSlugs = new Set(Object.entries(mentorConfirmations).filter(([,v]) => v === "confirmed" || v === "sent" || v === "pending").map(([k]) => k.split("|")[1]));
+            // declinedSlugs: mentees whose only rows are needs-match/declined (no active assignment)
+            const declinedSlugs = new Set(Object.entries(mentorConfirmations).filter(([,v]) => v === "declined" || v === "needs-match").map(([k]) => k.split("|")[1]).filter(slug => !activeSlugs.has(slug)));
             return <MatchStatus mentees={data?.mentees || []} confirmations={mentorConfirmations} confirmedSlugs={confirmedSlugs} declinedSlugs={declinedSlugs} />;
           })()}
           {adminTab === "clicks"   && <ClickEngagement />}
@@ -4287,9 +4342,19 @@ function EmailDraftModal({ group, onClose, onSent }) {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(null);
-  const subject = `Your Uplift Mentor Match${group.mentees.length >= 2 ? "es" : ""} - Please Confirm`;
+  const [editMode, setEditMode] = useState(false);
+  const [subject, setSubject] = useState(`Your Uplift Mentor Match${group.mentees.length >= 2 ? "es" : ""} - Please Confirm`);
+  const [bodyHtml, setBodyHtml] = useState(email.html);
+  const [bodyText, setBodyText] = useState(email.text);
   const toEmail = group.mentorEmail || "";
   const ccEmail = "uplift@techunited.co";
+
+  // Keep plain text in sync when editing HTML (for send payload)
+  const handleBodyChange = (val) => {
+    setBodyHtml(val);
+    // derive a rough plain text from edited HTML for the text fallback
+    setBodyText(val.replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/\n{3,}/g, "\n\n").trim());
+  };
 
   const sendEmail = async () => {
     setSending(true);
@@ -4298,7 +4363,7 @@ function EmailDraftModal({ group, onClose, onSent }) {
       const r = await fetch("/api/send-mentor-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to: toEmail, subject, html: email.html, text: email.text, mentorName: group.mentorName }),
+        body: JSON.stringify({ to: toEmail, subject, html: bodyHtml, text: bodyText, mentorName: group.mentorName }),
       });
       const d = await r.json();
       if (!d.ok) throw new Error(d.error || "Send failed");
@@ -4325,22 +4390,75 @@ function EmailDraftModal({ group, onClose, onSent }) {
       }}>
         {/* Modal header */}
         <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid #f0eef8", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-          <div>
-            <p style={{ margin: "0 0 3px", fontSize: 16, fontWeight: 800, color: "#1a1733" }}>✉️ {group.mentorName}</p>
-            <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 800, color: "#1a1733" }}>✉️ {group.mentorName}</p>
+            <p style={{ margin: "0 0 8px", fontSize: 12, color: "#9b8fcf" }}>
               To: <strong>{toEmail}</strong> &nbsp;·&nbsp; CC: <strong>{ccEmail}</strong>
             </p>
-            <p style={{ margin: "2px 0 0", fontSize: 12, color: "#9b8fcf" }}>Subject: {subject}</p>
+            {/* Editable subject */}
+            <input
+              value={subject}
+              onChange={e => setSubject(e.target.value)}
+              style={{
+                width: "100%", boxSizing: "border-box",
+                fontSize: 13, fontWeight: 600, color: "#1a1733",
+                fontFamily: "Inter, system-ui, sans-serif",
+                border: "1.5px solid #c4b8f0", borderRadius: 7,
+                padding: "5px 10px", outline: "none", background: "#faf8ff",
+              }}
+            />
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, color: "#9b8fcf", cursor: "pointer", lineHeight: 1, flexShrink: 0 }}>✕</button>
+          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, color: "#9b8fcf", cursor: "pointer", lineHeight: 1, flexShrink: 0, marginTop: 2 }}>✕</button>
         </div>
 
-        {/* HTML email preview */}
-        <div style={{
-          flex: 1, overflowY: "auto", margin: "16px 24px",
-          border: "1.5px solid #e0d9f8", borderRadius: 10, padding: "16px 20px",
-          fontSize: 14, lineHeight: 1.6, color: "#1a1a1a",
-        }} dangerouslySetInnerHTML={{ __html: email.html }} />
+        {/* Toggle bar */}
+        <div style={{ padding: "10px 24px 0", display: "flex", gap: 6 }}>
+          <button
+            onClick={() => setEditMode(false)}
+            style={{
+              padding: "4px 14px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer",
+              fontFamily: "Inter, system-ui, sans-serif",
+              background: !editMode ? "#f0eeff" : "#fff",
+              color: !editMode ? "#5c4eb5" : "#9b8fcf",
+              border: `1.5px solid ${!editMode ? "#c4b8f0" : "#e0daf5"}`,
+            }}
+          >
+            👁 Preview
+          </button>
+          <button
+            onClick={() => setEditMode(true)}
+            style={{
+              padding: "4px 14px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer",
+              fontFamily: "Inter, system-ui, sans-serif",
+              background: editMode ? "#f0eeff" : "#fff",
+              color: editMode ? "#5c4eb5" : "#9b8fcf",
+              border: `1.5px solid ${editMode ? "#c4b8f0" : "#e0daf5"}`,
+            }}
+          >
+            ✏️ Edit
+          </button>
+        </div>
+
+        {/* Body — preview or edit */}
+        {editMode ? (
+          <textarea
+            value={bodyHtml}
+            onChange={e => handleBodyChange(e.target.value)}
+            style={{
+              flex: 1, margin: "12px 24px", boxSizing: "border-box",
+              border: "1.5px solid #c4b8f0", borderRadius: 10,
+              padding: "14px 16px", fontSize: 12, lineHeight: 1.7,
+              fontFamily: "monospace", color: "#1a1733", background: "#faf8ff",
+              resize: "none", outline: "none",
+            }}
+          />
+        ) : (
+          <div style={{
+            flex: 1, overflowY: "auto", margin: "12px 24px",
+            border: "1.5px solid #e0d9f8", borderRadius: 10, padding: "16px 20px",
+            fontSize: 14, lineHeight: 1.6, color: "#1a1a1a",
+          }} dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+        )}
 
         {error && (
           <p style={{ margin: "0 24px 8px", fontSize: 12, color: "#c0392b" }}>Error: {error}</p>
@@ -4376,16 +4494,23 @@ function EmailDraftModal({ group, onClose, onSent }) {
 
 function NeedToSend() {
   const [groups, setGroups] = useState([]);
-  const [sentGroups, setSentGroups] = useState([]);
+  const [awaitingGroups, setAwaitingGroups] = useState([]);  // sent, no reply
+  const [confirmedGroups, setConfirmedGroups] = useState([]); // confirmed
   const [loading, setLoading] = useState(true);
   const [markedSent, setMarkedSent] = useState({}); // mentorName → true
   const [draftGroup, setDraftGroup] = useState(null); // currently open modal
   const [sentOpen, setSentOpen] = useState(false);
+  const [confirmedOpen, setConfirmedOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/pending-assignments")
       .then(r => r.json())
-      .then(d => { setGroups(d.pending || []); setSentGroups(d.sent || []); setLoading(false); })
+      .then(d => {
+        setGroups(d.pending || []);
+        setAwaitingGroups(d.sent || []);
+        setConfirmedGroups(d.confirmed || []);
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, []);
 
@@ -4395,7 +4520,8 @@ function NeedToSend() {
 
   const pending = groups.filter(g => !markedSent[g.mentorName]);
   const sessionSent = groups.filter(g => markedSent[g.mentorName]);
-  const allSent = [...sentGroups, ...sessionSent];
+  // awaiting = sent but no reply yet + any just-sent this session
+  const allAwaiting = [...awaitingGroups, ...sessionSent];
   const sentCount = Object.values(markedSent).filter(Boolean).length;
 
   const exportCSV = () => {
@@ -4534,11 +4660,63 @@ function NeedToSend() {
         ))}
       </div>
 
-      {/* ── Already Sent collapsible ── */}
-      {allSent.length > 0 && (
-        <div style={{ marginTop: 32, border: "1.5px solid #b8e8d0", borderRadius: 14, overflow: "hidden" }}>
+      {/* ── Awaiting Reply collapsible ── */}
+      {allAwaiting.length > 0 && (
+        <div style={{ marginTop: 32, border: "1.5px solid #f5d0a9", borderRadius: 14, overflow: "hidden" }}>
           <button
             onClick={() => setSentOpen(o => !o)}
+            style={{
+              width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "14px 24px", background: "#fffbf0", border: "none", cursor: "pointer",
+              fontFamily: "Inter, system-ui, sans-serif",
+            }}
+          >
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#92400e" }}>
+              ⏳ Awaiting Reply — {allAwaiting.length} mentor{allAwaiting.length !== 1 ? "s" : ""}
+            </span>
+            <span style={{ fontSize: 16, color: "#92400e" }}>{sentOpen ? "▲" : "▼"}</span>
+          </button>
+
+          {sentOpen && (
+            <div style={{ background: "#fff", padding: "16px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
+              {allAwaiting.map((g, i) => (
+                <div key={i} style={{
+                  display: "flex", alignItems: "flex-start", justifyContent: "space-between",
+                  gap: 12, padding: "12px 16px", background: "#fffcf5",
+                  border: "1px solid #f5d0a9", borderRadius: 10, flexWrap: "wrap",
+                }}>
+                  <div>
+                    <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>🎓 {g.mentorName}</p>
+                    {g.mentorEmail && (
+                      <p style={{ margin: "0 0 8px", fontSize: 11, color: "#9b8fcf" }}>{g.mentorEmail}</p>
+                    )}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {g.mentees.map((m, j) => (
+                        <span key={j} style={{
+                          fontSize: 12, fontWeight: 600, color: "#92400e",
+                          background: "#fef3c7", border: "1px solid #f5d0a9",
+                          borderRadius: 6, padding: "3px 10px",
+                        }}>
+                          {m.name || m.slug}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#92400e", background: "#fef3c7", border: "1px solid #f5d0a9", borderRadius: 6, padding: "4px 10px", whiteSpace: "nowrap", flexShrink: 0 }}>
+                    Sent · No reply yet
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Confirmed collapsible ── */}
+      {confirmedGroups.length > 0 && (
+        <div style={{ marginTop: 16, border: "1.5px solid #b8e8d0", borderRadius: 14, overflow: "hidden" }}>
+          <button
+            onClick={() => setConfirmedOpen(o => !o)}
             style={{
               width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
               padding: "14px 24px", background: "#f0faf4", border: "none", cursor: "pointer",
@@ -4546,14 +4724,14 @@ function NeedToSend() {
             }}
           >
             <span style={{ fontSize: 14, fontWeight: 700, color: "#1a6e42" }}>
-              ✅ Already Sent — {allSent.length} mentor{allSent.length !== 1 ? "s" : ""} awaiting reply
+              ✅ Confirmed — {confirmedGroups.length} mentor{confirmedGroups.length !== 1 ? "s" : ""}
             </span>
-            <span style={{ fontSize: 16, color: "#1a6e42" }}>{sentOpen ? "▲" : "▼"}</span>
+            <span style={{ fontSize: 16, color: "#1a6e42" }}>{confirmedOpen ? "▲" : "▼"}</span>
           </button>
 
-          {sentOpen && (
+          {confirmedOpen && (
             <div style={{ background: "#fff", padding: "16px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
-              {allSent.map((g, i) => (
+              {confirmedGroups.map((g, i) => (
                 <div key={i} style={{
                   display: "flex", alignItems: "flex-start", justifyContent: "space-between",
                   gap: 12, padding: "12px 16px", background: "#f9fef9",
@@ -4571,13 +4749,13 @@ function NeedToSend() {
                           background: "#e8f8f0", border: "1px solid #9edbb8",
                           borderRadius: 6, padding: "3px 10px",
                         }}>
-                          {m.name || m.slug}
+                          ✓ {m.name || m.slug}
                         </span>
                       ))}
                     </div>
                   </div>
                   <span style={{ fontSize: 11, fontWeight: 700, color: "#1a6e42", background: "#e8f8f0", border: "1px solid #9edbb8", borderRadius: 6, padding: "4px 10px", whiteSpace: "nowrap", flexShrink: 0 }}>
-                    Sent · Awaiting reply
+                    Confirmed
                   </span>
                 </div>
               ))}
@@ -4585,6 +4763,255 @@ function NeedToSend() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Follow-up email builder ──────────────────────────────────────────────────
+function buildFollowUpEmail(g) {
+  const mentorFirst = g.mentorName.split(" ")[0];
+  const hasTwo = g.mentees.length >= 2;
+  const deadline = "Monday, June 9th at 4pm";
+
+  const selectionLine = hasTwo
+    ? `Your mentor-mentee selection: whether you'll be supporting one or both founders, and if one, which founder you're choosing.`
+    : `Your mentor-mentee selection: confirming you're ready to support ${g.mentees[0]?.name || "your mentee"}.`;
+
+  const menteeBlockHtml = g.mentees.map(m => {
+    const needs = [m.primaryFocus, ...(m.secondaryFoci || [])].filter(Boolean).join("; ");
+    return `<p style="margin:0 0 4px 0"><strong>${m.name || m.slug}${m.company ? ` - ${m.company}` : ""}</strong><br>
+Stage: ${m.stage || "-"}<br>
+Industry: ${m.industry || "-"}<br>
+Needs: ${needs || "-"}</p>`;
+  }).join("<br>");
+
+  const choiceBlockHtml = hasTwo ? `<p><strong>Your choice:</strong></p>
+<p><strong>Option 1: Mentor both.</strong> If you have the bandwidth, we'd love for you to support both. We think you'd be a great fit for each.</p>
+<p><strong>Option 2: Pick one.</strong> If two mentees feels like too much, we completely understand. Just reply with the name of the mentee who feels like a better fit.</p>` : "";
+
+  const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#1a1a1a;max-width:600px">
+<p>Hi ${mentorFirst},</p>
+<p>Thank you for volunteering as an Uplift mentor this summer! Your willingness to show up is part of what makes the TechUnited community so special.</p>
+<p>We've heard from a few people that our messages have been landing in spam, so we wanted to reach out directly.</p>
+<p>After receiving more demand than ever, we were able to accept a record 76 founders as mentees into this summer's cohort. Out of that pool, ${hasTwo ? "two stood out as strong matches for you" : "one stood out as a strong match for you"}.</p>
+${hasTwo ? `<p>We'd love for you to mentor both if your schedule allows, but we know your time is limited.</p>${choiceBlockHtml}` : ""}
+<p>${hasTwo ? "Either way, you're" : "You're"} making a material difference for a founder who earned their spot in this cohort and we're so grateful for your support!</p>
+<p><strong>Please reply to this email by ${deadline} to confirm:</strong></p>
+<ol>
+<li>Your participation in the program and that you can attend the in-person midpoint meetup (4pm-7pm on June 23rd in Hoboken, NJ) and the in-person summit (4pm-7pm on August 4th in Hoboken, NJ).</li>
+<li>${selectionLine}</li>
+</ol>
+<p>If we don't hear from you by ${deadline}, we may need to reassign your ${hasTwo ? "mentees" : "mentee"}.</p>
+<p>If your availability has changed, no worries at all, just let us know so we can plan accordingly.</p>
+<br>
+<p><strong>Your Match${hasTwo ? "es" : ""}:</strong></p>
+${menteeBlockHtml}
+<br>
+<p>Best,<br>
+Kennedy<br>
+Head of Community &amp; Operations<br>
+TechUnited:NJ</p>
+</div>`;
+
+  const menteeBlockText = g.mentees.map(m => {
+    const needs = [m.primaryFocus, ...(m.secondaryFoci || [])].filter(Boolean).join("; ");
+    return `${m.name || m.slug}${m.company ? ` - ${m.company}` : ""}
+Stage: ${m.stage || "-"}
+Industry: ${m.industry || "-"}
+Needs: ${needs || "-"}`;
+  }).join("\n\n");
+
+  const text = `Hi ${mentorFirst},
+
+Thank you for volunteering as an Uplift mentor this summer! Your willingness to show up is part of what makes the TechUnited community so special.
+
+We've heard from a few people that our messages have been landing in spam, so we wanted to reach out directly.
+
+After receiving more demand than ever, we were able to accept a record 76 founders as mentees into this summer's cohort. Out of that pool, ${hasTwo ? "two stood out as strong matches for you" : "one stood out as a strong match for you"}.
+
+${hasTwo ? `We'd love for you to mentor both if your schedule allows, but we know your time is limited.
+
+Your choice:
+
+Option 1: Mentor both. If you have the bandwidth, we'd love for you to support both. We think you'd be a great fit for each.
+
+Option 2: Pick one. If two mentees feels like too much, we completely understand. Just reply with the name of the mentee who feels like a better fit.
+
+` : ""}${hasTwo ? "Either way, you're" : "You're"} making a material difference for a founder who earned their spot in this cohort and we're so grateful for your support!
+
+PLEASE REPLY BY ${deadline.toUpperCase()} TO CONFIRM:
+1. Your participation in the program and that you can attend the in-person midpoint meetup (4pm-7pm on June 23rd in Hoboken, NJ) and the in-person summit (4pm-7pm on August 4th in Hoboken, NJ).
+2. ${selectionLine}
+
+If we don't hear from you by ${deadline}, we may need to reassign your ${hasTwo ? "mentees" : "mentee"}.
+
+If your availability has changed, no worries at all, just let us know so we can plan accordingly.
+
+
+YOUR MATCH${hasTwo ? "ES" : ""}:
+
+${menteeBlockText}
+
+
+Best,
+Kennedy
+Head of Community & Operations
+TechUnited:NJ`;
+
+  return { html, text };
+}
+
+function FollowUpDraftModal({ group, onClose, onSent }) {
+  const email = buildFollowUpEmail(group);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState(null);
+  const subject = `Your Uplift Mentor Match${group.mentees.length >= 2 ? "es" : ""} - Action Required`;
+  const toEmail = group.mentorEmail || "";
+
+  const handleSend = async () => {
+    setSending(true);
+    setError(null);
+    try {
+      const r = await fetch("/api/send-mentor-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: toEmail, subject, html: email.html, text: email.text, mentorName: group.mentorName }),
+      });
+      const d = await r.json();
+      if (!r.ok || d.error) throw new Error(d.error || "Send failed");
+      setSent(true);
+      onSent(group.mentorName);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 1000,
+      display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+      fontFamily: "Inter, system-ui, sans-serif",
+    }}>
+      <div style={{
+        background: "#fff", borderRadius: 16, padding: "28px 32px", maxWidth: 680, width: "100%",
+        maxHeight: "90vh", overflowY: "auto", boxShadow: "0 24px 60px rgba(0,0,0,0.25)",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 }}>
+          <div>
+            <p style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 800, color: "#1a1733" }}>
+              📨 Follow-up to {group.mentorName}
+            </p>
+            <p style={{ margin: 0, fontSize: 12, color: "#9b8fcf" }}>
+              To: {toEmail} · Subject: {subject}
+            </p>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "#9b8fcf", padding: "0 4px" }}>✕</button>
+        </div>
+
+        <div style={{ background: "#f8f6ff", border: "1px solid #e0d9f8", borderRadius: 10, padding: "18px 20px", marginBottom: 20 }}>
+          <div dangerouslySetInnerHTML={{ __html: email.html }} />
+        </div>
+
+        {sent ? (
+          <div style={{ background: "#f0faf4", border: "1.5px solid #b8e8d0", borderRadius: 10, padding: "16px 20px", textAlign: "center" }}>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#1a6e42" }}>✅ Follow-up sent to {group.mentorName}!</p>
+          </div>
+        ) : (
+          <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+            <button onClick={onClose} style={{ background: "#f3f0ff", color: "#5c4eb5", border: "1.5px solid #c4b8f0", borderRadius: 8, padding: "10px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+              Cancel
+            </button>
+            <button onClick={handleSend} disabled={sending} style={{ background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)", color: "#fff", border: "none", borderRadius: 8, padding: "10px 28px", fontSize: 13, fontWeight: 700, cursor: sending ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: sending ? 0.7 : 1 }}>
+              {sending ? "Sending…" : "✉️ Send Follow-up"}
+            </button>
+          </div>
+        )}
+        {error && <p style={{ margin: "10px 0 0", fontSize: 12, color: "#e74c3c", textAlign: "right" }}>{error}</p>}
+      </div>
+    </div>
+  );
+}
+
+function PendingFollowUp() {
+  const [groups, setGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [draftGroup, setDraftGroup] = useState(null);
+  const [sentGroups, setSentGroups] = useState({});
+
+  useEffect(() => {
+    fetch("/api/admin/pending-assignments")
+      .then(r => r.json())
+      .then(d => { setGroups(d.sent || []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const markSent = (mentorName) => setSentGroups(s => ({ ...s, [mentorName]: true }));
+  const pending = groups.filter(g => !sentGroups[g.mentorName]);
+  const done = groups.filter(g => sentGroups[g.mentorName]);
+
+  if (loading) return <div style={{ padding: 48, textAlign: "center", color: "#9b8fcf", fontFamily: "Inter, system-ui, sans-serif" }}>Loading…</div>;
+
+  return (
+    <div style={{ padding: "32px 40px", fontFamily: "Inter, system-ui, sans-serif", maxWidth: 860, margin: "0 auto" }}>
+      {draftGroup && (
+        <FollowUpDraftModal group={draftGroup} onClose={() => setDraftGroup(null)} onSent={(name) => { markSent(name); setDraftGroup(null); }} />
+      )}
+
+      <div style={{ marginBottom: 28 }}>
+        <p style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: "#1a1733" }}>📨 Pending Confirmation</p>
+        <p style={{ margin: 0, fontSize: 14, color: "#9b8fcf" }}>
+          {pending.length} mentor{pending.length !== 1 ? "s" : ""} sent a match email but haven't confirmed yet. Review and send each follow-up individually.
+        </p>
+        {done.length > 0 && (
+          <p style={{ margin: "8px 0 0", fontSize: 13, color: "#1a6e42", fontWeight: 600 }}>✓ {done.length} follow-up{done.length !== 1 ? "s" : ""} sent this session</p>
+        )}
+      </div>
+
+      {pending.length === 0 && (
+        <div style={{ background: "#f0faf4", border: "1.5px solid #b8e8d0", borderRadius: 14, padding: "32px", textAlign: "center" }}>
+          <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 700, color: "#1a6e42" }}>🎉 All mentors accounted for!</p>
+          <p style={{ margin: 0, fontSize: 13, color: "#3a8e5e" }}>No follow-ups needed right now.</p>
+        </div>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {pending.map((g, i) => (
+          <div key={i} style={{ background: "#fff", border: "1.5px solid #f5d9a0", borderRadius: 14, padding: "20px 24px", boxShadow: "0 1px 4px rgba(179,92,0,0.06)" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ background: "#1a1733", borderRadius: 8, padding: "6px 14px", display: "inline-block" }}>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#fff" }}>🎓 {g.mentorName}</p>
+                </div>
+                {g.mentorEmail && <p style={{ margin: "6px 0 0", fontSize: 12, color: "#9b8fcf" }}>{g.mentorEmail}</p>}
+              </div>
+              <button
+                onClick={() => setDraftGroup(g)}
+                style={{ background: "linear-gradient(135deg, #b35c00, #7a3e00)", color: "#fff", border: "none", borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", flexShrink: 0, display: "flex", alignItems: "center", gap: 7 }}
+              >
+                📨 Review &amp; Send Follow-up
+              </button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {g.mentees.map((m, j) => (
+                <div key={j} style={{ background: "#fffbf0", border: "1px solid #f5d9a0", borderRadius: 10, padding: "12px 16px" }}>
+                  <p style={{ margin: "0 0 5px", fontSize: 13, fontWeight: 700, color: "#b35c00" }}>
+                    👤 {m.name || m.slug}{m.company ? ` — ${m.company}` : ""}
+                  </p>
+                  <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+                    {m.stage && <span style={{ fontSize: 11, color: "#6b6480" }}><strong>Stage:</strong> {m.stage}</span>}
+                    {m.industry && <span style={{ fontSize: 11, color: "#6b6480" }}><strong>Industry:</strong> {m.industry}</span>}
+                  </div>
+                  {m.primaryFocus && <p style={{ margin: "5px 0 0", fontSize: 11, color: "#6b6480" }}><strong>Needs:</strong> {m.primaryFocus}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -4930,6 +5357,7 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
   const [mentorNotes, setMentorNotes] = useState({});
   const [loading, setLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState([]);
+  const [followUpDraft, setFollowUpDraft] = useState(null);
 
   const toggleFilter = key => {
     if (key === "all") { setActiveFilters([]); return; }
@@ -4940,6 +5368,7 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
 
   const [pendingByMentor, setPendingByMentor] = useState({});
   const [sentByMentor, setSentByMentor] = useState({});
+  const [sentByMentorEmail, setSentByMentorEmail] = useState({});
   const [sentSectionOpen, setSentSectionOpen] = useState(false);
 
   useEffect(() => {
@@ -4960,10 +5389,14 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
       }
       setPendingByMentor(pbm);
       const sbm = {};
+      const sbmEmail = {};
       for (const g of (pendingData.sent || [])) {
-        sbm[g.mentorName] = (g.mentees || []).map(m => ({ name: m.name, slug: m.slug }));
+        const menteeList = (g.mentees || []).map(m => ({ name: m.name, slug: m.slug }));
+        sbm[g.mentorName] = menteeList;
+        if (g.mentorEmail) sbmEmail[g.mentorEmail.toLowerCase()] = menteeList;
       }
       setSentByMentor(sbm);
+      setSentByMentorEmail(sbmEmail);
 
       // Merge MENTEES-assigned mentors with unmatched Typeform applicants
       const assigned = selData.mentors || [];
@@ -5024,6 +5457,7 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
     .map(m => {
       const resp = responseByMentor[m.name];
       const pendingMentees = pendingByMentor[m.name] || null;
+      const sentMentees = sentByMentor[m.name] || (m.email && sentByMentorEmail[m.email.toLowerCase()]) || null;
       const hasPendingAssignment = !!(pendingMentees && pendingMentees.length > 0);
       if (resp) {
         const opts = resp.options || [];
@@ -5033,7 +5467,7 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
         const allDeclined = opts.length > 0 && declined.length === opts.length;
         // Exclude churned mentees from active match count so mentor re-enters "Needs a Mentee"
         const activeConfirmed = confirmed.filter(o => !menteeStatusBySlug[o.slug]?.churned);
-        return { ...resp, opts: visibleOpts, allOpts: opts, matchCount: activeConfirmed.length, needsMentee: activeConfirmed.length === 0, allDeclined, isPending: false, pendingMentees, hasPendingAssignment };
+        return { ...resp, opts: visibleOpts, allOpts: opts, matchCount: activeConfirmed.length, needsMentee: activeConfirmed.length === 0, allDeclined, isPending: false, pendingMentees, hasPendingAssignment, sentMentees };
       }
       // No email response yet — applicants from Typeform not yet emailed show as Needs a Mentee
       return {
@@ -5041,7 +5475,7 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
         opts: [], allOpts: [], matchCount: 0, needsMentee: true, allDeclined: false,
         isPending: !m.isApplicant,
         isApplicant: m.isApplicant || false,
-        pendingMentees, hasPendingAssignment,
+        pendingMentees, hasPendingAssignment, sentMentees,
       };
     });
 
@@ -5054,13 +5488,20 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
     });
   };
 
+  // effectiveCount: use email-confirmed count if available, else fall back to sheet-assigned (sent/confirmed rows)
+  const effectiveMatchCount = r => {
+    const mc = r.matchCount || 0;
+    const sc = (r.sentMentees || []).length;
+    return mc > 0 ? mc : sc;
+  };
+
   const FILTERS = [
     { key: "all",            label: "All",                          match: () => true },
-    { key: "two",            label: "2 Mentees",                   match: r => r.matchCount === 2 },
-    { key: "one",            label: "1 Mentee",                    match: r => r.matchCount === 1 },
-    { key: "none",           label: "Needs a Mentee",              match: r => (r.needsMentee && !r.isPending && !r.allDeclined) || r.isApplicant },
+    { key: "two",            label: "2 Mentees",                   match: r => effectiveMatchCount(r) === 2 },
+    { key: "one",            label: "1 Mentee",                    match: r => effectiveMatchCount(r) === 1 },
+    { key: "none",           label: "Needs a Mentee",              match: r => effectiveMatchCount(r) === 0 && !r.allDeclined && !(r.isPending && (r.sentMentees?.length > 0 || r.opts?.length > 0)) },
     { key: "rematch",        label: "Needs Rematch",               match: r => r.allDeclined },
-    { key: "pending",        label: "Pending",                     match: r => r.isPending },
+    { key: "pending",        label: "Pending",                     match: r => r.isPending && (r.sentMentees?.length > 0 || r.opts?.length > 0) },
     { key: "mentee-pending", label: "Mentee Not Yet Confirmed",    match: mentorConfirmedMenteePending },
   ];
 
@@ -5112,6 +5553,13 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px", fontFamily: "Inter, system-ui, sans-serif" }}>
+      {followUpDraft && (
+        <FollowUpDraftModal
+          group={followUpDraft}
+          onClose={() => setFollowUpDraft(null)}
+          onSent={() => setFollowUpDraft(null)}
+        />
+      )}
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 4, flexWrap: "wrap" }}>
         <p style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Mentors</p>
@@ -5126,7 +5574,8 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
               const o1 = r.allOpts?.[0];
               const o2 = r.allOpts?.[1];
               const mc = r.matchCount;
-              const statusLabel = r.isPending ? "Pending" : r.allDeclined ? "Needs Rematch" : mc === 0 ? "Needs a Mentee" : mc === 1 ? "1 Mentee" : "2 Mentees";
+              const emc = effectiveMatchCount(r);
+              const statusLabel = r.isPending ? "Pending" : r.allDeclined ? "Needs Rematch" : emc === 0 ? "Needs a Mentee" : emc === 1 ? "1 Mentee" : "2 Mentees";
               const mk = r.mentor.email || r.mentor.name;
               const s1 = o1 ? (sessions[`${mk}|${o1.slug}`] ?? 0) : "";
               const s2 = o2 ? (sessions[`${mk}|${o2.slug}`] ?? 0) : "";
@@ -5228,18 +5677,24 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
               No mentors match this filter.
             </div>
           ) : visible.map((r, i) => {
-            // For pending rows with no email thread, use pendingMentees as the display opts
+            // For pending/sent rows with no email thread, use pendingMentees or sentMentees as display opts
             const displayOpts = r.opts.length > 0 ? r.opts
-              : (r.pendingMentees || []).map(pm => ({ slug: pm.slug, name: pm.name, company: "", industry: "", stage: "" }));
+              : (r.pendingMentees || r.sentMentees || []).map(pm => ({ slug: pm.slug, name: pm.name, company: "", industry: "", stage: "" }));
             const opt1 = displayOpts[0] || null;
             const opt2 = displayOpts[1] || null;
 
             // match badge
             const total = r.opts.length;
             const mc = r.matchCount;
-            const badgeLabel = r.hasPendingAssignment && mc === 0 ? "Needs to Send" : r.isPending ? "No Reply Yet" : r.isApplicant ? "Needs a Mentee" : r.allDeclined ? "Needs Rematch" : mc === 0 ? "Needs a Mentee" : mc === 1 ? "1 Mentee" : "2 Mentees";
-            const badgeColor = r.hasPendingAssignment && mc === 0 ? "#0e7c6b" : r.isPending ? "#6b6480" : r.isApplicant ? "#b35c00" : r.allDeclined ? "#c0392b" : mc === 0 ? "#b35c00" : mc === 2 ? "#1a6e42" : "#5c4eb5";
-            const badgeBg    = r.hasPendingAssignment && mc === 0 ? "#e8faf7" : r.isPending ? "#f0eef8" : r.isApplicant ? "#fff3e0" : r.allDeclined ? "#fdf0f0" : mc === 0 ? "#fff3e0" : mc === 2 ? "#e8f8f0" : "#f0ecff";
+            const hasSentMentees = !!(r.sentMentees && r.sentMentees.length > 0);
+            const sentMenteeCount = (r.sentMentees || []).length;
+            // Effective count: prefer email-system confirmed count, fall back to sheet-confirmed count
+            const effectiveCount = mc > 0 ? mc : sentMenteeCount;
+            // isPending with no offered mentees = truly unmatched, show Needs a Mentee not No Reply Yet
+            const hasAnyMentees = hasSentMentees || r.opts.length > 0;
+            const badgeLabel = r.hasPendingAssignment && mc === 0 && !hasSentMentees ? "Needs to Send" : hasSentMentees && r.isPending ? "Awaiting Reply" : r.isPending && hasAnyMentees ? "No Reply Yet" : r.allDeclined ? "Needs Rematch" : effectiveCount === 0 ? "Needs a Mentee" : effectiveCount === 1 ? "1 Mentee" : "2 Mentees";
+            const badgeColor = r.hasPendingAssignment && mc === 0 && !hasSentMentees ? "#0e7c6b" : hasSentMentees && r.isPending ? "#1a6e42" : r.isPending && hasAnyMentees ? "#6b6480" : r.allDeclined ? "#c0392b" : effectiveCount === 0 ? "#b35c00" : effectiveCount === 2 ? "#1a6e42" : "#5c4eb5";
+            const badgeBg    = r.hasPendingAssignment && mc === 0 && !hasSentMentees ? "#e8faf7" : hasSentMentees && r.isPending ? "#e8f8f0" : r.isPending && hasAnyMentees ? "#f0eef8" : r.allDeclined ? "#fdf0f0" : effectiveCount === 0 ? "#fff3e0" : effectiveCount === 2 ? "#e8f8f0" : "#f0ecff";
 
             const mentorKey = r.mentor.email || r.mentor.name;
             const sk1 = opt1 ? `${mentorKey}|${opt1.slug}` : null;
@@ -5312,6 +5767,26 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
                 {/* Notes */}
                 <div style={{ minWidth: 0 }}>
                   <MentorNote mentorKey={mentorKey} initialValue={mentorNotes[mentorKey] || ""} />
+                  {hasSentMentees && r.isPending && (
+                    <button
+                      onClick={() => setFollowUpDraft({
+                        mentorName: r.mentor.name,
+                        mentorEmail: r.mentor.email,
+                        mentees: (r.sentMentees || []).map(m => ({
+                          name: m.name, slug: m.slug,
+                          company: m.company || "", stage: m.stage || "", industry: m.industry || "",
+                        })),
+                      })}
+                      style={{
+                        marginTop: 8, fontSize: 11, fontWeight: 700, padding: "5px 12px",
+                        borderRadius: 8, border: "1.5px solid #f5a623", background: "#fff8ee",
+                        color: "#b35c00", cursor: "pointer", fontFamily: "inherit",
+                        display: "flex", alignItems: "center", gap: 5,
+                      }}
+                    >
+                      📨 Send Follow-up
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -5336,40 +5811,6 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
           })}
         </div>
 
-        {/* ── Already Sent collapsible ── */}
-        {Object.keys(sentByMentor).length > 0 && (
-          <div style={{ marginTop: 24, border: "1px solid #d4edda", borderRadius: 12, overflow: "hidden" }}>
-            <button
-              onClick={() => setSentSectionOpen(o => !o)}
-              style={{
-                width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "12px 20px", background: "#f0faf4", border: "none", cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#1a6e42" }}>
-                ✅ Already Sent — {Object.keys(sentByMentor).length} mentor{Object.keys(sentByMentor).length !== 1 ? "s" : ""} · awaiting their response
-              </span>
-              <span style={{ fontSize: 16, color: "#1a6e42" }}>{sentSectionOpen ? "▲" : "▼"}</span>
-            </button>
-            {sentSectionOpen && (
-              <div style={{ background: "#fff", padding: "12px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
-                {Object.entries(sentByMentor).map(([mentorName, mentees]) => (
-                  <div key={mentorName} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "8px 0", borderBottom: "1px solid #f0f0f0" }}>
-                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733", minWidth: 180 }}>{mentorName}</p>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                      {mentees.map(pm => (
-                        <span key={pm.slug} style={{ fontSize: 12, fontWeight: 600, color: "#1a6e42", background: "#e8f8f0", border: "1px solid #9edbb8", borderRadius: 6, padding: "2px 10px" }}>
-                          {pm.name || pm.slug}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
@@ -5402,13 +5843,15 @@ function MentorEmailResponses({ confirmations = {}, onConfirmationChange }) {
 
   const FILTERS = [
     { key: "all",        label: "All",               match: () => true },
-    { key: "unreviewed", label: "Not Reviewed Yet",  match: isNotReviewed },
+    { key: "unreviewed", label: "Not Reviewed Yet",  match: r => !r.noReply && isNotReviewed(r) },
     { key: "declined",   label: "Declined Both Matches",  match: hasDeclined },
+    { key: "no-reply",   label: "No Reply",          match: r => !!r.noReply },
   ];
 
   const visible = responses.filter(FILTERS.find(f => f.key === filter)?.match || (() => true));
 
-  const sentimentColor = (selected) => {
+  const sentimentColor = (selected, noReply) => {
+    if (noReply) return { bg: "#fefce8", border: "#fde047", badge: "#ca8a04", badgeText: "#fff", label: "No Reply" };
     if (!selected) return { bg: "#fef2f2", border: "#fca5a5", badge: "#ef4444", badgeText: "#fff", label: "Declined" };
     if (selected === "Both") return { bg: "#f0fdf4", border: "#86efac", badge: "#22c55e", badgeText: "#fff", label: "Both" };
     return { bg: "#f0f9ff", border: "#7dd3fc", badge: "#3b82f6", badgeText: "#fff", label: "1 of 2" };
@@ -5455,12 +5898,12 @@ function MentorEmailResponses({ confirmations = {}, onConfirmationChange }) {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {visible.map(r => {
-          const { bg, border, badge, badgeText, label } = sentimentColor(r.selected);
+          const { bg, border, badge, badgeText, label } = sentimentColor(r.selected, r.noReply);
           return (
             <div key={r.threadId} style={{ background: "#fff", border: `1.5px solid ${border}`, borderRadius: 12, padding: "20px 24px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
               {/* Header row */}
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#ede9fe", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16, color: "#7c3aed", flexShrink: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: r.noReply ? 0 : 16 }}>
+                <div style={{ width: 40, height: 40, borderRadius: "50%", background: r.noReply ? "#fef9c3" : "#ede9fe", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16, color: r.noReply ? "#92400e" : "#7c3aed", flexShrink: 0 }}>
                   {r.mentor.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
                 </div>
                 <div style={{ flex: 1 }}>
@@ -5469,12 +5912,12 @@ function MentorEmailResponses({ confirmations = {}, onConfirmationChange }) {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ background: badge, color: badgeText, fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20 }}>{label}</span>
-                  <span style={{ fontSize: 12, color: "#9ca3af" }}>{r.replyDate}</span>
+                  {r.replyDate && <span style={{ fontSize: 12, color: "#9ca3af" }}>{r.replyDate}</span>}
                 </div>
               </div>
 
               {/* Options */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+              {!r.noReply && <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
                 {r.options.map((opt, i) => {
                   const chosen = r.selected === "Both" || r.selected === opt.name;
                   const ck = confKey(r.threadId, opt.slug);
@@ -5521,12 +5964,12 @@ function MentorEmailResponses({ confirmations = {}, onConfirmationChange }) {
                     </div>
                   );
                 })}
-              </div>
+              </div>}
 
               {/* Reply */}
-              <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderLeft: "3px solid #7c3aed", borderRadius: "0 6px 6px 0", padding: "12px 16px", fontSize: 13, color: "#374151", lineHeight: 1.6, fontStyle: "italic" }}>
+              {r.reply && <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderLeft: "3px solid #7c3aed", borderRadius: "0 6px 6px 0", padding: "12px 16px", fontSize: 13, color: "#374151", lineHeight: 1.6, fontStyle: "italic" }}>
                 "{r.reply}"
-              </div>
+              </div>}
             </div>
           );
         })}
