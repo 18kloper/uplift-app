@@ -76,10 +76,10 @@ export function renderHoldingHTML(first) {
     <!-- Main message -->
     <div style="background:#f5f3ff;border:1.5px solid #d4d0e8;border-radius:12px;padding:22px 24px;margin-bottom:24px">
       <p style="font-size:14px;color:#3d2f8a;line-height:1.75;margin-bottom:12px">
-        We sincerely apologize for the delay — we know this isn't the timeline you were expecting. We have identified your mentor and your pairing has been approved. We are simply waiting on their final acceptance before making the introduction official.
+        We have identified your mentor and your pairing has been approved — we are simply waiting on their final acceptance before making the introduction official.
       </p>
       <p style="font-size:14px;color:#3d2f8a;line-height:1.75;margin-bottom:12px">
-        We take matching seriously at Uplift. That means finding someone who is not just qualified, but equally engaged and genuinely invested in your success — and that process takes a little extra care.
+        We know this is taking a little longer than expected, and we appreciate your patience. Matching at Uplift means finding someone who is not just qualified, but equally engaged and genuinely invested in your success — and that takes a little extra care to get right.
       </p>
       <p style="font-size:14px;color:#3d2f8a;line-height:1.75">
         We are aiming to have everything finalized by <strong>end of day tomorrow</strong>. Your meeting cadence will be adjusted in the portal so you won't lose any time in the program.
