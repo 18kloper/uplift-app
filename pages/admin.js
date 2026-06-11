@@ -3077,10 +3077,11 @@ export default function AdminPage() {
       { key: "matches", label: "Mentors" },
     ]},
     { key: "matching",   label: "Matching",   tabs: [
-      { key: "matching",     label: "Matching" },
-      { key: "match-status", label: "Match Status" },
-      { key: "need-to-send", label: "Need to Send" },
-      { key: "emails",       label: "Confirmations" },
+      { key: "matching",        label: "Matching" },
+      { key: "match-status",    label: "Match Status" },
+      { key: "need-to-send",    label: "Need to Send" },
+      { key: "emails",          label: "Confirmations" },
+      { key: "non-responsive",  label: "Non-Responsive" },
     ]},
     { key: "engagement", label: "Engagement", tabs: [
       { key: "luma",        label: "Attendance" },
@@ -3190,8 +3191,9 @@ export default function AdminPage() {
           {adminTab === "pulse"       && <PulseReport />}
           {adminTab === "matches"     && <MentorMatches confirmations={mentorConfirmations} sessions={mentorSessions} onSessionChange={handleMentorSessionChange} mentees={data?.mentees || []} nonResponsiveMentorEmails={nonResponsiveMentorEmails} />}
           {adminTab === "matching"    && <MatchingDashboard confirmations={mentorConfirmations} mentees={data?.mentees || []} />}
-          {adminTab === "need-to-send" && <NeedToSend />}
-          {adminTab === "emails"      && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} />}
+          {adminTab === "need-to-send"   && <NeedToSend />}
+          {adminTab === "emails"         && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} />}
+          {adminTab === "non-responsive" && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} defaultFilter="no-reply" />}
           {adminTab === "luma"        && <LumaAttendance mentees={data?.mentees || []} />}
         </>
         )}
@@ -5862,11 +5864,11 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
 }
 
 // ─── Mentor Email Responses view ──────────────────────────────────────────────
-function MentorEmailResponses({ confirmations = {}, onConfirmationChange }) {
+function MentorEmailResponses({ confirmations = {}, onConfirmationChange, defaultFilter = "all" }) {
   const [responses, setResponses] = useState([]);
   const [lastRefreshed, setLastRefreshed] = useState("");
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState(defaultFilter);
 
   useEffect(() => {
     fetch("/api/mentor-email-responses")

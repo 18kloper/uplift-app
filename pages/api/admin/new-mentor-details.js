@@ -72,6 +72,10 @@ export default async function handler(req, res) {
   const existingEmails = new Set(MENTEES.map(m => norm(m.mentor?.email)).filter(Boolean));
   const existingNames  = new Set(MENTEES.map(m => norm(m.mentor?.name)).filter(Boolean));
 
+  // Blocklist — fake/spam applicants to exclude permanently
+  const BLOCKED_EMAILS = new Set(["oigynn@example.com", "rn12il@example.com"]);
+  const BLOCKED_NAMES  = new Set(["isabella richardson", "sophia chen"]);
+
   const seen = new Set();
   const newMentors = [];
 
@@ -84,6 +88,7 @@ export default async function handler(req, res) {
     const nameKey = norm(name);
 
     if (!name) continue;
+    if (BLOCKED_EMAILS.has(email) || BLOCKED_NAMES.has(nameKey)) continue;
     if (existingEmails.has(email) || existingNames.has(nameKey)) continue;
     const dedupeKey = email || nameKey;
     if (seen.has(dedupeKey)) continue;
