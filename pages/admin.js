@@ -5493,15 +5493,16 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
     });
   };
 
-  // Build direct assignment count from mentees.js data (for mentors matched outside email flow)
+  // Build direct assignment count from admin-data mentees (mentorName / mentorEmail flat fields)
   const directCountByMentor = {};
   for (const m of mentees) {
-    if (m.mentor?.name && m.status !== "churned") {
-      const key = m.mentor.name.toLowerCase().trim();
+    if (m.status === "churned") continue;
+    if (m.mentorName) {
+      const key = m.mentorName.toLowerCase().trim();
       directCountByMentor[key] = (directCountByMentor[key] || 0) + 1;
     }
-    if (m.mentor?.email && m.status !== "churned") {
-      const ekey = m.mentor.email.toLowerCase().trim();
+    if (m.mentorEmail) {
+      const ekey = m.mentorEmail.toLowerCase().trim();
       directCountByMentor[ekey] = (directCountByMentor[ekey] || 0) + 1;
     }
   }
