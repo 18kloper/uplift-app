@@ -3813,6 +3813,14 @@ function MatchingDashboard({ confirmations = {}, mentees = [], nonResponsiveMent
     mentorsNeedingMentee.push({ name: m.name, email: m.email, company: m.company, title: m.title, industry: m.industry, focus: m.focus, label: "New Applicant" });
   }
 
+  // Mentors with no suitable match in current pool
+  const NO_MATCH_EMAILS = new Set(["dgura@hugoneu.com"]);
+  for (const m of mentorsNeedingMentee) {
+    if (NO_MATCH_EMAILS.has((m.email || "").toLowerCase())) {
+      m.label = "No Match Available";
+    }
+  }
+
   // Hide mentors that already have sheet-assigned mentees (selectedMentor) OR were approved this session
   const visibleMentorsNeedingMentee = mentorsNeedingMentee.filter(
     m => !approvedMentorNames.has(m.name) && !mentorsWithSheetAssignment.has(m.name)
@@ -3945,6 +3953,7 @@ function MatchingDashboard({ confirmations = {}, mentees = [], nonResponsiveMent
             { key: "Needs a Mentee",           color: "#5c4eb5", bg: "#f3f0ff", border: "#d4d0e8" },
             { key: "Non-Responsive",           color: "#92400e", bg: "#fff8f0", border: "#fcd34d" },
             { key: "Mentee Unresponsive",      color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
+            { key: "No Match Available",       color: "#6b6480", bg: "#f5f4f9", border: "#c4c0d8" },
           ];
           const toggleMentor = (key) => setMentorFilters(prev => {
             const next = new Set(prev);
@@ -3957,6 +3966,7 @@ function MatchingDashboard({ confirmations = {}, mentees = [], nonResponsiveMent
             "Non-Responsive":           { color: "#92400e", bg: "#fff8f0", border: "#fcd34d" },
             "Needs a Mentee":           { color: "#5c4eb5", bg: "#f3f0ff", border: "#d4d0e8" },
             "Mentee Unresponsive":      { color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
+            "No Match Available":       { color: "#6b6480", bg: "#f5f4f9", border: "#c4c0d8" },
           };
           return (
             <div>
