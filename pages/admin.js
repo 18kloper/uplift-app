@@ -5547,10 +5547,25 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
         const activeConfirmed = confirmed.filter(o => !menteeStatusBySlug[o.slug]?.churned);
         return { ...resp, opts: visibleOpts, allOpts: opts, matchCount: activeConfirmed.length, needsMentee: activeConfirmed.length === 0, allDeclined, isPending: false, pendingMentees, hasPendingAssignment, sentMentees };
       }
-      // No email response yet — applicants from Typeform not yet emailed show as Needs a Mentee
+      // No email response yet — check sheet confirmations for admin-assigned matches
+      const sheetConfirmed = Object.entries(confirmations)
+        .filter(([k, v]) => v === "confirmed" && k.includes("|"))
+        .map(([k]) => k.split("|")[1])
+        .filter(Boolean);
+      const adminMatchCount = sheetConfirmed.filter(slug => {
+        // Find if this mentor is assigned to this slug via confirmations key format threadId|slug
+        return Object.entries(confirmations).some(([k, v]) => {
+          if (v !== "confirmed" || !k.includes("|")) return false;
+          const slugPart = k.split("|")[1];
+          // Check if any confirmation key for this slug maps to this mentor via mentees list
+          const menteeObj = mentees.find(me => me.slug === slugPart);
+          return menteeObj?.mentor?.email?.toLowerCase() === (m.email || "").toLowerCase();
+        });
+      }).length;
+      const effectiveMatchCount = adminMatchCount;
       return {
         threadId: null, mentor: { name: m.name, email: m.email || "" },
-        opts: [], allOpts: [], matchCount: 0, needsMentee: true, allDeclined: false,
+        opts: [], allOpts: [], matchCount: effectiveMatchCount, needsMentee: effectiveMatchCount === 0, allDeclined: false,
         isPending: !m.isApplicant,
         isApplicant: m.isApplicant || false,
         pendingMentees, hasPendingAssignment, sentMentees,
