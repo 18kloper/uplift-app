@@ -46,7 +46,7 @@ export function renderHoldingHTML(first) {
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>A Quick Update from Uplift</title>
+  <title>Your match is still in progress — a note from Uplift</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -64,9 +64,9 @@ export function renderHoldingHTML(first) {
   <!-- Hero -->
   <div style="background:linear-gradient(135deg,#5c4eb5 0%,#3d2f8a 100%);padding:46px 40px 40px;text-align:center">
     <div style="display:inline-block;background:rgba(255,255,255,0.15);color:#e8e4f5;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:5px 14px;border-radius:100px;margin-bottom:18px;border:1px solid rgba(255,255,255,0.2)">✦ Match Update</div>
-    <h1 style="font-size:30px;font-weight:700;color:#fff;line-height:1.2;letter-spacing:-0.5px;margin-bottom:14px">Your mentor has been selected!</h1>
+    <h1 style="font-size:30px;font-weight:700;color:#fff;line-height:1.2;letter-spacing:-0.5px;margin-bottom:14px">Your match is still in progress</h1>
     <p style="font-size:15px;color:rgba(232,228,245,0.9);line-height:1.65;max-width:460px;margin:0 auto">
-      Hi ${esc(first)}, we're just waiting on their final confirmation. Here's what to expect.
+      Hi ${esc(first)}, we know you were expecting to hear from us by now — we appreciate your patience and want to give you a quick update.
     </p>
   </div>
 
@@ -76,10 +76,13 @@ export function renderHoldingHTML(first) {
     <!-- Main message -->
     <div style="background:#f5f3ff;border:1.5px solid #d4d0e8;border-radius:12px;padding:22px 24px;margin-bottom:24px">
       <p style="font-size:14px;color:#3d2f8a;line-height:1.75;margin-bottom:12px">
-        We have found your match and your pairing has been approved — we are simply waiting for them to accept the introduction. We take matching seriously at Uplift, and we want to make sure we get it right. That means finding someone who is not just qualified, but equally engaged and genuinely invested in your success.
+        We sincerely apologize for the delay — we know this isn't the timeline you were expecting. We have identified your mentor and your pairing has been approved. We are simply waiting on their final acceptance before making the introduction official.
+      </p>
+      <p style="font-size:14px;color:#3d2f8a;line-height:1.75;margin-bottom:12px">
+        We take matching seriously at Uplift. That means finding someone who is not just qualified, but equally engaged and genuinely invested in your success — and that process takes a little extra care.
       </p>
       <p style="font-size:14px;color:#3d2f8a;line-height:1.75">
-        We are aiming to have everything finalized by <strong>end of day tomorrow</strong>. Your meeting cadence will be adjusted in the portal accordingly so you won't lose any time in the program.
+        We are aiming to have everything finalized by <strong>end of day tomorrow</strong>. Your meeting cadence will be adjusted in the portal so you won't lose any time in the program.
       </p>
     </div>
 
