@@ -454,6 +454,18 @@ const RESPONSES = [
     selected: "Britney Medich",
   },
 
+  {
+    threadId: "admin-confirmed-joe-maruschak",
+    mentor: { name: "Joe Maruschak", email: "joe.maruschak@gmail.com" },
+    replyDate: "2026-06-08",
+    reply: "Confirmed both matches.",
+    options: [
+      { name: "Daniel Patton", company: "DreamEngine AI", slug: "daniel-patton", stage: "MVP / Early build", industry: "AI / Data / ML", needs: "Fundraising strategy & investor readiness" },
+      { name: "Jimmy Bastien", company: "Bastien Guitars", slug: "jimmy-bastien", stage: "Early traction", industry: "Retail / Marketplace / E-commerce", needs: "Fundraising strategy & investor readiness" },
+    ],
+    selected: "Both",
+  },
+
   // ─── Non-responsive mentors (no reply received) ───────────────────────────────
 
   {
