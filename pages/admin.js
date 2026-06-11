@@ -5468,7 +5468,7 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
         const opts = resp.options || [];
         const confirmed = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] === "confirmed");
         const declined  = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] === "declined");
-        const visibleOpts = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] !== "declined");
+        const visibleOpts = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] !== "declined" && !menteeStatusBySlug[o.slug]?.churned);
         const allDeclined = opts.length > 0 && declined.length === opts.length;
         // Exclude churned mentees from active match count so mentor re-enters "Needs a Mentee"
         const activeConfirmed = confirmed.filter(o => !menteeStatusBySlug[o.slug]?.churned);
