@@ -61,7 +61,15 @@ async function fetchLinkedInPhoto(linkedinUrl) {
     // Try og:image first
     const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
       || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-    if (ogMatch?.[1]) return ogMatch[1];
+    if (ogMatch?.[1]) {
+      // Verify the photo URL is actually embeddable (not behind auth/CDN block)
+      try {
+        const imgRes = await fetch(ogMatch[1], { method: "HEAD", redirect: "follow" });
+        if (imgRes.ok && imgRes.headers.get("content-type")?.startsWith("image/")) {
+          return ogMatch[1];
+        }
+      } catch { /* not embeddable */ }
+    }
     return "";
   } catch {
     return "";
