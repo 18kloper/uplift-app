@@ -2227,7 +2227,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
               desc: `of ${activeMentees.length} active participants`,
             },
             {
-              label: "Match Distributed",
+              label: "Mentor Reveal Sent",
               value: realMentees.filter(m => m.milestones?.mentorMatched).length,
               total: activeMentees.length,
               color: "#0e7c6b", bg: "linear-gradient(135deg, #e0faf5 0%, #c0f0e8 100%)",
