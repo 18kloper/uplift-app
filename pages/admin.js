@@ -5633,7 +5633,7 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 4, flexWrap: "wrap" }}>
         <p style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Mentors</p>
         <span style={{ fontSize: 13, color: "#9b8fcf", flex: 1 }}>
-          {rows.length} mentors · {rows.reduce((s, r) => s + r.matchCount, 0)} confirmed · {rows.filter(r => r.isPending).length} pending
+          {rows.length} mentors · {rows.reduce((s, r) => s + r.matchCount, 0)} active matches · {rows.filter(r => r.needsMentee).length} need a mentee
         </span>
         <button
           onClick={() => {
