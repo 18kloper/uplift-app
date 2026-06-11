@@ -3190,7 +3190,7 @@ export default function AdminPage() {
           {adminTab === "connections" && <PeerConnections />}
           {adminTab === "pulse"       && <PulseReport />}
           {adminTab === "matches"     && <MentorMatches confirmations={mentorConfirmations} sessions={mentorSessions} onSessionChange={handleMentorSessionChange} mentees={data?.mentees || []} nonResponsiveMentorEmails={nonResponsiveMentorEmails} />}
-          {adminTab === "matching"    && <MatchingDashboard confirmations={mentorConfirmations} mentees={data?.mentees || []} nonResponsiveMentorEmails={nonResponsiveMentorEmails} />}
+          {adminTab === "matching"    && <MatchingDashboard confirmations={mentorConfirmations} mentees={data?.mentees || []} nonResponsiveMentorEmails={nonResponsiveMentorEmails} allMentors={allMentors} />}
           {adminTab === "need-to-send"   && <NeedToSend />}
           {adminTab === "emails"         && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} />}
           {adminTab === "non-responsive" && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} defaultFilter="no-reply" />}
@@ -3556,7 +3556,7 @@ function LumaAttendance({ mentees = [] }) {
 }
 
 // ─── Matching Dashboard view ──────────────────────────────────────────────────
-function MatchingDashboard({ confirmations = {}, mentees = [], nonResponsiveMentorEmails = new Set() }) {
+function MatchingDashboard({ confirmations = {}, mentees = [], nonResponsiveMentorEmails = new Set(), allMentors = [] }) {
   const [selData, setSelData]     = useState(null);
   const [responses, setResponses] = useState([]);
   const [newMentors, setNewMentors] = useState([]);
@@ -3652,6 +3652,14 @@ function MatchingDashboard({ confirmations = {}, mentees = [], nonResponsiveMent
 
   const isConfirmed = s => confirmedParticipantSlugs.has(s.slug);
 
+  // Slugs that have a "confirmed" status in the Mentor Confirmations sheet — never show these as needing a match
+  const sheetConfirmedSlugs = new Set(
+    Object.entries(confirmations)
+      .filter(([, v]) => v === "confirmed")
+      .map(([k]) => k.split("|")[1])
+      .filter(Boolean)
+  );
+
   const TEST_SLUGS_MD = new Set(["kennedy", "jackie", "aaron", "mj"]);
 
   // Build a per-mentee-slug confirmation status map from email threads
@@ -3709,7 +3717,7 @@ function MatchingDashboard({ confirmations = {}, mentees = [], nonResponsiveMent
   }
 
   const needsMentorList = [];
-  for (const s of (selData?.selections || []).filter(s => !approvedMenteeSlugs.has(s.slug))) {
+  for (const s of (selData?.selections || []).filter(s => !approvedMenteeSlugs.has(s.slug) && !sheetConfirmedSlugs.has(s.slug))) {
     if (TEST_SLUGS_MD.has(s.slug)) continue;
     // Skip churned mentees — they don't need a match
     if (menteeStatusBySlug[s.slug]?.churned) continue;
@@ -3738,7 +3746,7 @@ function MatchingDashboard({ confirmations = {}, mentees = [], nonResponsiveMent
   // Inject demoted "needs-match" mentees from Mentor Confirmations sheet
   const existingSlugs = new Set(needsMentorList.map(m => m.slug));
   for (const m of needsMatchMentees) {
-    if (existingSlugs.has(m.slug) || approvedMenteeSlugs.has(m.slug)) continue;
+    if (existingSlugs.has(m.slug) || approvedMenteeSlugs.has(m.slug) || sheetConfirmedSlugs.has(m.slug)) continue;
     if (menteeStatusBySlug[m.slug]?.churned) continue;
     needsMentorList.push({
       slug: m.slug, first: m.name?.split(" ")[0] || "", last: m.name?.split(" ").slice(1).join(" ") || "",
@@ -3754,8 +3762,11 @@ function MatchingDashboard({ confirmations = {}, mentees = [], nonResponsiveMent
 
   // ── 3. Mentors who need a mentee / mentors whose mentee is unresponsive ───
   const mentorsNeedingMentee = [];
-  for (const mentor of (selData?.mentors || [])) {
-    if (mentor.name === "MJ" || mentor.name === "Kennedy") continue;
+  // Use allMentors (full roster incl. pendingOnly) so mentors who had emails sent
+  // but no longer appear in mentees.js assignments still show up here
+  const mentorRoster = allMentors.length > 0 ? allMentors : (selData?.mentors || []);
+  for (const mentor of mentorRoster) {
+    if (!mentor.name || mentor.name === "MJ" || mentor.name === "Kennedy") continue;
     const resp = responseByMentor[mentor.name];
     const isNoReply = nonResponsiveMentorEmails.has((mentor.email || "").toLowerCase());
     if (resp) {
