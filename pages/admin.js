@@ -3686,6 +3686,8 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
   const needsMentorList = [];
   for (const s of (selData?.selections || []).filter(s => !approvedMenteeSlugs.has(s.slug))) {
     if (TEST_SLUGS_MD.has(s.slug)) continue;
+    // Skip churned mentees — they don't need a match
+    if (menteeStatusBySlug[s.slug]?.churned) continue;
 
     // If the sheet already has an admin-assigned mentor (selectedMentor), they're covered — skip.
     if (s.selectedMentor) continue;
@@ -3712,6 +3714,7 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
   const existingSlugs = new Set(needsMentorList.map(m => m.slug));
   for (const m of needsMatchMentees) {
     if (existingSlugs.has(m.slug) || approvedMenteeSlugs.has(m.slug)) continue;
+    if (menteeStatusBySlug[m.slug]?.churned) continue;
     needsMentorList.push({
       slug: m.slug, first: m.name?.split(" ")[0] || "", last: m.name?.split(" ").slice(1).join(" ") || "",
       company: m.company, stage: m.stage, industry: m.industry, primaryFocus: m.primaryFocus,
@@ -5490,11 +5493,28 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
     });
   };
 
-  // effectiveCount: use email-confirmed count if available, else fall back to sheet-assigned (sent/confirmed rows)
+  // Build direct assignment count from mentees.js data (for mentors matched outside email flow)
+  const directCountByMentor = {};
+  for (const m of mentees) {
+    if (m.mentor?.name && m.status !== "churned") {
+      const key = m.mentor.name.toLowerCase().trim();
+      directCountByMentor[key] = (directCountByMentor[key] || 0) + 1;
+    }
+    if (m.mentor?.email && m.status !== "churned") {
+      const ekey = m.mentor.email.toLowerCase().trim();
+      directCountByMentor[ekey] = (directCountByMentor[ekey] || 0) + 1;
+    }
+  }
+
+  // effectiveCount: use email-confirmed count if available, else fall back to sheet-assigned (sent/confirmed rows), else direct assignment in mentees.js
   const effectiveMatchCount = r => {
     const mc = r.matchCount || 0;
     const sc = (r.sentMentees || []).length;
-    return mc > 0 ? mc : sc;
+    if (mc > 0) return mc;
+    if (sc > 0) return sc;
+    const nameKey = (r.mentor?.name || "").toLowerCase().trim();
+    const emailKey = (r.mentor?.email || "").toLowerCase().trim();
+    return Math.max(directCountByMentor[nameKey] || 0, directCountByMentor[emailKey] || 0);
   };
 
   const FILTERS = [

@@ -86,8 +86,8 @@ export default async function handler(req, res) {
     const existingEmails = new Set(MENTEES.map(m => norm(m.mentor?.email)).filter(Boolean));
 
     // Blocklist — fake/invalid applicants to exclude permanently
-    const BLOCKED_EMAILS = new Set(["oigynn@example.com"]);
-    const BLOCKED_NAMES  = new Set(["isabella richardson"]);
+    const BLOCKED_EMAILS = new Set(["oigynn@example.com", "rn12il@example.com"]);
+    const BLOCKED_NAMES  = new Set(["isabella richardson", "sophia chen"]);
 
     const seen = new Set();
     const newMentors = [];
