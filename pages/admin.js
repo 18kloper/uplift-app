@@ -2067,7 +2067,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
     const confirmedMentorMatch = !confirmedMentorFilter || (!m.isTest && confirmedSlugs.has(m.slug));
     const pendingMentorMatch = !pendingMentorFilter || (!m.isTest && m.mentorName && !respondedMentorNames.has(m.mentorName));
     const participatedNotOnboardedMatch = !participatedNotOnboardedFilter || (!m.isTest && m.milestones?.participation && !m.milestones?.onboarding);
-    const onboardedPendingMentorMatch = !onboardedPendingMentorFilter || (!m.isTest && m.milestones?.onboarding && m.mentorName && !confirmedSlugs.has(m.slug));
+    const onboardedPendingMentorMatch = !onboardedPendingMentorFilter || (!m.isTest && m.milestones?.onboarding && !confirmedSlugs.has(m.slug));
     return cohortMatch && searchMatch && statusMatch && milestoneMatch && needsMentorMatch && confirmedMentorMatch && pendingMentorMatch && participatedNotOnboardedMatch && onboardedPendingMentorMatch;
   });
 
@@ -2504,7 +2504,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
           })()}
 
           {(() => {
-            const count = mentees.filter(m => !m.isTest && m.milestones?.onboarding && m.mentorName && !confirmedSlugs.has(m.slug)).length;
+            const count = mentees.filter(m => !m.isTest && m.milestones?.onboarding && !confirmedSlugs.has(m.slug)).length;
             return (
               <button onClick={() => setOnboardedPendingMentorFilter(p => !p)} style={{
                 display: "flex", alignItems: "center", gap: 5,
