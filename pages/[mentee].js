@@ -3,6 +3,17 @@ import Head from "next/head";
 import { getMenteeBySlug, MENTEES, PROMPTS, getFocusKey } from "../lib/mentees";
 import { PROGRAM_EMAILS, RESOURCES, COHORTS } from "../lib/program-data";
 
+// Mentees whose match is approved but pending mentor acceptance — show holding notice
+const HOLDING_SLUGS = new Set([
+  "gifty-anane",
+  "annalyce-dagostino-gavin",
+  "lina-escobar",
+  "favio-jasso",
+  "mark-kallback",
+  "alina-okun",
+  "alisha-sharma",
+]);
+
 // ─── Week definitions ─────────────────────────────────────────────────────────
 const WEEKS = [
   {
@@ -449,8 +460,24 @@ function Tagline({ text, type }) {
 }
 
 // ─── Mentor card ──────────────────────────────────────────────────────────────
-function MentorCard({ mentee, revealed }) {
+function MentorCard({ mentee, revealed, holding }) {
   if (!revealed) {
+    if (holding) {
+      return (
+        <div style={{
+          background: "#fff8f0", borderRadius: 12, border: "2px solid #f59e0b",
+          padding: "28px 32px", marginBottom: 24, textAlign: "center",
+        }}>
+          <div style={{ fontSize: 30, marginBottom: 10 }}>⏳</div>
+          <p style={{ margin: "0 0 8px", fontWeight: 700, fontSize: 16, color: "#92400e" }}>
+            Your match is in progress
+          </p>
+          <p style={{ margin: 0, fontSize: 14, color: "#b45309", lineHeight: 1.6 }}>
+            We've selected your mentor and your pairing has been approved — we're waiting on their final confirmation before making the introduction. You'll see your mentor here as soon as it's confirmed.
+          </p>
+        </div>
+      );
+    }
     return (
       <div style={{
         background: "#f7f5ff", borderRadius: 12, border: "2px dashed #c8bfef",
@@ -946,7 +973,7 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
 }
 
 // ─── Week 2: Meet your mentor ─────────────────────────────────────────────────
-function Week2({ mentee, slug, mentorUnlocked }) {
+function Week2({ mentee, slug, mentorUnlocked, holding }) {
   const week = WEEKS[1];
   const [w1Goals, setW1Goals] = useState("");
 
@@ -957,7 +984,7 @@ function Week2({ mentee, slug, mentorUnlocked }) {
   return (
     <div>
       {/* Mentor card */}
-      <MentorCard mentee={mentee} revealed={mentorUnlocked} />
+      <MentorCard mentee={mentee} revealed={mentorUnlocked} holding={holding} />
 
       {/* Action items */}
       <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
@@ -2876,15 +2903,16 @@ function parseDueDate(dueStr) {
   return isNaN(d.getTime()) ? null : d;
 }
 
-function MilestoneSection({ milestones, onNavigate }) {
+function MilestoneSection({ milestones, onNavigate, slug }) {
+  const isHolding = HOLDING_SLUGS.has(slug);
   const items = [
     { key: "participation",   label: "Confirmed Participation",        auto: true, due: "By Jun 3",  week: 1 },
     { key: "onboarding",      label: "Onboarding Session Attended",  due: "By Jun 7",  contactMsg: "If you haven't attended an onboarding session yet, please reach out to us directly — we can help get you sorted." },
-    { key: "mentorMatched",   label: "Matched with a Mentor",        due: "By Jun 9",  contactMsg: "If you haven't been matched with a mentor yet, it likely means we don't have you recorded for an onboarding session. Please contact us directly so we can help." },
+    { key: "mentorMatched",   label: "Matched with a Mentor",        due: isHolding ? "By Jun 16" : "By Jun 9",  contactMsg: "If you haven't been matched with a mentor yet, it likely means we don't have you recorded for an onboarding session. Please contact us directly so we can help." },
     { key: "edu1",            label: "Educational Session 1",                       due: "By Aug 4",  week: 2 },
     { key: "edu2",            label: "Educational Session 2",                       due: "By Aug 4",  week: 3 },
     { key: "edu3",            label: "Educational Session 3",                       due: "By Aug 4",  week: 8 },
-    { key: "mentorSession1",  label: "Mentor Session 1",                            due: "By Jun 13", week: 2 },
+    { key: "mentorSession1",  label: "Mentor Session 1",                            due: isHolding ? "By Jun 23" : "By Jun 13", week: 2 },
     { key: "mentorSession2",  label: "Mentor Session 2",                            due: "By Jul 4",  week: 5 },
     { key: "mentorSession3",  label: "Mentor Session 3",                            due: "By Jul 18", week: 7 },
     { key: "midpoint",        label: "Midpoint Meetup Attended",                    due: "Jun 23",    week: 4 },
@@ -4008,7 +4036,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
           onParticipationAccepted={() => setLiveMilestones(prev => ({ ...(prev || mentee.milestones || {}), participation: true }))} />;
         break;
       case "mentor-meeting":
-        weekContent = <Week2 mentee={mentee} slug={slug} mentorUnlocked={mentorUnlocked} />;
+        weekContent = <Week2 mentee={mentee} slug={slug} mentorUnlocked={mentorUnlocked} holding={HOLDING_SLUGS.has(slug)} />;
         break;
       default:
         weekContent = <WeekReflection weekNum={week.num} slug={slug} prompts={promptBlocks} menteeName={`${mentee.first} ${mentee.last}`.trim()} />;
@@ -4026,7 +4054,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       case "journey": return renderWeekContent();
       case "calendar": return <CalendarSection milestones={liveMilestones || mentee.milestones || {}} />;
       case "resources": return <ResourcesSection slug={slug} menteeName={`${mentee.first} ${mentee.last}`.trim()} />;
-      case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} onNavigate={(week) => { setActiveTab("journey"); setActiveWeek(week); }} />;
+      case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} onNavigate={(week) => { setActiveTab("journey"); setActiveWeek(week); }} slug={slug} />;
       case "goals": return <GoalsSection mentee={mentee} slug={slug} />;
       case "meetings": return <MeetingsSection slug={slug} milestones={liveMilestones || mentee.milestones || {}} onMilestoneUpdate={(key) => setLiveMilestones(prev => ({ ...(prev || mentee.milestones || {}), [key]: true }))} />;
       case "edu": return <EduSessionsSection milestones={liveMilestones || mentee.milestones || {}} slug={slug} />;
