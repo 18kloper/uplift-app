@@ -2054,7 +2054,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
 
   const filtered = mentees.filter(m => {
     const cohortMatch = activeCohort === "All"
-      ? true
+      ? !m.isTest
       : activeCohort === "Test"
         ? m.isTest
         : !m.isTest && String(m.cohort) === String(activeCohort);
@@ -2981,6 +2981,7 @@ export default function AdminPage() {
   const [mentorConfirmations, setMentorConfirmations] = useState({});
   const [mentorSessions, setMentorSessions] = useState({});
   const [respondedMentorNames, setRespondedMentorNames] = useState(new Set());
+  const [nonResponsiveMentorEmails, setNonResponsiveMentorEmails] = useState(new Set());
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -3039,6 +3040,7 @@ export default function AdminPage() {
     ]).then(([d, emailData, confData, sessData]) => {
       setData(d);
       setRespondedMentorNames(new Set((emailData.responses || []).filter(r => !r.noReply).map(r => r.mentor.name)));
+      setNonResponsiveMentorEmails(new Set((emailData.responses || []).filter(r => r.noReply).map(r => r.mentor.email.toLowerCase())));
       // Sheet is source of truth — merge over localStorage
       if (confData.confirmations && Object.keys(confData.confirmations).length > 0) {
         setMentorConfirmations(prev => ({ ...prev, ...confData.confirmations }));
@@ -3186,7 +3188,7 @@ export default function AdminPage() {
           {adminTab === "activity"    && <PortalActivity />}
           {adminTab === "connections" && <PeerConnections />}
           {adminTab === "pulse"       && <PulseReport />}
-          {adminTab === "matches"     && <MentorMatches confirmations={mentorConfirmations} sessions={mentorSessions} onSessionChange={handleMentorSessionChange} mentees={data?.mentees || []} />}
+          {adminTab === "matches"     && <MentorMatches confirmations={mentorConfirmations} sessions={mentorSessions} onSessionChange={handleMentorSessionChange} mentees={data?.mentees || []} nonResponsiveMentorEmails={nonResponsiveMentorEmails} />}
           {adminTab === "matching"    && <MatchingDashboard confirmations={mentorConfirmations} mentees={data?.mentees || []} />}
           {adminTab === "need-to-send" && <NeedToSend />}
           {adminTab === "emails"      && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} />}
@@ -5350,7 +5352,7 @@ function MentorNote({ mentorKey, initialValue }) {
 }
 
 // ─── Mentor Matches view ──────────────────────────────────────────────────────
-function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, mentees = [] }) {
+function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, mentees = [], nonResponsiveMentorEmails = new Set() }) {
   const [responses, setResponses] = useState([]);
   const [allMentors, setAllMentors] = useState([]);
   const [menteeBySlug, setMenteeBySlug] = useState({});
@@ -5733,9 +5735,16 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
               }}>
                 {/* Mentor */}
                 <div style={{ minWidth: 0 }}>
-                  <p style={{ margin: "0 0 1px", fontSize: 13, fontWeight: 700, color: "#1a1733", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {r.mentor.name}
-                  </p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 1, flexWrap: "wrap" }}>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1a1733", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {r.mentor.name}
+                    </p>
+                    {nonResponsiveMentorEmails.has((r.mentor.email || "").toLowerCase()) && (
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 7px", borderRadius: 20, background: "#fef9c3", color: "#92400e", border: "1px solid #fde047", whiteSpace: "nowrap", flexShrink: 0 }}>
+                        ⚠️ Non-Responsive
+                      </span>
+                    )}
+                  </div>
                   <p style={{ margin: 0, fontSize: 11, color: "#5c4eb5", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {r.mentor.email}
                   </p>
