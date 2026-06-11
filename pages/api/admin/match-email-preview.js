@@ -204,6 +204,20 @@ export function renderHTML(d) {
       </p>
     </div>
 
+    ${mentor.availability && mentor.availability.toLowerCase().includes("first session") ? `
+    <!-- Custom availability note -->
+    <div style="background:#fff8f0;border:2px solid #f59e0b;border-radius:12px;padding:16px 20px;margin-bottom:20px">
+      <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">
+        <tr>
+          <td valign="top" style="padding-right:10px;font-size:18px">📅</td>
+          <td valign="middle">
+            <div style="font-size:13.5px;font-weight:700;color:#92400e;margin-bottom:3px">Heads up on scheduling</div>
+            <div style="font-size:13px;color:#b45309;line-height:1.6">Your mentor's first available session is <strong>June 20th or later</strong>. We will adjust your meeting cadence in your portal accordingly — please plan your first session after that date.</div>
+          </td>
+        </tr>
+      </table>
+    </div>` : ""}
+
     <!-- Profile cards (stacked) -->
     ${sectionLabel("Your match")}
     <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin-bottom:${mentor.motivation ? "16px" : "28px"}">
