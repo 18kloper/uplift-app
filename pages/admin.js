@@ -2132,9 +2132,9 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
     },
     {
       label: "🎓 Onboarded · Needs Mentor",
-      value: realMentees.filter(m => m.milestones?.onboarding && m.mentorName && !confirmedSlugs.has(m.slug)).length,
+      value: realMentees.filter(m => m.milestones?.onboarding && !confirmedSlugs.has(m.slug)).length,
       color: "#7a5700", bg: "#fffbe6",
-      desc: "Completed onboarding but mentor has not yet confirmed",
+      desc: "Completed onboarding but no confirmed mentor yet",
       statusKey: null,
     },
   ];
