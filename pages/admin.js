@@ -5427,7 +5427,7 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
         seenPending.add(n);
         return true;
       });
-      setAllMentors([...assigned, ...newApplicants.map(m => ({ name: m.name, email: m.email, isApplicant: true })), ...uniquePendingOnly]);
+      setAllMentors([...assigned, ...newApplicants.map(m => ({ name: m.name, email: m.email, isApplicant: true, company: m.company, title: m.title, linkedin: m.linkedin, industry: m.industry, focusAreas: m.focusAreas, location: m.location })), ...uniquePendingOnly]);
 
       // Build slug → { email, cohort } lookup
       const emails = selData.menteeEmails || {};
@@ -5744,10 +5744,25 @@ function MentorMatches({ confirmations = {}, sessions = {}, onSessionChange, men
                         ⚠️ Non-Responsive
                       </span>
                     )}
+                    {r.mentor.isApplicant && (
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 7px", borderRadius: 20, background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", whiteSpace: "nowrap", flexShrink: 0 }}>
+                        New Applicant
+                      </span>
+                    )}
                   </div>
                   <p style={{ margin: 0, fontSize: 11, color: "#5c4eb5", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {r.mentor.email}
                   </p>
+                  {r.mentor.isApplicant && (r.mentor.title || r.mentor.company) && (
+                    <p style={{ margin: "2px 0 0", fontSize: 11, color: "#374151", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {[r.mentor.title, r.mentor.company].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
+                  {r.mentor.isApplicant && r.mentor.industry && (
+                    <p style={{ margin: "1px 0 0", fontSize: 10, color: "#6b7280", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {r.mentor.industry}
+                    </p>
+                  )}
                 </div>
 
                 {/* Mentee 1 */}

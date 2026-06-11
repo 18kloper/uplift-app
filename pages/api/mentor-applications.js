@@ -63,10 +63,17 @@ export default async function handler(req, res) {
       return null;
     };
 
-    const firstRef = findRef("first name", "first_name");
-    const lastRef  = findRef("last name", "last_name");
-    const fullRef  = (!firstRef && !lastRef) ? findRef("full name", "your name", "name") : null;
-    const emailRef = findRef("email");
+    const firstRef    = findRef("first name", "first_name");
+    const lastRef     = findRef("last name", "last_name");
+    const fullRef     = (!firstRef && !lastRef) ? findRef("full name", "your name", "name") : null;
+    const emailRef    = findRef("email");
+    const companyRef  = findRef("company", "organization");
+    const titleRef    = findRef("title", "role");
+    const linkedinRef = findRef("linkedin");
+    const bioRef      = findRef("bio");
+    const industryRef = findRef("industry", "domain");
+    const focusRef    = findRef("focus area", "mentorship focus");
+    const locationRef = findRef("based", "city", "location");
 
     const getVal = (answers, ref) => {
       if (!ref) return "";
@@ -114,7 +121,26 @@ export default async function handler(req, res) {
       if (seen.has(dedupeKey)) continue;
       seen.add(dedupeKey);
 
-      newMentors.push({ name, email, submittedAt: item.submitted_at });
+      // Extract choice/multi-choice fields
+      const getChoiceVal = (answers, ref) => {
+        if (!ref) return "";
+        const a = answers.find(a => a.field?.ref === ref || a.field?.id === ref);
+        if (!a) return "";
+        return a?.choice?.label || a?.choices?.labels?.join(", ") || a?.text || "";
+      };
+
+      newMentors.push({
+        name,
+        email,
+        submittedAt: item.submitted_at,
+        company:    getVal(answers, companyRef),
+        title:      getVal(answers, titleRef),
+        linkedin:   getVal(answers, linkedinRef),
+        bio:        getVal(answers, bioRef),
+        industry:   getChoiceVal(answers, industryRef),
+        focusAreas: getChoiceVal(answers, focusRef),
+        location:   getVal(answers, locationRef),
+      });
     }
 
     return res.status(200).json({
