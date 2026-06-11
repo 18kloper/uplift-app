@@ -3814,7 +3814,7 @@ function MatchingDashboard({ confirmations = {}, mentees = [], nonResponsiveMent
   }
 
   // Mentors with no suitable match in current pool
-  const NO_MATCH_EMAILS = new Set(["dgura@hugoneu.com", "ajerud@gmail.com"]);
+  const NO_MATCH_EMAILS = new Set(["dgura@hugoneu.com", "ajerud@gmail.com", "gincitti@sitetracker.com"]);
   for (const m of mentorsNeedingMentee) {
     if (NO_MATCH_EMAILS.has((m.email || "").toLowerCase())) {
       m.label = "No Match Available";
