@@ -3190,7 +3190,7 @@ export default function AdminPage() {
           {adminTab === "connections" && <PeerConnections />}
           {adminTab === "pulse"       && <PulseReport />}
           {adminTab === "matches"     && <MentorMatches confirmations={mentorConfirmations} sessions={mentorSessions} onSessionChange={handleMentorSessionChange} mentees={data?.mentees || []} nonResponsiveMentorEmails={nonResponsiveMentorEmails} />}
-          {adminTab === "matching"    && <MatchingDashboard confirmations={mentorConfirmations} mentees={data?.mentees || []} />}
+          {adminTab === "matching"    && <MatchingDashboard confirmations={mentorConfirmations} mentees={data?.mentees || []} nonResponsiveMentorEmails={nonResponsiveMentorEmails} />}
           {adminTab === "need-to-send"   && <NeedToSend />}
           {adminTab === "emails"         && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} />}
           {adminTab === "non-responsive" && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} defaultFilter="no-reply" />}
@@ -3556,7 +3556,7 @@ function LumaAttendance({ mentees = [] }) {
 }
 
 // ─── Matching Dashboard view ──────────────────────────────────────────────────
-function MatchingDashboard({ confirmations = {}, mentees = [] }) {
+function MatchingDashboard({ confirmations = {}, mentees = [], nonResponsiveMentorEmails = new Set() }) {
   const [selData, setSelData]     = useState(null);
   const [responses, setResponses] = useState([]);
   const [newMentors, setNewMentors] = useState([]);
@@ -3680,9 +3680,27 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
   // tag: "declined"    = confirmed participant, mentor explicitly declined
   // Build a set of mentor names that have sheet-assigned mentees (selectedMentor from Mentor Selections)
   // This is synchronous data from selData — no state dependency — so it's always accurate.
+  // Only consider a mentor "has assignment" if they have at least one active (non-needs-match, non-declined, non-churned) mentee
   const mentorsWithSheetAssignment = new Set();
+  // Build a map: mentorName → set of their mentee slugs with active status
+  const mentorActiveMentees = {};
+  for (const r of responses) {
+    const mName = r.mentor?.name;
+    if (!mName) continue;
+    for (const opt of (r.options || [])) {
+      const key = `${r.threadId}|${opt.slug}`;
+      const st = confirmations[key];
+      const isChurned = menteeStatusBySlug[opt.slug]?.churned;
+      if (st === "confirmed" && !isChurned) {
+        if (!mentorActiveMentees[mName]) mentorActiveMentees[mName] = new Set();
+        mentorActiveMentees[mName].add(opt.slug);
+      }
+    }
+  }
   for (const s of (selData?.selections || [])) {
-    if (s.selectedMentor) mentorsWithSheetAssignment.add(s.selectedMentor);
+    if (s.selectedMentor && (mentorActiveMentees[s.selectedMentor]?.size || 0) > 0) {
+      mentorsWithSheetAssignment.add(s.selectedMentor);
+    }
   }
 
   const needsMentorList = [];
@@ -3734,19 +3752,25 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
   for (const mentor of (selData?.mentors || [])) {
     if (mentor.name === "MJ" || mentor.name === "Kennedy") continue;
     const resp = responseByMentor[mentor.name];
+    const isNoReply = nonResponsiveMentorEmails.has((mentor.email || "").toLowerCase());
     if (resp) {
       const opts = resp.options || [];
-      const allDeclined = opts.length > 0 && opts.every(o => confirmations[`${resp.threadId}|${o.slug}`] === "declined");
-      if (allDeclined) {
-        mentorsNeedingMentee.push({ name: mentor.name, email: mentor.email, label: "Declined — Needs Rematch" });
+      // Effective status per option: declined, needs-match, churned → all inactive
+      const isInactive = o => {
+        const st = confirmations[`${resp.threadId}|${o.slug}`];
+        return st === "declined" || st === "needs-match" || menteeStatusBySlug[o.slug]?.churned;
+      };
+      const allInactive = opts.length > 0 && opts.every(isInactive);
+      if (allInactive) {
+        const allDeclined = opts.every(o => confirmations[`${resp.threadId}|${o.slug}`] === "declined");
+        const label = isNoReply ? "Non-Responsive" : allDeclined ? "Declined — Needs Rematch" : "Needs a Mentee";
+        mentorsNeedingMentee.push({ name: mentor.name, email: mentor.email, label });
         continue;
       }
-      // Only flag "Mentee Unresponsive" if the mentor has NO mentee who has confirmed participation.
-      // If even one of their confirmed mentees is an active participant, they're covered.
+      // Only flag "Mentee Unresponsive" if the mentor has NO mentee who has confirmed participation (excl churned).
       const confirmedMentees = opts.filter(o => confirmations[`${resp.threadId}|${o.slug}`] === "confirmed");
-      const hasActiveMentee = confirmedMentees.some(o => confirmedParticipantSlugs.has(o.slug));
+      const hasActiveMentee = confirmedMentees.some(o => confirmedParticipantSlugs.has(o.slug) && !menteeStatusBySlug[o.slug]?.churned);
       if (!hasActiveMentee && confirmedMentees.length > 0) {
-        // All confirmed mentees are unresponsive — flag the mentor once
         const names = confirmedMentees.map(o => o.name).join(", ");
         mentorsNeedingMentee.push({ name: mentor.name, email: mentor.email, menteeName: names, label: "Mentee Unresponsive" });
       }
@@ -3885,6 +3909,8 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
           const MENTOR_TAG_OPTS = [
             { key: "New Applicant",            color: "#1a6e42", bg: "#e8f8f0", border: "#b8e8d0" },
             { key: "Declined — Needs Rematch", color: "#c0392b", bg: "#fef0f0", border: "#f5c6c6" },
+            { key: "Needs a Mentee",           color: "#5c4eb5", bg: "#f3f0ff", border: "#d4d0e8" },
+            { key: "Non-Responsive",           color: "#92400e", bg: "#fff8f0", border: "#fcd34d" },
             { key: "Mentee Unresponsive",      color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
           ];
           const toggleMentor = (key) => setMentorFilters(prev => {
@@ -3895,6 +3921,8 @@ function MatchingDashboard({ confirmations = {}, mentees = [] }) {
           const tagStyles = {
             "New Applicant":            { color: "#1a6e42", bg: "#e8f8f0", border: "#b8e8d0" },
             "Declined — Needs Rematch": { color: "#c0392b", bg: "#fef0f0", border: "#f5c6c6" },
+            "Non-Responsive":           { color: "#92400e", bg: "#fff8f0", border: "#fcd34d" },
+            "Needs a Mentee":           { color: "#5c4eb5", bg: "#f3f0ff", border: "#d4d0e8" },
             "Mentee Unresponsive":      { color: "#b35c00", bg: "#fff3e0", border: "#f5d9a0" },
           };
           return (
