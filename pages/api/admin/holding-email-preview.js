@@ -86,12 +86,7 @@ export function renderHoldingHTML(first) {
     <!-- Program timeline -->
     <div style="background:#1a1733;border-radius:12px;padding:20px 24px;margin-bottom:24px">
       <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9b8fcf;margin-bottom:10px">Program Timeline</div>
-      <div style="margin-bottom:8px">
-        ${checkItemDark("Minimum <strong style='color:#e8e4f5'>3 one-hour mentoring sessions</strong> required")}
-        ${checkItemDark("All sessions completed by <strong style='color:#e8e4f5'>August 4th, 2026</strong>")}
-        ${checkItemDark("<strong style='color:#e8e4f5'>At least 1 session</strong> must happen before the midpoint meetup")}
-      </div>
-      <p style="font-size:12.5px;color:rgba(232,228,245,0.7);line-height:1.6;margin-top:10px">Your timeline starts from when your match is confirmed — you won't be penalized for the delay.</p>
+      <p style="font-size:12.5px;color:rgba(232,228,245,0.7);line-height:1.6">Your timeline starts from when your match is confirmed — you won't be penalized for the delay.</p>
     </div>
 
     <!-- What to do in the meantime -->
