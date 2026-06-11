@@ -24,6 +24,22 @@ function checkItem(text) {
   </table>`;
 }
 
+function checkItemDark(text) {
+  return `
+  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin-bottom:9px">
+    <tr>
+      <td valign="top" width="26" style="padding-top:2px">
+        <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">
+          <tr><td align="center" valign="middle" width="18" height="18" style="width:18px;height:18px;background:#5c4eb5;border-radius:9px;font-size:0;line-height:0">
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6 5 9 10 3"/></svg>
+          </td></tr>
+        </table>
+      </td>
+      <td valign="top" style="font-size:13px;color:rgba(232,228,245,0.85);line-height:1.5">${text}</td>
+    </tr>
+  </table>`;
+}
+
 export function renderHoldingHTML(first) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -60,26 +76,44 @@ export function renderHoldingHTML(first) {
     <!-- Main message -->
     <div style="background:#f5f3ff;border:1.5px solid #d4d0e8;border-radius:12px;padding:22px 24px;margin-bottom:24px">
       <p style="font-size:14px;color:#3d2f8a;line-height:1.75;margin-bottom:12px">
-        We are aiming to have everything finalized by <strong>end of day tomorrow</strong>. Please don't worry about your meeting schedule — we will adjust your cadence in the portal accordingly so you won't lose any time.
+        We have found your match and your pairing has been approved — we are simply waiting for them to accept the introduction. We take matching seriously at Uplift, and we want to make sure we get it right. That means finding someone who is not just qualified, but equally engaged and genuinely invested in your success.
       </p>
       <p style="font-size:14px;color:#3d2f8a;line-height:1.75">
-        We can't wait to make this introduction and get you two connected!
+        We are aiming to have everything finalized by <strong>end of day tomorrow</strong>. Your meeting cadence will be adjusted in the portal accordingly so you won't lose any time in the program.
       </p>
+    </div>
+
+    <!-- Program timeline -->
+    <div style="background:#1a1733;border-radius:12px;padding:20px 24px;margin-bottom:24px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9b8fcf;margin-bottom:10px">Program Timeline</div>
+      <div style="margin-bottom:8px">
+        ${checkItemDark("Minimum <strong style='color:#e8e4f5'>3 one-hour mentoring sessions</strong> required")}
+        ${checkItemDark("All sessions completed by <strong style='color:#e8e4f5'>August 4th, 2026</strong>")}
+        ${checkItemDark("<strong style='color:#e8e4f5'>At least 1 session</strong> must happen before the midpoint meetup")}
+      </div>
+      <p style="font-size:12.5px;color:rgba(232,228,245,0.7);line-height:1.6;margin-top:10px">Your timeline starts from when your match is confirmed — you won't be penalized for the delay.</p>
     </div>
 
     <!-- What to do in the meantime -->
     <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#9b8fcf;border-bottom:1px solid #e8e4f5;padding-bottom:6px;margin-bottom:14px">In the meantime</div>
     <div style="margin-bottom:28px">
-      ${checkItem("Keep attending those <strong>educational sessions</strong> — they're a great way to stay engaged")}
+      ${checkItem("Keep attending those <strong>educational sessions</strong> — they count toward your engagement")}
       ${checkItem("Your <strong>meeting cadence will be adjusted</strong> in the portal once your match is confirmed")}
-      ${checkItem("Reach out to <a href='mailto:uplift@techunited.co' style='color:#5c4eb5;text-decoration:none'>uplift@techunited.co</a> if you have any questions")}
+      ${checkItem("Reach out to <a href='mailto:uplift@techunited.co' style='color:#5c4eb5;text-decoration:none'>uplift@techunited.co</a> with any questions")}
     </div>
 
     <div style="height:1px;background:#e8e4f5;margin-bottom:24px"></div>
 
-    <div style="text-align:center">
-      <div style="font-size:13px;color:#6b6480">Questions? Contact us at <a href="mailto:uplift@techunited.co" style="color:#5c4eb5;text-decoration:none">uplift@techunited.co</a></div>
-    </div>
+    <!-- Sign off -->
+    <p style="font-size:14px;color:#3d2f8a;line-height:1.75;margin-bottom:20px">
+      We are so excited to have you in this program and can't wait to make this introduction. Thank you for your patience — it means a lot to us.
+    </p>
+    <p style="font-size:14px;color:#1a1733;line-height:1.6">
+      Warm regards,<br/>
+      <strong>Kennedy Loper</strong><br/>
+      Uplift Program, TechUnited:NJ<br/>
+      <a href="mailto:uplift@techunited.co" style="color:#5c4eb5;text-decoration:none">uplift@techunited.co</a>
+    </p>
 
   </div>
 
