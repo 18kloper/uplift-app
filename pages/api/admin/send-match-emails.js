@@ -78,12 +78,12 @@ async function renderEmail(slug) {
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const secret = process.env.ADMIN_SECRET;
-  if (secret && req.query.token !== secret) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
+  // HARD REQUIREMENT: slugs must be explicitly provided — no bulk sends allowed.
+  // Every send must be scoped to specific mentees approved one-by-one.
   const { dryRun = false, slugs: slugFilter, testEmail, cc } = req.body || {};
+  if (!dryRun && !testEmail && (!slugFilter || slugFilter.length === 0)) {
+    return res.status(403).json({ error: "Bulk send blocked: must provide explicit slugs. No unsolicited bulk emails." });
+  }
 
   const spreadsheetId = process.env.GOOGLE_SHEET_ID;
   const hasSheets = spreadsheetId && process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY;
