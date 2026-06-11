@@ -226,7 +226,7 @@ export async function buildMatchEmailPayload(slug) {
       company: menteeRecord.mentor?.company || "", title: menteeRecord.mentor?.title || "",
       tags: menteeRecord.mentor?.tags || [],
       bio: mentorTypeform.bio, linkedin: mentorTypeform.linkedin,
-      availability: mentorTypeform.availability, motivation: mentorTypeform.motivation,
+      availability: mentorTypeform.availability || menteeRecord.mentor?.availability || "", motivation: mentorTypeform.motivation,
       photo: mentorPhoto,
     },
     matchReason, slug,
