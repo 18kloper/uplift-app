@@ -3190,7 +3190,7 @@ export default function AdminPage() {
           {adminTab === "connections" && <PeerConnections />}
           {adminTab === "pulse"       && <PulseReport />}
           {adminTab === "matches"     && <MentorMatches confirmations={mentorConfirmations} sessions={mentorSessions} onSessionChange={handleMentorSessionChange} mentees={data?.mentees || []} nonResponsiveMentorEmails={nonResponsiveMentorEmails} />}
-          {adminTab === "matching"    && <MatchingDashboard confirmations={mentorConfirmations} mentees={data?.mentees || []} nonResponsiveMentorEmails={nonResponsiveMentorEmails} allMentors={allMentors} />}
+          {adminTab === "matching"    && <MatchingDashboard confirmations={mentorConfirmations} mentees={data?.mentees || []} nonResponsiveMentorEmails={nonResponsiveMentorEmails} />}
           {adminTab === "need-to-send"   && <NeedToSend />}
           {adminTab === "emails"         && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} />}
           {adminTab === "non-responsive" && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} defaultFilter="no-reply" />}
@@ -3556,7 +3556,7 @@ function LumaAttendance({ mentees = [] }) {
 }
 
 // ─── Matching Dashboard view ──────────────────────────────────────────────────
-function MatchingDashboard({ confirmations = {}, mentees = [], nonResponsiveMentorEmails = new Set(), allMentors = [] }) {
+function MatchingDashboard({ confirmations = {}, mentees = [], nonResponsiveMentorEmails = new Set() }) {
   const [selData, setSelData]     = useState(null);
   const [responses, setResponses] = useState([]);
   const [newMentors, setNewMentors] = useState([]);
@@ -3762,9 +3762,26 @@ function MatchingDashboard({ confirmations = {}, mentees = [], nonResponsiveMent
 
   // ── 3. Mentors who need a mentee / mentors whose mentee is unresponsive ───
   const mentorsNeedingMentee = [];
-  // Use allMentors (full roster incl. pendingOnly) so mentors who had emails sent
-  // but no longer appear in mentees.js assignments still show up here
-  const mentorRoster = allMentors.length > 0 ? allMentors : (selData?.mentors || []);
+  // Build full mentor roster: selData.mentors (from mentees.js) PLUS any mentors
+  // who only appear in the email flow (pending/sent but no longer in mentees.js)
+  const rosterMap = new Map();
+  for (const m of (selData?.mentors || [])) {
+    if (m.name) rosterMap.set(m.name, m);
+  }
+  const pendSent = [...(selData?.allPending || []), ...(selData?.allSent || [])];
+  for (const g of pendSent) {
+    if (g.mentorName && !rosterMap.has(g.mentorName)) {
+      rosterMap.set(g.mentorName, { name: g.mentorName, email: g.mentorEmail || "" });
+    }
+  }
+  // Also pull from responses (email threads cover all mentors who were ever emailed)
+  for (const r of responses) {
+    const name = r.mentor?.name;
+    if (name && !rosterMap.has(name)) {
+      rosterMap.set(name, { name, email: r.mentor?.email || "" });
+    }
+  }
+  const mentorRoster = [...rosterMap.values()];
   for (const mentor of mentorRoster) {
     if (!mentor.name || mentor.name === "MJ" || mentor.name === "Kennedy") continue;
     const resp = responseByMentor[mentor.name];
