@@ -2131,7 +2131,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
       statusKey: null,
     },
     {
-      label: "🎓 Onboarded + Mentor Pending",
+      label: "🎓 Onboarded · Needs Mentor",
       value: realMentees.filter(m => m.milestones?.onboarding && m.mentorName && !confirmedSlugs.has(m.slug)).length,
       color: "#7a5700", bg: "#fffbe6",
       desc: "Completed onboarding but mentor has not yet confirmed",
@@ -2515,7 +2515,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
                 cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s", userSelect: "none",
               }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: onboardedPendingMentorFilter ? "rgba(255,255,255,0.8)" : "#2a7fd4", flexShrink: 0 }} />
-                🎓 Onboarded · Mentor Pending ({count})
+                🎓 Onboarded · Needs Mentor ({count})
                 {onboardedPendingMentorFilter && <span style={{ marginLeft: 1 }}>×</span>}
               </button>
             );
