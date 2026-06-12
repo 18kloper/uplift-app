@@ -37,7 +37,7 @@ const WEEKS = [
     submitLabel: "Submit your 1st mentor meeting",
     events: [
       { name: "Expert Insight — Edison", day: "Mon Jun 8", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/vxnzwket", speaker: { name: "Aerica Shimizu Banks", linkedin: "https://www.linkedin.com/in/aericashimizubanks/" } },
-      { name: "Industry Q&A — Edison", day: "Fri Jun 12", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/0dh6bt4o" },
+      { name: "Pitch Without a Deck | Uplift Mentorship Workshop 🎤", day: "Fri Jun 12", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/0dh6bt4o", note: "Originally scheduled as an Ask Me Anything — swapped to a peer pitch workshop. Working in small groups of three, you'll pitch for 3 minutes to fellow founders and get direct, structured feedback. No slides, no deck, no camera. Just your voice and your story. 🔥" },
     ],
   },
   {
@@ -406,6 +406,11 @@ function EventsSection({ events, submitLabel, submitPrimary, note, footerNote, i
                     ) : (
                       <span style={{ fontWeight: 600, color: "#1a1733" }}>{ev.speaker.name}</span>
                     )}
+                  </p>
+                )}
+                {ev.note && (
+                  <p style={{ margin: "6px 0 0", fontSize: 12, color: "#6b6480", lineHeight: 1.6, fontStyle: "italic" }}>
+                    {ev.note}
                   </p>
                 )}
               </div>
