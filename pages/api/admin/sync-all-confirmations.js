@@ -6,7 +6,12 @@ import { MENTEES } from "../../../lib/mentees";
 const TAB = "Mentor Confirmations";
 
 // All real mentees with confirmed mentor assignments from mentees.js
-const SKIP_SLUGS = new Set(["aaron", "jackie", "mj", "kennedy", "radha-ratnala"]);
+// Skip test accounts and churned mentees
+const SKIP_SLUGS = new Set([
+  "aaron", "jackie", "mj", "kennedy",  // test accounts
+  "abhi-ray", "victoria-hosendorf", "shounak-thaker", "sharon-joseph", // churned — assigned mentor but dropped out
+  "jimmy-bastien", "jagannadh-kanumuri", "justin-savage", // churned — no mentor
+]);
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
