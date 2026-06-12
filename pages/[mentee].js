@@ -2489,7 +2489,7 @@ function EduSessionsSection({ milestones, slug }) {
   // All educational events across weeks
   const eduEvents = WEEKS.flatMap(w =>
     (w.events || [])
-      .filter(e => e.name.includes("Expert") || e.name.includes("Industry") || e.name.includes("Peer Development"))
+      .filter(e => e.name.includes("Expert") || e.name.includes("Industry") || e.name.includes("Peer Development") || e.name.includes("Pitch Without a Deck"))
       .map(e => ({ ...e, weekNum: w.num, weekLabel: w.label, dateRange: w.dateRange }))
   );
 
