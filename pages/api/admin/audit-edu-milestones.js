@@ -5,18 +5,16 @@ import { getSheetsClient } from "../../../lib/sheets-helper";
 import { setNextEduMilestone } from "../../../lib/luma-helper";
 import { MENTEES } from "../../../lib/mentees";
 
-const EDU_EVENT_NAMES = [
-  "expert insight", "industry q&a", "peer development", "pitch without a deck",
-];
+const NON_EDU_KEYWORDS = ["onboarding", "midpoint", "meetup", "summit", "graduation"];
 
 const TEST_SLUGS = new Set(["kennedy", "jackie", "aaron", "mj"]);
 
 function isEduEvent(eventName) {
   const lower = (eventName || "").toLowerCase();
-  // blank name — check by known edu event IDs is not possible here, trust approved status
-  // If blank, treat as edu (since we manually approved it as edu)
+  // Blank event name — treat as edu (manually approved)
   if (!lower) return true;
-  return EDU_EVENT_NAMES.some(k => lower.includes(k));
+  // Everything is edu EXCEPT onboarding, midpoint meetup, summit, graduation
+  return !NON_EDU_KEYWORDS.some(k => lower.includes(k));
 }
 
 export default async function handler(req, res) {
