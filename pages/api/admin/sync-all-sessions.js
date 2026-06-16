@@ -9,7 +9,8 @@ const TEST_SLUGS = new Set(["kennedy", "jackie", "aaron", "mj"]);
 
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
-  if (req.query.token !== process.env.ADMIN_SECRET) return res.status(401).end();
+  const secret = process.env.ADMIN_SECRET;
+  if (secret && req.query.token !== secret) return res.status(401).end();
 
   const slugs = MENTEES
     .filter(m => !TEST_SLUGS.has(m.slug) && m.mentor?.email)
