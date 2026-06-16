@@ -7,6 +7,8 @@ import { getSheetsClient, MILESTONE_KEYS, MILESTONE_LABELS } from "../../lib/she
 import { MENTEES, MENTEE_EMAILS, MENTOR_EMAILS } from "../../lib/mentees";
 
 const TEST_SLUGS = ["kennedy", "jackie", "aaron", "mj"];
+// Late-matched mentees get +7 day grace on session deadlines
+const LATE_MATCH_SLUGS = new Set(["lina-escobar"]);
 
 // Week deadline thresholds derived from My Journey program timeline
 const PROGRAM_START = new Date("2026-06-01");
@@ -16,7 +18,12 @@ const WEEK4_END     = new Date("2026-06-28");
 const WEEK5_END     = new Date("2026-07-05");
 const WEEK7_END     = new Date("2026-07-19");
 
-function computeStatus(milestones, today) {
+function computeStatus(milestones, today, slug = "") {
+  const isLateMatch = LATE_MATCH_SLUGS.has(slug);
+  const effectiveWeek2End = isLateMatch ? new Date("2026-06-21") : WEEK2_END;
+  const effectiveWeek4End = isLateMatch ? new Date("2026-07-05") : WEEK4_END;
+  const effectiveWeek5End = isLateMatch ? new Date("2026-07-12") : WEEK5_END;
+  const effectiveWeek7End = isLateMatch ? new Date("2026-07-26") : WEEK7_END;
   const mentorCount = ["mentorSession1", "mentorSession2", "mentorSession3"]
     .filter(k => milestones[k]).length;
 
@@ -32,16 +39,16 @@ function computeStatus(milestones, today) {
   let flags = [];
 
   // Session-based thresholds
-  if (today >= WEEK4_END && mentorCount === 0) {
+  if (today >= effectiveWeek4End && mentorCount === 0) {
     status = "at-risk";
     flags.push("No mentor session — past Week 4 removal deadline");
-  } else if (today >= WEEK7_END && mentorCount < 3) {
+  } else if (today >= effectiveWeek7End && mentorCount < 3) {
     if (status !== "at-risk") status = "needs-attention";
     flags.push(`Only ${mentorCount}/3 mentor sessions by end of Week 7`);
-  } else if (today >= WEEK5_END && mentorCount < 2) {
+  } else if (today >= effectiveWeek5End && mentorCount < 2) {
     if (status !== "at-risk") status = "needs-attention";
     flags.push(`Only ${mentorCount}/2 mentor sessions by end of Week 5`);
-  } else if (today >= WEEK2_END && mentorCount < 1) {
+  } else if (today >= effectiveWeek2End && mentorCount < 1) {
     if (status !== "at-risk") status = "needs-attention";
     flags.push("No mentor session logged by end of Week 2");
   }
@@ -115,10 +122,11 @@ export default async function handler(req, res) {
 
       if (rows.length > 1) {
         const headerRow = rows[0] || [];
-        const churnedIdx     = headerRow.findIndex(h => h?.toLowerCase() === "churned");
-        const notesIdx       = headerRow.findIndex(h => h?.toLowerCase() === "notes");
-        const emailIdx       = headerRow.findIndex(h => h?.toLowerCase() === "email");
-        const mentorEmailIdx = headerRow.findIndex(h => h?.toLowerCase() === "mentor email");
+        const churnedIdx        = headerRow.findIndex(h => h?.toLowerCase() === "churned");
+        const notesIdx          = headerRow.findIndex(h => h?.toLowerCase() === "notes");
+        const emailIdx          = headerRow.findIndex(h => h?.toLowerCase() === "email");
+        const mentorEmailIdx    = headerRow.findIndex(h => h?.toLowerCase() === "mentor email");
+        const statusOverrideIdx = headerRow.findIndex(h => h?.toLowerCase() === "status override");
 
         // Find milestone columns by header label; fall back to offset 6
         const milestoneColIdxs = {};
@@ -142,21 +150,47 @@ export default async function handler(req, res) {
           });
           // Participation tab already set this — don't override with FALSE from Dashboard
           // (leave participation as-is from step 1)
-          const churned     = churnedIdx >= 0 ? (row[churnedIdx] === "TRUE" || row[churnedIdx] === true) : false;
-          const notes       = notesIdx >= 0 ? (row[notesIdx] || "") : "";
-          const email       = emailIdx >= 0 ? (row[emailIdx] || "") : "";
-          const mentorEmail = mentorEmailIdx >= 0 ? (row[mentorEmailIdx] || "") : "";
-          sheetData[slug].churned     = churned;
-          sheetData[slug].notes       = notes || sheetData[slug].notes;
-          sheetData[slug].email       = email || sheetData[slug].email;
-          sheetData[slug].mentorEmail = mentorEmail || sheetData[slug].mentorEmail;
+          const churned        = churnedIdx >= 0 ? (row[churnedIdx] === "TRUE" || row[churnedIdx] === true) : false;
+          const notes          = notesIdx >= 0 ? (row[notesIdx] || "") : "";
+          const email          = emailIdx >= 0 ? (row[emailIdx] || "") : "";
+          const mentorEmail    = mentorEmailIdx >= 0 ? (row[mentorEmailIdx] || "") : "";
+          const statusOverride = statusOverrideIdx >= 0 ? (row[statusOverrideIdx] || "") : "";
+          sheetData[slug].churned        = churned;
+          sheetData[slug].notes          = notes || sheetData[slug].notes;
+          sheetData[slug].email          = email || sheetData[slug].email;
+          sheetData[slug].mentorEmail    = mentorEmail || sheetData[slug].mentorEmail;
+          sheetData[slug].statusOverride = statusOverride;
         }
       }
     } catch (err) {
       console.error("Dashboard tab read failed:", err.message);
     }
 
-    // ── 3. Read SessionReview tab for pending count ───────────────────────────
+    // ── 3. Read Mentor Confirmations tab for admin-assigned mentor matches ───────
+    try {
+      const mcRes = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: "Mentor Confirmations!A2:H500",
+      });
+      const mcRows = mcRes.data.values || [];
+      for (const row of mcRows) {
+        const mentorName  = row[1]?.trim();
+        const mentorEmail = row[2]?.trim();
+        const slug        = row[4]?.trim();
+        const status      = row[5]?.trim().toLowerCase();
+        if (!slug || !mentorName || status === "needs-match") continue;
+        if (!sheetData[slug]) {
+          sheetData[slug] = { milestones: Object.fromEntries(MILESTONE_KEYS.map(k => [k, false])), churned: false, notes: "", email: "", mentorEmail: "" };
+        }
+        // Only set if not already populated from Dashboard tab
+        if (!sheetData[slug].mentorName) sheetData[slug].mentorName  = mentorName;
+        if (!sheetData[slug].mentorEmail) sheetData[slug].mentorEmail = mentorEmail;
+      }
+    } catch (err) {
+      console.error("Mentor Confirmations tab read failed:", err.message);
+    }
+
+    // ── 4. Read SessionReview tab for pending count ───────────────────────────
     try {
       const srRes = await sheets.spreadsheets.values.get({ spreadsheetId, range: "SessionReview!A:A" });
       const srRows = srRes.data.values || [];
@@ -175,14 +209,19 @@ export default async function handler(req, res) {
     const notes       = d.notes   || "";
     const email       = d.email       || MENTEE_EMAILS[m.slug]  || "";
     const mentorEmail = d.mentorEmail || MENTOR_EMAILS[m.slug]  || "";
+    const mentorName  = d.mentorName  || m.mentor?.name         || "";
 
     const milestoneCount = Object.values(milestones).filter(Boolean).length;
     const mentorCount    = ["mentorSession1", "mentorSession2", "mentorSession3"].filter(k => milestones[k]).length;
     const eduCount       = ["edu1", "edu2", "edu3"].filter(k => milestones[k]).length;
 
+    const statusOverride = d.statusOverride || "";
+    const VALID_OVERRIDES = new Set(["at-risk", "needs-attention", "on-track", "churned"]);
     const { status, flags } = churned
       ? { status: "churned", flags: ["Left program / dropped out"] }
-      : computeStatus(milestones, today);
+      : (VALID_OVERRIDES.has(statusOverride)
+          ? { status: statusOverride, flags: [`Manual override: ${statusOverride}`] }
+          : computeStatus(milestones, today, m.slug));
 
     return {
       slug: m.slug,
@@ -199,7 +238,7 @@ export default async function handler(req, res) {
       churned,
       notes,
       email,
-      mentorName:  m.mentor?.name  || "",
+      mentorName,
       mentorEmail,
       isTest: TEST_SLUGS.includes(m.slug),
     };

@@ -14,6 +14,9 @@ const HOLDING_SLUGS = new Set([
   "alisha-sharma",
 ]);
 
+// Late-matched mentees: session due dates shifted +7 days beyond HOLDING_SLUGS dates
+const LATE_MATCH_SLUGS = new Set(["lina-escobar"]);
+
 // ─── Week definitions ─────────────────────────────────────────────────────────
 const WEEKS = [
   {
@@ -2910,6 +2913,7 @@ function parseDueDate(dueStr) {
 
 function MilestoneSection({ milestones, onNavigate, slug }) {
   const isHolding = HOLDING_SLUGS.has(slug);
+  const isLateMatch = LATE_MATCH_SLUGS.has(slug);
   const items = [
     { key: "participation",   label: "Confirmed Participation",        auto: true, due: "By Jun 3",  week: 1 },
     { key: "onboarding",      label: "Onboarding Session Attended",  due: "By Jun 7",  contactMsg: "If you haven't attended an onboarding session yet, please reach out to us directly — we can help get you sorted." },
@@ -2917,9 +2921,9 @@ function MilestoneSection({ milestones, onNavigate, slug }) {
     { key: "edu1",            label: "Educational Session 1",                       due: "By Aug 4",  week: 2 },
     { key: "edu2",            label: "Educational Session 2",                       due: "By Aug 4",  week: 3 },
     { key: "edu3",            label: "Educational Session 3",                       due: "By Aug 4",  week: 8 },
-    { key: "mentorSession1",  label: "Mentor Session 1",                            due: isHolding ? "By Jun 23" : "By Jun 13", week: 2 },
-    { key: "mentorSession2",  label: "Mentor Session 2",                            due: "By Jul 4",  week: 5 },
-    { key: "mentorSession3",  label: "Mentor Session 3",                            due: "By Jul 18", week: 7 },
+    { key: "mentorSession1",  label: "Mentor Session 1",                            due: isLateMatch ? "By Jun 30" : isHolding ? "By Jun 23" : "By Jun 13", week: 2 },
+    { key: "mentorSession2",  label: "Mentor Session 2",                            due: isLateMatch ? "By Jul 11" : "By Jul 4",  week: 5 },
+    { key: "mentorSession3",  label: "Mentor Session 3",                            due: isLateMatch ? "By Jul 25" : "By Jul 18", week: 7 },
     { key: "midpoint",        label: "Midpoint Meetup Attended",                    due: "Jun 23",    week: 4 },
     { key: "endSurvey",       label: "End of Program Survey Completed",             due: "By Jul 25", week: 8 },
     { key: "summit",          label: "Summit & Graduation Attended",                due: "Aug 4",     week: 9 },
