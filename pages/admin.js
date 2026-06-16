@@ -6356,7 +6356,7 @@ function MidpointFunding({ mentees = [] }) {
   if (loadError) return <div style={{ padding: 60, textAlign: "center", color: "#c0392b" }}>Error: {loadError}</div>;
 
   // Manually confirmed registrants not matched by Luma email lookup
-  const EXTRA_MENTEE_SLUGS = new Set(["britney-medich", "harshil-thakkar", "jean-guerdy-paul"]);
+  const EXTRA_MENTEE_SLUGS = new Set(["britney-medich", "harshil-thakkar", "jean-guerdy-paul", "shanthi-viswanathan", "pierre-girgis", "kima-danjou"]);
   const EXTRA_MENTOR_NAMES = new Set(["Dee Marshall", "Dennis Yuscavitch", "Felicia Palmer", "Malak Atut", "Stella Alvo", "Orin Davis"]);
 
   const registrantEmails = new Set((guests || []).map(g => g.email?.toLowerCase()).filter(Boolean));
