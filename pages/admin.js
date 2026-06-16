@@ -6355,12 +6355,19 @@ function MidpointFunding({ mentees = [] }) {
   if (loading) return <div style={{ padding: 60, textAlign: "center", color: "#9b8fcf" }}>Loading midpoint data…</div>;
   if (loadError) return <div style={{ padding: 60, textAlign: "center", color: "#c0392b" }}>Error: {loadError}</div>;
 
+  // Manually confirmed registrants not matched by Luma email lookup
+  const EXTRA_MENTEE_SLUGS = new Set(["britney-medich", "harshil-thakkar"]);
+  const EXTRA_MENTOR_NAMES = new Set(["Dee Marshall", "Dennis Yuscavitch", "Felicia Palmer"]);
+
   const registrantEmails = new Set((guests || []).map(g => g.email?.toLowerCase()).filter(Boolean));
-  const registrantSlugs  = new Set((guests || []).map(g => g.menteeSlug).filter(Boolean));
+  const registrantSlugs  = new Set([
+    ...(guests || []).map(g => g.menteeSlug).filter(Boolean),
+    ...EXTRA_MENTEE_SLUGS,
+  ]);
 
   const cohortData = {};
   for (const m of mentees) {
-    if (m.isTest) continue;
+    if (m.isTest || m.churned) continue;
     const c = m.cohort;
     if (!cohortData[c]) cohortData[c] = { mentees: [], mentorMap: {} };
     cohortData[c].mentees.push(m);
@@ -6401,7 +6408,7 @@ function MidpointFunding({ mentees = [] }) {
           const d = cohortData[c];
           const menteeReg    = d.mentees.filter(m => registrantSlugs.has(m.slug)).length;
           const mentorEmails = Object.keys(d.mentorMap);
-          const mentorReg    = mentorEmails.filter(e => registrantEmails.has(e)).length;
+          const mentorReg    = mentorEmails.filter(e => registrantEmails.has(e) || EXTRA_MENTOR_NAMES.has(d.mentorMap[e])).length;
           const menteePct    = d.mentees.length > 0 ? Math.round(menteeReg / d.mentees.length * 100) : 0;
           const mentorPct    = mentorEmails.length > 0 ? Math.round(mentorReg / mentorEmails.length * 100) : 0;
           const bothHit      = menteePct >= 50 && mentorPct >= 50;
@@ -6425,8 +6432,8 @@ function MidpointFunding({ mentees = [] }) {
         const menteeRegs   = d.mentees.filter(m => registrantSlugs.has(m.slug));
         const menteeNot    = d.mentees.filter(m => !registrantSlugs.has(m.slug));
         const mentorEmails = Object.keys(d.mentorMap);
-        const mentorRegs   = mentorEmails.filter(e => registrantEmails.has(e)).map(e => d.mentorMap[e]);
-        const mentorNot    = mentorEmails.filter(e => !registrantEmails.has(e)).map(e => d.mentorMap[e]);
+        const mentorRegs   = mentorEmails.filter(e => registrantEmails.has(e) || EXTRA_MENTOR_NAMES.has(d.mentorMap[e])).map(e => d.mentorMap[e]);
+        const mentorNot    = mentorEmails.filter(e => !registrantEmails.has(e) && !EXTRA_MENTOR_NAMES.has(d.mentorMap[e])).map(e => d.mentorMap[e]);
         const menteePct    = d.mentees.length > 0 ? Math.round(menteeRegs.length / d.mentees.length * 100) : 0;
         const mentorPct    = mentorEmails.length > 0 ? Math.round(mentorRegs.length / mentorEmails.length * 100) : 0;
         const isOpen       = expanded[c];
