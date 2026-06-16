@@ -16,14 +16,15 @@ export default async function handler(req, res) {
     .filter(m => !TEST_SLUGS.has(m.slug) && m.mentor?.email)
     .map(m => m.slug);
 
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "https://uplift2026.vercel.app";
+  const baseUrl = "https://uplift2026.vercel.app";
+  const bypassHeader = process.env.VERCEL_AUTOMATION_BYPASS_SECRET || "";
 
   const results = [];
   for (const slug of slugs) {
     try {
-      const r = await fetch(`${baseUrl}/api/meetings?slug=${slug}`);
+      const r = await fetch(`${baseUrl}/api/meetings?slug=${slug}`, {
+        headers: bypassHeader ? { "x-vercel-protection-bypass": bypassHeader } : {},
+      });
       const data = await r.json();
       const count = (data.meetings || []).filter(m =>
         !m.denied && (m.notes?.trim() || m.manuallyVerified)
