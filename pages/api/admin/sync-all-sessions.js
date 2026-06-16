@@ -26,7 +26,7 @@ export default async function handler(req, res) {
       const r = await fetch(`${baseUrl}/api/meetings?slug=${slug}`);
       const data = await r.json();
       const count = (data.meetings || []).filter(m =>
-        !m.denied && ((m.sixtyMin === true && m.notes?.trim()) || m.manuallyVerified)
+        !m.denied && (m.notes?.trim() || m.manuallyVerified)
       ).length;
       results.push({ slug, sessions: count, ok: true });
     } catch (e) {
