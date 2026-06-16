@@ -6358,6 +6358,9 @@ function MidpointFunding({ mentees = [] }) {
   // Manually confirmed registrants not matched by Luma email lookup
   const EXTRA_MENTEE_SLUGS = new Set(["britney-medich", "harshil-thakkar", "jean-guerdy-paul", "shanthi-viswanathan", "pierre-girgis", "kima-danjou", "ekaterina-kashkina", "annalyce-dagostino-gavin"]);
   const EXTRA_MENTOR_NAMES = new Set(["Dee Marshall", "Dennis Yuscavitch", "Felicia Palmer", "Malak Atut", "Stella Alvo", "Orin Davis"]);
+  // Confirmed can't attend — said so directly
+  const EXCUSED_MENTEE_SLUGS = new Set(["evan-peneiras"]);
+  const EXCUSED_MENTOR_NAMES = new Set(["Natalie Kaminski"]);
 
   const registrantEmails = new Set((guests || []).map(g => g.email?.toLowerCase()).filter(Boolean));
   const registrantSlugs  = new Set([
@@ -6465,15 +6468,18 @@ function MidpointFunding({ mentees = [] }) {
                     {menteeNot.length > 0 && (
                       <>
                         <p style={{ margin: "14px 0 8px", fontSize: 11, fontWeight: 700, color: "#b35c00", textTransform: "uppercase", letterSpacing: "0.5px" }}>Not Registered ({menteeNot.length})</p>
-                        {menteeNot.map(m => (
-                          <div key={m.slug} style={{ padding: "5px 0", borderBottom: "1px solid #f7f5ff" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <span style={{ fontSize: 11, color: "#e74c3c" }}>✗</span>
-                              <span style={{ fontSize: 13, color: "#1a1733" }}>{m.first} {m.last}</span>
+                        {menteeNot.map(m => {
+                          const excused = EXCUSED_MENTEE_SLUGS.has(m.slug);
+                          return (
+                            <div key={m.slug} style={{ padding: "5px 0", borderBottom: "1px solid #f7f5ff" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <span style={{ fontSize: 11, color: excused ? "#e67e22" : "#e74c3c" }}>{excused ? "~" : "✗"}</span>
+                                <span style={{ fontSize: 13, color: excused ? "#9b8fcf" : "#1a1733", textDecoration: excused ? "line-through" : "none" }}>{m.first} {m.last}</span>
+                              </div>
+                              <div style={{ fontSize: 11, color: "#9b8fcf", paddingLeft: 19 }}>{m.email}</div>
                             </div>
-                            <div style={{ fontSize: 11, color: "#9b8fcf", paddingLeft: 19 }}>{m.email}</div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </>
                     )}
                   </div>
@@ -6488,12 +6494,15 @@ function MidpointFunding({ mentees = [] }) {
                     {mentorNot.length > 0 && (
                       <>
                         <p style={{ margin: "14px 0 8px", fontSize: 11, fontWeight: 700, color: "#b35c00", textTransform: "uppercase", letterSpacing: "0.5px" }}>Not Registered ({mentorNot.length})</p>
-                        {mentorNot.map(name => (
-                          <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: "1px solid #f7f5ff" }}>
-                            <span style={{ fontSize: 11, color: "#e74c3c" }}>✗</span>
-                            <span style={{ fontSize: 13, color: "#1a1733" }}>{name}</span>
-                          </div>
-                        ))}
+                        {mentorNot.map(name => {
+                          const excused = EXCUSED_MENTOR_NAMES.has(name);
+                          return (
+                            <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: "1px solid #f7f5ff" }}>
+                              <span style={{ fontSize: 11, color: excused ? "#e67e22" : "#e74c3c" }}>{excused ? "~" : "✗"}</span>
+                              <span style={{ fontSize: 13, color: excused ? "#9b8fcf" : "#1a1733", textDecoration: excused ? "line-through" : "none" }}>{name}</span>
+                            </div>
+                          );
+                        })}
                       </>
                     )}
                   </div>
