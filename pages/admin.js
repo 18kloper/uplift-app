@@ -3085,6 +3085,7 @@ export default function AdminPage() {
     ]},
     { key: "engagement", label: "Engagement", tabs: [
       { key: "luma",        label: "Attendance" },
+      { key: "midpoint",    label: "Midpoint 50%" },
       { key: "prompts",     label: "Prompts" },
       { key: "connections", label: "Peer Connects" },
       { key: "pulse",       label: "Pulse" },
@@ -3195,6 +3196,7 @@ export default function AdminPage() {
           {adminTab === "emails"         && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} />}
           {adminTab === "non-responsive" && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} defaultFilter="no-reply" />}
           {adminTab === "luma"        && <LumaAttendance mentees={data?.mentees || []} />}
+          {adminTab === "midpoint"    && <MidpointFunding mentees={data?.mentees || []} />}
         </>
         )}
       </div>
@@ -6329,6 +6331,171 @@ function PulseReport() {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+// ─── Midpoint 50% Funding Tracker ─────────────────────────────────────────────
+function MidpointFunding({ mentees = [] }) {
+  const [guests, setGuests] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [expanded, setExpanded] = useState({});
+
+  const MIDPOINT_EVENT_ID = "evt-64k4uVolXep8ogp";
+  const COHORT_NAMES = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
+
+  useEffect(() => {
+    fetch(`/api/luma-event-guests?eventId=${MIDPOINT_EVENT_ID}&token=uplift2026admin`)
+      .then(r => r.json())
+      .then(d => { setGuests(d.guests || []); setLoading(false); })
+      .catch(e => { setLoadError(e.message); setLoading(false); });
+  }, []);
+
+  if (loading) return <div style={{ padding: 60, textAlign: "center", color: "#9b8fcf" }}>Loading midpoint data…</div>;
+  if (loadError) return <div style={{ padding: 60, textAlign: "center", color: "#c0392b" }}>Error: {loadError}</div>;
+
+  const registrantEmails = new Set((guests || []).map(g => g.email?.toLowerCase()).filter(Boolean));
+  const registrantSlugs  = new Set((guests || []).map(g => g.menteeSlug).filter(Boolean));
+
+  const cohortData = {};
+  for (const m of mentees) {
+    if (m.isTest) continue;
+    const c = m.cohort;
+    if (!cohortData[c]) cohortData[c] = { mentees: [], mentorMap: {} };
+    cohortData[c].mentees.push(m);
+    if (m.mentorName && m.mentorEmail) {
+      cohortData[c].mentorMap[m.mentorEmail.toLowerCase()] = m.mentorName;
+    }
+  }
+
+  const toggle = (key) => setExpanded(p => ({ ...p, [key]: !p[key] }));
+
+  const Bar = ({ value, total, barColor }) => {
+    const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+    const hit = pct >= 50;
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ flex: 1, background: "#e8e4f5", borderRadius: 6, height: 10, minWidth: 100 }}>
+          <div style={{ width: `${Math.min(pct, 100)}%`, height: 10, borderRadius: 6, background: hit ? "#27ae60" : barColor, transition: "width 0.4s" }} />
+        </div>
+        <span style={{ fontSize: 13, fontWeight: 700, color: hit ? "#1a6e42" : "#b35c00", minWidth: 36 }}>{pct}%</span>
+        <span style={{ fontSize: 12, color: "#9b8fcf" }}>{value}/{total}</span>
+      </div>
+    );
+  };
+
+  const cohortKeys = Object.keys(cohortData).map(Number).sort();
+
+  return (
+    <div style={{ padding: "32px 40px", maxWidth: 960, margin: "0 auto" }}>
+      <div style={{ marginBottom: 28 }}>
+        <p style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#1a1733" }}>Midpoint In-Person Tracker</p>
+        <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9b8fcf" }}>
+          Funding requires ≥50% of each cohort&apos;s mentees <em>and</em> mentors registered for the June 23 meetup.
+        </p>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 32 }}>
+        {cohortKeys.map(c => {
+          const d = cohortData[c];
+          const menteeReg    = d.mentees.filter(m => registrantSlugs.has(m.slug)).length;
+          const mentorEmails = Object.keys(d.mentorMap);
+          const mentorReg    = mentorEmails.filter(e => registrantEmails.has(e)).length;
+          const menteePct    = d.mentees.length > 0 ? Math.round(menteeReg / d.mentees.length * 100) : 0;
+          const mentorPct    = mentorEmails.length > 0 ? Math.round(mentorReg / mentorEmails.length * 100) : 0;
+          const bothHit      = menteePct >= 50 && mentorPct >= 50;
+          return (
+            <div key={c} style={{ background: "#fff", borderRadius: 12, padding: "16px 18px", border: `2px solid ${bothHit ? "#27ae60" : "#f39c12"}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <span style={{ fontSize: 13, fontWeight: 800, color: "#1a1733" }}>C{c} {COHORT_NAMES[c]}</span>
+                <span style={{ fontSize: 16 }}>{bothHit ? "✅" : "🚨"}</span>
+              </div>
+              <div style={{ fontSize: 11, color: "#6b6480", marginBottom: 4, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Mentees</div>
+              <Bar value={menteeReg} total={d.mentees.length} barColor="#f39c12" />
+              <div style={{ fontSize: 11, color: "#6b6480", margin: "10px 0 4px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Mentors</div>
+              <Bar value={mentorReg} total={mentorEmails.length} barColor="#e67e22" />
+            </div>
+          );
+        })}
+      </div>
+
+      {cohortKeys.map(c => {
+        const d            = cohortData[c];
+        const menteeRegs   = d.mentees.filter(m => registrantSlugs.has(m.slug));
+        const menteeNot    = d.mentees.filter(m => !registrantSlugs.has(m.slug));
+        const mentorEmails = Object.keys(d.mentorMap);
+        const mentorRegs   = mentorEmails.filter(e => registrantEmails.has(e)).map(e => d.mentorMap[e]);
+        const mentorNot    = mentorEmails.filter(e => !registrantEmails.has(e)).map(e => d.mentorMap[e]);
+        const menteePct    = d.mentees.length > 0 ? Math.round(menteeRegs.length / d.mentees.length * 100) : 0;
+        const mentorPct    = mentorEmails.length > 0 ? Math.round(mentorRegs.length / mentorEmails.length * 100) : 0;
+        const isOpen       = expanded[c];
+
+        return (
+          <div key={c} style={{ background: "#fff", borderRadius: 12, marginBottom: 10, border: "1px solid #e8e4f5", overflow: "hidden" }}>
+            <button onClick={() => toggle(c)} style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: "14px 20px", display: "flex", alignItems: "center", gap: 12, fontFamily: "Inter, system-ui, sans-serif", textAlign: "left" }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#1a1733", minWidth: 130 }}>Cohort {c} — {COHORT_NAMES[c]}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: menteePct >= 50 ? "#1a6e42" : "#b35c00", background: menteePct >= 50 ? "#e8f8f0" : "#fff3e0", padding: "3px 10px", borderRadius: 20 }}>
+                Mentees {menteePct}% ({menteeRegs.length}/{d.mentees.length})
+              </span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: mentorPct >= 50 ? "#1a6e42" : "#b35c00", background: mentorPct >= 50 ? "#e8f8f0" : "#fff3e0", padding: "3px 10px", borderRadius: 20 }}>
+                Mentors {mentorPct}% ({mentorRegs.length}/{mentorEmails.length})
+              </span>
+              <span style={{ marginLeft: "auto", color: "#9b8fcf", fontSize: 14 }}>{isOpen ? "▲" : "▼"}</span>
+            </button>
+            {isOpen && (
+              <div style={{ padding: "0 20px 20px", borderTop: "1px solid #f0eef8" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginTop: 16 }}>
+                  <div>
+                    <p style={{ margin: "0 0 10px", fontSize: 11, fontWeight: 700, color: "#5c4eb5", textTransform: "uppercase", letterSpacing: "0.5px" }}>Mentees Registered ({menteeRegs.length})</p>
+                    {menteeRegs.map(m => (
+                      <div key={m.slug} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: "1px solid #f7f5ff" }}>
+                        <span style={{ fontSize: 11, color: "#27ae60" }}>✓</span>
+                        <span style={{ fontSize: 13, color: "#1a1733" }}>{m.first} {m.last}</span>
+                        <span style={{ fontSize: 11, color: "#b0a8cc", marginLeft: "auto" }}>{m.company}</span>
+                      </div>
+                    ))}
+                    {menteeNot.length > 0 && (
+                      <>
+                        <p style={{ margin: "14px 0 8px", fontSize: 11, fontWeight: 700, color: "#b35c00", textTransform: "uppercase", letterSpacing: "0.5px" }}>Not Registered ({menteeNot.length})</p>
+                        {menteeNot.map(m => (
+                          <div key={m.slug} style={{ padding: "5px 0", borderBottom: "1px solid #f7f5ff" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <span style={{ fontSize: 11, color: "#e74c3c" }}>✗</span>
+                              <span style={{ fontSize: 13, color: "#1a1733" }}>{m.first} {m.last}</span>
+                            </div>
+                            <div style={{ fontSize: 11, color: "#9b8fcf", paddingLeft: 19 }}>{m.email}</div>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                  <div>
+                    <p style={{ margin: "0 0 10px", fontSize: 11, fontWeight: 700, color: "#5c4eb5", textTransform: "uppercase", letterSpacing: "0.5px" }}>Mentors Registered ({mentorRegs.length})</p>
+                    {mentorRegs.map(name => (
+                      <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: "1px solid #f7f5ff" }}>
+                        <span style={{ fontSize: 11, color: "#27ae60" }}>✓</span>
+                        <span style={{ fontSize: 13, color: "#1a1733" }}>{name}</span>
+                      </div>
+                    ))}
+                    {mentorNot.length > 0 && (
+                      <>
+                        <p style={{ margin: "14px 0 8px", fontSize: 11, fontWeight: 700, color: "#b35c00", textTransform: "uppercase", letterSpacing: "0.5px" }}>Not Registered ({mentorNot.length})</p>
+                        {mentorNot.map(name => (
+                          <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: "1px solid #f7f5ff" }}>
+                            <span style={{ fontSize: 11, color: "#e74c3c" }}>✗</span>
+                            <span style={{ fontSize: 13, color: "#1a1733" }}>{name}</span>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
