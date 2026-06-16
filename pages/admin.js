@@ -6356,7 +6356,7 @@ function MidpointFunding({ mentees = [] }) {
   if (loadError) return <div style={{ padding: 60, textAlign: "center", color: "#c0392b" }}>Error: {loadError}</div>;
 
   // Manually confirmed registrants not matched by Luma email lookup
-  const EXTRA_MENTEE_SLUGS = new Set(["britney-medich", "harshil-thakkar", "jean-guerdy-paul", "shanthi-viswanathan", "pierre-girgis", "kima-danjou", "ekaterina-kashkina", "annalyce-dagostino-gavin", "lina-escobar", "jerry-primus", "gunjan-aggarwal", "priyal-levine", "rachel-hayes", "eliana-zebro", "anthony-caruso", "hamza-zafar", "jordan-river-samuel", "aliya-laliwala"]);
+  const EXTRA_MENTEE_SLUGS = new Set(["britney-medich", "harshil-thakkar", "jean-guerdy-paul", "shanthi-viswanathan", "pierre-girgis", "kima-danjou", "ekaterina-kashkina", "annalyce-dagostino-gavin", "lina-escobar", "jerry-primus", "gunjan-aggarwal", "priyal-levine", "rachel-hayes", "eliana-zebro", "anthony-caruso", "hamza-zafar", "jordan-river-samuel", "aliya-laliwala", "bejan-moers"]);
   const EXTRA_MENTOR_NAMES = new Set(["Dee Marshall", "Dennis Yuscavitch", "Felicia Palmer", "Malak Atut", "Stella Alvo", "Orin Davis"]);
   // Confirmed can't attend — said so directly
   const EXCUSED_MENTEE_SLUGS = new Set(["evan-peneiras", "chirag-shah"]);
