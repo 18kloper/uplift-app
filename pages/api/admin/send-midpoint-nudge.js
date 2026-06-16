@@ -1,6 +1,29 @@
 // One-shot: send midpoint registration nudge to unregistered mentees
 // POST /api/admin/send-midpoint-nudge?token=...
 
+const RETRY_ONLY = [
+  { first: "Jerry",         email: "jprimus@pclinkup.com" },
+  { first: "Andrea",        email: "vernengo@rowan.edu" },
+  { first: "Jedidiah",      email: "jjw252@scarletmail.rutgers.edu" },
+  { first: "Hamza",         email: "hamzalizafar@gmail.com" },
+  { first: "Sonali",        email: "sonali@reckysolutions.com" },
+  { first: "Debbie",        email: "info@3dhrconsulting.com" },
+  { first: "Naveen",        email: "naveenk@truxt.ai" },
+  { first: "Ahmed",         email: "ahmed@sphinque.com" },
+  { first: "Shell",         email: "Hi@WeDisruptTheGap.com" },
+  { first: "Daniel",        email: "j100892@gmail.com" },
+  { first: "Paula",         email: "paula@ozzieapp.com" },
+  { first: "Eliana",        email: "eliana.antoinette.z@gmail.com" },
+  { first: "Ebunoluwa",     email: "e.r.adenekan@gmail.com" },
+  { first: "Logan",         email: "logan@tickerapp.io" },
+  { first: "Aliya",         email: "aliyalaliwala12@gmail.com" },
+  { first: "Han",           email: "han.nguyen@princeton.edu" },
+  { first: "Gunjan",        email: "gunjan@virre.ai" },
+  { first: "Elisa",         email: "elisa@juego.juegos" },
+  { first: "Saurabh",       email: "sgandhe@arya57.com" },
+  { first: "Natalie",       email: "nkitts@thezigzagflow.com" },
+];
+
 const RECIPIENTS = [
   { first: "Gifty",         email: "giftyanane@icloud.com" },
   { first: "Anthony",       email: "anthony.caruso@contextral.com" },
@@ -72,8 +95,11 @@ export default async function handler(req, res) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return res.status(500).json({ error: "RESEND_API_KEY not set" });
 
+  const list = req.query.retry === "1" ? RETRY_ONLY : RECIPIENTS;
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
   const results = [];
-  for (const r of RECIPIENTS) {
+  for (const r of list) {
     try {
       const resp = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -91,6 +117,7 @@ export default async function handler(req, res) {
     } catch (e) {
       results.push({ email: r.email, ok: false, error: e.message });
     }
+    await sleep(300);
   }
 
   const sent = results.filter(r => r.ok).length;
