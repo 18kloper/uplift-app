@@ -289,16 +289,15 @@ export default async function handler(req, res) {
         menteeName = `${rawFirst} ${rawLast}`.trim();
       }
 
-      // Normalize session length: old boolean field (true=60, false=30) or new numeric field
+      // Normalize session length: new numeric field, or old boolean (true=60, false=null since 30 was an estimate)
       const rawAnswer = get(answers, FIELDS.sixtyMin);
       let minutes = null;
       if (rawAnswer?.number != null) {
         minutes = rawAnswer.number;
       } else if (rawAnswer?.boolean === true) {
         minutes = 60;
-      } else if (rawAnswer?.boolean === false) {
-        minutes = 30;
       }
+      // boolean false → minutes stays null; sixtyMin derived below will be false (half credit)
 
       meetings.push({
         id:          item.token,
