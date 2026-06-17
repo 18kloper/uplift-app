@@ -7,23 +7,34 @@ import { getSheetsClient, MILESTONE_KEYS, MILESTONE_LABELS } from "../../lib/she
 import { MENTEES, MENTEE_EMAILS, MENTOR_EMAILS } from "../../lib/mentees";
 
 const TEST_SLUGS = ["kennedy", "jackie", "aaron", "mj"];
-// Late-matched mentees get +7 day grace on session deadlines
+
+// Mentees whose mentor match was delayed — session 1 due Jun 23 instead of Jun 13
+const HOLDING_SLUGS = new Set([
+  "gifty-anane", "annalyce-dagostino-gavin", "lina-escobar",
+  "favio-jasso", "mark-kallback", "alina-okun", "alisha-sharma",
+]);
+// Late-matched mentees get an additional +7 days on top of holding dates
 const LATE_MATCH_SLUGS = new Set(["lina-escobar"]);
 
 // Week deadline thresholds derived from My Journey program timeline
-const PROGRAM_START = new Date("2026-06-01");
-const WEEK1_END     = new Date("2026-06-07");
-const WEEK2_END     = new Date("2026-06-14");
-const WEEK4_END     = new Date("2026-06-28");
-const WEEK5_END     = new Date("2026-07-05");
-const WEEK7_END     = new Date("2026-07-19");
+const PROGRAM_START       = new Date("2026-06-01");
+const WEEK1_END           = new Date("2026-06-07");
+const WEEK2_END           = new Date("2026-06-14"); // session 1 deadline — normal
+const WEEK3_END           = new Date("2026-06-24"); // session 1 deadline — holding (due Jun 23)
+const LATE_SESSION1_END   = new Date("2026-07-01"); // session 1 deadline — late match (due Jun 30)
+const WEEK4_END           = new Date("2026-06-28");
+const WEEK5_END           = new Date("2026-07-05");
+const WEEK7_END           = new Date("2026-07-19");
 
 function computeStatus(milestones, today, slug = "") {
   const isLateMatch = LATE_MATCH_SLUGS.has(slug);
-  const effectiveWeek2End = isLateMatch ? new Date("2026-06-21") : WEEK2_END;
-  const effectiveWeek4End = isLateMatch ? new Date("2026-07-05") : WEEK4_END;
-  const effectiveWeek5End = isLateMatch ? new Date("2026-07-12") : WEEK5_END;
-  const effectiveWeek7End = isLateMatch ? new Date("2026-07-26") : WEEK7_END;
+  const isHolding   = HOLDING_SLUGS.has(slug);
+
+  // Session 1 deadline: late match → Jul 1, holding → Jun 24, normal → Jun 14
+  const effectiveSession1End = isLateMatch ? LATE_SESSION1_END : isHolding ? WEEK3_END : WEEK2_END;
+  const effectiveWeek4End    = isLateMatch ? new Date("2026-07-05") : WEEK4_END;
+  const effectiveWeek5End    = isLateMatch ? new Date("2026-07-12") : WEEK5_END;
+  const effectiveWeek7End    = isLateMatch ? new Date("2026-07-26") : WEEK7_END;
   const mentorCount = ["mentorSession1", "mentorSession2", "mentorSession3"]
     .filter(k => milestones[k]).length;
 
@@ -48,9 +59,9 @@ function computeStatus(milestones, today, slug = "") {
   } else if (today >= effectiveWeek5End && mentorCount < 2) {
     if (status !== "at-risk") status = "needs-attention";
     flags.push(`Only ${mentorCount}/2 mentor sessions by end of Week 5`);
-  } else if (today >= effectiveWeek2End && mentorCount < 1) {
+  } else if (today >= effectiveSession1End && mentorCount < 1) {
     if (status !== "at-risk") status = "needs-attention";
-    flags.push("No mentor session logged by end of Week 2");
+    flags.push("No mentor session logged");
   }
 
   if (!milestones.participation) {
@@ -61,7 +72,7 @@ function computeStatus(milestones, today, slug = "") {
     flags.push("Onboarding not attended");
     if (status !== "at-risk") status = "needs-attention";
   }
-  if (today >= WEEK2_END && !milestones.mentorMatched)    flags.push("Mentor not yet matched");
+  if (today >= effectiveSession1End && !milestones.mentorMatched) flags.push("Mentor not yet matched");
 
   return { status, flags: [...new Set(flags)] };
 }
