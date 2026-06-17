@@ -2107,9 +2107,8 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
         const REQUIRED = 3;
         const pct = Math.min(Math.round((verifiedCount / REQUIRED) * 100), 100);
         const over = verifiedCount > REQUIRED ? verifiedCount - REQUIRED : 0;
-        // Estimate: sessions ≥16 min each count as one full session toward 3
-        const qualifyingSessions = verifiedMeetings.filter(m => (m.minutes == null || m.minutes >= 16)).length;
-        const additionalNeeded = Math.max(0, 3 - qualifyingSessions);
+        // Estimate: ceiling on remaining credit — even 2.99/3 still needs 1 more session
+        const additionalNeeded = Math.ceil(Math.max(0, REQUIRED - verifiedCount));
         return (
           <div style={{
             background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)",
