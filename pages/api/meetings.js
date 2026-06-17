@@ -261,10 +261,22 @@ export default async function handler(req, res) {
         menteeName = `${rawFirst} ${rawLast}`.trim();
       }
 
+      // Normalize session length: old boolean field (true=60, false=30) or new numeric field
+      const rawAnswer = get(answers, FIELDS.sixtyMin);
+      let minutes = null;
+      if (rawAnswer?.number != null) {
+        minutes = rawAnswer.number;
+      } else if (rawAnswer?.boolean === true) {
+        minutes = 60;
+      } else if (rawAnswer?.boolean === false) {
+        minutes = 30;
+      }
+
       meetings.push({
         id:          item.token,
         date:        get(answers, FIELDS.date)?.text || get(answers, FIELDS.date)?.date || "",
-        sixtyMin:    get(answers, FIELDS.sixtyMin)?.boolean ?? null,
+        minutes,
+        sixtyMin:    minutes == null ? null : minutes >= 60,
         notes:       get(answers, FIELDS.notes)?.text     || "",
         takeaways:   get(answers, FIELDS.takeaways)?.text || "",
         submittedAt: item.submitted_at,
