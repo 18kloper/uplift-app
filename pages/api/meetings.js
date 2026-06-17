@@ -238,24 +238,49 @@ export default async function handler(req, res) {
 
     const parts     = slug.split("-");
     const firstName = parts[0].toLowerCase();
+    const lastName  = parts.slice(1).join("-").toLowerCase();
     const get = (answers, ref) => answers?.find(a => a.field?.ref === ref);
+
+    // Levenshtein similarity: returns 0–1 where 1 = identical
+    function similarity(a, b) {
+      if (!a || !b) return 0;
+      if (a === b) return 1;
+      const m = a.length, n = b.length;
+      const dp = Array.from({ length: m + 1 }, (_, i) => Array.from({ length: n + 1 }, (_, j) => i === 0 ? j : j === 0 ? i : 0));
+      for (let i = 1; i <= m; i++)
+        for (let j = 1; j <= n; j++)
+          dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+      return 1 - dp[m][n] / Math.max(m, n);
+    }
+
+    function fuzzyMatch(submitted, fromSlug) {
+      const s = submitted.toLowerCase().trim();
+      const t = fromSlug.toLowerCase().trim();
+      if (!s || !t) return false;
+      // Exact match
+      if (s === t) return true;
+      // First word of submitted (handles "Pradeep Kumar" → "pradeep")
+      const firstWord = s.split(/\s+/)[0];
+      if (firstWord === t) return true;
+      // 70% similarity threshold
+      return similarity(firstWord, t) >= 0.7;
+    }
 
     let menteeName = "";
     const meetings = [];
     for (const item of data.items || []) {
       const answers  = item.answers || [];
-      const first    = get(answers, FIELDS.first)?.text?.trim().toLowerCase()  || "";
-      const last     = get(answers, FIELDS.last)?.text?.trim().toLowerCase()   || "";
+      const first    = get(answers, FIELDS.first)?.text?.trim() || "";
+      const last     = get(answers, FIELDS.last)?.text?.trim()  || "";
 
-      // Match first name: exact OR first word only (handles "Pradeep Kumar" → "pradeep")
-      const firstWord = first.split(/\s+/)[0];
-      if (firstWord !== firstName) continue;
-
-      // Verify last name appears in slug (skip for single-word slugs like "kennedy")
-      const hasLastInSlug = slug.includes("-")
-        ? slug.includes(last.split(" ")[0].replace(/[^a-z]/g, ""))
-        : true;
-      if (!hasLastInSlug) continue;
+      // If first name is blank, fall back to last-name-only match against slug
+      if (!first && last && lastName && fuzzyMatch(last, lastName)) {
+        // last name match only — acceptable fallback for blank first name submissions
+      } else if (!fuzzyMatch(first, firstName)) {
+        continue;
+      } else if (lastName && !fuzzyMatch(last, lastName)) {
+        continue;
+      }
 
       // Capture display name from first matching response
       if (!menteeName) {
