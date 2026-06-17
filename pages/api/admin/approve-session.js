@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   const secret = process.env.ADMIN_SECRET;
   if (secret && req.query.token !== secret) return res.status(401).end();
 
-  const { slug, sessionId, action } = req.body || {};
+  const { slug, sessionId, action, halfCredit } = req.body || {};
   if (!slug || !sessionId || !action) {
     return res.status(400).json({ error: "slug, sessionId, and action required" });
   }
@@ -51,12 +51,25 @@ export default async function handler(req, res) {
   }
 
   const newStatus = action === "approve" ? "Approved" : "Denied";
-  await sheets.spreadsheets.values.update({
+
+  // Write approval status; if halfCredit, also set col E (60+ Min) to "No"
+  const updates = [
+    {
+      range: `SessionReview!A${targetRow}`,
+      values: [[newStatus]],
+    },
+  ];
+  if (action === "approve" && halfCredit) {
+    updates.push({
+      range: `SessionReview!E${targetRow}`,
+      values: [["No"]],
+    });
+  }
+
+  await sheets.spreadsheets.values.batchUpdate({
     spreadsheetId,
-    range: `SessionReview!A${targetRow}`,
-    valueInputOption: "RAW",
-    requestBody: { values: [[newStatus]] },
+    requestBody: { valueInputOption: "RAW", data: updates },
   });
 
-  return res.status(200).json({ ok: true, slug, sessionId, action, sheetRow: targetRow });
+  return res.status(200).json({ ok: true, slug, sessionId, action, halfCredit: !!halfCredit, sheetRow: targetRow });
 }

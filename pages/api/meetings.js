@@ -102,9 +102,10 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
     });
     const rows = readRes.data.values || [];
 
-    const existingIds = new Set();
-    const approvedIds = new Set();
-    const deniedIds   = new Set();
+    const existingIds  = new Set();
+    const approvedIds  = new Set();
+    const deniedIds    = new Set();
+    const halfCreditIds = new Set();
     // Start at row 1 to skip header
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
@@ -114,6 +115,8 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
       const approved = row[0];
       if (approved === "TRUE" || approved === true || approved === "YES" || approved === "Approved") {
         approvedIds.add(sessionId);
+        // Col E (index 4): "No" means admin flagged as under 60 min
+        if (row[4] === "No") halfCreditIds.add(sessionId);
       } else if (approved === "DENIED" || approved === "Denied") {
         deniedIds.add(sessionId);
       }
@@ -143,10 +146,10 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
       });
     }
 
-    return { approvedIds, deniedIds };
+    return { approvedIds, deniedIds, halfCreditIds };
   } catch (err) {
     console.error("SessionReview sync failed:", err.message);
-    return { approvedIds: new Set(), deniedIds: new Set() };
+    return { approvedIds: new Set(), deniedIds: new Set(), halfCreditIds: new Set() };
   }
 }
 
@@ -289,13 +292,14 @@ export default async function handler(req, res) {
     // Separate pending sessions and sync to SessionReview sheet
     const autoQualifies = m => m.notes?.trim();
     const pending = meetings.filter(m => !autoQualifies(m));
-    const { approvedIds, deniedIds } = await syncSessionReview(slug, menteeName, pending);
+    const { approvedIds, deniedIds, halfCreditIds } = await syncSessionReview(slug, menteeName, pending);
 
-    // Flag any approved or denied sessions
+    // Flag any approved or denied sessions; override sixtyMin to false if admin flagged half-credit
     const result = meetings.map(m => ({
       ...m,
       manuallyVerified: approvedIds.has(m.id),
       denied: deniedIds.has(m.id),
+      sixtyMin: halfCreditIds.has(m.id) ? false : m.sixtyMin,
     }));
 
     // Auto-sync mentor session milestones to Dashboard whenever sessions are loaded.

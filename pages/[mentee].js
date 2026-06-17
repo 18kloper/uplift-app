@@ -2269,7 +2269,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                     padding: "10px 14px", marginBottom: 14,
                     fontSize: 13, color: "#7a5c00", lineHeight: 1.5,
                   }}>
-                    * This session was not marked as 60 minutes and counts as half a session toward your goal. The program team will reach out to you and your mentor to schedule an additional session to complete the requirement.
+                    * This session was recorded as under 60 minutes and counts as ½ credit toward your goal. If you believe this is an error, please contact <a href="mailto:uplift@techunited.co" style={{color:"#7a5c00",fontWeight:600,textDecoration:"none"}}>uplift@techunited.co</a> and we'll get it corrected.
                   </div>
                 )}
 
