@@ -2038,7 +2038,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
 
         // Count qualifying sessions with half-credit for sub-60min sessions
         const count = list
-          .filter(m => !m.denied && (m.notes?.trim() || m.manuallyVerified))
+          .filter(m => !m.denied && (m.notes?.trim() || m.takeaways?.trim() || m.manuallyVerified))
           .reduce((sum, m) => sum + (m.sixtyMin === false ? 0.5 : 1.0), 0);
 
         // Auto-check mentor session milestones as they're earned
@@ -2100,7 +2100,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
       {/* Session progress tracker */}
       {(() => {
         const verifiedCount = meetings
-          .filter(m => !m.denied && (m.notes?.trim() || m.manuallyVerified))
+          .filter(m => !m.denied && (m.notes?.trim() || m.takeaways?.trim() || m.manuallyVerified))
           .reduce((sum, m) => sum + (m.sixtyMin === false ? 0.5 : 1.0), 0);
         const REQUIRED = 3;
         const pct = Math.min(Math.round((verifiedCount / REQUIRED) * 100), 100);
@@ -2211,7 +2211,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
           </p>
         </div>
       ) : (() => {
-        const isVerified = m => !m.denied && (m.notes?.trim() || m.manuallyVerified);
+        const isVerified = m => !m.denied && (m.notes?.trim() || m.takeaways?.trim() || m.manuallyVerified);
         const isHalfCredit = m => isVerified(m) && m.sixtyMin === false;
         const denied    = meetings.filter(m => m.denied);
         const verified  = meetings.filter(isVerified);
