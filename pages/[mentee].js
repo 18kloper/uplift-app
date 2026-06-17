@@ -626,7 +626,7 @@ function PasswordGate({ slug, onAuthenticated }) {
           />
           {error && (
             <p style={{ margin: "0 0 10px", fontSize: 13, color: "#e05050", fontWeight: 500 }}>
-              Incorrect code — contact kennedy@techunited.co
+              Incorrect code — contact uplift@techunited.co
             </p>
           )}
           <button type="submit" style={{
@@ -968,7 +968,7 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
           </span>
         </div>
         <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf", lineHeight: 1.5 }}>
-          Use these to start thinking about what you want to get out of this program — you'll be better prepared for your first mentor conversation.
+          Take a moment with these — there are no right answers. At the end of the program, we'll reflect them back to you as part of your Uplift Wrapped.
         </p>
       </div>
       <PromptBlock
@@ -2041,7 +2041,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
         // Count qualifying sessions with half-credit for sub-60min sessions
         const count = list
           .filter(m => !m.denied && (validNotes(m.notes) || m.manuallyVerified))
-          .reduce((sum, m) => sum + (m.sixtyMin === false ? 0.5 : 1.0), 0);
+          .reduce((sum, m) => sum + (m.minutes != null ? Math.round((m.minutes / 60) * 100) / 100 : 1.0), 0);
 
         // Auto-check mentor session milestones as they're earned
         const toCheck = [
@@ -2103,7 +2103,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
       {(() => {
         const verifiedCount = meetings
           .filter(m => !m.denied && (validNotes(m.notes) || m.manuallyVerified))
-          .reduce((sum, m) => sum + (m.sixtyMin === false ? 0.5 : 1.0), 0);
+          .reduce((sum, m) => sum + (m.minutes != null ? Math.round((m.minutes / 60) * 100) / 100 : 1.0), 0);
         const REQUIRED = 3;
         const pct = Math.min(Math.round((verifiedCount / REQUIRED) * 100), 100);
         const over = verifiedCount > REQUIRED ? verifiedCount - REQUIRED : 0;

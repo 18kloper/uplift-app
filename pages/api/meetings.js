@@ -335,7 +335,7 @@ export default async function handler(req, res) {
     // Sessions < 60 min count as 0.5; full sessions count as 1.0
     const qualifyingCount = result
       .filter(m => !m.denied && (validNotes(m.notes) || m.manuallyVerified))
-      .reduce((sum, m) => sum + (m.sixtyMin === false ? 0.5 : 1.0), 0);
+      .reduce((sum, m) => sum + (m.minutes != null ? Math.round((m.minutes / 60) * 100) / 100 : 1.0), 0);
     await autoSyncMentorMilestones(slug, qualifyingCount);
 
     return res.status(200).json({ meetings: result });

@@ -28,7 +28,7 @@ export default async function handler(req, res) {
       const data = await r.json();
       const count = (data.meetings || [])
         .filter(m => { const INVALID = new Set(["n/a","na","none","no","nothing","-","n.a.","n/a."]); const vn = n => { const t = n?.trim().toLowerCase(); return t && !INVALID.has(t); }; return !m.denied && (vn(m.notes) || m.manuallyVerified); })
-        .reduce((sum, m) => sum + (m.sixtyMin === false ? 0.5 : 1.0), 0);
+        .reduce((sum, m) => sum + (m.minutes != null ? Math.round((m.minutes / 60) * 100) / 100 : 1.0), 0);
       results.push({ slug, sessions: count, ok: true });
     } catch (e) {
       results.push({ slug, ok: false, error: e.message });
