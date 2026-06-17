@@ -2026,11 +2026,15 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
   const [participatedNotOnboardedFilter, setParticipatedNotOnboardedFilter] = useState(false);
   const [onboardedPendingMentorFilter, setOnboardedPendingMentorFilter] = useState(false);
   const [pendingAssignments, setPendingAssignments] = useState([]);
+  const [needsMatchMentees, setNeedsMatchMentees] = useState([]);
 
   useEffect(() => {
     fetch("/api/admin/pending-assignments")
       .then(r => r.json())
-      .then(d => setPendingAssignments(d.pending || []))
+      .then(d => {
+        setPendingAssignments(d.pending || []);
+        setNeedsMatchMentees(d.needsMatch || []);
+      })
       .catch(() => {});
   }, []);
 
@@ -2300,6 +2304,56 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
             {pendingReviewCount}
           </span>
         </div>
+
+        {/* Outstanding intro emails banner */}
+        {pendingAssignments.length > 0 && (
+          <div style={{
+            background: "#f0f4ff", borderRadius: 8, border: "1px solid #c7d4f5",
+            padding: "12px 16px", marginBottom: 12,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: pendingAssignments.length > 0 ? 8 : 0 }}>
+              <span style={{ fontSize: 13 }}>✉️</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#2a3d8f" }}>
+                {pendingAssignments.reduce((n, g) => n + g.mentees.length, 0)} intro email{pendingAssignments.reduce((n, g) => n + g.mentees.length, 0) !== 1 ? "s" : ""} not yet sent
+              </span>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {pendingAssignments.map(g => g.mentees.map(m => (
+                <span key={m.slug} style={{
+                  background: "#fff", border: "1px solid #c7d4f5", borderRadius: 6,
+                  padding: "3px 10px", fontSize: 12, color: "#2a3d8f",
+                }}>
+                  {m.name} → {g.mentorName}
+                </span>
+              )))}
+            </div>
+          </div>
+        )}
+
+        {/* Needs match banner */}
+        {needsMatchMentees.length > 0 && (
+          <div style={{
+            background: "#fff8f0", borderRadius: 8, border: "1px solid #f5c97a",
+            padding: "12px 16px", marginBottom: 12,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <span style={{ fontSize: 13 }}>⚠️</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#92400e" }}>
+                {needsMatchMentees.length} mentee{needsMatchMentees.length !== 1 ? "s" : ""} still need a match
+              </span>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {needsMatchMentees.map(m => (
+                <span key={m.slug} style={{
+                  background: "#fff", border: "1px solid #f5c97a", borderRadius: 6,
+                  padding: "3px 10px", fontSize: 12, color: "#92400e",
+                }}>
+                  {m.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Cohort filter tabs + search */}
         <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
@@ -6356,7 +6410,7 @@ function MidpointFunding({ mentees = [] }) {
   if (loadError) return <div style={{ padding: 60, textAlign: "center", color: "#c0392b" }}>Error: {loadError}</div>;
 
   // Manually confirmed registrants not matched by Luma email lookup
-  const EXTRA_MENTEE_SLUGS = new Set(["britney-medich", "harshil-thakkar", "jean-guerdy-paul", "shanthi-viswanathan", "pierre-girgis", "kima-danjou", "ekaterina-kashkina", "annalyce-dagostino-gavin", "lina-escobar", "jerry-primus", "gunjan-aggarwal", "priyal-levine", "rachel-hayes", "eliana-zebro", "anthony-caruso", "hamza-zafar", "jordan-river-samuel", "aliya-laliwala", "bejan-moers", "logan-jones", "ahmed-metwoali", "naveen-kumar", "mark-kallback", "shell-bobev", "saurabh-gandhe", "debbie-douglas-henry", "andrea-vernengo", "soheil-khosravinejad", "daniel-lee"]);
+  const EXTRA_MENTEE_SLUGS = new Set(["britney-medich", "harshil-thakkar", "jean-guerdy-paul", "shanthi-viswanathan", "pierre-girgis", "kima-danjou", "ekaterina-kashkina", "annalyce-dagostino-gavin", "lina-escobar", "jerry-primus", "gunjan-aggarwal", "priyal-levine", "rachel-hayes", "eliana-zebro", "anthony-caruso", "hamza-zafar", "jordan-river-samuel", "aliya-laliwala", "bejan-moers", "logan-jones", "ahmed-metwoali", "naveen-kumar", "mark-kallback", "shell-bobev", "saurabh-gandhe", "debbie-douglas-henry", "andrea-vernengo", "soheil-khosravinejad", "daniel-lee", "paula-machado-jackler", "emilia-savich", "mohammad-saleh-nikoopayan-tak", "natalie-kitts"]);
   const EXTRA_MENTOR_NAMES = new Set(["Dee Marshall", "Dennis Yuscavitch", "Felicia Palmer", "Malak Atut", "Stella Alvo", "Orin Davis"]);
   // Confirmed can't attend — said so directly
   const EXCUSED_MENTEE_SLUGS = new Set(["evan-peneiras", "chirag-shah"]);
