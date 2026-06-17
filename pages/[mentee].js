@@ -2036,9 +2036,10 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
         const list = d.meetings || [];
         setMeetings(list);
 
-        // Count qualifying sessions: auto-verified (60+ min + transcript) OR manually verified; excluded if denied
-        const qualifying = list.filter(m => !m.denied && ((m.sixtyMin === true && m.notes && m.notes.trim()) || m.manuallyVerified));
-        const count = qualifying.length;
+        // Count qualifying sessions with half-credit for sub-60min sessions
+        const count = list
+          .filter(m => !m.denied && (m.notes?.trim() || m.manuallyVerified))
+          .reduce((sum, m) => sum + (m.sixtyMin === false ? 0.5 : 1.0), 0);
 
         // Auto-check mentor session milestones as they're earned
         const toCheck = [
@@ -2098,7 +2099,9 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
 
       {/* Session progress tracker */}
       {(() => {
-        const verifiedCount = meetings.filter(m => !m.denied && ((m.sixtyMin === true && m.notes?.trim()) || m.manuallyVerified)).length;
+        const verifiedCount = meetings
+          .filter(m => !m.denied && (m.notes?.trim() || m.manuallyVerified))
+          .reduce((sum, m) => sum + (m.sixtyMin === false ? 0.5 : 1.0), 0);
         const REQUIRED = 3;
         const pct = Math.min(Math.round((verifiedCount / REQUIRED) * 100), 100);
         const over = verifiedCount > REQUIRED ? verifiedCount - REQUIRED : 0;
@@ -2155,7 +2158,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
               <p style={{ margin: 0, fontSize: 11, opacity: 0.6 }}>Session 3</p>
             </div>
             <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.55, fontStyle: "italic", lineHeight: 1.5 }}>
-              * Auto-verified sessions (60+ min with a Granola transcript) and manually verified sessions both count toward this progress. Sessions still pending internal review are not yet reflected here.
+              * Sessions of 60+ min count as 1 credit. Sessions under 60 min count as ½ credit and require a follow-up session. Sessions still pending internal review are not yet reflected here.
             </p>
           </div>
         );
@@ -2208,7 +2211,8 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
           </p>
         </div>
       ) : (() => {
-        const isVerified = m => !m.denied && ((m.sixtyMin === true && m.notes?.trim()) || m.manuallyVerified);
+        const isVerified = m => !m.denied && (m.notes?.trim() || m.manuallyVerified);
+        const isHalfCredit = m => isVerified(m) && m.sixtyMin === false;
         const denied    = meetings.filter(m => m.denied);
         const verified  = meetings.filter(isVerified);
         const pending   = meetings.filter(m => !isVerified(m) && !m.denied);
@@ -2228,33 +2232,46 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                 </p>
               </div>
             )}
-            {verified.map((m, i) => (
+            {verified.map((m, i) => {
+              const half = isHalfCredit(m);
+              return (
               <div key={m.id} style={{
-                background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
+                background: half ? "#fffbf0" : "#fff",
+                borderRadius: 12,
+                border: `1px solid ${half ? "#f5c842" : "#e8e4f5"}`,
                 padding: "22px 26px", marginBottom: 16,
               }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{
                       width: 32, height: 32, borderRadius: "50%",
-                      background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+                      background: half ? "linear-gradient(135deg, #f5a623, #e67e22)" : "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
                       color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 13, fontWeight: 700, flexShrink: 0,
                     }}>
                       {i + 1}
                     </div>
                     <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1a1733" }}>
-                      Session {i + 1}
+                      Session {i + 1}{half ? " *" : ""}
                     </p>
                   </div>
                   <span style={{
-                    background: m.manuallyVerified ? "#fff8e6" : "#e8f8f0",
-                    color: m.manuallyVerified ? "#7a5c00" : "#1a6e42",
+                    background: half ? "#fff3cd" : m.manuallyVerified ? "#fff8e6" : "#e8f8f0",
+                    color: half ? "#7a5c00" : m.manuallyVerified ? "#7a5c00" : "#1a6e42",
                     borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700,
                   }}>
-                    ✓ {m.manuallyVerified ? "Manually Verified" : "Verified"}
+                    {half ? "½ Credit — Action Required" : `✓ ${m.manuallyVerified ? "Manually Verified" : "Verified"}`}
                   </span>
                 </div>
+                {half && (
+                  <div style={{
+                    background: "#fff8e6", border: "1px solid #f5c842", borderRadius: 8,
+                    padding: "10px 14px", marginBottom: 14,
+                    fontSize: 13, color: "#7a5c00", lineHeight: 1.5,
+                  }}>
+                    * This session was not marked as 60 minutes and counts as half a session toward your goal. The program team will reach out to you and your mentor to schedule an additional session to complete the requirement.
+                  </div>
+                )}
 
                 {/* Confirmed details row */}
                 <div style={{ display: "flex", gap: 24, marginBottom: 16, flexWrap: "wrap" }}>
@@ -2295,7 +2312,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                   </div>
                 )}
               </div>
-            ))}
+              ); })}
 
             {/* Pending + Denied sessions — unified section */}
             {(pending.length > 0 || denied.length > 0) && (
