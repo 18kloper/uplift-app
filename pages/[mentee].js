@@ -2303,6 +2303,14 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                     <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: half ? "#b35c00" : "#1a6e42" }}>
                       {m.minutes != null ? `${m.minutes} minutes` : half ? "Under 60 minutes" : "60 minutes or more"}
                     </p>
+                    {(() => {
+                      const credit = m.minutes != null ? Math.round((m.minutes / 60) * 100) / 100 : half ? 0.5 : 1.0;
+                      return (
+                        <p style={{ margin: "2px 0 0", fontSize: 11, color: half ? "#b35c00" : "#1a6e42", fontWeight: 600 }}>
+                          {credit} credit toward your 3.0 goal
+                        </p>
+                      );
+                    })()}
                   </div>
                 </div>
 
