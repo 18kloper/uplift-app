@@ -1,10 +1,16 @@
 // POST /api/luma-webhook
 // Receives Luma webhook events for guest.registered and guest.updated.
-// Logs the event as "pending" review — milestones are set manually via /api/luma-approve.
+// Auto-sets milestones immediately for matched mentees — no manual approval needed.
 // Always returns 200 (Luma retries on non-200).
 
 import { getSheetsClient } from "../../lib/sheets-helper";
-import { matchMentee, logLumaAttendance } from "../../lib/luma-helper";
+import {
+  matchMentee,
+  logLumaAttendance,
+  classifyEvent,
+  setMilestone,
+  setNextEduMilestone,
+} from "../../lib/luma-helper";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(200).end();
@@ -36,25 +42,59 @@ export default async function handler(req, res) {
 
     // Match to mentee
     const { slug: menteeSlug, matchedBy } = matchMentee(guestEmail, guestName);
-    const mentee = menteeSlug
-      ? (await import("../../lib/mentees")).MENTEES.find((m) => m.slug === menteeSlug)
-      : null;
+    const { MENTEES } = await import("../../lib/mentees");
+    const mentee = menteeSlug ? MENTEES.find((m) => m.slug === menteeSlug) : null;
     const menteeName = mentee ? `${mentee.first} ${mentee.last}` : guestName;
 
     const timestamp = new Date().toISOString();
 
-    // Determine reviewStatus — no_show requires no approval
-    const reviewStatus = status === "no_show" ? "no_show" : "pending";
-
-    // Log to Google Sheets if configured
-    if (
+    const hasSheets =
       process.env.GOOGLE_SHEET_ID &&
       process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
-      process.env.GOOGLE_PRIVATE_KEY
-    ) {
+      process.env.GOOGLE_PRIVATE_KEY;
+
+    let milestoneSet = null;
+
+    if (hasSheets && menteeSlug && status !== "no_show") {
       const sheets = getSheetsClient();
       const spreadsheetId = process.env.GOOGLE_SHEET_ID;
 
+      // Auto-approve: log as approved immediately and set milestones
+      await logLumaAttendance(
+        sheets,
+        spreadsheetId,
+        [
+          timestamp,
+          hookType,
+          eventName,
+          eventId,
+          eventDate,
+          menteeName,
+          menteeSlug,
+          guestEmail,
+          status,
+          matchedBy || "",
+          rawStatus,
+          guest.checked_in_at || guest.joined_at || "",
+        ],
+        "approved"
+      );
+
+      // Set the appropriate milestone
+      const eventType = classifyEvent(eventName);
+      if (eventType === "onboarding") {
+        await setMilestone(sheets, spreadsheetId, menteeSlug, "onboarding");
+        milestoneSet = "onboarding";
+      } else if (eventType === "edu") {
+        milestoneSet = await setNextEduMilestone(sheets, spreadsheetId, menteeSlug);
+      }
+      // midpoint/other: log attendance but no Dashboard milestone key for it yet
+
+      console.log(`[luma-webhook] auto-approved slug=${menteeSlug} event="${eventName}" type=${eventType} milestone=${milestoneSet}`);
+    } else if (hasSheets) {
+      // Unmatched guest or no-show — log as pending for manual review
+      const sheets = getSheetsClient();
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
       await logLumaAttendance(
         sheets,
         spreadsheetId,
@@ -70,14 +110,13 @@ export default async function handler(req, res) {
           status,
           matchedBy || "",
           rawStatus,
+          guest.checked_in_at || guest.joined_at || "",
         ],
-        reviewStatus
+        status === "no_show" ? "no_show" : "pending"
       );
-    } else {
-      console.log("[luma-webhook] Google Sheets not configured — skipping DB write");
     }
 
-    return res.status(200).json({ ok: true, menteeSlug, status, reviewStatus });
+    return res.status(200).json({ ok: true, menteeSlug, status, milestoneSet });
   } catch (err) {
     console.error("[luma-webhook] error:", err.message, err.stack);
     // Always 200 so Luma doesn't retry
