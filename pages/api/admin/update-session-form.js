@@ -19,12 +19,12 @@ export default async function handler(req, res) {
   if (!getRes.ok) return res.status(502).json({ error: "Failed to fetch form", status: getRes.status });
   const form = await getRes.json();
 
-  // 2. Find and replace the yes/no 60-min field
+  // 2. Find and replace the yes/no 60-min field (may be nested in groups)
   let updated = false;
   function updateFields(fields) {
-    return fields.map(field => {
-      // Recurse into groups
-      if (field.type === "group" && field.properties?.fields) {
+    return (fields || []).map(field => {
+      // Recurse into any group type
+      if (field.properties?.fields) {
         return { ...field, properties: { ...field.properties, fields: updateFields(field.properties.fields) } };
       }
       if (field.ref === SIXTY_MIN_REF || field.id === SIXTY_MIN_REF) {
@@ -43,8 +43,17 @@ export default async function handler(req, res) {
     });
   }
 
+  // Debug: print all refs to help diagnose if field not found
+  function allRefs(fields, acc = []) {
+    for (const f of fields || []) {
+      acc.push({ id: f.id, ref: f.ref, type: f.type, title: f.title?.slice(0, 60) });
+      if (f.properties?.fields) allRefs(f.properties.fields, acc);
+    }
+    return acc;
+  }
+
   const updatedFields = updateFields(form.fields || []);
-  if (!updated) return res.status(404).json({ error: "60-min field not found", refs: (form.fields||[]).map(f=>f.ref) });
+  if (!updated) return res.status(404).json({ error: "60-min field not found", allFields: allRefs(form.fields) });
 
   // 3. PATCH the form
   const patchRes = await fetch(`https://api.typeform.com/forms/${FORM_ID}`, {
