@@ -2300,7 +2300,9 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                     <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
                       Confirmed Duration
                     </p>
-                    <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#1a6e42" }}>60 minutes or more</p>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: half ? "#b35c00" : "#1a6e42" }}>
+                      {m.minutes != null ? `${m.minutes} minutes` : half ? "Under 60 minutes" : "60 minutes or more"}
+                    </p>
                   </div>
                 </div>
 
