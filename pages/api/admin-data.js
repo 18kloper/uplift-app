@@ -13,8 +13,8 @@ const HOLDING_SLUGS = new Set([
   "gifty-anane", "annalyce-dagostino-gavin", "lina-escobar",
   "favio-jasso", "mark-kallback", "alina-okun", "alisha-sharma",
 ]);
-// Late-matched mentees get an additional +7 days on top of holding dates
-const LATE_MATCH_SLUGS = new Set(["lina-escobar"]);
+// All holding slugs were late-matched — same deadline set applies
+const LATE_MATCH_SLUGS = HOLDING_SLUGS;
 
 // Week deadline thresholds derived from My Journey program timeline
 const PROGRAM_START       = new Date("2026-06-01");

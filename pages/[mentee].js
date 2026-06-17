@@ -14,8 +14,8 @@ const HOLDING_SLUGS = new Set([
   "alisha-sharma",
 ]);
 
-// Late-matched mentees: session due dates shifted +7 days beyond HOLDING_SLUGS dates
-const LATE_MATCH_SLUGS = new Set(["lina-escobar"]);
+// All holding slugs were late-matched — same due dates apply to everyone in this set
+const LATE_MATCH_SLUGS = HOLDING_SLUGS;
 
 // ─── Week definitions ─────────────────────────────────────────────────────────
 const WEEKS = [
