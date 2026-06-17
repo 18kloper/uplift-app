@@ -2101,12 +2101,15 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
 
       {/* Session progress tracker */}
       {(() => {
-        const verifiedCount = meetings
-          .filter(m => !m.denied && (validNotes(m.notes) || m.manuallyVerified))
+        const verifiedMeetings = meetings.filter(m => !m.denied && (validNotes(m.notes) || m.manuallyVerified));
+        const verifiedCount = verifiedMeetings
           .reduce((sum, m) => sum + (m.minutes != null ? Math.round((m.minutes / 60) * 100) / 100 : 1.0), 0);
         const REQUIRED = 3;
         const pct = Math.min(Math.round((verifiedCount / REQUIRED) * 100), 100);
         const over = verifiedCount > REQUIRED ? verifiedCount - REQUIRED : 0;
+        // Estimate: sessions ≥16 min each count as one full session toward 3
+        const qualifyingSessions = verifiedMeetings.filter(m => (m.minutes == null || m.minutes >= 16)).length;
+        const additionalNeeded = Math.max(0, 3 - qualifyingSessions);
         return (
           <div style={{
             background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)",
@@ -2159,7 +2162,16 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
               <p style={{ margin: 0, fontSize: 11, opacity: 0.6 }}>Session 2</p>
               <p style={{ margin: 0, fontSize: 11, opacity: 0.6 }}>Session 3</p>
             </div>
-            <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.55, fontStyle: "italic", lineHeight: 1.5 }}>
+            {additionalNeeded > 0 ? (
+              <p style={{ margin: "10px 0 0", fontSize: 12, fontWeight: 600, opacity: 0.85, lineHeight: 1.5 }}>
+                ~{additionalNeeded} more session{additionalNeeded !== 1 ? "s" : ""} needed to reach your 180-minute goal
+              </p>
+            ) : (
+              <p style={{ margin: "10px 0 0", fontSize: 12, fontWeight: 600, color: "#34d399", lineHeight: 1.5 }}>
+                You're on track — goal reached!
+              </p>
+            )}
+            <p style={{ margin: "6px 0 0", fontSize: 11, opacity: 0.55, fontStyle: "italic", lineHeight: 1.5 }}>
               * Sessions of 60+ min count as 1 credit. Sessions under 60 min count as ½ credit and require a follow-up session. Sessions still pending internal review are not yet reflected here.
             </p>
           </div>
