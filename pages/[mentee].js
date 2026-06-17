@@ -2036,9 +2036,11 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
         const list = d.meetings || [];
         setMeetings(list);
 
+        const INVALID_NOTES = new Set(["n/a", "na", "none", "no", "nothing", "-", "n.a.", "n/a."]);
+        const validNotes = n => { const t = n?.trim().toLowerCase(); return t && !INVALID_NOTES.has(t); };
         // Count qualifying sessions with half-credit for sub-60min sessions
         const count = list
-          .filter(m => !m.denied && (m.notes?.trim() || m.manuallyVerified))
+          .filter(m => !m.denied && (validNotes(m.notes) || m.manuallyVerified))
           .reduce((sum, m) => sum + (m.sixtyMin === false ? 0.5 : 1.0), 0);
 
         // Auto-check mentor session milestones as they're earned
@@ -2100,7 +2102,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
       {/* Session progress tracker */}
       {(() => {
         const verifiedCount = meetings
-          .filter(m => !m.denied && (m.notes?.trim() || m.manuallyVerified))
+          .filter(m => !m.denied && (validNotes(m.notes) || m.manuallyVerified))
           .reduce((sum, m) => sum + (m.sixtyMin === false ? 0.5 : 1.0), 0);
         const REQUIRED = 3;
         const pct = Math.min(Math.round((verifiedCount / REQUIRED) * 100), 100);
@@ -2211,7 +2213,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
           </p>
         </div>
       ) : (() => {
-        const isVerified = m => !m.denied && (m.notes?.trim() || m.manuallyVerified);
+        const isVerified = m => !m.denied && (validNotes(m.notes) || m.manuallyVerified);
         const isHalfCredit = m => isVerified(m) && m.sixtyMin === false;
         const denied    = meetings.filter(m => m.denied);
         const verified  = meetings.filter(isVerified);
@@ -2927,7 +2929,7 @@ function parseDueDate(dueStr) {
   return isNaN(d.getTime()) ? null : d;
 }
 
-function MilestoneSection({ milestones, onNavigate, slug }) {
+function MilestoneSection({ milestones, onNavigate, slug, meetings = [], lumaAttendance = [] }) {
   const isHolding = HOLDING_SLUGS.has(slug);
   const isLateMatch = LATE_MATCH_SLUGS.has(slug);
   const items = [
@@ -2998,51 +3000,83 @@ function MilestoneSection({ milestones, onNavigate, slug }) {
           const done = !!milestones[item.key];
           const dueDate = parseDueDate(item.due);
           const overdue = !done && dueDate && today > dueDate;
-          const daysPastDue = overdue ? Math.floor((today - dueDate) / (1000 * 60 * 60 * 24)) : 0;
+          // Only participation is fully in the mentee's hands — everything else is staff-confirmed
+          const menteeOwned = item.key === "participation";
+          // For session milestones, check if the mentee has actually submitted something pending review
+          const sessionIndex = { mentorSession1: 1, mentorSession2: 2, mentorSession3: 3 }[item.key];
+          const pendingCount = meetings.filter(m => !m.denied).length;
+          const hasPendingForThisSession = sessionIndex != null && pendingCount >= sessionIndex;
+          const showAlert = overdue && menteeOwned && !hasPendingForThisSession;
+          const daysPastDue = showAlert ? Math.floor((today - dueDate) / (1000 * 60 * 60 * 24)) : 0;
+          // For edu milestones, find registered/attended events not yet verified
+          const eduIndex = { edu1: 1, edu2: 2, edu3: 3 }[item.key];
+          const eduEvents = lumaAttendance.filter(e => e.eventType === "edu");
+          const registeredEduEvents = eduEvents.filter(e => e.reviewStatus !== "approved" && (e.status === "registered" || e.status === "checked_in"));
+          const verifiedEduCount = eduEvents.filter(e => e.reviewStatus === "approved").length;
+          const registeredForThisEdu = eduIndex != null && !done && verifiedEduCount < eduIndex && registeredEduEvents.length >= (eduIndex - verifiedEduCount);
           const severelyOverdue = daysPastDue > 5;
           return (
             <div key={item.key} style={{
-              background: severelyOverdue ? "#fff5f5" : overdue ? "#fffbf5" : "#fff",
+              background: severelyOverdue ? "#fff5f5" : showAlert ? "#fffbf5" : "#fff",
               borderRadius: 12,
-              border: done ? "1px solid #b8e8d0" : severelyOverdue ? "1px solid #f5a0a0" : overdue ? "1px solid #f5c97a" : "1px solid #e8e4f5",
+              border: done ? "1px solid #b8e8d0" : severelyOverdue ? "1px solid #f5a0a0" : showAlert ? "1px solid #f5c97a" : "1px solid #e8e4f5",
               padding: "14px 20px",
               display: "flex", alignItems: "flex-start", gap: 14,
             }}>
               <div style={{
                 width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                background: done ? "#22a366" : severelyOverdue ? "#fee2e2" : overdue ? "#fef3c7" : "#f0ecff",
-                color: done ? "#fff" : severelyOverdue ? "#c0392b" : overdue ? "#b45309" : "#c0b8d8",
-                fontSize: done ? 14 : overdue ? 15 : 18,
+                background: done ? "#22a366" : severelyOverdue ? "#fee2e2" : showAlert ? "#fef3c7" : "#f0ecff",
+                color: done ? "#fff" : severelyOverdue ? "#c0392b" : showAlert ? "#b45309" : "#c0b8d8",
+                fontSize: done ? 14 : 18,
                 fontWeight: 700,
                 marginTop: 2,
               }}>
-                {done ? "✓" : overdue ? "!" : "○"}
+                {done ? "✓" : "○"}
               </div>
               <span style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
                 <span style={{
                   fontSize: 15, fontWeight: done ? 600 : 400,
-                  color: done ? "#1a4a32" : severelyOverdue ? "#c0392b" : overdue ? "#92400e" : "#6b6480",
+                  color: done ? "#1a4a32" : severelyOverdue ? "#c0392b" : showAlert ? "#92400e" : "#6b6480",
                 }}>
                   {item.label}
                 </span>
                 {item.due && (
-                  <span style={{ fontSize: 11, fontStyle: "italic", color: done ? "#6abf97" : overdue ? "#d97706" : "#b0a8cc" }}>
+                  <span style={{ fontSize: 11, fontStyle: "italic", color: done ? "#6abf97" : showAlert ? "#d97706" : "#b0a8cc" }}>
                     {item.due}
                   </span>
                 )}
-                {overdue && (item.week || item.contactMsg) && (
+                {overdue && !menteeOwned && hasPendingForThisSession && (
+                  <span style={{ marginTop: 4, fontSize: 12, color: "#7a7a9a", lineHeight: 1.6 }}>
+                    Session received — under review. No action needed from you.
+                  </span>
+                )}
+                {overdue && !menteeOwned && sessionIndex != null && !hasPendingForThisSession && (
+                  <span style={{ marginTop: 4, fontSize: 12, color: "#b45309", lineHeight: 1.6 }}>
+                    We haven't received this session yet. Please submit it or contact{" "}
+                    <a href="mailto:uplift@techunited.co" style={{ color: "#b45309", fontWeight: 700, textDecoration: "none" }}>
+                      uplift@techunited.co
+                    </a>{" "}if you need help.
+                  </span>
+                )}
+                {registeredForThisEdu && (
+                  <span style={{ marginTop: 6, fontSize: 12, color: "#3d54a8", lineHeight: 1.6 }}>
+                    Registered — pending verification:{" "}
+                    {registeredEduEvents.slice(0, eduIndex - verifiedEduCount).map((e, i, arr) => (
+                      <span key={i} style={{ fontWeight: 600 }}>
+                        {e.eventName}{i < arr.length - 1 ? ", " : ""}
+                      </span>
+                    ))}
+                  </span>
+                )}
+                {showAlert && (
                   <span style={{ marginTop: 4, fontSize: 12, color: severelyOverdue ? "#c0392b" : "#b45309", lineHeight: 1.6 }}>
-                    ⚠️ This is past due.{" "}
-                    {item.contactMsg ? (
-                      <>
-                        {item.contactMsg}{" "}
-                        <a href="mailto:uplift@techunited.co" style={{ color: "#b45309", fontWeight: 700 }}>
-                          uplift@techunited.co
-                        </a>
-                      </>
-                    ) : (
-                      <button
+                    ⚠️ This is past due. Please contact{" "}
+                    <a href="mailto:uplift@techunited.co" style={{ color: severelyOverdue ? "#c0392b" : "#b45309", fontWeight: 700, textDecoration: "none" }}>
+                      uplift@techunited.co
+                    </a>{" "}immediately to provide a status update or request assistance.
+                    {item.week && (
+                      <>{" "}<button
                         onClick={() => onNavigate && onNavigate(item.week)}
                         style={{
                           background: "none", border: "none", padding: 0,
@@ -3051,8 +3085,8 @@ function MilestoneSection({ milestones, onNavigate, slug }) {
                           fontFamily: "inherit",
                         }}
                       >
-                        Visit Week {item.week} in My Journey →
-                      </button>
+                        Visit Week {item.week} →
+                      </button></>
                     )}
                   </span>
                 )}
@@ -3829,6 +3863,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
     return 1;
   });
   const [liveMilestones, setLiveMilestones] = useState(null);
+  const [lumaAttendance, setLumaAttendance] = useState([]);
 
   // Fetch live milestone data from Google Sheets on load
   useEffect(() => {
@@ -3836,6 +3871,15 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
     fetch(`/api/milestones?slug=${menteeData.slug}`)
       .then((r) => r.json())
       .then((data) => { if (data.milestones) setLiveMilestones(data.milestones); })
+      .catch(() => {});
+  }, [menteeData]);
+
+  // Fetch Luma attendance at page level so MilestoneSection can use it
+  useEffect(() => {
+    if (!menteeData) return;
+    fetch(`/api/luma-mentee-attendance?slug=${encodeURIComponent(menteeData.slug)}`)
+      .then(r => r.json())
+      .then(d => setLumaAttendance(d.attendance || []))
       .catch(() => {});
   }, [menteeData]);
 
@@ -4079,7 +4123,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       case "journey": return renderWeekContent();
       case "calendar": return <CalendarSection milestones={liveMilestones || mentee.milestones || {}} />;
       case "resources": return <ResourcesSection slug={slug} menteeName={`${mentee.first} ${mentee.last}`.trim()} />;
-      case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} onNavigate={(week) => { setActiveTab("journey"); setActiveWeek(week); }} slug={slug} />;
+      case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} onNavigate={(week) => { setActiveTab("journey"); setActiveWeek(week); }} slug={slug} meetings={meetings || []} lumaAttendance={lumaAttendance} />;
       case "goals": return <GoalsSection mentee={mentee} slug={slug} />;
       case "meetings": return <MeetingsSection slug={slug} milestones={liveMilestones || mentee.milestones || {}} onMilestoneUpdate={(key) => setLiveMilestones(prev => ({ ...(prev || mentee.milestones || {}), [key]: true }))} />;
       case "edu": return <EduSessionsSection milestones={liveMilestones || mentee.milestones || {}} slug={slug} />;

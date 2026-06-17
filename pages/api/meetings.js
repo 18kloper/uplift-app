@@ -315,7 +315,9 @@ export default async function handler(req, res) {
     meetings.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
 
     // Separate pending sessions and sync to SessionReview sheet
-    const autoQualifies = m => m.notes?.trim();
+    const INVALID_NOTES = new Set(["n/a", "na", "none", "no", "nothing", "-", "n.a.", "n/a."]);
+    const validNotes = n => { const t = n?.trim().toLowerCase(); return t && !INVALID_NOTES.has(t); };
+    const autoQualifies = m => validNotes(m.notes);
     const pending = meetings.filter(m => !autoQualifies(m));
     const { approvedIds, deniedIds, halfCreditIds } = await syncSessionReview(slug, menteeName, pending);
 
@@ -332,7 +334,7 @@ export default async function handler(req, res) {
     // without waiting for the mentee to trigger an update from their portal.
     // Sessions < 60 min count as 0.5; full sessions count as 1.0
     const qualifyingCount = result
-      .filter(m => !m.denied && (m.notes?.trim() || m.manuallyVerified))
+      .filter(m => !m.denied && (validNotes(m.notes) || m.manuallyVerified))
       .reduce((sum, m) => sum + (m.sixtyMin === false ? 0.5 : 1.0), 0);
     await autoSyncMentorMilestones(slug, qualifyingCount);
 
