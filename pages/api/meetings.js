@@ -289,9 +289,10 @@ export default async function handler(req, res) {
     // Auto-sync mentor session milestones to Dashboard whenever sessions are loaded.
     // This ensures a manual approval in SessionReview is immediately reflected
     // without waiting for the mentee to trigger an update from their portal.
-    const qualifyingCount = result.filter(m =>
-      !m.denied && (m.notes?.trim() || m.manuallyVerified)
-    ).length;
+    // Sessions < 60 min count as 0.5; full sessions count as 1.0
+    const qualifyingCount = result
+      .filter(m => !m.denied && (m.notes?.trim() || m.manuallyVerified))
+      .reduce((sum, m) => sum + (m.sixtyMin === false ? 0.5 : 1.0), 0);
     await autoSyncMentorMilestones(slug, qualifyingCount);
 
     return res.status(200).json({ meetings: result });

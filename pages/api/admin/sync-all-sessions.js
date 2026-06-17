@@ -26,9 +26,9 @@ export default async function handler(req, res) {
         headers: bypassHeader ? { "x-vercel-protection-bypass": bypassHeader } : {},
       });
       const data = await r.json();
-      const count = (data.meetings || []).filter(m =>
-        !m.denied && (m.notes?.trim() || m.manuallyVerified)
-      ).length;
+      const count = (data.meetings || [])
+        .filter(m => !m.denied && (m.notes?.trim() || m.manuallyVerified))
+        .reduce((sum, m) => sum + (m.sixtyMin === false ? 0.5 : 1.0), 0);
       results.push({ slug, sessions: count, ok: true });
     } catch (e) {
       results.push({ slug, ok: false, error: e.message });
