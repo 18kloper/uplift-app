@@ -36,7 +36,7 @@ export default async function handler(req, res) {
           properties: {
             description: "* Over the course of a minimum of 3 sessions, you must have completed approximately 180 minutes of direct one-on-one mentorship.",
           },
-          validations: { required: false, min_value: 1, max_value: 600 },
+          validations: { required: true, min_value: 1, max_value: 600 },
         };
       }
       return field;
