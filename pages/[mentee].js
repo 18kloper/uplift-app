@@ -2038,7 +2038,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
 
         // Count qualifying sessions with half-credit for sub-60min sessions
         const count = list
-          .filter(m => !m.denied && (m.notes?.trim() || m.takeaways?.trim() || m.manuallyVerified))
+          .filter(m => !m.denied && (m.notes?.trim() || m.manuallyVerified))
           .reduce((sum, m) => sum + (m.sixtyMin === false ? 0.5 : 1.0), 0);
 
         // Auto-check mentor session milestones as they're earned
@@ -2100,7 +2100,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
       {/* Session progress tracker */}
       {(() => {
         const verifiedCount = meetings
-          .filter(m => !m.denied && (m.notes?.trim() || m.takeaways?.trim() || m.manuallyVerified))
+          .filter(m => !m.denied && (m.notes?.trim() || m.manuallyVerified))
           .reduce((sum, m) => sum + (m.sixtyMin === false ? 0.5 : 1.0), 0);
         const REQUIRED = 3;
         const pct = Math.min(Math.round((verifiedCount / REQUIRED) * 100), 100);
@@ -2211,7 +2211,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
           </p>
         </div>
       ) : (() => {
-        const isVerified = m => !m.denied && (m.notes?.trim() || m.takeaways?.trim() || m.manuallyVerified);
+        const isVerified = m => !m.denied && (m.notes?.trim() || m.manuallyVerified);
         const isHalfCredit = m => isVerified(m) && m.sixtyMin === false;
         const denied    = meetings.filter(m => m.denied);
         const verified  = meetings.filter(isVerified);
@@ -2317,20 +2317,20 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
             {/* Pending + Denied sessions — unified section */}
             {(pending.length > 0 || denied.length > 0) && (
               <div style={{ marginTop: verified.length > 0 ? 28 : 8 }}>
-                {/* Always-visible yellow notice */}
+                {/* Session received notice */}
                 <div style={{
-                  background: "#fffbeb", borderRadius: 10, border: "1px solid #f5d97a",
+                  background: "#f0f4ff", borderRadius: 10, border: "1px solid #c7d4f5",
                   padding: "16px 20px", marginBottom: 14,
                 }}>
-                  <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 700, color: "#7a5c00" }}>
-                    🕐 Sessions pending internal review
+                  <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 700, color: "#2a3d8f" }}>
+                    ✓ Session received — under review
                   </p>
-                  <p style={{ margin: "0 0 4px", fontSize: 13, color: "#9a7200", lineHeight: 1.6 }}>
+                  <p style={{ margin: "0 0 4px", fontSize: 13, color: "#3d54a8", lineHeight: 1.6 }}>
                     Don't worry if these aren't getting checked off automatically — sessions without a Granola transcript or that were under 60 minutes are reviewed internally by the program team.
                   </p>
-                  <p style={{ margin: 0, fontSize: 13, color: "#9a7200", lineHeight: 1.6 }}>
+                  <p style={{ margin: 0, fontSize: 13, color: "#3d54a8", lineHeight: 1.6 }}>
                     If we need more information we'll contact you directly. If you believe a denied session is an error, contact{" "}
-                    <a href="mailto:uplift@techunited.co" style={{ color: "#7a5c00", fontWeight: 600, textDecoration: "none" }}>
+                    <a href="mailto:uplift@techunited.co" style={{ color: "#2a3d8f", fontWeight: 600, textDecoration: "none" }}>
                       uplift@techunited.co
                     </a>.
                   </p>
@@ -2359,27 +2359,26 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                       </div>
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
                         <span style={{
-                          background: "#fffbeb", color: "#7a5c00",
+                          background: "#eef1fb", color: "#3d54a8",
                           borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700,
-                          border: "1px solid #f5d97a",
+                          border: "1px solid #c7d4f5",
                         }}>
-                          🕐 Pending Review
+                          Under review
                         </span>
-                        {m.sixtyMin !== null && (
+                        {m.sixtyMin !== null && !m.sixtyMin && (
                           <span style={{
-                            background: m.sixtyMin ? "#e8f8f0" : "#fff3e0",
-                            color: m.sixtyMin ? "#1a6e42" : "#b35c00",
-                            borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700,
+                            background: "#f5f5f5", color: "#555",
+                            borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 500,
                           }}>
-                            {m.sixtyMin ? "✓ 60+ min" : "Under 60 min"}
+                            Session under 60 min — requires manual review
                           </span>
                         )}
                         {!m.notes?.trim() && (
                           <span style={{
-                            background: "#fef0f0", color: "#c0392b",
-                            borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700,
+                            background: "#f5f5f5", color: "#555",
+                            borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 500,
                           }}>
-                            No transcript
+                            No Granola transcript — requires manual review
                           </span>
                         )}
                       </div>
