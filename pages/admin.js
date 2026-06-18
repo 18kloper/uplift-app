@@ -6414,7 +6414,7 @@ function MidpointFunding({ mentees = [] }) {
   const EXTRA_MENTOR_NAMES = new Set(["Dee Marshall", "Dennis Yuscavitch", "Felicia Palmer", "Malak Atut", "Stella Alvo", "Orin Davis", "Basia Walska", "Sara Bender-Bier", "Michael Baer", "Marc Kaufman", "Jeffrey Allen"]);
   // Confirmed can't attend — said so directly
   const EXCUSED_MENTEE_SLUGS = new Set(["evan-peneiras", "angie-tirado", "angela-aricatt"]);
-  const EXCUSED_MENTOR_NAMES = new Set(["Natalie Kaminski", "Joe Spivack", "Jennifer D'Angelo", "Miquel de Quadras", "Anand Rai"]);
+  const EXCUSED_MENTOR_NAMES = new Set(["Natalie Kaminski", "Joe Spivack", "Jennifer D'Angelo", "Miquel de Quadras", "Anand Rai", "Joe Maruschak"]);
   const REMOVED_MENTOR_NAMES = new Set(["Tom Oser"]);
 
   const registrantEmails = new Set((guests || []).map(g => g.email?.toLowerCase()).filter(Boolean));
