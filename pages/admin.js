@@ -6410,7 +6410,7 @@ function MidpointFunding({ mentees = [] }) {
   if (loadError) return <div style={{ padding: 60, textAlign: "center", color: "#c0392b" }}>Error: {loadError}</div>;
 
   // Manually confirmed registrants not matched by Luma email lookup
-  const EXTRA_MENTEE_SLUGS = new Set(["britney-medich", "harshil-thakkar", "jean-guerdy-paul", "shanthi-viswanathan", "pierre-girgis", "kima-danjou", "ekaterina-kashkina", "annalyce-dagostino-gavin", "lina-escobar", "jerry-primus", "gunjan-aggarwal", "priyal-levine", "rachel-hayes", "eliana-zebro", "anthony-caruso", "hamza-zafar", "jordan-river-samuel", "aliya-laliwala", "bejan-moers", "logan-jones", "ahmed-metwoali", "naveen-kumar", "mark-kallback", "shell-bobev", "saurabh-gandhe", "debbie-douglas-henry", "andrea-vernengo", "soheil-khosravinejad", "daniel-lee", "paula-machado-jackler", "emilia-savich", "mohammad-saleh-nikoopayan-tak", "natalie-kitts", "favio-jasso", "elisa-charters", "jeremy-ruiz-villavicencio", "parminder-singh", "han-nguyen", "mehul-sompura", "gifty-anane", "sonali-chilupuri", "sharon-joseph"]);
+  const EXTRA_MENTEE_SLUGS = new Set(["britney-medich", "harshil-thakkar", "jean-guerdy-paul", "shanthi-viswanathan", "pierre-girgis", "kima-danjou", "ekaterina-kashkina", "annalyce-dagostino-gavin", "lina-escobar", "jerry-primus", "gunjan-aggarwal", "priyal-levine", "rachel-hayes", "eliana-zebro", "anthony-caruso", "hamza-zafar", "jordan-river-samuel", "aliya-laliwala", "bejan-moers", "logan-jones", "ahmed-metwoali", "naveen-kumar", "mark-kallback", "shell-bobev", "saurabh-gandhe", "debbie-douglas-henry", "andrea-vernengo", "soheil-khosravinejad", "daniel-lee", "paula-machado-jackler", "emilia-savich", "mohammad-saleh-nikoopayan-tak", "natalie-kitts", "favio-jasso", "elisa-charters", "jeremy-ruiz-villavicencio", "parminder-singh", "han-nguyen", "mehul-sompura", "gifty-anane", "sonali-chilupuri", "sharon-joseph", "adeola-adeoye-davids"]);
   const EXTRA_MENTOR_NAMES = new Set(["Dee Marshall", "Dennis Yuscavitch", "Felicia Palmer", "Malak Atut", "Stella Alvo", "Orin Davis", "Basia Walska", "Sara Bender-Bier"]);
   // Confirmed can't attend — said so directly
   const EXCUSED_MENTEE_SLUGS = new Set(["evan-peneiras", "angie-tirado"]);
@@ -6489,8 +6489,8 @@ function MidpointFunding({ mentees = [] }) {
         const menteeRegs   = d.mentees.filter(m => registrantSlugs.has(m.slug));
         const menteeNot    = d.mentees.filter(m => !registrantSlugs.has(m.slug));
         const mentorEmails = Object.keys(d.mentorMap);
-        const mentorRegs   = mentorEmails.filter(e => registrantEmails.has(e) || EXTRA_MENTOR_NAMES.has(d.mentorMap[e])).map(e => d.mentorMap[e]);
-        const mentorNot    = mentorEmails.filter(e => !registrantEmails.has(e) && !EXTRA_MENTOR_NAMES.has(d.mentorMap[e])).map(e => d.mentorMap[e]);
+        const mentorRegs   = mentorEmails.filter(e => !EXCUSED_MENTOR_NAMES.has(d.mentorMap[e]) && (registrantEmails.has(e) || EXTRA_MENTOR_NAMES.has(d.mentorMap[e]))).map(e => d.mentorMap[e]);
+        const mentorNot    = mentorEmails.filter(e => EXCUSED_MENTOR_NAMES.has(d.mentorMap[e]) || (!registrantEmails.has(e) && !EXTRA_MENTOR_NAMES.has(d.mentorMap[e]))).map(e => d.mentorMap[e]);
         const menteePct    = d.mentees.length > 0 ? Math.round(menteeRegs.length / d.mentees.length * 100) : 0;
         const mentorPct    = mentorEmails.length > 0 ? Math.round(mentorRegs.length / mentorEmails.length * 100) : 0;
         const isOpen       = expanded[c];
