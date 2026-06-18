@@ -17,6 +17,12 @@ const HOLDING_SLUGS = new Set([
 // All holding slugs were late-matched — same due dates apply to everyone in this set
 const LATE_MATCH_SLUGS = HOLDING_SLUGS;
 
+// Slugs matched even later — session due dates pushed an additional 8 days beyond LATE_MATCH
+const VERY_LATE_MATCH_SLUGS = new Set([
+  "favio-jasso",
+  "gifty-anane",
+]);
+
 // ─── Week definitions ─────────────────────────────────────────────────────────
 const WEEKS = [
   {
@@ -1597,23 +1603,181 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
         <WeeklyFocus slug={slug} weekNum={4} />
 
         {midpoint && (
-          <div style={{ background: "#f0faf5", borderRadius: 12, border: "2px solid #b8e8d0", padding: "24px 28px", marginBottom: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-              <span style={{ background: "#fff3e0", color: "#b35c00", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
-                REQUIRED · IN-PERSON
-              </span>
+          <div style={{ marginBottom: 24 }}>
+            {/* Header card */}
+            <div style={{ background: "#f0faf5", borderRadius: 12, border: "2px solid #b8e8d0", padding: "24px 28px", marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <span style={{ background: "#fff3e0", color: "#b35c00", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
+                  REQUIRED · IN-PERSON
+                </span>
+              </div>
+              <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 20, color: "#1a1733" }}>
+                Uplift Midpoint Meetup
+              </p>
+              <p style={{ margin: "0 0 10px", fontSize: 15, color: "#1a6e42", fontStyle: "italic", lineHeight: 1.6 }}>
+                You&apos;ve been building. Now let&apos;s connect IRL.
+              </p>
+              <p style={{ margin: "0 0 6px", fontSize: 14, color: "#444", lineHeight: 1.7 }}>
+                {midpoint.day} · {midpoint.time} · Antique Loft at Riverview Historical Plaza, 33 Newark Street, Penthouse Level, Hoboken, NJ 07030
+              </p>
+              <p style={{ margin: "0 0 16px", fontSize: 14, color: "#444", lineHeight: 1.7 }}>
+                The halfway celebration for the Uplift Mentorship Summer Program. All participants and mentors from all five cohorts come together in person to mark the midpoint, connect face to face, and celebrate progress.
+              </p>
+              <a href={midpoint.url || "#"} target="_blank" rel="noopener noreferrer"
+                onClick={() => trackEventClick(midpoint.name || "Midpoint Meetup", midpoint.url || "")}
+                style={{ display: "inline-block", background: "#1a6e42", color: "#fff", borderRadius: 8, padding: "9px 18px", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
+                Register on Luma →
+              </a>
             </div>
-            <p style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 16, color: "#1a1733" }}>
-              🤝 Midpoint Meetup — {midpoint.day}, {midpoint.time}
-            </p>
-            <p style={{ margin: "0 0 14px", fontSize: 14, color: "#1a6e42", lineHeight: 1.7, fontStyle: "italic" }}>
-              📍 In-person in Hoboken. This is the halfway mark — and though we LOVE your virtual faces, we can't wait to see you in person!
-            </p>
-            <a href={midpoint.url || "#"} target="_blank" rel="noopener noreferrer"
-              onClick={() => trackEventClick(midpoint.name || "Midpoint Meetup", midpoint.url || "")}
-              style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 600, textDecoration: "none" }}>
-              Register on Luma →
-            </a>
+
+            {/* About the event */}
+            <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 16 }}>
+              <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>About the Event</p>
+              <p style={{ margin: "0 0 14px", fontSize: 14, color: "#333", lineHeight: 1.75 }}>
+                This is your chance to step out of the day-to-day and into the room. Meet founders across all five cohorts, connect with mentors, and gain insights from our fireside chat. Whether you&apos;re in Edison, Hopper, Bardeen, Lawrence, or Morrison, this moment is to celebrate you.
+              </p>
+              <p style={{ margin: "0 0 14px", fontSize: 14, color: "#333", lineHeight: 1.75 }}>
+                You might meet a peer who&apos;s solved the exact problem you&apos;re stuck on. You might have a conversation with a mentor that changes how you think about your next six months. You might get introduced to an investor who&apos;s been watching the program. All of it is possible in this room.
+              </p>
+              <div style={{ borderTop: "1px solid #f0edf9", paddingTop: 14, marginTop: 4 }}>
+                <p style={{ margin: "0 0 10px", fontSize: 13, fontWeight: 700, color: "#5c4eb5" }}>The Five Cohorts</p>
+                {[
+                  { name: "Edison", desc: "The go-to-market cohort. Ship, listen, ship again." },
+                  { name: "Hopper", desc: "The builders' cohort. Enterprise SaaS, B2B, and MVP-stage founders constructing real product infrastructure." },
+                  { name: "Bardeen", desc: "The technical cohort. AI, Data, and ML founders working at the frontier." },
+                  { name: "Lawrence", desc: "The inflection-point cohort. Founders in the middle of fundraising, pivots, and major launches." },
+                  { name: "Morrison", desc: "The clarity-seeking cohort. Founders refining narrative, defining priorities, and finding their voice." },
+                ].map((c) => (
+                  <div key={c.name} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#3d2f8a", minWidth: 72 }}>{c.name}</span>
+                    <span style={{ fontSize: 13, color: "#555", lineHeight: 1.6 }}>{c.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Special guest */}
+            <div style={{ background: "#fdf8ff", borderRadius: 12, border: "1px solid #e0d9f5", padding: "20px 24px", marginBottom: 16 }}>
+              <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>Special Guest</p>
+              <p style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 700, color: "#1a1733" }}>Sheilisa McNeal · Fria Inc.</p>
+              <p style={{ margin: 0, fontSize: 14, color: "#444", lineHeight: 1.75 }}>
+                Sheilisa built Fria around her own lived experience to serve an underrepresented population: menopausal women. She made the leap from full-time employment to full-time founder, navigating challenges the market hadn&apos;t prioritized before. Her persistence has paid off — Fria has secured over $2 million in non-dilutive funding. Sheilisa is building proof that the most important problems to solve are often the ones nobody else thought to fund.
+              </p>
+            </div>
+
+            {/* Agenda */}
+            <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 16 }}>
+              <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>Agenda</p>
+              {[
+                { time: "4:00 – 5:15", label: "Meet your peers, Headshots, Step & Repeat, Snacks & Refreshments" },
+                { time: "5:15 – 6:00", label: "Opening Remarks from Aaron Price, CEO of TechUnited · Remarks from NJEDA · Fireside Chat: Founding on Your Own Terms — From Pain Point to Funded with Sheilisa McNeal, moderated by MJ Durkin, COO of TechUnited" },
+                { time: "6:00 – 7:00", label: "Open Networking" },
+              ].map((a, i) => (
+                <div key={i} style={{ display: "flex", gap: 16, marginBottom: i < 2 ? 14 : 0, paddingBottom: i < 2 ? 14 : 0, borderBottom: i < 2 ? "1px solid #f0edf9" : "none" }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#5c4eb5", minWidth: 90, paddingTop: 2 }}>{a.time}</span>
+                  <span style={{ fontSize: 13, color: "#444", lineHeight: 1.6 }}>{a.label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Mentee spotlight */}
+            <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 16 }}>
+              <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>A Look Into Who&apos;s In the Room</p>
+              <p style={{ margin: "0 0 16px", fontSize: 13, color: "#666", lineHeight: 1.6 }}>
+                76 founders. 5 cohorts. One mission — to build something that matters. From a first-ever laundromat in Princeton to AI-powered legal tech, genomics platforms to CPG beauty discovery, our Uplift cohort represents some of the most diverse and driven early-stage founders in the region. Engineers, clinicians, students, veterans, professors, and career-pivoters — all in the same room, building toward something real.
+              </p>
+              {[
+                "⭐ Gifty Anane · Wash Lodge · Opening the first ever laundromat in Princeton · Born in Ghana",
+                "⭐ Annalyce D'Agostino-Gavin · Focus Posters · Parent tech, ed tech, and health tech",
+                "⭐ Bejan Moers · United Solution · Mixed-use renewable energy development · Currently raising",
+                "⭐ Alisha Sharma · Undecided · Software engineer in fintech building iOS apps on the side",
+                "⭐ Ekaterina Kashkina · Stealth molecular diagnostics startup · Spinout from Rowan, IP secured",
+                "⭐ Elaf Mahmoud · Elune Health · NJIT student building in femtech",
+                "⭐ Emilia Savich · AnatomyQuest · Democratizing anatomy and physiology education",
+                "⭐ Favio Jasso · AnatomyQuest · CTO, software engineer, and enterprise AI student at NJIT",
+                "⭐ Han Nguyen · Ox Group · Roll-up acquisitions in plumbing, electrical, and HVAC · Marine Corps veteran",
+                "⭐ Lianna LaRiccia · EduTrend · Autism data tracking platform, started as a Stevens capstone",
+                "⭐ Justin Savage · STEAM FOR ME · Ed tech with NSF funding · Self-taught engineer",
+                "⭐ Pearl Gabel · TBD · Created the viral Voice of New Jersey social media identity",
+                "⭐ Tosca Marleen · Tend to Belle · CPG discovery for pre-retail emerging beauty brands",
+                "⭐ Shounak Thaker · Arnex Solutions LLC",
+                "⭐ Adeola Adeoye-Davids · Local Window · Hyper-local confirmed-impression advertising",
+                "⭐ Alok Rai · Dumroo.ai · Education intelligence layer working with 3 NJ school districts",
+                "⭐ Angela Aricatt · Get Empathix · Clinical psychologist turned tech founder",
+                "⭐ Debbie Douglas-Henry · 3DHR Consulting · Made her 5-to-9 her 9-to-5 after a 2024 layoff",
+                "⭐ Evan Peneiras · Nooriva · Smart glasses for glaucoma patients · Rutgers med student",
+                "⭐ Neha Chopade · Meta · Researcher with a new idea brewing",
+                "⭐ Paula Machado Jackler · Ozzie · Personal finance platform for Latino immigrants · From Brazil",
+                "⭐ Pierre Girgis · Veriflo LLC · Trusted layer for AI content access and monetization",
+                "⭐ Rachel Hayes · Ravel Genetics · Health intelligence platform built on genomics · PhD",
+                "⭐ Radha Ratnala · Rekogni AI · Agentic platform for software engineering teams · AWS & DoorDash alum",
+                "⭐ Shell Bobev · Disrupt The Gap · Compensation equity platform",
+                "⭐ Stephanie Cwynar · Pinterest",
+                "⭐ Pradeep Kumar Gohil · World Micro Stock Vinimay USA LLC",
+                "⭐ Idongesit Obeya · Altruistic Scribe",
+                "⭐ Jean Guerdy Paul · TETHRRA",
+                "⭐ Abhi Ray · Freelance Software Engineer",
+                "⭐ Shanthi Viswanathan · Infivista Inc",
+                "⭐ Aliya Laliwala · Campus Marketplace · Just graduated NJIT · Black belt in martial arts",
+                "⭐ Andrea Vernengo · TrueSkin · Beauty tech · Tech originated from research in Switzerland",
+                "⭐ Ebunoluwa Adenekan · KLA Corporation · Engineer by day building toward his own hardware/game IP",
+                "⭐ Kevin Navarro · MechSense Labs · Semi-autonomous rover for hazardous sites",
+                "⭐ Mark Kallback · Clear-Sight · News literacy tool · 20+ years in sales and ops",
+                "⭐ Naveen Kumar · Truxt · AI ROI platform for enterprise · 11 years in devops",
+                "⭐ Nina Mladenovski · Zenia Graph · Ethical AI with knowledge graphs · Co-founded with her father",
+                "⭐ Parminder Singh · DeepInspect.ai · AI security and compliance platform",
+                "⭐ Rajesh Ivaturi · SekurAI · Agentic pentesting platform · Ex-Citibank CISO · Meditation trainer",
+                "⭐ Maab Iqbal · TBD",
+                "⭐ Logan Jones · ticker",
+                "⭐ Sharon Joseph · CREWASIS.AI",
+                "⭐ Abhaya Pawar · Ilika LLC",
+                "⭐ Mehul Sompura · Diamond Hedge",
+                "⭐ Harshil Thakkar · Newyorklife",
+                "⭐ Britney Medich · Brooklyn Navy Yard · Workforce dev · Owns a bar and restaurant in Jersey City",
+                "⭐ Daniel Lee · Bruce AI (OnwardJustice Inc.) · AI legal tech · Just wrapped a Brooklyn accelerator",
+                "⭐ Eliana Zebro · Freelance Audio (Pre-LLC) · 11 years in podcasting, film, and video games",
+                "⭐ Stephanie Scott-Bradshaw · First and Last PR · 14-year-old firm focused on how brands show up in AI/GEO",
+                "⭐ Jeremy Ruiz Villavicencio · Menti · Connecting local tutors with an AI layer",
+                "⭐ Kima D'Anjou · The Keenly Group LLC · Strategy consulting · Former software engineer",
+                "⭐ Lina Escobar · Sweet Aurora Soap & Candle · Built during her autoimmune diagnosis in 2020",
+                "⭐ Mohammad Saleh Nikoopayan Tak · TasteTwin AI · Next-gen food discovery · PhD candidate at NJIT",
+                "⭐ Natalie Kitts · The Zigzag Flow · Autism therapy in a neurodiversity-affirming model",
+                "⭐ Priyal Levine · Wisdom & Wonder Wellness · Yoga therapist · Worked for Oprah's Harpo in college",
+                "⭐ Soheil Khosravinejad · DRIFTLANE · Creative and design services",
+                "⭐ Angie Tirado · Fluenci · B2B micro-influencer marketplace · NJIT rising sophomore",
+                "⭐ Elisa Charters · Juegos AI Lab",
+                "⭐ Andrea Ferguson Peterson · Everyday Unstoppable",
+                "⭐ Saurabh Gandhe · Creative Sprouts Inc",
+                "⭐ Jasmin Jones · JP Morgan Chase",
+                "⭐ Chandni Patel · BOA (startup name undecided)",
+                "⭐ Daniel Patton · DreamEngine AI",
+                "⭐ Jordan-River Samuel · tapyoca",
+                "⭐ Chirag Shah · Crestwood Digital",
+                "⭐ Gunjan Aggarwal · Virre",
+              ].map((line, i) => (
+                <p key={i} style={{ margin: "0 0 6px", fontSize: 13, color: "#333", lineHeight: 1.5 }}>{line}</p>
+              ))}
+            </div>
+
+            {/* Getting there */}
+            <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px" }}>
+              <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>Getting There</p>
+              {[
+                { icon: "📍", label: "Address", detail: "Antique Loft at Riverview Historical Plaza · 33 Newark Street, Penthouse Level · Hoboken, NJ 07030" },
+                { icon: "🚇", label: "PATH Train", detail: "Hoboken Terminal is a 2-minute walk. Newark–WTC line and Journal Square–33rd St via Hoboken line both stop here." },
+                { icon: "🚆", label: "NJ Transit Rail", detail: "Bergen County Line, Pascack Valley Line, Main Line, and Hudson-Bergen Light Rail all terminate at Hoboken Terminal." },
+                { icon: "🚌", label: "NJ Transit Bus", detail: "Routes 126, 22, 23, 85, and 89 serve Hoboken Terminal. Check njtransit.com for your route." },
+                { icon: "🚗", label: "Parking", detail: "Municipal garages within walking distance. Tuesday evening rates (enter 6pm–2am): Garage B — 28 2nd Street · Garage D — 215 Hudson Street. Up to 4 hours: $16. Reserve via SpotHero or ParkWhiz." },
+              ].map((item, i) => (
+                <div key={i} style={{ display: "flex", gap: 12, marginBottom: i < 4 ? 12 : 0, paddingBottom: i < 4 ? 12 : 0, borderBottom: i < 4 ? "1px solid #f5f3fc" : "none" }}>
+                  <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{item.icon}</span>
+                  <div>
+                    <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{item.label}</p>
+                    <p style={{ margin: 0, fontSize: 13, color: "#555", lineHeight: 1.6 }}>{item.detail}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
         <Tagline text={week.tagline} type={week.taglineType} />
@@ -2952,6 +3116,7 @@ function parseDueDate(dueStr) {
 
 function MilestoneSection({ milestones, onNavigate, slug, meetings = [], lumaAttendance = [] }) {
   const isHolding = HOLDING_SLUGS.has(slug);
+  const isVeryLateMatch = VERY_LATE_MATCH_SLUGS.has(slug);
   const isLateMatch = LATE_MATCH_SLUGS.has(slug);
   const items = [
     { key: "participation",   label: "Confirmed Participation",        auto: true, due: "By Jun 3",  week: 1 },
@@ -2960,9 +3125,9 @@ function MilestoneSection({ milestones, onNavigate, slug, meetings = [], lumaAtt
     { key: "edu1",            label: "Educational Session 1",                       due: "By Aug 4",  week: 2 },
     { key: "edu2",            label: "Educational Session 2",                       due: "By Aug 4",  week: 3 },
     { key: "edu3",            label: "Educational Session 3",                       due: "By Aug 4",  week: 8 },
-    { key: "mentorSession1",  label: "Mentor Session 1",                            due: isLateMatch ? "By Jun 30" : isHolding ? "By Jun 23" : "By Jun 13", week: 2 },
-    { key: "mentorSession2",  label: "Mentor Session 2",                            due: isLateMatch ? "By Jul 11" : "By Jul 4",  week: 5 },
-    { key: "mentorSession3",  label: "Mentor Session 3",                            due: isLateMatch ? "By Jul 25" : "By Jul 18", week: 7 },
+    { key: "mentorSession1",  label: "Mentor Session 1",                            due: isVeryLateMatch ? "By Jul 8" : isLateMatch ? "By Jun 30" : isHolding ? "By Jun 23" : "By Jun 13", week: 2 },
+    { key: "mentorSession2",  label: "Mentor Session 2",                            due: isVeryLateMatch ? "By Jul 19" : isLateMatch ? "By Jul 11" : "By Jul 4",  week: 5 },
+    { key: "mentorSession3",  label: "Mentor Session 3",                            due: isVeryLateMatch ? "By Aug 2" : isLateMatch ? "By Jul 25" : "By Jul 18", week: 7 },
     { key: "midpoint",        label: "Midpoint Meetup Attended",                    due: "Jun 23",    week: 4 },
     { key: "endSurvey",       label: "End of Program Survey Completed",             due: "By Jul 25", week: 8 },
     { key: "summit",          label: "Summit & Graduation Attended",                due: "Aug 4",     week: 9 },

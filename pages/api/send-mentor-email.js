@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   try {
     const { data, error } = await resend.emails.send({
       from: "Kennedy Loper <kennedy@techunited.co>",
-      to: [to],
+      to: Array.isArray(to) ? to : [to],
       cc: ["uplift@techunited.co"],
       reply_to: "kennedy@techunited.co",
       subject,
