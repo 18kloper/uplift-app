@@ -6415,6 +6415,7 @@ function MidpointFunding({ mentees = [] }) {
   // Confirmed can't attend — said so directly
   const EXCUSED_MENTEE_SLUGS = new Set(["evan-peneiras", "angie-tirado", "angela-aricatt"]);
   const EXCUSED_MENTOR_NAMES = new Set(["Natalie Kaminski", "Joe Spivack", "Jennifer D'Angelo", "Miquel de Quadras"]);
+  const REMOVED_MENTOR_NAMES = new Set(["Tom Oser"]);
 
   const registrantEmails = new Set((guests || []).map(g => g.email?.toLowerCase()).filter(Boolean));
   const registrantSlugs  = new Set([
@@ -6464,8 +6465,8 @@ function MidpointFunding({ mentees = [] }) {
         {cohortKeys.map(c => {
           const d = cohortData[c];
           const menteeReg    = d.mentees.filter(m => registrantSlugs.has(m.slug)).length;
-          const mentorEmails = Object.keys(d.mentorMap);
-          const mentorReg    = mentorEmails.filter(e => registrantEmails.has(e) || EXTRA_MENTOR_NAMES.has(d.mentorMap[e])).length;
+          const mentorEmails = Object.keys(d.mentorMap).filter(e => !REMOVED_MENTOR_NAMES.has(d.mentorMap[e]));
+          const mentorReg    = mentorEmails.filter(e => !EXCUSED_MENTOR_NAMES.has(d.mentorMap[e]) && (registrantEmails.has(e) || EXTRA_MENTOR_NAMES.has(d.mentorMap[e]))).length;
           const menteePct    = d.mentees.length > 0 ? Math.round(menteeReg / d.mentees.length * 100) : 0;
           const mentorPct    = mentorEmails.length > 0 ? Math.round(mentorReg / mentorEmails.length * 100) : 0;
           const bothHit      = menteePct >= 50 && mentorPct >= 50;
@@ -6488,7 +6489,7 @@ function MidpointFunding({ mentees = [] }) {
         const d            = cohortData[c];
         const menteeRegs   = d.mentees.filter(m => registrantSlugs.has(m.slug));
         const menteeNot    = d.mentees.filter(m => !registrantSlugs.has(m.slug));
-        const mentorEmails = Object.keys(d.mentorMap);
+        const mentorEmails = Object.keys(d.mentorMap).filter(e => !REMOVED_MENTOR_NAMES.has(d.mentorMap[e]));
         const mentorRegs   = mentorEmails.filter(e => !EXCUSED_MENTOR_NAMES.has(d.mentorMap[e]) && (registrantEmails.has(e) || EXTRA_MENTOR_NAMES.has(d.mentorMap[e]))).map(e => d.mentorMap[e]);
         const mentorNot    = mentorEmails.filter(e => EXCUSED_MENTOR_NAMES.has(d.mentorMap[e]) || (!registrantEmails.has(e) && !EXTRA_MENTOR_NAMES.has(d.mentorMap[e]))).map(e => d.mentorMap[e]);
         const menteePct    = d.mentees.length > 0 ? Math.round(menteeRegs.length / d.mentees.length * 100) : 0;
