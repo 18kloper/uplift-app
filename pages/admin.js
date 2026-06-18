@@ -6413,7 +6413,7 @@ function MidpointFunding({ mentees = [] }) {
   const EXTRA_MENTEE_SLUGS = new Set(["britney-medich", "harshil-thakkar", "jean-guerdy-paul", "shanthi-viswanathan", "pierre-girgis", "kima-danjou", "ekaterina-kashkina", "annalyce-dagostino-gavin", "lina-escobar", "jerry-primus", "gunjan-aggarwal", "priyal-levine", "rachel-hayes", "eliana-zebro", "anthony-caruso", "hamza-zafar", "jordan-river-samuel", "aliya-laliwala", "bejan-moers", "logan-jones", "ahmed-metwoali", "naveen-kumar", "mark-kallback", "shell-bobev", "saurabh-gandhe", "debbie-douglas-henry", "andrea-vernengo", "soheil-khosravinejad", "daniel-lee", "paula-machado-jackler", "emilia-savich", "mohammad-saleh-nikoopayan-tak", "natalie-kitts", "favio-jasso", "elisa-charters", "jeremy-ruiz-villavicencio", "parminder-singh", "han-nguyen", "mehul-sompura", "gifty-anane", "sonali-chilupuri", "sharon-joseph", "adeola-adeoye-davids"]);
   const EXTRA_MENTOR_NAMES = new Set(["Dee Marshall", "Dennis Yuscavitch", "Felicia Palmer", "Malak Atut", "Stella Alvo", "Orin Davis", "Basia Walska", "Sara Bender-Bier"]);
   // Confirmed can't attend — said so directly
-  const EXCUSED_MENTEE_SLUGS = new Set(["evan-peneiras", "angie-tirado"]);
+  const EXCUSED_MENTEE_SLUGS = new Set(["evan-peneiras", "angie-tirado", "angela-aricatt"]);
   const EXCUSED_MENTOR_NAMES = new Set(["Natalie Kaminski", "Joe Spivack"]);
 
   const registrantEmails = new Set((guests || []).map(g => g.email?.toLowerCase()).filter(Boolean));
