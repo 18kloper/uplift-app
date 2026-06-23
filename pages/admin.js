@@ -6899,7 +6899,7 @@ function MidpointFunding({ mentees = [] }) {
                               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                 <span style={{ fontSize: 11, color: excused ? "#e67e22" : "#e74c3c" }}>{excused ? "~" : "✗"}</span>
                                 <span style={{ fontSize: 13, color: excused ? "#9b8fcf" : "#1a1733", textDecoration: excused ? "line-through" : "none" }}>{m.first} {m.last}</span>
-                                <button onClick={() => toggleMenteeAttending(m.slug)} style={{ marginLeft: "auto", fontSize: 10, padding: "2px 7px", borderRadius: 4, border: "1px solid #c8f0d8", background: "#f0faf4", color: "#27ae60", cursor: "pointer" }}>Attending</button>
+                                <button onClick={() => toggleMenteeAttending(m.slug)} title="Mark attending" style={{ marginLeft: "auto", fontSize: 14, width: 22, height: 22, borderRadius: "50%", border: "1.5px solid #27ae60", background: "#f0faf4", color: "#27ae60", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1, flexShrink: 0 }}>+</button>
                                 <button onClick={() => toggleMenteeExcused(m.slug)} style={{ fontSize: 10, padding: "2px 7px", borderRadius: 4, border: "1px solid #e8e4f5", background: excused ? "#f0eef8" : "#fdf9ff", color: excused ? "#5c4eb5" : "#9b8fcf", cursor: "pointer" }}>{excused ? "Undo" : "Not attending"}</button>
                               </div>
                               <div style={{ fontSize: 11, color: "#9b8fcf", paddingLeft: 19 }}>{m.email}</div>
@@ -6927,7 +6927,7 @@ function MidpointFunding({ mentees = [] }) {
                             <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: "1px solid #f7f5ff" }}>
                               <span style={{ fontSize: 11, color: excused ? "#e67e22" : "#e74c3c" }}>{excused ? "~" : "✗"}</span>
                               <span style={{ fontSize: 13, color: excused ? "#9b8fcf" : "#1a1733", textDecoration: excused ? "line-through" : "none" }}>{name}</span>
-                              <button onClick={() => toggleMentorAttending(name)} style={{ marginLeft: "auto", fontSize: 10, padding: "2px 7px", borderRadius: 4, border: "1px solid #c8f0d8", background: "#f0faf4", color: "#27ae60", cursor: "pointer" }}>Attending</button>
+                              <button onClick={() => toggleMentorAttending(name)} title="Mark attending" style={{ marginLeft: "auto", fontSize: 14, width: 22, height: 22, borderRadius: "50%", border: "1.5px solid #27ae60", background: "#f0faf4", color: "#27ae60", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1, flexShrink: 0 }}>+</button>
                               <button onClick={() => toggleMentorExcused(name)} style={{ fontSize: 10, padding: "2px 7px", borderRadius: 4, border: "1px solid #e8e4f5", background: excused ? "#f0eef8" : "#fdf9ff", color: excused ? "#5c4eb5" : "#9b8fcf", cursor: "pointer" }}>{excused ? "Undo" : "Not attending"}</button>
                             </div>
                           );
