@@ -3148,6 +3148,9 @@ export default function AdminPage() {
       { key: "activity", label: "Activity" },
       { key: "clicks",   label: "Clicks" },
     ]},
+    { key: "skills",     label: "🤖 Skills",  tabs: [
+      { key: "skills", label: "Skills" },
+    ]},
   ];
   const activePrimary = NAV.find(g => g.tabs.some(t => t.key === adminTab)) || NAV[0];
 
@@ -3251,10 +3254,299 @@ export default function AdminPage() {
           {adminTab === "non-responsive" && <MentorEmailResponses confirmations={mentorConfirmations} onConfirmationChange={handleConfirmationChange} defaultFilter="no-reply" />}
           {adminTab === "luma"        && <LumaAttendance mentees={data?.mentees || []} />}
           {adminTab === "midpoint"    && <MidpointFunding mentees={data?.mentees || []} />}
+          {adminTab === "skills"      && <SkillsPanel />}
         </>
         )}
       </div>
     </>
+  );
+}
+
+// ─── Skills Panel ────────────────────────────────────────────────────────────
+function SkillsPanel() {
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  const WORK_SKILLS = [
+    {
+      emoji: "✉️",
+      name: "Match Intro Email",
+      command: "/match-intro-email",
+      tag: "Work Skill 1 of 5",
+      tagColor: "#5c4eb5",
+      description: "Chains Typeform + Google Sheets + Resend into one approval flow — walks any admin through 6 sections (recipients, mentor bio, motivation, mentee card, reflections, confirmation) before a single email sends. Runs end to end without babysitting.",
+      steps: [
+        "Pulls live mentor bio + motivation from Typeform; mentee reflections from Google Sheets",
+        "Reviews each section one at a time — flags missing data as ⚠️ blockers before you can proceed",
+        "Never sends without explicit 'send it' — hard approval gate, not a confirm dialog",
+        "On send: fires Resend email, writes to Mentor Confirmations sheet, flips mentorMatched on the portal",
+        "Any admin on the team can run it for any mentee — fully parameterized by name or slug",
+      ],
+      impact: "75 personalized intros sent at launch — 2 min each vs. 20+ min manual. Saved ~25 hours in one week.",
+      connections: ["Resend", "Google Sheets", "Typeform", "Mentee Portal"],
+      accentColor: "#5c4eb5",
+    },
+    {
+      emoji: "🎯",
+      name: "Mentor Match Summarizer",
+      command: "/mentor-match-summarizer",
+      tag: "Work Skill 2 of 5",
+      tagColor: "#0d9488",
+      description: "Uses Claude AI as a scoring engine — ingests every mentor and mentee Typeform application, scores each pairing Strong / Good / Fair on industry, focus, stage, and NJ geography, then presents one card at a time for human approval before writing to the sheet.",
+      steps: [
+        "Reads live Typeform applications for all mentors + mentees (no hardcoded data)",
+        "Claude scores each pairing and explains the reasoning — alternative match always provided",
+        "One card at a time: approve, alternative, skip, or deny with a reason",
+        "Approved matches write to Mentor Confirmations sheet immediately",
+        "Reusable for any future cohort — just point at new Typeform responses",
+      ],
+      impact: "Rolled out 75+ matches at program launch in one session — previously took days of manual spreadsheet review.",
+      connections: ["Typeform (AayoroO1)", "Google Sheets", "Claude AI", "approve-match API"],
+      accentColor: "#0d9488",
+    },
+    {
+      emoji: "📋",
+      name: "Luma Attendance Checker",
+      command: "/luma-attendance-checker",
+      tag: "Work Skill 3 of 5",
+      tagColor: "#7c3aed",
+      description: "Pulls every Luma event attendance record for a mentee (or the entire cohort), classifies each as onboarding / edu / other, surfaces approve/deny decisions for pending records, and maps what's approved to program milestones — all without opening a single sheet.",
+      steps: [
+        "Works by name, slug, or with no argument (runs across all 74 active mentees)",
+        "Classifies attendance by event type; auto-recommends approve or deny per record",
+        "Posts decisions to luma-approve API — updates LumaAttendance sheet + Milestone Dashboard",
+        "Flags ⚠️ no approved onboarding and 🔴 no edu sessions for outreach prioritization",
+        "Drop-in tool: any program admin can audit any mentee in under 30 seconds",
+      ],
+      impact: "Replaces 30+ min of cross-referencing three spreadsheets per mentee with a single command.",
+      connections: ["Luma API", "Google Sheets (LumaAttendance tab)", "Milestone Dashboard"],
+      accentColor: "#7c3aed",
+    },
+    {
+      emoji: "✅",
+      name: "Mentor Session Checker",
+      command: "/mentor-session-checker",
+      tag: "Work Skill 4 of 5",
+      tagColor: "#b45309",
+      description: "Syncs Typeform session submissions, surfaces every pending review with duration, notes, takeaways, and transcript status — then auto-recommends approve / half-credit / deny based on quality signals before you confirm.",
+      steps: [
+        "Triggers Typeform sync first — ensures no submissions are missed before review",
+        "Auto-recommends: 60+ min + notes + takeaways → approve; under 60 min but quality content → half-credit (0.5 hr); no notes → deny",
+        "Bulk options: 'approve all', 'follow recommendations', or review one by one",
+        "Posts decisions to approve-session API — updates SessionReview sheet and milestones live",
+        "Works for one mentee or the full cohort — same command, scoped by argument",
+      ],
+      impact: "Clears a backlog of 20+ pending sessions in under 5 minutes. Used weekly to keep the cohort on track.",
+      connections: ["Typeform (e0L62296)", "SessionReview Sheet", "approve-session API", "Milestone Dashboard"],
+      accentColor: "#b45309",
+    },
+    {
+      emoji: "📊",
+      name: "Weekly Reflection Summary",
+      command: "/weekly-reflection-summary",
+      tag: "Work Skill 5 of 5",
+      tagColor: "#0369a1",
+      description: "Reads every long-form submission across all Typeform prompts and session notes — no matter which form or question — then uses Claude to surface recurring themes and suggest specific peer intros grounded in founders' own words.",
+      steps: [
+        "Collects all long-form text: portal reflections, session notes, takeaways — any source",
+        "Batches fetches by cohort (4 groups of ~18) to stay fast and parallel",
+        "Claude finds recurring themes across founders independent of which prompt they came from",
+        "Peer intro suggestions are specific: quotes each founder's own words to explain why they should meet",
+        "Ends with a Slack-ready digest — cohort pulse, insight of the week, intro list",
+      ],
+      impact: "Turns 74 founder submissions into a 5-section intelligence brief + intro list in under 60 seconds.",
+      connections: ["Typeform (e0L62296)", "Google Sheets", "lib/mentees.js", "Claude AI"],
+      accentColor: "#0369a1",
+    },
+  ];
+
+  const PERSONAL_SKILLS = [
+    {
+      emoji: "🌱",
+      name: "Personal Skill 1",
+      command: "/personal-skill-1",
+      tag: "Personal Skill 1 of 2",
+      tagColor: "#6b7280",
+      description: "Coming soon — personal skill details to be added.",
+      steps: [],
+      impact: "",
+      connections: [],
+      accentColor: "#6b7280",
+    },
+    {
+      emoji: "⚡",
+      name: "Personal Skill 2",
+      command: "/personal-skill-2",
+      tag: "Personal Skill 2 of 2",
+      tagColor: "#6b7280",
+      description: "Coming soon — personal skill details to be added.",
+      steps: [],
+      impact: "",
+      connections: [],
+      accentColor: "#6b7280",
+    },
+  ];
+
+  const ALL_SLIDES = [
+    { type: "title" },
+    ...WORK_SKILLS.map(s => ({ type: "skill", ...s })),
+    { type: "divider" },
+    ...PERSONAL_SKILLS.map(s => ({ type: "skill", ...s })),
+    { type: "end" },
+  ];
+
+  const slide = ALL_SLIDES[activeSlide];
+  const total = ALL_SLIDES.length;
+
+  const btn = (label, onClick, accent = "#5c4eb5") => (
+    <button onClick={onClick} style={{
+      background: accent, color: "#fff", border: "none", borderRadius: 8,
+      padding: "10px 22px", fontSize: 13, fontWeight: 700, cursor: "pointer",
+      fontFamily: "Inter, system-ui, sans-serif", transition: "opacity 0.15s",
+    }}
+    onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
+    onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+    >{label}</button>
+  );
+
+  const pill = (text, color = "#5c4eb5") => (
+    <span style={{
+      display: "inline-block", background: color + "18", color, border: `1px solid ${color}40`,
+      borderRadius: 100, padding: "3px 11px", fontSize: 11, fontWeight: 600,
+      marginRight: 6, marginBottom: 6,
+    }}>{text}</span>
+  );
+
+  const renderSlide = () => {
+    if (slide.type === "title") return (
+      <div style={{ textAlign: "center", padding: "60px 40px" }}>
+        <div style={{ fontSize: 48, marginBottom: 20 }}>🤖</div>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#9b8fcf", marginBottom: 16 }}>BFL Skill-a-Day Challenge · Summer 2026</div>
+        <h1 style={{ fontSize: 42, fontWeight: 800, color: "#1a1733", margin: "0 0 16px", lineHeight: 1.15, letterSpacing: "-1px" }}>
+          7 Claude Code Skills<br />Built for Uplift
+        </h1>
+        <p style={{ fontSize: 16, color: "#6b6480", maxWidth: 480, margin: "0 auto 32px", lineHeight: 1.7 }}>
+          5 work skills that automate the most time-consuming parts of running Uplift — plus 2 personal skills built along the way.
+        </p>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginBottom: 40 }}>
+          {pill("5 Work Skills", "#5c4eb5")}
+          {pill("2 Personal Skills", "#0d9488")}
+          {pill("Typeform", "#7c3aed")}
+          {pill("Google Sheets", "#0369a1")}
+          {pill("Claude AI", "#b45309")}
+          {pill("Resend", "#059669")}
+        </div>
+        {btn("Start →", () => setActiveSlide(1))}
+      </div>
+    );
+
+    if (slide.type === "divider") return (
+      <div style={{ textAlign: "center", padding: "60px 40px" }}>
+        <div style={{ fontSize: 40, marginBottom: 20 }}>🌱</div>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#9b8fcf", marginBottom: 16 }}>Up next</div>
+        <h2 style={{ fontSize: 34, fontWeight: 800, color: "#1a1733", margin: "0 0 12px" }}>Personal Skills</h2>
+        <p style={{ fontSize: 15, color: "#6b6480", maxWidth: 400, margin: "0 auto 32px", lineHeight: 1.7 }}>
+          Two skills built for everyday use — outside the program.
+        </p>
+        {btn("Continue →", () => setActiveSlide(activeSlide + 1))}
+      </div>
+    );
+
+    if (slide.type === "end") return (
+      <div style={{ textAlign: "center", padding: "60px 40px" }}>
+        <div style={{ fontSize: 48, marginBottom: 20 }}>🏆</div>
+        <h2 style={{ fontSize: 34, fontWeight: 800, color: "#1a1733", margin: "0 0 12px" }}>That's all 7.</h2>
+        <p style={{ fontSize: 15, color: "#6b6480", maxWidth: 440, margin: "0 auto 32px", lineHeight: 1.7 }}>
+          Each skill runs as a Claude slash command in this project — pulling live data from Typeform, Google Sheets, Luma, and Resend to automate the most manual parts of the program.
+        </p>
+        {btn("← Start over", () => setActiveSlide(0))}
+      </div>
+    );
+
+    // skill slide
+    return (
+      <div style={{ padding: "40px 48px", maxWidth: 860, margin: "0 auto" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+          <span style={{ fontSize: 36 }}>{slide.emoji}</span>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: slide.accentColor, marginBottom: 3 }}>{slide.tag}</div>
+            <h2 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: "#1a1733", letterSpacing: "-0.5px" }}>{slide.name}</h2>
+          </div>
+          <code style={{ marginLeft: "auto", background: "#f0ecff", color: "#5c4eb5", border: "1px solid #d4d0e8", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}>{slide.command}</code>
+        </div>
+
+        <p style={{ fontSize: 15, color: "#4a4060", lineHeight: 1.75, margin: "0 0 28px", borderLeft: `3px solid ${slide.accentColor}`, paddingLeft: 16 }}>
+          {slide.description}
+        </p>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+          <div style={{ background: "#fafafa", border: "1.5px solid #e8e4f5", borderRadius: 12, padding: "20px 22px" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "#9b8fcf", marginBottom: 14 }}>How it works</div>
+            {slide.steps.map((step, i) => (
+              <div key={i} style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+                <span style={{ width: 20, height: 20, minWidth: 20, borderRadius: "50%", background: slide.accentColor, color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{i + 1}</span>
+                <span style={{ fontSize: 13, color: "#4a4060", lineHeight: 1.55 }}>{step}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {slide.impact && (
+              <div style={{ background: slide.accentColor + "0f", border: `1.5px solid ${slide.accentColor}30`, borderRadius: 12, padding: "18px 20px" }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: slide.accentColor, marginBottom: 8 }}>⚡ Impact</div>
+                <p style={{ margin: 0, fontSize: 13, color: "#1a1733", lineHeight: 1.65, fontWeight: 500 }}>{slide.impact}</p>
+              </div>
+            )}
+            {slide.connections.length > 0 && (
+              <div style={{ background: "#fff", border: "1.5px solid #e8e4f5", borderRadius: 12, padding: "18px 20px" }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "#9b8fcf", marginBottom: 10 }}>Connects to</div>
+                <div>{slide.connections.map(c => pill(c, slide.accentColor))}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ padding: "32px", fontFamily: "Inter, system-ui, sans-serif" }}>
+      <div style={{ maxWidth: 920, margin: "0 auto", background: "#fff", borderRadius: 16, border: "1.5px solid #e8e4f5", overflow: "hidden", minHeight: 520, display: "flex", flexDirection: "column" }}>
+
+        {/* Progress bar */}
+        <div style={{ height: 3, background: "#f0ecff" }}>
+          <div style={{ height: "100%", background: "linear-gradient(90deg, #5c4eb5, #0d9488)", width: `${((activeSlide + 1) / total) * 100}%`, transition: "width 0.3s" }} />
+        </div>
+
+        {/* Slide counter */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 24px", borderBottom: "1px solid #f0ecff" }}>
+          <span style={{ fontSize: 11, color: "#c0b8d8", fontWeight: 600 }}>Uplift · BFL Skill-a-Day Challenge</span>
+          <span style={{ fontSize: 11, color: "#9b8fcf", fontWeight: 600 }}>{activeSlide + 1} / {total}</span>
+        </div>
+
+        {/* Slide content */}
+        <div style={{ flex: 1 }}>{renderSlide()}</div>
+
+        {/* Navigation */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 32px", borderTop: "1px solid #f0ecff" }}>
+          <button onClick={() => setActiveSlide(Math.max(0, activeSlide - 1))} disabled={activeSlide === 0}
+            style={{ background: "none", border: "1.5px solid #e8e4f5", borderRadius: 8, padding: "8px 18px", fontSize: 13, fontWeight: 600, color: activeSlide === 0 ? "#d4d0e8" : "#4a4060", cursor: activeSlide === 0 ? "default" : "pointer", fontFamily: "inherit" }}>
+            ← Back
+          </button>
+          <div style={{ display: "flex", gap: 6 }}>
+            {ALL_SLIDES.map((_, i) => (
+              <button key={i} onClick={() => setActiveSlide(i)} style={{
+                width: i === activeSlide ? 20 : 7, height: 7, borderRadius: 4, border: "none", cursor: "pointer", transition: "all 0.2s",
+                background: i === activeSlide ? "#5c4eb5" : "#e8e4f5", padding: 0,
+              }} />
+            ))}
+          </div>
+          <button onClick={() => setActiveSlide(Math.min(total - 1, activeSlide + 1))} disabled={activeSlide === total - 1}
+            style={{ background: activeSlide === total - 1 ? "none" : "#5c4eb5", border: activeSlide === total - 1 ? "1.5px solid #e8e4f5" : "none", borderRadius: 8, padding: "8px 18px", fontSize: 13, fontWeight: 600, color: activeSlide === total - 1 ? "#d4d0e8" : "#fff", cursor: activeSlide === total - 1 ? "default" : "pointer", fontFamily: "inherit" }}>
+            Next →
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -6413,7 +6705,7 @@ function MidpointFunding({ mentees = [] }) {
   const EXTRA_MENTEE_SLUGS = new Set(["britney-medich", "harshil-thakkar", "jean-guerdy-paul", "shanthi-viswanathan", "pierre-girgis", "kima-danjou", "ekaterina-kashkina", "annalyce-dagostino-gavin", "lina-escobar", "jerry-primus", "gunjan-aggarwal", "priyal-levine", "rachel-hayes", "eliana-zebro", "anthony-caruso", "hamza-zafar", "jordan-river-samuel", "aliya-laliwala", "bejan-moers", "logan-jones", "ahmed-metwoali", "naveen-kumar", "mark-kallback", "shell-bobev", "saurabh-gandhe", "debbie-douglas-henry", "andrea-vernengo", "soheil-khosravinejad", "daniel-lee", "paula-machado-jackler", "emilia-savich", "mohammad-saleh-nikoopayan-tak", "natalie-kitts", "favio-jasso", "elisa-charters", "jeremy-ruiz-villavicencio", "parminder-singh", "han-nguyen", "mehul-sompura", "gifty-anane", "sonali-chilupuri", "sharon-joseph", "adeola-adeoye-davids", "abhaya-pawar"]);
   const EXTRA_MENTOR_NAMES = new Set(["Dee Marshall", "Dennis Yuscavitch", "Felicia Palmer", "Malak Atut", "Stella Alvo", "Orin Davis", "Basia Walska", "Sara Bender-Bier", "Michael Baer", "Marc Kaufman", "Jeffrey Allen", "Stephen Makinen"]);
   // Confirmed can't attend — said so directly
-  const EXCUSED_MENTEE_SLUGS = new Set(["evan-peneiras", "angie-tirado", "angela-aricatt", "andrea-vernengo", "neha-chopade", "jasmin-jones"]);
+  const EXCUSED_MENTEE_SLUGS = new Set(["evan-peneiras", "angie-tirado", "angela-aricatt", "andrea-vernengo", "neha-chopade", "jasmin-jones", "annalyce-dagostino-gavin"]);
   const EXCUSED_MENTOR_NAMES = new Set(["Natalie Kaminski", "Joe Spivack", "Jennifer D'Angelo", "Miquel de Quadras", "Anand Rai", "Joe Maruschak"]);
   const REMOVED_MENTOR_NAMES = new Set(["Tom Oser"]);
 
