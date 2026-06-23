@@ -6689,9 +6689,9 @@ function MidpointFunding({ mentees = [] }) {
   const [expanded, setExpanded] = useState({});
 
   const DEFAULT_EXCUSED_MENTEES = ["evan-peneiras", "angie-tirado", "angela-aricatt", "andrea-vernengo", "annalyce-dagostino-gavin", "daniel-lee", "chirag-shah", "alina-okun", "elisa-charters", "stephanie-cwynar"];
-  const DEFAULT_EXCUSED_MENTORS = ["Natalie Kaminski", "Joe Spivack", "Jennifer D'Angelo", "Miquel de Quadras", "Anand Rai", "Joe Maruschak", "Dennis Yuscavitch", "Vishal Soni", "Gonçalo Esteves", "Kenneth Jones", "Soojin Choung", "Connie Pascal", "Aizaz Shariff"];
+  const DEFAULT_EXCUSED_MENTORS = ["Natalie Kaminski", "Joe Spivack", "Jennifer D'Angelo", "Miquel de Quadras", "Anand Rai", "Joe Maruschak", "Dennis Yuscavitch", "Vishal Soni", "Gonçalo Esteves", "Kenneth Jones", "Soojin Choung", "Connie Pascal", "Aizaz Shariff", "Anatole Norland"];
   const DEFAULT_EXTRA_MENTEES = ["britney-medich", "harshil-thakkar", "jean-guerdy-paul", "shanthi-viswanathan", "pierre-girgis", "kima-danjou", "ekaterina-kashkina", "annalyce-dagostino-gavin", "lina-escobar", "jerry-primus", "gunjan-aggarwal", "priyal-levine", "rachel-hayes", "eliana-zebro", "anthony-caruso", "hamza-zafar", "jordan-river-samuel", "aliya-laliwala", "bejan-moers", "logan-jones", "ahmed-metwoali", "naveen-kumar", "mark-kallback", "shell-bobev", "saurabh-gandhe", "debbie-douglas-henry", "andrea-vernengo", "soheil-khosravinejad", "daniel-lee", "paula-machado-jackler", "emilia-savich", "mohammad-saleh-nikoopayan-tak", "natalie-kitts", "favio-jasso", "elisa-charters", "jeremy-ruiz-villavicencio", "parminder-singh", "han-nguyen", "mehul-sompura", "gifty-anane", "sonali-chilupuri", "sharon-joseph", "adeola-adeoye-davids", "abhaya-pawar"];
-  const DEFAULT_EXTRA_MENTORS = ["Dee Marshall", "Felicia Palmer", "Malak Atut", "Stella Alvo", "Orin Davis", "Basia Walska", "Sara Bender-Bier", "Michael Baer", "Marc Kaufman", "Jeffrey Allen", "Stephen Makinen", "Anatole Norland"];
+  const DEFAULT_EXTRA_MENTORS = ["Dee Marshall", "Felicia Palmer", "Malak Atut", "Stella Alvo", "Orin Davis", "Basia Walska", "Sara Bender-Bier", "Michael Baer", "Marc Kaufman", "Jeffrey Allen", "Stephen Makinen"];
 
   const [excusedMentees, setExcusedMentees] = useState(() => {
     try {
