@@ -6688,6 +6688,39 @@ function MidpointFunding({ mentees = [] }) {
   const [loadError, setLoadError] = useState(null);
   const [expanded, setExpanded] = useState({});
 
+  const DEFAULT_EXCUSED_MENTEES = ["evan-peneiras", "angie-tirado", "angela-aricatt", "andrea-vernengo", "annalyce-dagostino-gavin", "daniel-lee", "chirag-shah", "alina-okun", "elisa-charters"];
+  const DEFAULT_EXCUSED_MENTORS = ["Natalie Kaminski", "Joe Spivack", "Jennifer D'Angelo", "Miquel de Quadras", "Anand Rai", "Joe Maruschak", "Anatole Norland", "Dennis Yuscavitch", "Vishal Soni", "Gonçalo Esteves", "Kenneth Jones", "Soojin Choung", "Connie Pascal"];
+
+  const [excusedMentees, setExcusedMentees] = useState(() => {
+    try {
+      const saved = localStorage.getItem("midpoint_excused_mentees");
+      return new Set(saved ? JSON.parse(saved) : DEFAULT_EXCUSED_MENTEES);
+    } catch { return new Set(DEFAULT_EXCUSED_MENTEES); }
+  });
+  const [excusedMentors, setExcusedMentors] = useState(() => {
+    try {
+      const saved = localStorage.getItem("midpoint_excused_mentors");
+      return new Set(saved ? JSON.parse(saved) : DEFAULT_EXCUSED_MENTORS);
+    } catch { return new Set(DEFAULT_EXCUSED_MENTORS); }
+  });
+
+  const toggleMenteeExcused = (slug) => {
+    setExcusedMentees(prev => {
+      const next = new Set(prev);
+      if (next.has(slug)) next.delete(slug); else next.add(slug);
+      try { localStorage.setItem("midpoint_excused_mentees", JSON.stringify([...next])); } catch {}
+      return next;
+    });
+  };
+  const toggleMentorExcused = (name) => {
+    setExcusedMentors(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name); else next.add(name);
+      try { localStorage.setItem("midpoint_excused_mentors", JSON.stringify([...next])); } catch {}
+      return next;
+    });
+  };
+
   const MIDPOINT_EVENT_ID = "evt-64k4uVolXep8ogp";
   const COHORT_NAMES = { 1: "Edison", 2: "Hopper", 3: "Bardeen", 4: "Lawrence", 5: "Morrison" };
 
@@ -6703,10 +6736,9 @@ function MidpointFunding({ mentees = [] }) {
 
   // Manually confirmed registrants not matched by Luma email lookup
   const EXTRA_MENTEE_SLUGS = new Set(["britney-medich", "harshil-thakkar", "jean-guerdy-paul", "shanthi-viswanathan", "pierre-girgis", "kima-danjou", "ekaterina-kashkina", "annalyce-dagostino-gavin", "lina-escobar", "jerry-primus", "gunjan-aggarwal", "priyal-levine", "rachel-hayes", "eliana-zebro", "anthony-caruso", "hamza-zafar", "jordan-river-samuel", "aliya-laliwala", "bejan-moers", "logan-jones", "ahmed-metwoali", "naveen-kumar", "mark-kallback", "shell-bobev", "saurabh-gandhe", "debbie-douglas-henry", "andrea-vernengo", "soheil-khosravinejad", "daniel-lee", "paula-machado-jackler", "emilia-savich", "mohammad-saleh-nikoopayan-tak", "natalie-kitts", "favio-jasso", "elisa-charters", "jeremy-ruiz-villavicencio", "parminder-singh", "han-nguyen", "mehul-sompura", "gifty-anane", "sonali-chilupuri", "sharon-joseph", "adeola-adeoye-davids", "abhaya-pawar"]);
-  const EXTRA_MENTOR_NAMES = new Set(["Dee Marshall", "Dennis Yuscavitch", "Felicia Palmer", "Malak Atut", "Stella Alvo", "Orin Davis", "Basia Walska", "Sara Bender-Bier", "Michael Baer", "Marc Kaufman", "Jeffrey Allen", "Stephen Makinen"]);
-  // Confirmed can't attend — said so directly
-  const EXCUSED_MENTEE_SLUGS = new Set(["evan-peneiras", "angie-tirado", "angela-aricatt", "andrea-vernengo", "neha-chopade", "jasmin-jones", "annalyce-dagostino-gavin"]);
-  const EXCUSED_MENTOR_NAMES = new Set(["Natalie Kaminski", "Joe Spivack", "Jennifer D'Angelo", "Miquel de Quadras", "Anand Rai", "Joe Maruschak"]);
+  const EXTRA_MENTOR_NAMES = new Set(["Dee Marshall", "Felicia Palmer", "Malak Atut", "Stella Alvo", "Orin Davis", "Basia Walska", "Sara Bender-Bier", "Michael Baer", "Marc Kaufman", "Jeffrey Allen", "Stephen Makinen"]);
+  const EXCUSED_MENTEE_SLUGS = excusedMentees;
+  const EXCUSED_MENTOR_NAMES = excusedMentors;
   const REMOVED_MENTOR_NAMES = new Set(["Tom Oser"]);
 
   const registrantEmails = new Set((guests || []).map(g => g.email?.toLowerCase()).filter(Boolean));
@@ -6756,7 +6788,7 @@ function MidpointFunding({ mentees = [] }) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 32 }}>
         {cohortKeys.map(c => {
           const d = cohortData[c];
-          const menteeReg    = d.mentees.filter(m => registrantSlugs.has(m.slug)).length;
+          const menteeReg    = d.mentees.filter(m => !EXCUSED_MENTEE_SLUGS.has(m.slug) && registrantSlugs.has(m.slug)).length;
           const mentorEmails = Object.keys(d.mentorMap).filter(e => !REMOVED_MENTOR_NAMES.has(d.mentorMap[e]));
           const mentorReg    = mentorEmails.filter(e => !EXCUSED_MENTOR_NAMES.has(d.mentorMap[e]) && (registrantEmails.has(e) || EXTRA_MENTOR_NAMES.has(d.mentorMap[e]))).length;
           const menteePct    = d.mentees.length > 0 ? Math.round(menteeReg / d.mentees.length * 100) : 0;
@@ -6779,8 +6811,8 @@ function MidpointFunding({ mentees = [] }) {
 
       {cohortKeys.map(c => {
         const d            = cohortData[c];
-        const menteeRegs   = d.mentees.filter(m => registrantSlugs.has(m.slug));
-        const menteeNot    = d.mentees.filter(m => !registrantSlugs.has(m.slug));
+        const menteeRegs   = d.mentees.filter(m => !EXCUSED_MENTEE_SLUGS.has(m.slug) && registrantSlugs.has(m.slug));
+        const menteeNot    = d.mentees.filter(m => EXCUSED_MENTEE_SLUGS.has(m.slug) || !registrantSlugs.has(m.slug));
         const mentorEmails = Object.keys(d.mentorMap).filter(e => !REMOVED_MENTOR_NAMES.has(d.mentorMap[e]));
         const mentorRegs   = mentorEmails.filter(e => !EXCUSED_MENTOR_NAMES.has(d.mentorMap[e]) && (registrantEmails.has(e) || EXTRA_MENTOR_NAMES.has(d.mentorMap[e]))).map(e => d.mentorMap[e]);
         const mentorNot    = mentorEmails.filter(e => EXCUSED_MENTOR_NAMES.has(d.mentorMap[e]) || (!registrantEmails.has(e) && !EXTRA_MENTOR_NAMES.has(d.mentorMap[e]))).map(e => d.mentorMap[e]);
@@ -6809,7 +6841,8 @@ function MidpointFunding({ mentees = [] }) {
                       <div key={m.slug} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: "1px solid #f7f5ff" }}>
                         <span style={{ fontSize: 11, color: "#27ae60" }}>✓</span>
                         <span style={{ fontSize: 13, color: "#1a1733" }}>{m.first} {m.last}</span>
-                        <span style={{ fontSize: 11, color: "#b0a8cc", marginLeft: "auto" }}>{m.company}</span>
+                        <span style={{ fontSize: 11, color: "#b0a8cc" }}>{m.company}</span>
+                        <button onClick={() => toggleMenteeExcused(m.slug)} style={{ marginLeft: "auto", fontSize: 10, padding: "2px 7px", borderRadius: 4, border: "1px solid #e8e4f5", background: "#fdf9ff", color: "#9b8fcf", cursor: "pointer" }}>Not attending</button>
                       </div>
                     ))}
                     {menteeNot.length > 0 && (
@@ -6822,6 +6855,7 @@ function MidpointFunding({ mentees = [] }) {
                               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                 <span style={{ fontSize: 11, color: excused ? "#e67e22" : "#e74c3c" }}>{excused ? "~" : "✗"}</span>
                                 <span style={{ fontSize: 13, color: excused ? "#9b8fcf" : "#1a1733", textDecoration: excused ? "line-through" : "none" }}>{m.first} {m.last}</span>
+                                <button onClick={() => toggleMenteeExcused(m.slug)} style={{ marginLeft: "auto", fontSize: 10, padding: "2px 7px", borderRadius: 4, border: "1px solid #e8e4f5", background: excused ? "#f0eef8" : "#fdf9ff", color: excused ? "#5c4eb5" : "#9b8fcf", cursor: "pointer" }}>{excused ? "Undo" : "Not attending"}</button>
                               </div>
                               <div style={{ fontSize: 11, color: "#9b8fcf", paddingLeft: 19 }}>{m.email}</div>
                             </div>
@@ -6836,6 +6870,7 @@ function MidpointFunding({ mentees = [] }) {
                       <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: "1px solid #f7f5ff" }}>
                         <span style={{ fontSize: 11, color: "#27ae60" }}>✓</span>
                         <span style={{ fontSize: 13, color: "#1a1733" }}>{name}</span>
+                        <button onClick={() => toggleMentorExcused(name)} style={{ marginLeft: "auto", fontSize: 10, padding: "2px 7px", borderRadius: 4, border: "1px solid #e8e4f5", background: "#fdf9ff", color: "#9b8fcf", cursor: "pointer" }}>Not attending</button>
                       </div>
                     ))}
                     {mentorNot.length > 0 && (
@@ -6847,6 +6882,7 @@ function MidpointFunding({ mentees = [] }) {
                             <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: "1px solid #f7f5ff" }}>
                               <span style={{ fontSize: 11, color: excused ? "#e67e22" : "#e74c3c" }}>{excused ? "~" : "✗"}</span>
                               <span style={{ fontSize: 13, color: excused ? "#9b8fcf" : "#1a1733", textDecoration: excused ? "line-through" : "none" }}>{name}</span>
+                              <button onClick={() => toggleMentorExcused(name)} style={{ marginLeft: "auto", fontSize: 10, padding: "2px 7px", borderRadius: 4, border: "1px solid #e8e4f5", background: excused ? "#f0eef8" : "#fdf9ff", color: excused ? "#5c4eb5" : "#9b8fcf", cursor: "pointer" }}>{excused ? "Undo" : "Not attending"}</button>
                             </div>
                           );
                         })}
