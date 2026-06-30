@@ -5,10 +5,12 @@ import { MENTEES } from "../../../lib/mentees";
 
 const FORM_ID = "e0L62296";
 const FIELDS = {
-  first: "e9144ae8-bcac-4162-876c-dc9f3918d351",
-  last:  "6ae6e72a-24da-4da7-8c2c-da49d0f7df6d",
-  date:  "c466ab1d-ee8b-4169-810c-00a6ad9f9570",
-  notes: "719c5b7a-8246-4c7a-be74-a1e71512ee46",
+  first:     "e9144ae8-bcac-4162-876c-dc9f3918d351",
+  last:      "6ae6e72a-24da-4da7-8c2c-da49d0f7df6d",
+  date:      "c466ab1d-ee8b-4169-810c-00a6ad9f9570",
+  sixtyMin:  "fcee13e9-5193-4f01-b3b4-aed4f421b933",
+  notes:     "719c5b7a-8246-4c7a-be74-a1e71512ee46",
+  takeaways: "0d816bc2-6793-4c72-b28d-5b34f48ce5b7",
 };
 
 export default async function handler(req, res) {
@@ -52,11 +54,21 @@ export default async function handler(req, res) {
       !slug.includes("-") || slug.includes(last.split(" ")[0].replace(/[^a-z]/g, ""))
     );
 
+    const rawAnswer = get(answers, FIELDS.sixtyMin);
+    let minutes = null;
+    if (rawAnswer?.number != null) minutes = rawAnswer.number;
+    else if (rawAnswer?.boolean === true) minutes = 60;
+    else if (rawAnswer?.boolean === false) minutes = 30;
+
     return {
       submitted: item.submitted_at?.slice(0, 10),
-      name: `${rawFirst} ${rawLast}`,
+      sessionId: item.token,
+      name: `${rawFirst} ${rawLast}`.trim(),
       date,
+      minutes,
       hasNotes,
+      takeaways: get(answers, FIELDS.takeaways)?.text || "",
+      notes: get(answers, FIELDS.notes)?.text || "",
       matchedSlug: matched || null,
       unmatched: !matched,
     };
