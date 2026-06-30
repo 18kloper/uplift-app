@@ -66,6 +66,7 @@ async function ensureSessionReviewTab(sheets) {
                   values: [
                     { userEnteredValue: "Pending" },
                     { userEnteredValue: "Approved" },
+                    { userEnteredValue: "Half Credit" },
                     { userEnteredValue: "Denied" },
                   ],
                 },
@@ -115,8 +116,10 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
       const approved = row[0];
       if (approved === "TRUE" || approved === true || approved === "YES" || approved === "Approved") {
         approvedIds.add(sessionId);
-        // Col E (index 4): "No" means admin flagged as under 60 min
         if (row[4] === "No") halfCreditIds.add(sessionId);
+      } else if (approved === "Half Credit") {
+        approvedIds.add(sessionId);
+        halfCreditIds.add(sessionId);
       } else if (approved === "DENIED" || approved === "Denied") {
         deniedIds.add(sessionId);
       }

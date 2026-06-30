@@ -2027,6 +2027,49 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
   const [onboardedPendingMentorFilter, setOnboardedPendingMentorFilter] = useState(false);
   const [pendingAssignments, setPendingAssignments] = useState([]);
   const [needsMatchMentees, setNeedsMatchMentees] = useState([]);
+  const [sessionReviewOpen, setSessionReviewOpen] = useState(false);
+  const [sessionReviewRows, setSessionReviewRows] = useState([]);
+  const [sessionReviewLoading, setSessionReviewLoading] = useState(false);
+  const [sessionReviewDecisions, setSessionReviewDecisions] = useState({}); // sessionId → "approve"|"half"|"deny"
+  const [sessionReviewSaving, setSessionReviewSaving] = useState({});
+
+  const loadSessionReview = async () => {
+    setSessionReviewLoading(true);
+    try {
+      const r = await fetch("/api/admin/pending-sessions");
+      const d = await r.json();
+      setSessionReviewRows(d.sessions || []);
+    } catch (e) {
+      console.error("session review load failed", e);
+    }
+    setSessionReviewLoading(false);
+  };
+
+  const submitSessionDecision = async (row, decision) => {
+    setSessionReviewSaving(p => ({ ...p, [row.sessionId]: true }));
+    try {
+      await fetch("/api/admin/approve-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: row.slug,
+          sessionId: row.sessionId,
+          action: decision === "deny" ? "deny" : "approve",
+          halfCredit: decision === "half",
+          force: true,
+          menteeName: row.menteeName,
+          date: row.date,
+          sixtyMin: decision !== "half",
+          takeaways: row.takeaways,
+          submittedAt: row.submittedAt,
+        }),
+      });
+      setSessionReviewDecisions(p => ({ ...p, [row.sessionId]: decision }));
+    } catch (e) {
+      console.error("approve-session failed", e);
+    }
+    setSessionReviewSaving(p => ({ ...p, [row.sessionId]: false }));
+  };
 
   useEffect(() => {
     fetch("/api/admin/pending-assignments")
@@ -2288,11 +2331,14 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
         ))}
 
         {/* Sessions pending review */}
-        <div style={{
-          display: "inline-flex", alignItems: "center", gap: 10,
-          background: "#fffbeb", borderRadius: 8, border: "1px solid #f5d97a",
-          padding: "8px 14px", marginBottom: 20,
-        }}>
+        <div
+          onClick={() => { setSessionReviewOpen(o => { if (!o) loadSessionReview(); return !o; }); }}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 10,
+            background: "#fffbeb", borderRadius: 8, border: "1px solid #f5d97a",
+            padding: "8px 14px", marginBottom: 8, cursor: "pointer",
+          }}
+        >
           <span style={{ fontSize: 13 }}>🕐</span>
           <span style={{ fontSize: 13, fontWeight: 600, color: "#7a5c00" }}>
             Mentor Sessions Pending Internal Review
@@ -2303,7 +2349,58 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
           }}>
             {pendingReviewCount}
           </span>
+          <span style={{ fontSize: 11, color: "#a07a00" }}>{sessionReviewOpen ? "▲" : "▼"}</span>
         </div>
+
+        {sessionReviewOpen && (
+          <div style={{ marginBottom: 20, border: "1px solid #f5d97a", borderRadius: 8, overflow: "hidden" }}>
+            {sessionReviewLoading ? (
+              <div style={{ padding: 16, fontSize: 13, color: "#7a5c00" }}>Loading sessions…</div>
+            ) : sessionReviewRows.length === 0 ? (
+              <div style={{ padding: 16, fontSize: 13, color: "#7a5c00" }}>No pending sessions found.</div>
+            ) : sessionReviewRows.map((row, i) => {
+              const decision = sessionReviewDecisions[row.sessionId];
+              const saving = sessionReviewSaving[row.sessionId];
+              return (
+                <div key={row.sessionId} style={{
+                  padding: "12px 16px", background: i % 2 === 0 ? "#fffdf0" : "#fff",
+                  borderBottom: "1px solid #f5d97a",
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: "#3a2a00" }}>
+                        {row.menteeName || row.slug}
+                        <span style={{ fontWeight: 400, color: "#a07a00", marginLeft: 8 }}>{row.date || ""}</span>
+                      </div>
+                      {row.takeaways && <div style={{ fontSize: 12, color: "#555", marginTop: 4 }}>💡 {row.takeaways}</div>}
+                      {row.notes && <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>📝 {row.notes}</div>}
+                      {row.minutes != null && <div style={{ fontSize: 11, color: "#a07a00", marginTop: 2 }}>{row.minutes} min</div>}
+                    </div>
+                    <div style={{ display: "flex", gap: 6, flexShrink: 0, alignItems: "center" }}>
+                      {decision ? (
+                        <span style={{
+                          fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 6,
+                          background: decision === "approve" ? "#d4edda" : decision === "half" ? "#fff3cd" : "#f8d7da",
+                          color: decision === "approve" ? "#155724" : decision === "half" ? "#856404" : "#721c24",
+                        }}>
+                          {decision === "approve" ? "Approved" : decision === "half" ? "Half Credit" : "Denied"}
+                        </span>
+                      ) : saving ? (
+                        <span style={{ fontSize: 12, color: "#888" }}>Saving…</span>
+                      ) : (
+                        <>
+                          <button onClick={() => submitSessionDecision(row, "approve")} style={{ fontSize: 12, padding: "4px 10px", borderRadius: 6, border: "1px solid #28a745", background: "#fff", color: "#28a745", cursor: "pointer", fontWeight: 600 }}>Approve</button>
+                          <button onClick={() => submitSessionDecision(row, "half")} style={{ fontSize: 12, padding: "4px 10px", borderRadius: 6, border: "1px solid #e6ac00", background: "#fff", color: "#856404", cursor: "pointer", fontWeight: 600 }}>Half Credit</button>
+                          <button onClick={() => submitSessionDecision(row, "deny")} style={{ fontSize: 12, padding: "4px 10px", borderRadius: 6, border: "1px solid #dc3545", background: "#fff", color: "#dc3545", cursor: "pointer", fontWeight: 600 }}>Deny</button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Outstanding intro emails banner */}
         {pendingAssignments.length > 0 && (
