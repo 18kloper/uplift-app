@@ -2032,6 +2032,38 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
   const [sessionReviewLoading, setSessionReviewLoading] = useState(false);
   const [sessionReviewDecisions, setSessionReviewDecisions] = useState({}); // sessionId → "approve"|"half"|"deny"
   const [sessionReviewSaving, setSessionReviewSaving] = useState({});
+  const [midpointOpen, setMidpointOpen] = useState(false);
+  const [midpointData, setMidpointData] = useState(null);
+  const [midpointLoading, setMidpointLoading] = useState(false);
+  const [midpointDecisions, setMidpointDecisions] = useState({}); // slug → "approve"|"deny"
+  const [midpointSaving, setMidpointSaving] = useState({});
+
+  const loadMidpoint = async () => {
+    setMidpointLoading(true);
+    try {
+      const r = await fetch("/api/admin/midpoint-attendance");
+      const d = await r.json();
+      setMidpointData(d);
+    } catch (e) {
+      console.error("midpoint load failed", e);
+    }
+    setMidpointLoading(false);
+  };
+
+  const submitMidpointDecision = async (rec, approve) => {
+    setMidpointSaving(p => ({ ...p, [rec.slug]: true }));
+    try {
+      await fetch("/api/luma-approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventId: rec.eventId || midpointData?.eventId, menteeSlug: rec.slug, approve }),
+      });
+      setMidpointDecisions(p => ({ ...p, [rec.slug]: approve ? "approve" : "deny" }));
+    } catch (e) {
+      console.error("luma-approve failed", e);
+    }
+    setMidpointSaving(p => ({ ...p, [rec.slug]: false }));
+  };
 
   const loadSessionReview = async () => {
     setSessionReviewLoading(true);
@@ -2399,6 +2431,112 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Midpoint meetup attendance */}
+        <div
+          onClick={() => { setMidpointOpen(o => { if (!o && !midpointData) loadMidpoint(); return !o; }); }}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 10,
+            background: "#eef6ff", borderRadius: 8, border: "1px solid #9ec5f0",
+            padding: "8px 14px", marginBottom: 8, marginLeft: 8, cursor: "pointer",
+          }}
+        >
+          <span style={{ fontSize: 13 }}>📍</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "#1a4e8a" }}>
+            Midpoint Meetup Attendance
+          </span>
+          {midpointData && (
+            <span style={{
+              background: "#9ec5f0", color: "#1a4e8a",
+              borderRadius: 20, padding: "2px 10px", fontSize: 13, fontWeight: 800,
+            }}>
+              {midpointData.counts?.attended ?? 0} attended
+            </span>
+          )}
+          <span style={{ fontSize: 11, color: "#3a6ea5" }}>{midpointOpen ? "▲" : "▼"}</span>
+        </div>
+
+        {midpointOpen && (
+          <div style={{ marginBottom: 20, border: "1px solid #9ec5f0", borderRadius: 8, overflow: "hidden" }}>
+            {midpointLoading ? (
+              <div style={{ padding: 16, fontSize: 13, color: "#1a4e8a" }}>Loading midpoint attendance…</div>
+            ) : !midpointData ? (
+              <div style={{ padding: 16, fontSize: 13, color: "#1a4e8a" }}>No data.</div>
+            ) : (
+              <>
+                <div style={{ padding: "10px 16px", background: "#dcecfb", fontSize: 12, color: "#1a4e8a", display: "flex", gap: 16, flexWrap: "wrap" }}>
+                  <span><b>{midpointData.eventName || "Midpoint Meetup"}</b></span>
+                  <span>✅ {midpointData.counts?.attended ?? 0} attended</span>
+                  <span>📝 {midpointData.counts?.registered ?? 0} registered only</span>
+                  <span>⬜ {midpointData.counts?.noRecord ?? 0} no record</span>
+                  <span>🎯 {midpointData.counts?.approved ?? 0} credited</span>
+                </div>
+                {/* Attended (pending) — primary review list */}
+                {(midpointData.attended || []).map((rec, i) => {
+                  const decision = midpointDecisions[rec.slug];
+                  const saving = midpointSaving[rec.slug];
+                  const alreadyCredited = rec.reviewStatus === "approved" || rec.milestoneSet;
+                  return (
+                    <div key={rec.slug} style={{
+                      padding: "10px 16px", background: i % 2 === 0 ? "#f7fbff" : "#fff",
+                      borderBottom: "1px solid #e0eefb",
+                      display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12,
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <span style={{ fontWeight: 700, fontSize: 13, color: "#143a66" }}>{rec.name}</span>
+                        <span style={{ fontSize: 11, color: "#5a7da5", marginLeft: 8 }}>
+                          Cohort {rec.cohort}{rec.joinedAt ? ` · joined ${rec.joinedAt}` : ""}
+                        </span>
+                      </div>
+                      <div style={{ flexShrink: 0, display: "flex", gap: 6, alignItems: "center" }}>
+                        {decision ? (
+                          <span style={{ fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 6, background: decision === "approve" ? "#d4edda" : "#f8d7da", color: decision === "approve" ? "#155724" : "#721c24" }}>
+                            {decision === "approve" ? "Approved" : "Denied"}
+                          </span>
+                        ) : alreadyCredited ? (
+                          <span style={{ fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 6, background: "#d4edda", color: "#155724" }}>✓ Credited</span>
+                        ) : saving ? (
+                          <span style={{ fontSize: 12, color: "#888" }}>Saving…</span>
+                        ) : (
+                          <>
+                            <button onClick={() => submitMidpointDecision(rec, true)} style={{ fontSize: 12, padding: "4px 10px", borderRadius: 6, border: "1px solid #28a745", background: "#fff", color: "#28a745", cursor: "pointer", fontWeight: 600 }}>Approve</button>
+                            <button onClick={() => submitMidpointDecision(rec, false)} style={{ fontSize: 12, padding: "4px 10px", borderRadius: 6, border: "1px solid #dc3545", background: "#fff", color: "#dc3545", cursor: "pointer", fontWeight: 600 }}>Deny</button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+                {/* Registered-only — collapsed note, manual approve allowed */}
+                {(midpointData.registered || []).length > 0 && (
+                  <div style={{ padding: "10px 16px", background: "#fffbf0", borderBottom: "1px solid #e0eefb" }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "#7a5c00", marginBottom: 6 }}>
+                      Registered but no check-in recorded ({midpointData.registered.length}) — approve manually if you know they attended:
+                    </div>
+                    {midpointData.registered.map(rec => {
+                      const decision = midpointDecisions[rec.slug];
+                      const saving = midpointSaving[rec.slug];
+                      return (
+                        <div key={rec.slug} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "4px 0" }}>
+                          <span style={{ fontSize: 12, color: "#444" }}>{rec.name} <span style={{ color: "#999" }}>· Cohort {rec.cohort}</span></span>
+                          <div style={{ flexShrink: 0, display: "flex", gap: 6 }}>
+                            {decision ? (
+                              <span style={{ fontSize: 11, fontWeight: 700, color: decision === "approve" ? "#155724" : "#721c24" }}>{decision === "approve" ? "Approved" : "Denied"}</span>
+                            ) : saving ? (
+                              <span style={{ fontSize: 11, color: "#888" }}>Saving…</span>
+                            ) : (
+                              <button onClick={() => submitMidpointDecision(rec, true)} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 5, border: "1px solid #28a745", background: "#fff", color: "#28a745", cursor: "pointer", fontWeight: 600 }}>Approve</button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
 

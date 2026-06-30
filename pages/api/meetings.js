@@ -224,13 +224,13 @@ async function autoSyncMentorMilestones(slug, qualifyingCount) {
   }
 }
 
-export default async function handler(req, res) {
-  if (req.method !== "GET") return res.status(405).end();
-  const { slug } = req.query;
-  if (!slug) return res.status(400).json({ error: "slug required" });
-
+// Core logic extracted so server-side callers (e.g. sync-all-sessions) can run
+// it in-process instead of fetching the public URL (which trips Vercel's
+// challenge layer). Returns the meetings array, or [] on any failure.
+export async function fetchMeetings(slug) {
+  if (!slug) return [];
   const token = process.env.TYPEFORM_TOKEN;
-  if (!token) return res.status(200).json({ meetings: [] });
+  if (!token) return [];
 
   try {
     const tfResponse = await fetch(
@@ -355,9 +355,17 @@ export default async function handler(req, res) {
     const qualifyingCount = totalMinutes >= 180 ? 3 : totalMinutes >= 120 ? 2 : totalMinutes >= 60 ? 1 : 0;
     await autoSyncMentorMilestones(slug, qualifyingCount);
 
-    return res.status(200).json({ meetings: result });
+    return result;
   } catch (err) {
     console.error("Meetings fetch failed:", err.message);
-    return res.status(200).json({ meetings: [] });
+    return [];
   }
+}
+
+export default async function handler(req, res) {
+  if (req.method !== "GET") return res.status(405).end();
+  const { slug } = req.query;
+  if (!slug) return res.status(400).json({ error: "slug required" });
+  const meetings = await fetchMeetings(slug);
+  return res.status(200).json({ meetings });
 }

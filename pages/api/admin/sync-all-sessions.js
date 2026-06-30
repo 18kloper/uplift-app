@@ -4,6 +4,7 @@
 // Designed to be called by a scheduled cron job twice per day.
 
 import { MENTEES } from "../../../lib/mentees";
+import { fetchMeetings } from "../meetings";
 
 const TEST_SLUGS = new Set(["kennedy", "jackie", "aaron", "mj"]);
 
@@ -16,17 +17,14 @@ export default async function handler(req, res) {
     .filter(m => !TEST_SLUGS.has(m.slug) && m.mentor?.email)
     .map(m => m.slug);
 
-  const baseUrl = "https://uplift2026.vercel.app";
-  const bypassHeader = process.env.VERCEL_AUTOMATION_BYPASS_SECRET || "";
-
   const results = [];
   for (const slug of slugs) {
     try {
-      const r = await fetch(`${baseUrl}/api/meetings?slug=${slug}`, {
-        headers: bypassHeader ? { "x-vercel-protection-bypass": bypassHeader } : {},
-      });
-      const data = await r.json();
-      const count = (data.meetings || [])
+      // Call meetings logic in-process — no public self-fetch, so Vercel's
+      // challenge layer never intercepts this. fetchMeetings() also triggers
+      // autoSyncMentorMilestones internally.
+      const meetings = await fetchMeetings(slug);
+      const count = (meetings || [])
         .filter(m => { const INVALID = new Set(["n/a","na","none","no","nothing","-","n.a.","n/a."]); const vn = n => { const t = n?.trim().toLowerCase(); return t && !INVALID.has(t); }; return !m.denied && (vn(m.notes) || m.manuallyVerified); })
         .reduce((sum, m) => sum + (m.minutes != null ? Math.round((m.minutes / 60) * 100) / 100 : 1.0), 0);
       results.push({ slug, sessions: count, ok: true });
