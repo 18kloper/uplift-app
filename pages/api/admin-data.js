@@ -30,7 +30,7 @@ function computeStatus(milestones, today, slug = "") {
   const isHolding   = HOLDING_SLUGS.has(slug);
 
   // Session 1 deadline: late match → Jul 1, holding → Jun 24, normal → Jun 14
-  const effectiveSession1End = isLateMatch ? LATE_SESSION1_END : isHolding ? WEEK3_END : WEEK2_END;
+  const effectiveSession1End = isLateMatch ? LATE_SESSION1_END : WEEK2_END;
   const effectiveWeek4End    = isLateMatch ? new Date("2026-07-05") : WEEK4_END;
   const effectiveWeek5End    = isLateMatch ? new Date("2026-07-12") : WEEK5_END;
   const effectiveWeek7End    = isLateMatch ? new Date("2026-07-26") : WEEK7_END;
