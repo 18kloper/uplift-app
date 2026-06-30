@@ -227,6 +227,16 @@ async function autoSyncMentorMilestones(slug, qualifyingCount) {
 // Fetch all Typeform responses once. Server-side batch callers can fetch this
 // a single time and pass it into fetchMeetings() so we don't re-download 1000
 // responses per mentee (which makes a full-cohort sync time out).
+// Compute how many mentor-session milestones a meetings array qualifies for.
+// ≥60 min = 1, ≥120 = 2, ≥180 = 3. Shared by fetchMeetings + batch sync so the
+// crediting rule lives in one place.
+export function meetingsQualifyingCount(meetings = []) {
+  const totalMinutes = meetings
+    .filter(m => !m.denied && (m.minutes != null || m.manuallyVerified))
+    .reduce((sum, m) => sum + (m.minutes ?? 60), 0);
+  return totalMinutes >= 180 ? 3 : totalMinutes >= 120 ? 2 : totalMinutes >= 60 ? 1 : 0;
+}
+
 export async function fetchTypeformResponses() {
   const token = process.env.TYPEFORM_TOKEN;
   if (!token) return null;
@@ -241,10 +251,11 @@ export async function fetchTypeformResponses() {
 // it in-process instead of fetching the public URL (which trips Vercel's
 // challenge layer). Returns the meetings array, or [] on any failure.
 // Pass prefetched Typeform data to avoid re-downloading per mentee.
-export async function fetchMeetings(slug, prefetched = null) {
+export async function fetchMeetings(slug, prefetched = null, opts = {}) {
   if (!slug) return [];
   const token = process.env.TYPEFORM_TOKEN;
   if (!token) return [];
+  const { skipMilestoneSync = false } = opts;
 
   try {
     const data = prefetched || await fetchTypeformResponses();
@@ -364,7 +375,12 @@ export async function fetchMeetings(slug, prefetched = null) {
     // Convert to a session count equivalent for autoSyncMentorMilestones:
     // each 60-min block = 1 session credit; milestones unlock at 60, 120, 180 min
     const qualifyingCount = totalMinutes >= 180 ? 3 : totalMinutes >= 120 ? 2 : totalMinutes >= 60 ? 1 : 0;
-    await autoSyncMentorMilestones(slug, qualifyingCount);
+    // Batch callers skip the per-mentee Dashboard read/write (which re-reads the
+    // whole sheet each call) and do one bulk write themselves. They read
+    // qualifyingCount off the returned array via meetingsQualifyingCount().
+    if (!skipMilestoneSync) {
+      await autoSyncMentorMilestones(slug, qualifyingCount);
+    }
 
     return result;
   } catch (err) {
