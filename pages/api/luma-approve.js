@@ -55,6 +55,10 @@ export default async function handler(req, res) {
         await setMilestone(sheets, spreadsheetId, menteeSlug, "onboarding");
         milestone = "onboarding";
         console.log(`[luma-approve] set onboarding=TRUE for ${menteeSlug}`);
+      } else if (eventType === "midpoint") {
+        await setMilestone(sheets, spreadsheetId, menteeSlug, "midpoint");
+        milestone = "midpoint";
+        console.log(`[luma-approve] set midpoint=TRUE for ${menteeSlug}`);
       } else if (eventType === "edu") {
         milestone = await setNextEduMilestone(sheets, spreadsheetId, menteeSlug);
         if (milestone) {

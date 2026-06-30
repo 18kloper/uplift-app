@@ -40,6 +40,7 @@ export default async function handler(req, res) {
         const m = milestones[row.menteeSlug] || {};
         const eventType = classifyEvent(row.eventName);
         if (eventType === "onboarding" && m.onboarding) return false;
+        if (eventType === "midpoint" && m.midpoint) return false;
         if (eventType === "edu" && m.edu1 && m.edu2 && m.edu3) return false;
       }
       return true;
