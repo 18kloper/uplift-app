@@ -253,17 +253,28 @@ export default async function handler(req, res) {
       return 1 - dp[m][n] / Math.max(m, n);
     }
 
+    // Normalize a name token: lowercase, strip apostrophes/hyphens for slug comparison
+    function normalize(str) {
+      return str.toLowerCase().trim().replace(/['‘’-]/g, "");
+    }
+
     function fuzzyMatch(submitted, fromSlug) {
       const s = submitted.toLowerCase().trim();
       const t = fromSlug.toLowerCase().trim();
       if (!s || !t) return false;
       // Exact match
       if (s === t) return true;
+      // Normalized match (strip apostrophes + hyphens — handles D'Agostino → dagostino)
+      if (normalize(s) === normalize(t)) return true;
       // First word of submitted (handles "Pradeep Kumar" → "pradeep")
       const firstWord = s.split(/\s+/)[0];
       if (firstWord === t) return true;
-      // 70% similarity threshold
-      return similarity(firstWord, t) >= 0.7;
+      if (normalize(firstWord) === normalize(t)) return true;
+      // 70% similarity threshold on first word
+      if (similarity(firstWord, t) >= 0.7) return true;
+      // Also try normalized first word vs normalized slug token
+      if (similarity(normalize(firstWord), normalize(t)) >= 0.7) return true;
+      return false;
     }
 
     let menteeName = "";
@@ -289,7 +300,7 @@ export default async function handler(req, res) {
         menteeName = `${rawFirst} ${rawLast}`.trim();
       }
 
-      // Normalize session length: new numeric field, or old boolean (true=60, false=null since 30 was an estimate)
+      // Normalize session length: new numeric field, or old boolean (true=60, false=30)
       const rawAnswer = get(answers, FIELDS.sixtyMin);
       let minutes = null;
       if (rawAnswer?.number != null) {
@@ -297,7 +308,6 @@ export default async function handler(req, res) {
       } else if (rawAnswer?.boolean === true) {
         minutes = 60;
       }
-      // boolean false → minutes stays null; sixtyMin derived below will be false (half credit)
 
       meetings.push({
         id:          item.token,
@@ -316,7 +326,8 @@ export default async function handler(req, res) {
     // Separate pending sessions and sync to SessionReview sheet
     const INVALID_NOTES = new Set(["n/a", "na", "none", "no", "nothing", "-", "n.a.", "n/a."]);
     const validNotes = n => { const t = n?.trim().toLowerCase(); return t && !INVALID_NOTES.has(t); };
-    const autoQualifies = m => validNotes(m.notes);
+    // Any session with a known duration auto-qualifies — no manual review needed
+    const autoQualifies = m => m.minutes != null;
     const pending = meetings.filter(m => !autoQualifies(m));
     const { approvedIds, deniedIds, halfCreditIds } = await syncSessionReview(slug, menteeName, pending);
 
@@ -331,10 +342,14 @@ export default async function handler(req, res) {
     // Auto-sync mentor session milestones to Dashboard whenever sessions are loaded.
     // This ensures a manual approval in SessionReview is immediately reflected
     // without waiting for the mentee to trigger an update from their portal.
-    // Sessions < 60 min count as 0.5; full sessions count as 1.0
-    const qualifyingCount = result
-      .filter(m => !m.denied && (validNotes(m.notes) || m.manuallyVerified))
-      .reduce((sum, m) => sum + (m.minutes != null ? Math.round((m.minutes / 60) * 100) / 100 : 1.0), 0);
+    // Total minutes across all non-denied qualifying sessions
+    // ≥180 min total = all 3 milestones earned
+    const totalMinutes = result
+      .filter(m => !m.denied && (m.minutes != null || m.manuallyVerified))
+      .reduce((sum, m) => sum + (m.minutes ?? 60), 0);
+    // Convert to a session count equivalent for autoSyncMentorMilestones:
+    // each 60-min block = 1 session credit; milestones unlock at 60, 120, 180 min
+    const qualifyingCount = totalMinutes >= 180 ? 3 : totalMinutes >= 120 ? 2 : totalMinutes >= 60 ? 1 : 0;
     await autoSyncMentorMilestones(slug, qualifyingCount);
 
     return res.status(200).json({ meetings: result });
