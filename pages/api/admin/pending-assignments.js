@@ -61,9 +61,14 @@ export default async function handler(req, res) {
     const allSent    = rows.filter(r => ["sent","confirmed"].includes(r[5]?.trim().toLowerCase())).map(mapRow);
     const confirmedSlugs = new Set(rows.filter(r => r[5]?.trim().toLowerCase() === "confirmed").map(r => r[4]?.trim()));
     const sentSlugs = new Set(rows.filter(r => r[5]?.trim().toLowerCase() === "sent").map(r => r[4]?.trim()));
+    // Also exclude mentees who already have a mentor assigned in mentees.js
+    const alreadyMatchedSlugs = new Set(MENTEES.filter(m => m.mentor?.email).map(m => m.slug));
     const needsMatch = rows
       .filter(r => r[5]?.trim().toLowerCase() === "needs-match")
-      .filter(r => !confirmedSlugs.has(r[4]?.trim()) && !sentSlugs.has(r[4]?.trim()))
+      .filter(r => {
+        const slug = r[4]?.trim();
+        return !confirmedSlugs.has(slug) && !sentSlugs.has(slug) && !alreadyMatchedSlugs.has(slug);
+      })
       .map(mapRow);
 
     // Group by mentorName
