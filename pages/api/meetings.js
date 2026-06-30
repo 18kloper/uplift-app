@@ -224,20 +224,31 @@ async function autoSyncMentorMilestones(slug, qualifyingCount) {
   }
 }
 
+// Fetch all Typeform responses once. Server-side batch callers can fetch this
+// a single time and pass it into fetchMeetings() so we don't re-download 1000
+// responses per mentee (which makes a full-cohort sync time out).
+export async function fetchTypeformResponses() {
+  const token = process.env.TYPEFORM_TOKEN;
+  if (!token) return null;
+  const tfResponse = await fetch(
+    `https://api.typeform.com/forms/${FORM_ID}/responses?page_size=1000`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return tfResponse.json();
+}
+
 // Core logic extracted so server-side callers (e.g. sync-all-sessions) can run
 // it in-process instead of fetching the public URL (which trips Vercel's
 // challenge layer). Returns the meetings array, or [] on any failure.
-export async function fetchMeetings(slug) {
+// Pass prefetched Typeform data to avoid re-downloading per mentee.
+export async function fetchMeetings(slug, prefetched = null) {
   if (!slug) return [];
   const token = process.env.TYPEFORM_TOKEN;
   if (!token) return [];
 
   try {
-    const tfResponse = await fetch(
-      `https://api.typeform.com/forms/${FORM_ID}/responses?page_size=1000`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    const data = await tfResponse.json();
+    const data = prefetched || await fetchTypeformResponses();
+    if (!data) return [];
 
     const parts     = slug.split("-");
     const firstName = parts[0].toLowerCase();
