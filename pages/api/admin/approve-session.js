@@ -43,11 +43,35 @@ export default async function handler(req, res) {
   }
 
   if (targetRow === -1) {
-    // Row not in sheet yet — trigger a portal load to sync it first, then retry
-    return res.status(404).json({
-      error: "Session not found in SessionReview. Load the portal once to sync it, then retry.",
-      hint: `GET /api/meetings?slug=${slug}`,
+    const { force, menteeName, date, sixtyMin, takeaways, submittedAt } = req.body || {};
+    if (!force) {
+      return res.status(404).json({
+        error: "Session not found in SessionReview. Load the portal once to sync it, then retry.",
+        hint: `GET /api/meetings?slug=${slug}`,
+      });
+    }
+    // Force-insert the row, then approve/deny it below
+    const newStatus = action === "approve" ? "Approved" : "Denied";
+    const newRow = [
+      newStatus,
+      slug,
+      menteeName || slug,
+      date || "",
+      sixtyMin === true ? "Yes" : sixtyMin === false ? "No" : "",
+      "No",
+      takeaways || "",
+      sessionId,
+      submittedAt || "",
+    ];
+    if (action === "approve" && halfCredit) newRow[4] = "No";
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: "SessionReview!A:I",
+      valueInputOption: "USER_ENTERED",
+      insertDataOption: "INSERT_ROWS",
+      requestBody: { values: [newRow] },
     });
+    return res.status(200).json({ ok: true, slug, sessionId, action, halfCredit: !!halfCredit, inserted: true });
   }
 
   const newStatus = action === "approve" ? "Approved" : "Denied";
