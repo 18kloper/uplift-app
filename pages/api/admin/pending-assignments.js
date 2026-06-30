@@ -53,8 +53,18 @@ export default async function handler(req, res) {
     };
 
     const pending    = rows.filter(r => r[5]?.trim().toLowerCase() === "pending").map(mapRow);
+    // "sent" = emailed but no reply yet (awaiting response)
     const sent       = rows.filter(r => r[5]?.trim().toLowerCase() === "sent").map(mapRow);
-    const needsMatch = rows.filter(r => r[5]?.trim().toLowerCase() === "needs-match").map(mapRow);
+    // "confirmed" = mentor has replied and accepted
+    const confirmed  = rows.filter(r => r[5]?.trim().toLowerCase() === "confirmed").map(mapRow);
+    // "all sent" = sent + confirmed (for history display)
+    const allSent    = rows.filter(r => ["sent","confirmed"].includes(r[5]?.trim().toLowerCase())).map(mapRow);
+    const confirmedSlugs = new Set(rows.filter(r => r[5]?.trim().toLowerCase() === "confirmed").map(r => r[4]?.trim()));
+    const sentSlugs = new Set(rows.filter(r => r[5]?.trim().toLowerCase() === "sent").map(r => r[4]?.trim()));
+    const needsMatch = rows
+      .filter(r => r[5]?.trim().toLowerCase() === "needs-match")
+      .filter(r => !confirmedSlugs.has(r[4]?.trim()) && !sentSlugs.has(r[4]?.trim()))
+      .map(mapRow);
 
     // Group by mentorName
     const groupByMentor = list => {
@@ -101,7 +111,7 @@ export default async function handler(req, res) {
       };
     });
 
-    return res.status(200).json({ pending: groupByMentor(pending), sent: groupByMentor(sent), needsMatch: needsMatchMentees });
+    return res.status(200).json({ pending: groupByMentor(pending), sent: groupByMentor(sent), confirmed: groupByMentor(confirmed), allSent: groupByMentor(allSent), needsMatch: needsMatchMentees });
   } catch (err) {
     console.error("pending-assignments error:", err.message);
     return res.status(500).json({ error: err.message });
