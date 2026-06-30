@@ -253,9 +253,9 @@ export default async function handler(req, res) {
       return 1 - dp[m][n] / Math.max(m, n);
     }
 
-    // Normalize a name token: lowercase, strip apostrophes/hyphens for slug comparison
+    // Normalize a name token: lowercase, strip apostrophes and all dash variants
     function normalize(str) {
-      return str.toLowerCase().trim().replace(/['‘’-]/g, "");
+      return str.toLowerCase().trim().replace(/[‘’’‘’“”\-–—―\s]/g, "");
     }
 
     function fuzzyMatch(submitted, fromSlug) {
