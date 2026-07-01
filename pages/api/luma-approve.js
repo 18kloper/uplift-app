@@ -15,7 +15,7 @@ import { MENTEES } from "../../lib/mentees";
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { eventId, menteeSlug, approve } = req.body || {};
+  const { eventId, menteeSlug, approve, eventName: eventNameIn } = req.body || {};
   if (!eventId || !menteeSlug) {
     return res.status(400).json({ error: "eventId and menteeSlug are required" });
   }
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
       const menteeName = mentee ? `${mentee.first} ${mentee.last}` : menteeSlug;
       const timestamp = new Date().toISOString();
       await logLumaAttendance(sheets, spreadsheetId, [
-        timestamp, "manual-approve", "", eventId, "", menteeName, menteeSlug, "", "checked_in", "manual", "", "",
+        timestamp, "manual-approve", eventNameIn || "", eventId, "", menteeName, menteeSlug, "", "checked_in", "manual", "", "",
       ], "pending");
       // Now approve the freshly created row
       ({ ok, row } = await approveAttendance(sheets, spreadsheetId, eventId, menteeSlug, approve));
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
     let milestone = null;
 
     if (approve && (row.status === "checked_in" || row.status === "")) {
-      const eventType = classifyEvent(row.eventName);
+      const eventType = classifyEvent(row.eventName || eventNameIn || "");
       if (eventType === "onboarding") {
         await setMilestone(sheets, spreadsheetId, menteeSlug, "onboarding");
         milestone = "onboarding";
