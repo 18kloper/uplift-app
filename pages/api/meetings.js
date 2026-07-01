@@ -88,7 +88,7 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
     process.env.GOOGLE_SHEET_ID &&
     process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
     process.env.GOOGLE_PRIVATE_KEY;
-  if (!hasSheets || pendingSessions.length === 0) return { approvedIds: new Set(), deniedIds: new Set() };
+  if (!hasSheets || pendingSessions.length === 0) return { approvedIds: new Set(), deniedIds: new Set(), halfCreditIds: new Set() };
 
   try {
     const sheets = getSheetsClient();
