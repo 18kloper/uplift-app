@@ -255,7 +255,7 @@ export async function fetchMeetings(slug, prefetched = null, opts = {}) {
   if (!slug) return [];
   const token = process.env.TYPEFORM_TOKEN;
   if (!token) return [];
-  const { skipMilestoneSync = false } = opts;
+  const { skipMilestoneSync = false, rethrow = false } = opts;
 
   try {
     const data = prefetched || await fetchTypeformResponses();
@@ -387,6 +387,7 @@ export async function fetchMeetings(slug, prefetched = null, opts = {}) {
     return result;
   } catch (err) {
     console.error("Meetings fetch failed:", err.message);
+    if (rethrow) throw err;
     return [];
   }
 }

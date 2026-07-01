@@ -4,7 +4,7 @@
 // sessions come back empty. Read-only: it does NOT append rows to SessionReview.
 
 import { getSheetsClient } from "../../lib/sheets-helper";
-import { fetchTypeformResponses } from "./meetings";
+import { fetchTypeformResponses, fetchMeetings } from "./meetings";
 
 const FIELDS = {
   first:     "e9144ae8-bcac-4162-876c-dc9f3918d351",
@@ -106,6 +106,15 @@ export default async function handler(req, res) {
       dbg.sessionReview = { totalRows: rows.length, rowsForSlug: forSlug };
     } else {
       dbg.sessionReview = "skipped (no sheet creds)";
+    }
+
+    // Phase 4 — run the REAL fetchMeetings with rethrow to surface the swallowed error
+    dbg.phase = "real-fetchMeetings";
+    try {
+      const real = await fetchMeetings(slug, null, { skipMilestoneSync: true, rethrow: true });
+      dbg.realFetchMeetings = { count: real.length, meetings: real.map(m => ({ id: (m.id||"").slice(0,10), minutes: m.minutes, manuallyVerified: m.manuallyVerified, denied: m.denied })) };
+    } catch (realErr) {
+      dbg.realFetchMeetings = { threw: true, error: realErr.message, stack: (realErr.stack || "").split("\n").slice(0, 8) };
     }
 
     dbg.phase = "done";
