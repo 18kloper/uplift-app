@@ -311,8 +311,17 @@ export async function fetchMeetings(slug, prefetched = null, opts = {}) {
       const first    = get(answers, FIELDS.first)?.text?.trim() || "";
       const last     = get(answers, FIELDS.last)?.text?.trim()  || "";
 
-      // If first name is blank, fall back to last-name-only match against slug
-      if (!first && last && lastName && fuzzyMatch(last, lastName)) {
+      // Robust match, independent of how the name is split across the two
+      // fields. Compare the combined normalized name to the combined slug —
+      // handles full-name-in-one-field (e.g. "Kima D'Anjou" with empty last),
+      // extra middle names, apostrophes, and hyphens uniformly.
+      const submittedFull = normalize(first + last);
+      const slugFull      = normalize(firstName + lastName);
+      const combinedMatch = submittedFull && slugFull && submittedFull === slugFull;
+
+      if (combinedMatch) {
+        // full-name match — accept
+      } else if (!first && last && lastName && fuzzyMatch(last, lastName)) {
         // last name match only — acceptable fallback for blank first name submissions
       } else if (!fuzzyMatch(first, firstName)) {
         continue;
