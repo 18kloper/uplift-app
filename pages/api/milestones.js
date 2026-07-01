@@ -25,6 +25,10 @@ export default async function handler(req, res) {
 
     // Start with all milestones false
     const milestones = Object.fromEntries(MILESTONE_KEYS.map(k => [k, false]));
+    // Excused milestones render green on the portal (with an "Excused Absence"
+    // tag) but are stored as "EXCUSED" in the sheet, not "TRUE", so they never
+    // count toward real attendance totals.
+    const excused = {};
 
     // ── 1. Read Participation tab — source of truth for participation ──────────
     try {
@@ -49,7 +53,7 @@ export default async function handler(req, res) {
 
     const rows = response.data.values || [];
     const headerRow = rows[0] || [];
-    const menteeRow = rows.find((row, i) => i > 0 && row[0] === slug);
+    const menteeRow = rows.find((row, i) => i > 0 && row[0]?.trim() === slug);
 
     if (menteeRow) {
       MILESTONE_KEYS.forEach((key, idx) => {
@@ -58,6 +62,11 @@ export default async function handler(req, res) {
         const val     = menteeRow[colIdx];
         // Only set to true — never override participation=true from step 1 with false
         if (val === "TRUE" || val === true) milestones[key] = true;
+        // "EXCUSED" → render green on the portal, but flag it as excused
+        else if (typeof val === "string" && val.toUpperCase() === "EXCUSED") {
+          milestones[key] = true;
+          excused[key] = true;
+        }
       });
     }
 
@@ -85,7 +94,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ milestones: null });
     }
 
-    return res.status(200).json({ milestones });
+    return res.status(200).json({ milestones, excused });
   } catch (err) {
     console.error("Milestones read failed:", err.message);
     return res.status(200).json({ milestones: null });

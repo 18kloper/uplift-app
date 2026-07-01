@@ -24,8 +24,8 @@ export default async function handler(req, res) {
 
     const rows = await getMenteeAttendance(sheets, spreadsheetId, slug);
 
-    // Sort by timestamp descending
-    rows.sort((a, b) => (b.timestamp > a.timestamp ? 1 : -1));
+    // Sort by timestamp descending (stable: return 0 for equal timestamps)
+    rows.sort((a, b) => (a.timestamp < b.timestamp ? 1 : a.timestamp > b.timestamp ? -1 : 0));
 
     const attendance = rows.map((r) => ({
       eventName: r.eventName,

@@ -35,19 +35,29 @@ export default async function handler(req, res) {
     console.warn("[luma-sync] could not fetch event details:", err.message);
   }
 
-  // Fetch guests
+  // Fetch guests — Luma caps get-guests at 50/page, so loop the pagination
+  // cursor to capture every guest (events with >50 registrants were silently
+  // truncated before, so their later guests never got synced for review).
   let rawGuests = [];
   try {
-    const guestRes = await fetch(
-      `${LUMA_BASE}/event/get-guests?event_id=${encodeURIComponent(eventId)}`,
-      { headers: { "x-luma-api-key": apiKey } }
-    );
-    if (!guestRes.ok) {
-      const text = await guestRes.text();
-      throw new Error(`Luma API error ${guestRes.status}: ${text}`);
+    let cursor = null;
+    for (let page = 0; page < 50; page++) {
+      const qs = new URLSearchParams({ event_id: eventId, pagination_limit: "100" });
+      if (cursor) qs.set("pagination_cursor", cursor);
+      const guestRes = await fetch(
+        `${LUMA_BASE}/event/get-guests?${qs.toString()}`,
+        { headers: { "x-luma-api-key": apiKey } }
+      );
+      if (!guestRes.ok) {
+        const text = await guestRes.text();
+        throw new Error(`Luma API error ${guestRes.status}: ${text}`);
+      }
+      const guestData = await guestRes.json();
+      rawGuests.push(...(guestData.entries || guestData.guests || []));
+      if (!guestData.has_more) break;
+      cursor = guestData.next_cursor || guestData.pagination_cursor;
+      if (!cursor) break;
     }
-    const guestData = await guestRes.json();
-    rawGuests = guestData.entries || guestData.guests || [];
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

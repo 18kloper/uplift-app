@@ -475,7 +475,10 @@ function Tagline({ text, type }) {
 
 // ─── Mentor card ──────────────────────────────────────────────────────────────
 function MentorCard({ mentee, revealed, holding }) {
-  if (!revealed) {
+  // Guard: a match can be flagged revealed via the live sheet even when the
+  // static record has no mentor object yet — fall back to the pending UI
+  // instead of dereferencing an undefined mentor below.
+  if (!revealed || !mentee.mentor) {
     if (holding) {
       return (
         <div style={{
@@ -4051,6 +4054,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
     return 1;
   });
   const [liveMilestones, setLiveMilestones] = useState(null);
+  const [excusedMilestones, setExcusedMilestones] = useState({});
   const [lumaAttendance, setLumaAttendance] = useState([]);
   const [meetings, setMeetings] = useState([]);
 
@@ -4059,7 +4063,10 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
     if (!menteeData) return;
     fetch(`/api/milestones?slug=${menteeData.slug}`)
       .then((r) => r.json())
-      .then((data) => { if (data.milestones) setLiveMilestones(data.milestones); })
+      .then((data) => {
+        if (data.milestones) setLiveMilestones(data.milestones);
+        if (data.excused) setExcusedMilestones(data.excused);
+      })
       .catch(() => {});
   }, [menteeData]);
 
@@ -4098,6 +4105,9 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
   const slug = mentee.slug;
   // Driven by live milestones (Admin tab "Unlock Mentor" checkbox) — falls back to static data
   const mentorUnlocked = liveMilestones?.mentorMatched ?? mentee.mentorUnlocked;
+  // Only dereference mentee.mentor when it actually exists — a match can read as
+  // unlocked from the live sheet before the static mentor record is populated.
+  const hasMentor = mentorUnlocked && !!mentee.mentor;
   const myCohortHeader = COHORTS.find((c) => c.num === mentee.cohort);
 
   useEffect(() => {
@@ -4419,10 +4429,10 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontWeight: 700, fontSize: 13,
                 }}>
-                  {mentorUnlocked ? mentee.mentor.initials : "?"}
+                  {hasMentor ? mentee.mentor.initials : "?"}
                 </div>
                 <div>
-                  {mentorUnlocked ? (
+                  {hasMentor ? (
                     <>
                       <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>{mentee.mentor.name}</p>
                       <p style={{ margin: 0, fontSize: 12, opacity: 0.75 }}>{mentee.mentor.title}</p>
