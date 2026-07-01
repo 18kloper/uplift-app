@@ -18,18 +18,26 @@ export default async function handler(req, res) {
   }
 
   try {
-    const url = `${LUMA_BASE}/event/get-guests?event_id=${encodeURIComponent(eventId)}`;
-    const lumaRes = await fetch(url, {
-      headers: { "x-luma-api-key": apiKey },
-    });
-
-    if (!lumaRes.ok) {
-      const text = await lumaRes.text();
-      throw new Error(`Luma API error ${lumaRes.status}: ${text}`);
+    // Luma caps get-guests at 50 per page; loop the pagination cursor so large
+    // events (>50 registrants) return every guest, not just the first page.
+    const rawGuests = [];
+    let cursor = null;
+    for (let page = 0; page < 50; page++) {
+      const qs = new URLSearchParams({ event_id: eventId, pagination_limit: "100" });
+      if (cursor) qs.set("pagination_cursor", cursor);
+      const lumaRes = await fetch(`${LUMA_BASE}/event/get-guests?${qs.toString()}`, {
+        headers: { "x-luma-api-key": apiKey },
+      });
+      if (!lumaRes.ok) {
+        const text = await lumaRes.text();
+        throw new Error(`Luma API error ${lumaRes.status}: ${text}`);
+      }
+      const data = await lumaRes.json();
+      rawGuests.push(...(data.entries || data.guests || []));
+      if (!data.has_more) break;
+      cursor = data.next_cursor || data.pagination_cursor;
+      if (!cursor) break;
     }
-
-    const data = await lumaRes.json();
-    const rawGuests = data.entries || data.guests || [];
 
     // Load stored review decisions from LumaAttendance sheet
     let storedMap = {};
