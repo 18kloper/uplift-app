@@ -2193,6 +2193,10 @@ function fmtDate(raw) {
 function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
   const [meetings, setMeetings] = useState(null);
 
+  // Defined at component scope so both the effect and the render below can use them.
+  const INVALID_NOTES = new Set(["n/a", "na", "none", "no", "nothing", "-", "n.a.", "n/a."]);
+  const validNotes = n => { const t = n?.trim().toLowerCase(); return t && !INVALID_NOTES.has(t); };
+
   useEffect(() => {
     fetch(`/api/meetings?slug=${slug}`)
       .then(r => r.json())
@@ -2200,8 +2204,6 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
         const list = d.meetings || [];
         setMeetings(list);
 
-        const INVALID_NOTES = new Set(["n/a", "na", "none", "no", "nothing", "-", "n.a.", "n/a."]);
-        const validNotes = n => { const t = n?.trim().toLowerCase(); return t && !INVALID_NOTES.has(t); };
         // Count qualifying sessions with half-credit for sub-60min sessions
         const count = list
           .filter(m => !m.denied && (validNotes(m.notes) || m.manuallyVerified))
