@@ -88,13 +88,16 @@ async function syncSessionReview(slug, menteeName, pendingSessions) {
     process.env.GOOGLE_SHEET_ID &&
     process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
     process.env.GOOGLE_PRIVATE_KEY;
-  if (!hasSheets || pendingSessions.length === 0) return { approvedIds: new Set(), deniedIds: new Set(), halfCreditIds: new Set() };
+  if (!hasSheets) return { approvedIds: new Set(), deniedIds: new Set(), halfCreditIds: new Set() };
 
   try {
     const sheets = getSheetsClient();
 
-    // Auto-create tab + headers if needed
-    await ensureSessionReviewTab(sheets);
+    // Auto-create tab + headers only when we might append. A pure read (no
+    // pending sessions) still needs to run so that already-approved sessions —
+    // including ones that auto-qualify on duration and therefore never enter the
+    // pending queue — get their manuallyVerified / half-credit flags applied.
+    if (pendingSessions.length > 0) await ensureSessionReviewTab(sheets);
 
     // Read existing rows to find already-tracked IDs and approved ones
     const readRes = await sheets.spreadsheets.values.get({
