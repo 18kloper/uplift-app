@@ -151,11 +151,18 @@ export default async function handler(req, res) {
           if (!row[0]) continue;
           const slug = row[0].trim();
           if (!sheetData[slug]) {
-            sheetData[slug] = { milestones: Object.fromEntries(MILESTONE_KEYS.map(k => [k, false])), churned: false, notes: "", email: "", mentorEmail: "" };
+            sheetData[slug] = { milestones: Object.fromEntries(MILESTONE_KEYS.map(k => [k, false])), excused: {}, churned: false, notes: "", email: "", mentorEmail: "" };
           }
+          if (!sheetData[slug].excused) sheetData[slug].excused = {};
           MILESTONE_KEYS.forEach(key => {
             const val = row[milestoneColIdxs[key]];
             if (val === "TRUE" || val === true) sheetData[slug].milestones[key] = true;
+            // "EXCUSED" → counts as complete (green) but flagged excused so it's
+            // excluded from real attendance tallies.
+            else if (typeof val === "string" && val.toUpperCase() === "EXCUSED") {
+              sheetData[slug].milestones[key] = true;
+              sheetData[slug].excused[key] = true;
+            }
             // Don't overwrite participation=true set by Participation tab
           });
           // Participation tab already set this — don't override with FALSE from Dashboard
@@ -215,6 +222,7 @@ export default async function handler(req, res) {
   const mentees = MENTEES.map(m => {
     const d = sheetData[m.slug] || {};
     const milestones  = d.milestones || Object.fromEntries(MILESTONE_KEYS.map(k => [k, false]));
+    const excused     = d.excused || {};
     const churned     = d.churned || false;
     const notes       = d.notes   || "";
     const email       = d.email       || MENTEE_EMAILS[m.slug]  || "";
@@ -240,6 +248,7 @@ export default async function handler(req, res) {
       cohort: m.cohort,
       company: m.company || "",
       milestones,
+      excused,
       milestoneCount,
       mentorCount,
       eduCount,

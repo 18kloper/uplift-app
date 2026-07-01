@@ -3119,7 +3119,7 @@ function parseDueDate(dueStr) {
   return isNaN(d.getTime()) ? null : d;
 }
 
-function MilestoneSection({ milestones, onNavigate, slug, meetings = [], lumaAttendance = [] }) {
+function MilestoneSection({ milestones, excused = {}, onNavigate, slug, meetings = [], lumaAttendance = [] }) {
   const isHolding = HOLDING_SLUGS.has(slug);
   const isVeryLateMatch = VERY_LATE_MATCH_SLUGS.has(slug);
   const isLateMatch = LATE_MATCH_SLUGS.has(slug);
@@ -3189,6 +3189,7 @@ function MilestoneSection({ milestones, onNavigate, slug, meetings = [], lumaAtt
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {items.map((item) => {
           const done = !!milestones[item.key];
+          const isExcused = !!excused[item.key];
           const dueDate = parseDueDate(item.due);
           const overdue = !done && dueDate && today > dueDate;
           // Only participation is fully in the mentee's hands — everything else is staff-confirmed
@@ -3237,6 +3238,11 @@ function MilestoneSection({ milestones, onNavigate, slug, meetings = [], lumaAtt
                     {item.due}
                   </span>
                 )}
+                {isExcused && (
+                  <span style={{ marginTop: 4, fontSize: 12, color: "#3a7d5c", lineHeight: 1.6 }}>
+                    Marked as an excused absence — this won't count against you. No action needed.
+                  </span>
+                )}
                 {overdue && !menteeOwned && hasPendingForThisSession && (
                   <span style={{ marginTop: 4, fontSize: 12, color: "#7a7a9a", lineHeight: 1.6 }}>
                     Session received — under review. No action needed from you.
@@ -3283,7 +3289,12 @@ function MilestoneSection({ milestones, onNavigate, slug, meetings = [], lumaAtt
                 )}
               </span>
               <div style={{ marginLeft: "auto", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flexShrink: 0 }}>
-                {done && (
+                {done && isExcused && (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#22a366", background: "#f0faf5", borderRadius: 4, padding: "2px 8px", whiteSpace: "nowrap" }}>
+                    EXCUSED ABSENCE
+                  </span>
+                )}
+                {done && !isExcused && (
                   <span style={{ fontSize: 11, fontWeight: 600, color: "#22a366", background: "#f0faf5", borderRadius: 4, padding: "2px 8px" }}>
                     COMPLETED
                   </span>
@@ -3303,7 +3314,7 @@ function MilestoneSection({ milestones, onNavigate, slug, meetings = [], lumaAtt
 }
 
 // ─── Calendar section ─────────────────────────────────────────────────────────
-function CalendarSection({ milestones = {} }) {
+function CalendarSection({ milestones = {}, excused = {} }) {
   // Map week number → the milestone key that marks it "done"
   const WEEK_MILESTONE = {
     1: "onboarding",
@@ -3388,6 +3399,7 @@ function CalendarSection({ milestones = {} }) {
       {WEEKS.map((week) => {
         const milestoneKey = WEEK_MILESTONE[week.num];
         const isCompleted = milestoneKey && !!milestones[milestoneKey];
+        const isExcused = milestoneKey && !!excused[milestoneKey];
         return (
         <div key={week.num} style={{
           background: "#fff", borderRadius: 12,
@@ -3411,7 +3423,7 @@ function CalendarSection({ milestones = {} }) {
                 display: "flex", alignItems: "center", gap: 4,
                 flexShrink: 0,
               }}>
-                ✓ Completed
+                {isExcused ? "✓ Excused" : "✓ Completed"}
               </span>
             )}
           </div>
@@ -4330,9 +4342,9 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
   const renderTabContent = () => {
     switch (activeTab) {
       case "journey": return renderWeekContent();
-      case "calendar": return <CalendarSection milestones={liveMilestones || mentee.milestones || {}} />;
+      case "calendar": return <CalendarSection milestones={liveMilestones || mentee.milestones || {}} excused={excusedMilestones} />;
       case "resources": return <ResourcesSection slug={slug} menteeName={`${mentee.first} ${mentee.last}`.trim()} />;
-      case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} onNavigate={(week) => { setActiveTab("journey"); setActiveWeek(week); }} slug={slug} meetings={meetings || []} lumaAttendance={lumaAttendance} />;
+      case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} excused={excusedMilestones} onNavigate={(week) => { setActiveTab("journey"); setActiveWeek(week); }} slug={slug} meetings={meetings || []} lumaAttendance={lumaAttendance} />;
       case "goals": return <GoalsSection mentee={mentee} slug={slug} />;
       case "meetings": return <MeetingsSection slug={slug} milestones={liveMilestones || mentee.milestones || {}} onMilestoneUpdate={(key) => setLiveMilestones(prev => ({ ...(prev || mentee.milestones || {}), [key]: true }))} />;
       case "edu": return <EduSessionsSection milestones={liveMilestones || mentee.milestones || {}} slug={slug} />;

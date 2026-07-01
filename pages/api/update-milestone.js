@@ -56,11 +56,18 @@ export default async function handler(req, res) {
     const colLetter = colIndexToLetter(colIndex);
     const rowNum = rowIdx + 1; // 1-based sheet row
 
+    // Three states: TRUE (complete), EXCUSED (green on portal but not counted
+    // in attendance totals), FALSE (not complete).
+    const cellValue =
+      typeof value === "string" && value.toUpperCase() === "EXCUSED"
+        ? "EXCUSED"
+        : value ? "TRUE" : "FALSE";
+
     await sheets.spreadsheets.values.update({
       spreadsheetId,
       range: `Milestone Dashboard!${colLetter}${rowNum}`,
       valueInputOption: "USER_ENTERED",
-      requestBody: { values: [[value ? "TRUE" : "FALSE"]] },
+      requestBody: { values: [[cellValue]] },
     });
 
     return res.status(200).json({ ok: true });
