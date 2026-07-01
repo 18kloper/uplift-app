@@ -278,9 +278,11 @@ export async function fetchMeetings(slug, prefetched = null, opts = {}) {
       return 1 - dp[m][n] / Math.max(m, n);
     }
 
-    // Normalize a name token: lowercase, strip apostrophes and all dash variants
+    // Normalize a name token to alphanumerics only — strips every apostrophe
+    // (straight ' and curly), quote, dash, period, and space variant uniformly.
+    // Handles D'Anjou (straight apostrophe), D'Agostino, Adeoye-Davids, etc.
     function normalize(str) {
-      return str.toLowerCase().trim().replace(/[‘’’‘’“”\-–—―\s]/g, "");
+      return str.toLowerCase().trim().replace(/[^a-z0-9]/g, "");
     }
 
     function fuzzyMatch(submitted, fromSlug) {
