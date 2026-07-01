@@ -4050,6 +4050,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
   });
   const [liveMilestones, setLiveMilestones] = useState(null);
   const [lumaAttendance, setLumaAttendance] = useState([]);
+  const [meetings, setMeetings] = useState([]);
 
   // Fetch live milestone data from Google Sheets on load
   useEffect(() => {
@@ -4057,6 +4058,16 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
     fetch(`/api/milestones?slug=${menteeData.slug}`)
       .then((r) => r.json())
       .then((data) => { if (data.milestones) setLiveMilestones(data.milestones); })
+      .catch(() => {});
+  }, [menteeData]);
+
+  // Fetch this mentee's meetings at page level so MilestoneSection can flag
+  // sessions that are submitted but still pending review.
+  useEffect(() => {
+    if (!menteeData) return;
+    fetch(`/api/meetings?slug=${encodeURIComponent(menteeData.slug)}`)
+      .then((r) => r.json())
+      .then((d) => setMeetings(Array.isArray(d.meetings) ? d.meetings : []))
       .catch(() => {});
   }, [menteeData]);
 
