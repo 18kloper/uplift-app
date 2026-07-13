@@ -10,6 +10,7 @@
 // to reload their portal.
 
 import { getSheetsClient, MILESTONE_KEYS, MILESTONE_LABELS } from "../../lib/sheets-helper";
+import { MENTEES } from "../../lib/mentees";
 
 const FORM_ID = "e0L62296";
 const FIELDS  = {
@@ -250,6 +251,74 @@ export async function fetchTypeformResponses() {
   return tfResponse.json();
 }
 
+// --- Name matching (shared by fetchMeetings + reconciliation endpoints) ---
+function nmSimilarity(a, b) {
+  if (!a || !b) return 0;
+  if (a === b) return 1;
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, (_, i) => Array.from({ length: n + 1 }, (_, j) => i === 0 ? j : j === 0 ? i : 0));
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return 1 - dp[m][n] / Math.max(m, n);
+}
+function nmNormalize(str) {
+  return (str || "").toLowerCase().trim().replace(/[^a-z0-9]/g, "");
+}
+function nmFuzzy(submitted, target) {
+  const s = (submitted || "").toLowerCase().trim();
+  const t = (target || "").toLowerCase().trim();
+  if (!s || !t) return false;
+  if (s === t) return true;
+  if (nmNormalize(s) === nmNormalize(t)) return true;
+  const firstWord = s.split(/\s+/)[0];
+  if (firstWord === t) return true;
+  if (nmNormalize(firstWord) === nmNormalize(t)) return true;
+  if (nmSimilarity(firstWord, t) >= 0.7) return true;
+  if (nmSimilarity(nmNormalize(firstWord), nmNormalize(t)) >= 0.7) return true;
+  return false;
+}
+// Last-name match that tolerates truncation / a dropped second surname:
+// exact/fuzzy, or one normalized last name is a prefix of the other (min 3 chars).
+// Handles "Ferguson" → "Ferguson Peterson", "Scott-B" → "Scott-Bradshaw".
+function nmLastName(respLast, rosterLast) {
+  if (!rosterLast) return true;
+  if (nmFuzzy(respLast, rosterLast)) return true;
+  const a = nmNormalize(respLast), b = nmNormalize(rosterLast);
+  if (!a || !b) return false;
+  const [short, long] = a.length <= b.length ? [a, b] : [b, a];
+  return short.length >= 3 && long.startsWith(short);
+}
+// True if a Typeform (first,last) belongs to this mentee slug. Prefers the
+// roster entry's real first/last (correct for multi-word first names like
+// "Jean Guerdy"), with tolerant last-name matching; also keeps the original
+// slug-decomposition match as a fallback so no previously-working match regresses.
+export function matchesMentee(first, last, slug) {
+  const f = (first || "").trim();
+  const l = (last || "").trim();
+  const submittedFull = nmNormalize(f + l);
+
+  // Roster-based match (new): use the mentee's real first/last names.
+  const entry = MENTEES.find(m => m.slug === slug);
+  const rosterFirst = (entry?.first || slug.split("-")[0] || "").toLowerCase();
+  const rosterLast  = (entry?.last  || slug.split("-").slice(1).join(" ") || "").toLowerCase();
+  const rFirstWord = rosterFirst.split(/\s+/)[0];
+  if (submittedFull && nmNormalize(rosterFirst + rosterLast) === submittedFull) return true;
+  if (!f && l && rosterLast && nmLastName(l, rosterLast)) return true;
+  if (nmFuzzy(f, rFirstWord) && (!rosterLast || nmLastName(l, rosterLast))) return true;
+
+  // Slug-decomposition match (original logic) — fallback for zero regression.
+  const parts = slug.split("-");
+  const sFirst = parts[0];
+  const sLast  = parts.slice(1).join("-");
+  const slugFull = nmNormalize(sFirst + sLast);
+  if (submittedFull && slugFull && submittedFull === slugFull) return true;
+  if (!f && l && sLast && nmFuzzy(l, sLast)) return true;
+  if (nmFuzzy(f, sFirst) && (!sLast || nmFuzzy(l, sLast))) return true;
+
+  return false;
+}
+
 // Core logic extracted so server-side callers (e.g. sync-all-sessions) can run
 // it in-process instead of fetching the public URL (which trips Vercel's
 // challenge layer). Returns the meetings array, or [] on any failure.
@@ -264,48 +333,7 @@ export async function fetchMeetings(slug, prefetched = null, opts = {}) {
     const data = prefetched || await fetchTypeformResponses();
     if (!data) return [];
 
-    const parts     = slug.split("-");
-    const firstName = parts[0].toLowerCase();
-    const lastName  = parts.slice(1).join("-").toLowerCase();
     const get = (answers, ref) => answers?.find(a => a.field?.ref === ref);
-
-    // Levenshtein similarity: returns 0–1 where 1 = identical
-    function similarity(a, b) {
-      if (!a || !b) return 0;
-      if (a === b) return 1;
-      const m = a.length, n = b.length;
-      const dp = Array.from({ length: m + 1 }, (_, i) => Array.from({ length: n + 1 }, (_, j) => i === 0 ? j : j === 0 ? i : 0));
-      for (let i = 1; i <= m; i++)
-        for (let j = 1; j <= n; j++)
-          dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
-      return 1 - dp[m][n] / Math.max(m, n);
-    }
-
-    // Normalize a name token to alphanumerics only — strips every apostrophe
-    // (straight ' and curly), quote, dash, period, and space variant uniformly.
-    // Handles D'Anjou (straight apostrophe), D'Agostino, Adeoye-Davids, etc.
-    function normalize(str) {
-      return str.toLowerCase().trim().replace(/[^a-z0-9]/g, "");
-    }
-
-    function fuzzyMatch(submitted, fromSlug) {
-      const s = submitted.toLowerCase().trim();
-      const t = fromSlug.toLowerCase().trim();
-      if (!s || !t) return false;
-      // Exact match
-      if (s === t) return true;
-      // Normalized match (strip apostrophes + hyphens — handles D'Agostino → dagostino)
-      if (normalize(s) === normalize(t)) return true;
-      // First word of submitted (handles "Pradeep Kumar" → "pradeep")
-      const firstWord = s.split(/\s+/)[0];
-      if (firstWord === t) return true;
-      if (normalize(firstWord) === normalize(t)) return true;
-      // 70% similarity threshold on first word
-      if (similarity(firstWord, t) >= 0.7) return true;
-      // Also try normalized first word vs normalized slug token
-      if (similarity(normalize(firstWord), normalize(t)) >= 0.7) return true;
-      return false;
-    }
 
     let menteeName = "";
     const meetings = [];
@@ -314,23 +342,10 @@ export async function fetchMeetings(slug, prefetched = null, opts = {}) {
       const first    = get(answers, FIELDS.first)?.text?.trim() || "";
       const last     = get(answers, FIELDS.last)?.text?.trim()  || "";
 
-      // Robust match, independent of how the name is split across the two
-      // fields. Compare the combined normalized name to the combined slug —
-      // handles full-name-in-one-field (e.g. "Kima D'Anjou" with empty last),
-      // extra middle names, apostrophes, and hyphens uniformly.
-      const submittedFull = normalize(first + last);
-      const slugFull      = normalize(firstName + lastName);
-      const combinedMatch = submittedFull && slugFull && submittedFull === slugFull;
-
-      if (combinedMatch) {
-        // full-name match — accept
-      } else if (!first && last && lastName && fuzzyMatch(last, lastName)) {
-        // last name match only — acceptable fallback for blank first name submissions
-      } else if (!fuzzyMatch(first, firstName)) {
-        continue;
-      } else if (lastName && !fuzzyMatch(last, lastName)) {
-        continue;
-      }
+      // Match this response to the mentee using the roster's real first/last
+      // names (tolerant of truncated/partial last names and multi-word first
+      // names), with the original slug match kept as a fallback.
+      if (!matchesMentee(first, last, slug)) continue;
 
       // Capture display name from first matching response
       if (!menteeName) {
