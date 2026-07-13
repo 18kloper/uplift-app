@@ -7,16 +7,28 @@ const CALENDAR_ID = "cal-wVdcBds3K0Ylw3n";
 const LUMA_BASE = "https://api.lu.ma/public/v1";
 
 async function fetchEvents(apiKey, period) {
-  const url = `${LUMA_BASE}/calendar/list-events?calendar_api_id=${CALENDAR_ID}&period=${period}`;
-  const res = await fetch(url, {
-    headers: { "x-luma-api-key": apiKey },
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Luma API ${period} error ${res.status}: ${text}`);
+  // Luma caps calendar/list-events at 50/page. Loop the pagination cursor so
+  // ALL events are returned (single-page calls silently dropped later events,
+  // e.g. July sessions that fell past the first 50).
+  let all = [];
+  let cursor = null;
+  for (let page = 0; page < 50; page++) {
+    const qs = new URLSearchParams({ calendar_api_id: CALENDAR_ID, period, pagination_limit: "100" });
+    if (cursor) qs.set("pagination_cursor", cursor);
+    const res = await fetch(`${LUMA_BASE}/calendar/list-events?${qs.toString()}`, {
+      headers: { "x-luma-api-key": apiKey },
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Luma API ${period} error ${res.status}: ${text}`);
+    }
+    const data = await res.json();
+    all.push(...(data.entries || data.events || []));
+    if (!data.has_more) break;
+    cursor = data.next_cursor || data.pagination_cursor;
+    if (!cursor) break;
   }
-  const data = await res.json();
-  return data.entries || data.events || [];
+  return all;
 }
 
 export default async function handler(req, res) {
