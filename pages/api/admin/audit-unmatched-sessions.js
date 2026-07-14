@@ -29,6 +29,7 @@ export default async function handler(req, res) {
   const unmatched = [];
   const multiMatched = [];
   const matchedCounts = {};
+  const allSubs = [];
 
   for (const item of items) {
     const answers = item.answers || [];
@@ -44,6 +45,7 @@ export default async function handler(req, res) {
       submittedAt: item.submitted_at,
       token: item.token,
     };
+    allSubs.push({ ...rec, matchedSlug: hits[0] || null, matchCount: hits.length });
     if (hits.length === 0) {
       unmatched.push(rec);
     } else if (hits.length > 1) {
@@ -53,6 +55,10 @@ export default async function handler(req, res) {
       matchedCounts[hits[0]] = (matchedCounts[hits[0]] || 0) + 1;
     }
   }
+
+  const recent = [...allSubs]
+    .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))
+    .slice(0, 10);
 
   const matchedTotal = items.length - unmatched.length;
   return res.status(200).json({
@@ -65,5 +71,6 @@ export default async function handler(req, res) {
     multiMatchedCount: multiMatched.length,
     multiMatched,
     unmatched,
+    recent,
   });
 }
