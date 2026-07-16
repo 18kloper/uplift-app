@@ -507,8 +507,24 @@ function ConnectGroup({ title, note, items, isLast, trackEventClick }) {
   );
 }
 
+// Parses "Mon Jul 21" (weekday + month + day, always 2026) into a Date at end-of-day,
+// so an event still shows on its own day and drops off the list once it's truly passed.
+const CONNECT_MONTHS = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+function parseConnectEventDate(dayStr) {
+  const parts = (dayStr || "").trim().split(/\s+/);
+  if (parts.length < 3) return null;
+  const month = CONNECT_MONTHS[parts[1]];
+  const day = parseInt(parts[2], 10);
+  if (month == null || Number.isNaN(day)) return null;
+  return new Date(2026, month, day, 23, 59, 59);
+}
+
 function ConnectBlock({ events, slug, menteeName }) {
-  const connect = (events || []).filter((e) => e.kind === "connect");
+  const now = new Date();
+  const connect = (events || []).filter((e) => e.kind === "connect").filter((e) => {
+    const d = parseConnectEventDate(e.day);
+    return !d || d >= now; // keep undated events rather than risk hiding something real
+  });
   if (connect.length === 0) return null;
 
   const officeHours = connect.filter((e) => e.name.includes("Office Hours"));
@@ -527,7 +543,7 @@ function ConnectBlock({ events, slug, menteeName }) {
   const groups = [
     {
       title: "Mentor Office Hours",
-      note: "Standing windows for your 1:1 time — separate from your educational sessions and don't count toward your 3. Invite your mentor, join on the same link, and we'll break you into a private room (30 minutes counts as half a session, a full hour counts as a whole one).",
+      note: "These don't count toward your three educational sessions — they're here to ease the scheduling friction so you and your mentor can get your one-on-one time in. Invite your mentor, join on the same link, and we'll break you into a private room (30 minutes counts as half a mentor session, a full hour counts as a whole one).",
       items: officeHours,
     },
     {
@@ -2162,10 +2178,11 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
             Action Items This Week
           </p>
           {[
-            { text: "Verify you've completed three hours of mentoring sessions and that it's reflected on your milestones." },
-            { text: "If you have outstanding meetings or educational sessions that need to be made up, contact ", link: { label: "uplift@techunited.co", href: "mailto:uplift@techunited.co" }, suffix: " immediately." },
-          ].map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 1 ? 12 : 0 }}>
+            { text: "Wrap up your three sessions (180 minutes total) of mentorship with your mentor." },
+            { text: "Take the opportunity to participate in some of the educational sessions being added to help you reach your three." },
+            { text: "Reach out to ", link: { label: "uplift@techunited.co", href: "mailto:uplift@techunited.co" }, suffix: " if you need further accommodations — if you're behind, we want to see you succeed in this program." },
+          ].map((item, i, arr) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < arr.length - 1 ? 12 : 0 }}>
               <div style={{
                 width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
                 background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
