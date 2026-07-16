@@ -102,13 +102,17 @@ const WEEKS = [
     ],
   },
   {
-    num: 8, label: "Week 8", title: "Makeup Week + End Report", dateRange: "Jul 19–25",
-    tagline: "Final makeup week before the Summit. Make sure you've completed your 3 hours with your mentor.",
+    num: 8, label: "Week 8", title: "Let's Cross the Finish Line Together", dateRange: "Jul 19–25",
+    tagline: "Take this time to tee up the finish — complete your educational sessions, finish your 1:1s with your mentor, and dive deeper. Also expect a 1:1 check-in from Kennedy — come with some wins, we're prepping an article celebrating what you've built.",
     type: "reflection",
     submitLabel: "Submit your End Report (5 min)",
     submitPrimary: true,
     events: [
       { name: "Expert Session — Edison", day: "Mon Jul 20", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/9slfqpvz", speaker: { name: "Tony Triumph", linkedin: "https://www.linkedin.com/in/tonytriumph/" } },
+      { name: "Coffee Meetup — Haraz Coffee, Hoboken", day: "Mon Jul 20", time: "5:30–7:00pm", format: "In-Person", kind: "connect", optional: true, url: "https://luma.com/484rkj45" },
+      { name: "Mentor Office Hours", day: "Tue Jul 21", time: "12:30–1:00pm", format: "Virtual", kind: "connect", url: "https://luma.com/to3qzkei" },
+      { name: "Mentor Office Hours", day: "Wed Jul 22", time: "8:00–9:00am", format: "Virtual", kind: "connect", url: "https://luma.com/1x08hum7" },
+      { name: "Mentor Office Hours", day: "Thu Jul 23", time: "8:00–9:00am", format: "Virtual", kind: "connect", url: "https://luma.com/k5i56qxl" },
     ],
   },
   {
@@ -116,8 +120,13 @@ const WEEKS = [
     tagline: "We are nearing the END — can't wait to celebrate you.",
     type: "closing",
     events: [
+      { name: "Coffee Meetup — Haraz Coffee, Hoboken", day: "Mon Jul 27", time: "5:30–7:00pm", format: "In-Person", kind: "connect", optional: true, url: "https://luma.com/9gvf5pkb" },
+      { name: "Mentor Office Hours", day: "Tue Jul 28", time: "12:30–1:00pm", format: "Virtual", kind: "connect", url: "https://luma.com/xicbroar" },
       { name: "Peer Development — Morrison", day: "Tue Jul 28", time: "5:30–6:00pm", format: "Virtual", url: "https://lu.ma/uy7rs79a" },
-      { name: "Uplift Summit & Graduation", day: "Tue Aug 4", time: null, format: "In-Person", required: true, url: "https://lu.ma/c8we4c2b" },
+      { name: "Mentor Office Hours", day: "Wed Jul 29", time: "8:00–9:00am", format: "Virtual", kind: "connect", url: "https://luma.com/e2x9abad" },
+      { name: "Mentor Office Hours", day: "Thu Jul 30", time: "8:00–9:00am", format: "Virtual", kind: "connect", url: "https://luma.com/m4rr4gjj" },
+      { name: "Coffee Meetup — Haraz Coffee, Hoboken", day: "Mon Aug 3", time: "5:30–7:00pm", format: "In-Person", kind: "connect", optional: true, url: "https://luma.com/8wd7c753" },
+      { name: "Uplift Summit & Graduation", day: "Tue Aug 4", time: "4:00–7:00pm", format: "In-Person", required: true, url: "https://lu.ma/c8we4c2b" },
     ],
   },
 ];
@@ -344,7 +353,9 @@ function PromptBlock({ theme, questions, slug, weekNum, blockIndex, accentColor 
 }
 
 // ─── Events section ───────────────────────────────────────────────────────────
-function EventsSection({ events, submitLabel, submitPrimary, note, footerNote, isOnboarding, onboardingVerified, slug, menteeName }) {
+function EventsSection({ events: allEvents, submitLabel, submitPrimary, note, footerNote, intro, isOnboarding, onboardingVerified, slug, menteeName }) {
+  // Connect events (office hours, in-person meetups) are not educational sessions — they render in ConnectBlock instead.
+  const events = (allEvents || []).filter((e) => e.kind !== "connect");
   const hasEvents = events && events.length > 0;
   if (!hasEvents && !submitLabel) return null;
 
@@ -384,10 +395,10 @@ function EventsSection({ events, submitLabel, submitPrimary, note, footerNote, i
             This Week's Sessions
           </p>
           <p style={{ margin: "0 0 14px", fontSize: 12, color: "#9b8fcf", fontStyle: "italic", lineHeight: 1.65 }}>
-            {isOnboarding
+            {intro || (isOnboarding
               ? "All five onboarding sessions cover the same material — they're organized by cohort to help you meet your peers, but you're welcome to attend any one that fits your schedule. Note: onboarding sessions are separate from the 3 required educational sessions and do not count toward that requirement."
               : "All sessions are open to every mentee. You'll notice sessions are labeled by cohort (Edison, Hopper, Bardeen, Lawrence, Morrison) — these labels simply group participants to help build close relationships with peers. You are welcome and encouraged to attend any and all sessions across every cohort. Our speakers bring a wide range of expertise relevant to founders at every stage and in every industry. We also know schedules are unpredictable — Uplift is designed to be accessible and work around your life. If the time works for you, show up. Every session you attend counts toward your 3 required educational sessions."
-            }
+            )}
           </p>
           {events.map((ev, i) => (
             <div key={i} style={{
@@ -431,7 +442,7 @@ function EventsSection({ events, submitLabel, submitPrimary, note, footerNote, i
             </div>
           ))}
           <p style={{ margin: "10px 0 0", fontSize: 11, color: "#9b8fcf", fontStyle: "italic" }}>
-            {footerNote || "*Must attend a minimum of 3 virtual educational sessions by program end."}
+            {footerNote || "*Must attend a minimum of 3 virtual educational sessions by program end. Additional virtual educational sessions will continue to be added."}
           </p>
         </>
       )}
@@ -451,6 +462,93 @@ function EventsSection({ events, submitLabel, submitPrimary, note, footerNote, i
           </a>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Ways to connect block (office hours + in-person meetups — not educational) ─
+function ConnectGroup({ title, note, items, isLast, trackEventClick }) {
+  if (items.length === 0) return null;
+  return (
+    <div style={{ marginBottom: isLast ? 0 : 18 }}>
+      <p style={{ margin: "0 0 2px", fontSize: 12.5, fontWeight: 700, color: "#1a1733" }}>
+        {title}
+      </p>
+      {note && (
+        <p style={{ margin: "0 0 8px", fontSize: 12.5, color: "#6b6480", fontStyle: "italic", lineHeight: 1.55 }}>
+          {note}
+        </p>
+      )}
+      {items.map((ev, i) => (
+        <div key={i} style={{
+          display: "flex", alignItems: "flex-start", gap: 10,
+          padding: "10px 0", borderBottom: i < items.length - 1 ? "1px solid #f5f3ff" : "none",
+        }}>
+          <div style={{ width: 17, height: 17, border: "1.5px solid #c0b8d8", borderRadius: 3, flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ fontWeight: 600, fontSize: 14, color: "#1a1733" }}>{ev.name}</span>
+            {ev.optional && (
+              <span style={{ marginLeft: 6, background: "#eafaf2", color: "#1a7a4a", borderRadius: 4, padding: "1px 7px", fontSize: 11, fontWeight: 700 }}>
+                OPTIONAL
+              </span>
+            )}
+            <span style={{ marginLeft: 6, fontSize: 13, color: "#6b6480" }}>
+              — {ev.day}{ev.time ? `, ${ev.time}` : ""} · {ev.format}
+            </span>
+          </div>
+          <a href={ev.url || "#"} target="_blank" rel="noopener noreferrer"
+            onClick={() => trackEventClick(ev.name, ev.url || "")}
+            style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>
+            Register on Luma →
+          </a>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ConnectBlock({ events, slug, menteeName }) {
+  const connect = (events || []).filter((e) => e.kind === "connect");
+  if (connect.length === 0) return null;
+
+  const officeHours = connect.filter((e) => e.name.includes("Office Hours"));
+  const coffeeMeetups = connect.filter((e) => e.name.includes("Coffee Meetup"));
+  const other = connect.filter((e) => !e.name.includes("Office Hours") && !e.name.includes("Coffee Meetup"));
+
+  const trackEventClick = (title, url) => {
+    if (!slug) return;
+    fetch("/api/track-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, name: menteeName || slug, title, url }),
+    }).catch(() => {});
+  };
+
+  const groups = [
+    {
+      title: "Mentor Office Hours",
+      note: "Standing windows for your 1:1 time — separate from your educational sessions and don't count toward your 3. Invite your mentor, join on the same link, and we'll break you into a private room (30 minutes counts as half a session, a full hour counts as a whole one).",
+      items: officeHours,
+    },
+    {
+      title: "Coffee Meetups",
+      note: "Optional — Mondays, 5:30–7:00 PM at Haraz Coffee in Hoboken. Coffee, tea, and decaf are on us.",
+      items: coffeeMeetups,
+    },
+    { title: "Other", note: null, items: other },
+  ].filter((g) => g.items.length > 0);
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", borderLeft: "4px solid #2a9d6e", padding: "20px 24px", marginBottom: 24 }}>
+      <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#2a9d6e" }}>
+        New — More Ways to Get Your 1:1 Time
+      </p>
+      <p style={{ margin: "0 0 16px", fontSize: 13, color: "#6b6480", fontStyle: "italic", lineHeight: 1.65 }}>
+        You asked for more ways to connect, so we added these to help.
+      </p>
+      {groups.map((g, i) => (
+        <ConnectGroup key={g.title} title={g.title} note={g.note} items={g.items} isLast={i === groups.length - 1} trackEventClick={trackEventClick} />
+      ))}
     </div>
   );
 }
@@ -1484,7 +1582,7 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
   // Week 9: closing / Summit content
   if (weekNum === 9) {
     const summit = week.events.find((e) => e.required);
-    const bonusSessions = week.events.filter((e) => !e.required);
+    const bonusSessions = week.events.filter((e) => !e.required && e.kind !== "connect");
     return (
       <div>
         {/* Attendance required banner */}
@@ -1505,9 +1603,9 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
             <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 18, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
               <div>
                 <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, opacity: 0.7, textTransform: "uppercase", letterSpacing: "0.07em" }}>
-                  {summit.day} · In-Person
+                  {summit.day}{summit.time ? ` · ${summit.time}` : ""} · In-Person
                 </p>
-                <p style={{ margin: 0, fontSize: 14, opacity: 0.85 }}>Details and location TBD — register to stay updated.</p>
+                <p style={{ margin: 0, fontSize: 14, opacity: 0.85 }}>Antique Lofts, Hoboken, NJ — same spot as our Midpoint Meetup, 2 min walk from the PATH.</p>
               </div>
               <a href={summit.url || "#"} target="_blank" rel="noopener noreferrer"
                 onClick={() => trackEventClick(summit.name || "Uplift Summit & Graduation", summit.url || "")}
@@ -1560,6 +1658,8 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
             ))}
           </div>
         )}
+
+        <ConnectBlock events={week.events} slug={slug} menteeName={menteeName} />
 
         {/* Quote */}
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24, borderLeft: "4px solid #5c4eb5" }}>
@@ -2010,7 +2110,7 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
           </p>
           {[
             { text: "Have your third mentorship session with your mentor. We encourage you to meet more, but this is where you should be at minimum." },
-            { text: "This is the last week to complete your virtual educational sessions — you need all 3 by end of this week to participate in graduation. There are 3 sessions available this week." },
+            { text: "Keep working through your virtual educational sessions — you'll need all 3 before graduation. Sessions are available throughout the next few weeks, with the last one on July 30th." },
             { text: "Submit your 3rd mentor meeting below." },
           ].map((item, i) => (
             <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 2 ? 12 : 0 }}>
@@ -2035,6 +2135,7 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
           {week.tagline}
         </p>
         <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
+        <ConnectBlock events={WEEKS.flatMap((w) => w.events || [])} slug={slug} menteeName={menteeName} />
         <WeeklyFocus slug={slug} weekNum={7} />
         <div style={{ textAlign: "center", marginBottom: 12 }}>
           <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{
@@ -2083,6 +2184,8 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
         </div>
 
         <Tagline text={week.tagline} />
+        <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
+        <ConnectBlock events={week.events} slug={slug} menteeName={menteeName} />
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <div style={{
             display: "inline-block", padding: "14px 36px",
@@ -4049,6 +4152,405 @@ function LumaAttendanceSection({ slug }) {
   );
 }
 
+// ─── Pitch Showcase announcement modal ────────────────────────────────────────
+function PitchShowcaseModal({ onClose }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 10000,
+        background: "rgba(16, 8, 46, 0.55)", backdropFilter: "blur(3px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 20, fontFamily: "'Inter', system-ui, sans-serif",
+        animation: "upliftFadeIn 0.2s ease",
+      }}
+    >
+      <style>{`
+        @keyframes upliftFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes upliftPopIn { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+      `}</style>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#fff", borderRadius: 20, maxWidth: 480,
+          width: "100%", maxHeight: "90vh", overflowY: "auto",
+          boxShadow: "0 24px 64px rgba(16,8,46,0.4)",
+          animation: "upliftPopIn 0.25s ease",
+        }}
+      >
+        {/* Header banner */}
+        <div style={{
+          background: "linear-gradient(135deg, #1a0e4f 0%, #4a0077 55%, #c0006e 100%)",
+          borderRadius: "20px 20px 0 0", padding: "28px 28px 24px",
+          color: "#fff", position: "relative", overflow: "hidden",
+        }}>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              position: "absolute", top: 14, right: 14,
+              width: 30, height: 30, borderRadius: "50%",
+              background: "rgba(255,255,255,0.18)", border: "none",
+              color: "#fff", fontSize: 16, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              lineHeight: 1,
+            }}
+          >
+            ✕
+          </button>
+          <div style={{
+            display: "inline-block", background: "rgba(255,255,255,0.16)",
+            borderRadius: 20, padding: "5px 14px", fontSize: 11, fontWeight: 700,
+            letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 14,
+          }}>
+            🎤 New · August 4th Summit
+          </div>
+          <h2 style={{ margin: "0 0 8px", fontSize: 26, fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.5px" }}>
+            The Summit is now a Pitch Showcase
+          </h2>
+          <p style={{ margin: 0, fontSize: 14, opacity: 0.85, lineHeight: 1.55 }}>
+            Three of you get the stage to pitch your company live. Here's how to grab a slot.
+          </p>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: "24px 28px 28px" }}>
+          <p style={{ margin: "0 0 18px", fontSize: 14.5, color: "#3a3555", lineHeight: 1.65 }}>
+            We've been blown away by this cohort — and we want to give a few of you the stage to show it off. There are <strong>three showcase slots</strong>. To apply, submit a deck plus a <strong>2–3 minute Loom video pitch</strong> on you and your company. Make it compelling and intriguing — something an audience will genuinely connect with. Our Tech United team reviews every submission and selects the top three.
+          </p>
+
+          {/* Key details */}
+          <div style={{
+            background: "#f7f5ff", borderRadius: 14, padding: "16px 18px", marginBottom: 18,
+          }}>
+            {[
+              ["📅", <>Submit anytime, but <strong>all submissions due July 28th</strong>.</>],
+              ["🎯", <>Finalists each get <strong>5 minutes to pitch</strong> + <strong>5 minutes of audience Q&amp;A</strong>.</>],
+              ["🏆", <>The audience votes for an <strong>Audience Choice winner</strong>.</>],
+              ["✅", <>To be eligible, you must have <strong>3 mentorship meetings completed by July 28th</strong>. Behind? Reach out — we'll help you get there.</>],
+            ].map(([icon, text], i) => (
+              <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: i === 3 ? 0 : 11 }}>
+                <span style={{ fontSize: 15, flexShrink: 0, lineHeight: 1.5 }}>{icon}</span>
+                <span style={{ fontSize: 13.5, color: "#3a3555", lineHeight: 1.5 }}>{text}</span>
+              </div>
+            ))}
+          </div>
+
+          <p style={{ margin: "0 0 20px", fontSize: 13, color: "#6b6480", lineHeight: 1.55, fontStyle: "italic" }}>
+            Working on your pitch might be a great reason to grab that mentor session. 😉
+          </p>
+
+          <a
+            href="https://form.typeform.com/to/nKdey4RQ"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+            style={{
+              display: "block", textAlign: "center", padding: "14px 20px",
+              borderRadius: 10, background: "linear-gradient(135deg, #5c4eb5 0%, #c0006e 100%)",
+              color: "#fff", fontSize: 15, fontWeight: 700, textDecoration: "none",
+              boxShadow: "0 6px 20px rgba(92,78,181,0.35)",
+            }}
+          >
+            Submit your application →
+          </a>
+          <button
+            onClick={onClose}
+            style={{
+              display: "block", width: "100%", marginTop: 10, padding: "10px",
+              border: "none", background: "none", color: "#9b8fcf",
+              fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            Maybe later
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Coffee meetup announcement modal ─────────────────────────────────────────
+function CoffeeMeetupModal({ onClose }) {
+  const dates = [
+    { label: "RSVP · Mon July 20", url: "https://luma.com/484rkj45" },
+    { label: "RSVP · Mon July 27", url: "https://luma.com/9gvf5pkb" },
+    { label: "RSVP · Mon Aug 3", url: "https://luma.com/8wd7c753" },
+  ];
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 10000,
+        background: "rgba(16, 8, 46, 0.55)", backdropFilter: "blur(3px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 20, fontFamily: "'Inter', system-ui, sans-serif",
+        animation: "upliftFadeIn 0.2s ease",
+      }}
+    >
+      <style>{`
+        @keyframes upliftFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes upliftPopIn { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+      `}</style>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#fff", borderRadius: 20, maxWidth: 480,
+          width: "100%", maxHeight: "90vh", overflowY: "auto",
+          boxShadow: "0 24px 64px rgba(16,8,46,0.4)",
+          animation: "upliftPopIn 0.25s ease",
+        }}
+      >
+        {/* Header banner */}
+        <div style={{
+          background: "linear-gradient(135deg, #2d1608 0%, #7a3d14 55%, #c97b2d 100%)",
+          borderRadius: "20px 20px 0 0", padding: "28px 28px 24px",
+          color: "#fff", position: "relative", overflow: "hidden",
+        }}>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              position: "absolute", top: 14, right: 14,
+              width: 30, height: 30, borderRadius: "50%",
+              background: "rgba(255,255,255,0.18)", border: "none",
+              color: "#fff", fontSize: 16, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              lineHeight: 1,
+            }}
+          >
+            ✕
+          </button>
+          <div style={{
+            display: "inline-block", background: "rgba(255,255,255,0.16)",
+            borderRadius: 20, padding: "5px 14px", fontSize: 11, fontWeight: 700,
+            letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 14,
+          }}>
+            ☕ New · Every Monday
+          </div>
+          <h2 style={{ margin: "0 0 8px", fontSize: 26, fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.5px" }}>
+            Join us in person for coffee
+          </h2>
+          <p style={{ margin: 0, fontSize: 14, opacity: 0.85, lineHeight: 1.55 }}>
+            Casual Monday meetups with your cohort — and your mentor.
+          </p>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: "24px 28px 28px" }}>
+          <p style={{ margin: "0 0 14px", fontSize: 14.5, color: "#3a3555", lineHeight: 1.65 }}>
+            You asked for more ways to connect — with your mentor and with the rest of the cohort. This is exactly that.
+          </p>
+          <p style={{ margin: "0 0 14px", fontSize: 14.5, color: "#3a3555", lineHeight: 1.65 }}>
+            There's no presentation, no agenda, and no pressure. Just a casual space to grab coffee, meet other founders, and spend time with your mentor in person.
+          </p>
+          <p style={{ margin: "0 0 18px", fontSize: 14.5, color: "#3a3555", lineHeight: 1.65 }}>
+            Come on your own, bring your mentor, or invite your development team if they're available. Whether you're looking to knock out some dedicated 1:1 time, expand your network, or simply have an excuse to meet face-to-face, we'd love to see you.
+          </p>
+
+          {/* Key details */}
+          <div style={{ background: "#fdf6ec", borderRadius: 14, padding: "16px 18px", marginBottom: 18 }}>
+            {[
+              ["📅", <>Any of the next three Mondays — <strong>July 20, July 27, and August 3</strong>.</>],
+              ["🕠", <><strong>5:30–7:00 PM</strong> at <strong>Haraz Coffee in Hoboken</strong>.</>],
+              ["☕", <>Coffee, tea, and decaf are on us.</>],
+              ["🎲", <>A few optional icebreakers and games to get conversations started — mostly we'll let everyone mingle naturally.</>],
+            ].map(([icon, text], i) => (
+              <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: i === 3 ? 0 : 11 }}>
+                <span style={{ fontSize: 15, flexShrink: 0, lineHeight: 1.5 }}>{icon}</span>
+                <span style={{ fontSize: 13.5, color: "#3a3555", lineHeight: 1.5 }}>{text}</span>
+              </div>
+            ))}
+          </div>
+
+          {dates.map((d, i) => (
+            <a
+              key={i}
+              href={d.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "block", textAlign: "center", padding: "12px 20px",
+                borderRadius: 10, background: "linear-gradient(135deg, #7a3d14 0%, #c97b2d 100%)",
+                color: "#fff", fontSize: 14, fontWeight: 700, textDecoration: "none",
+                marginBottom: 10, boxShadow: "0 4px 14px rgba(122,61,20,0.3)",
+              }}
+            >
+              {d.label} →
+            </a>
+          ))}
+          <button
+            onClick={onClose}
+            style={{
+              display: "block", width: "100%", marginTop: 4, padding: "10px",
+              border: "none", background: "none", color: "#9b8fcf",
+              fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            Maybe later
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Mentor office hours announcement modal ───────────────────────────────────
+function OfficeHoursModal({ onClose }) {
+  const sessions = [
+    { day: "Tue, July 21", time: "12:30–1:00 PM", url: "https://luma.com/to3qzkei" },
+    { day: "Wed, July 22", time: "8:00–9:00 AM", url: "https://luma.com/1x08hum7" },
+    { day: "Thu, July 23", time: "8:00–9:00 AM", url: "https://luma.com/k5i56qxl" },
+    { day: "Tue, July 28", time: "12:30–1:00 PM", url: "https://luma.com/xicbroar" },
+    { day: "Wed, July 29", time: "8:00–9:00 AM", url: "https://luma.com/e2x9abad" },
+    { day: "Thu, July 30", time: "8:00–9:00 AM", url: "https://luma.com/m4rr4gjj" },
+  ];
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 10000,
+        background: "rgba(16, 8, 46, 0.55)", backdropFilter: "blur(3px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 20, fontFamily: "'Inter', system-ui, sans-serif",
+        animation: "upliftFadeIn 0.2s ease",
+      }}
+    >
+      <style>{`
+        @keyframes upliftFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes upliftPopIn { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+      `}</style>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#fff", borderRadius: 20, maxWidth: 500,
+          width: "100%", maxHeight: "90vh", overflowY: "auto",
+          boxShadow: "0 24px 64px rgba(16,8,46,0.4)",
+          animation: "upliftPopIn 0.25s ease",
+        }}
+      >
+        {/* Header banner */}
+        <div style={{
+          background: "linear-gradient(135deg, #0c2e24 0%, #1a6e50 55%, #2a9d6e 100%)",
+          borderRadius: "20px 20px 0 0", padding: "28px 28px 24px",
+          color: "#fff", position: "relative", overflow: "hidden",
+        }}>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              position: "absolute", top: 14, right: 14,
+              width: 30, height: 30, borderRadius: "50%",
+              background: "rgba(255,255,255,0.18)", border: "none",
+              color: "#fff", fontSize: 16, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              lineHeight: 1,
+            }}
+          >
+            ✕
+          </button>
+          <div style={{
+            display: "inline-block", background: "rgba(255,255,255,0.16)",
+            borderRadius: 20, padding: "5px 14px", fontSize: 11, fontWeight: 700,
+            letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 14,
+          }}>
+            🤝 New · Mentor Office Hours
+          </div>
+          <h2 style={{ margin: "0 0 8px", fontSize: 26, fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.5px" }}>
+            Need help meeting with your mentor?
+          </h2>
+          <p style={{ margin: 0, fontSize: 14, opacity: 0.85, lineHeight: 1.55 }}>
+            Check out these semi-structured opportunities.
+          </p>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: "24px 28px 28px" }}>
+          <p style={{ margin: "0 0 14px", fontSize: 14.5, color: "#3a3555", lineHeight: 1.65 }}>
+            The easy way to get your 1:1 time in — no scheduling back and forth required. We've set aside <strong>six standing office hour sessions</strong> that you and your mentor can use for your required 1:1 meetings. Instead of trying to coordinate calendars, simply choose one of the times below and invite your mentor to join you.
+          </p>
+
+          {/* How it works */}
+          <div style={{ background: "#f0faf5", borderRadius: 14, padding: "16px 18px", marginBottom: 18 }}>
+            <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#1a6e50" }}>
+              How it works
+            </p>
+            {[
+              "Choose one of the office hour times below that works for you.",
+              "Send your mentor the link and ask if they're available to join that session.",
+              "Once your mentor confirms, both of you join using the same link at the scheduled time.",
+              "We'll kick things off with a quick 5-minute welcome, icebreaker, and conversation prompt.",
+              "Then, each mentor pair will be moved into a private breakout room for your normal 1:1 conversation.",
+            ].map((step, i) => (
+              <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: i === 4 ? 0 : 9 }}>
+                <span style={{
+                  width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
+                  background: "#1a6e50", color: "#fff",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 11, fontWeight: 700, marginTop: 1,
+                }}>{i + 1}</span>
+                <span style={{ fontSize: 13.5, color: "#3a3555", lineHeight: 1.5 }}>{step}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Session grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 18 }}>
+            {sessions.map((s, i) => (
+              <a
+                key={i}
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "block", padding: "10px 12px", borderRadius: 10,
+                  border: "1.5px solid #bfe8d5", background: "#fff",
+                  textDecoration: "none",
+                }}
+              >
+                <span style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#1a6e50" }}>{s.day} ↗</span>
+                <span style={{ display: "block", fontSize: 12, color: "#3a3555" }}>{s.time}</span>
+              </a>
+            ))}
+          </div>
+
+          <p style={{ margin: "0 0 14px", fontSize: 13.5, color: "#3a3555", lineHeight: 1.6 }}>
+            These sessions are optional but highly encouraged if scheduling has been a challenge. You're still welcome to meet with your mentor outside of these office hours.
+          </p>
+
+          {/* Reminders */}
+          <div style={{ background: "#f7f5ff", borderRadius: 14, padding: "14px 16px", marginBottom: 6 }}>
+            <p style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+              A few reminders
+            </p>
+            {[
+              <>Please <strong>confirm with your mentor before joining</strong>. These sessions depend on your mentor's availability — they won't automatically be attending.</>,
+              <>You'll still <strong>submit your meeting form</strong> and key takeaways afterward, just as you would for any other mentor meeting.</>,
+              <>A 30-minute meeting counts as <strong>½ session</strong>, and a full hour counts as <strong>1 full session</strong> toward your program requirements.</>,
+            ].map((text, i) => (
+              <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: i === 2 ? 0 : 8 }}>
+                <span style={{ fontSize: 13, flexShrink: 0, lineHeight: 1.5 }}>•</span>
+                <span style={{ fontSize: 13, color: "#3a3555", lineHeight: 1.5 }}>{text}</span>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={onClose}
+            style={{
+              display: "block", width: "100%", marginTop: 12, padding: "10px",
+              border: "none", background: "none", color: "#9b8fcf",
+              fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            Got it, thanks
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main page component ──────────────────────────────────────────────────────
 export default function MenteePage({ menteeData, cohortMates, allCohortMembers }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -4069,6 +4571,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
   const [excusedMilestones, setExcusedMilestones] = useState({});
   const [lumaAttendance, setLumaAttendance] = useState([]);
   const [meetings, setMeetings] = useState([]);
+  const [activeModal, setActiveModal] = useState(null); // "showcase" | "coffee" | "officehours" | null
 
   // Fetch live milestone data from Google Sheets on load
   useEffect(() => {
@@ -4160,6 +4663,26 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       })
       .catch(() => {});
   }, [isAuthenticated, slug]);
+
+  // Announcement modals — each shows once per mentee (until dismissed), in order.
+  const MODAL_ORDER = ["showcase", "coffee", "officehours"];
+  useEffect(() => {
+    if (!isAuthenticated || !slug) return;
+    const next = MODAL_ORDER.find((k) => {
+      try { return !localStorage.getItem(`${k}_seen_${slug}`); } catch { return false; }
+    });
+    if (next) setActiveModal(next);
+  }, [isAuthenticated, slug]);
+
+  const dismissModal = () => {
+    if (!activeModal) return;
+    try { localStorage.setItem(`${activeModal}_seen_${slug}`, "1"); } catch {}
+    const rest = MODAL_ORDER.slice(MODAL_ORDER.indexOf(activeModal) + 1);
+    const next = rest.find((k) => {
+      try { return !localStorage.getItem(`${k}_seen_${slug}`); } catch { return false; }
+    });
+    setActiveModal(next || null);
+  };
 
   if (!isAuthenticated) {
     return <PasswordGate slug={slug} onAuthenticated={() => setIsAuthenticated(true)} />;
@@ -4373,6 +4896,59 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </Head>
+
+      {activeModal === "showcase" && <PitchShowcaseModal onClose={dismissModal} />}
+      {activeModal === "coffee" && <CoffeeMeetupModal onClose={dismissModal} />}
+      {activeModal === "officehours" && <OfficeHoursModal onClose={dismissModal} />}
+
+      {/* Persistent re-open buttons — always available so mentees can revisit the announcements */}
+      {!activeModal && (
+        <div style={{
+          position: "fixed", bottom: 20, right: 20, zIndex: 9998,
+          display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10,
+          fontFamily: "'Inter', system-ui, sans-serif",
+        }}>
+          <button
+            onClick={() => setActiveModal("officehours")}
+            style={{
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "10px 16px", borderRadius: 30, border: "none",
+              background: "linear-gradient(135deg, #1a6e50 0%, #2a9d6e 100%)",
+              color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer",
+              fontFamily: "inherit",
+              boxShadow: "0 6px 20px rgba(26,110,80,0.4)",
+            }}
+          >
+            🤝 Meet your mentor
+          </button>
+          <button
+            onClick={() => setActiveModal("coffee")}
+            style={{
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "10px 16px", borderRadius: 30, border: "none",
+              background: "linear-gradient(135deg, #7a3d14 0%, #c97b2d 100%)",
+              color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer",
+              fontFamily: "inherit",
+              boxShadow: "0 6px 20px rgba(122,61,20,0.4)",
+            }}
+          >
+            ☕ Monday coffee meetup
+          </button>
+          <button
+            onClick={() => setActiveModal("showcase")}
+            style={{
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "12px 18px", borderRadius: 30, border: "none",
+              background: "linear-gradient(135deg, #5c4eb5 0%, #c0006e 100%)",
+              color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
+              fontFamily: "inherit",
+              boxShadow: "0 6px 20px rgba(92,78,181,0.4)",
+            }}
+          >
+            🎤 Submit your pitch
+          </button>
+        </div>
+      )}
 
       <div style={{ minHeight: "100vh", background: "#f7f5ff", fontFamily: "'Inter', system-ui, sans-serif" }}>
         {/* Header */}
