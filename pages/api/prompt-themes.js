@@ -95,7 +95,7 @@ export default async function handler(req, res) {
           max_tokens: 3000,
           messages: [{
             role: "user",
-            content: `You are analyzing prompt responses from early-stage startup founders in a 9-week mentorship accelerator in New Jersey. Founders span AI/ML, SaaS, consumer, and social impact.
+            content: `You are analyzing prompt responses from early-stage startup founders in a 10-week mentorship accelerator in New Jersey. Founders span AI/ML, SaaS, consumer, and social impact.
 
 Here are their responses organized by prompt section:
 

@@ -116,15 +116,22 @@ const WEEKS = [
     ],
   },
   {
-    num: 9, label: "Week 9", title: "Summit & Graduation", dateRange: "Jul 27–Aug 4",
-    tagline: "We are nearing the END — can't wait to celebrate you.",
-    type: "closing",
+    num: 9, label: "Week 9", title: "One Week to the Summit", dateRange: "Jul 27–31",
+    tagline: "The Summit is one week away — this is your last chance to lock in any remaining sessions before we celebrate together.",
+    type: "emphasis",
     events: [
       { name: "Coffee Meetup — Haraz Coffee, Hoboken", day: "Mon Jul 27", time: "5:30–7:00pm", format: "In-Person", kind: "connect", optional: true, url: "https://luma.com/9gvf5pkb" },
       { name: "Mentor Office Hours", day: "Tue Jul 28", time: "12:30–1:00pm", format: "Virtual", kind: "connect", url: "https://luma.com/xicbroar" },
       { name: "Peer Development — Morrison", day: "Tue Jul 28", time: "5:30–6:00pm", format: "Virtual", url: "https://lu.ma/uy7rs79a" },
       { name: "Mentor Office Hours", day: "Wed Jul 29", time: "8:00–9:00am", format: "Virtual", kind: "connect", url: "https://luma.com/e2x9abad" },
       { name: "Mentor Office Hours", day: "Thu Jul 30", time: "8:00–9:00am", format: "Virtual", kind: "connect", url: "https://luma.com/m4rr4gjj" },
+    ],
+  },
+  {
+    num: 10, label: "Week 10", title: "Summit & Graduation", dateRange: "Aug 3–4",
+    tagline: "We are nearing the END — can't wait to celebrate you.",
+    type: "closing",
+    events: [
       { name: "Coffee Meetup — Haraz Coffee, Hoboken", day: "Mon Aug 3", time: "5:30–7:00pm", format: "In-Person", kind: "connect", optional: true, url: "https://luma.com/8wd7c753" },
       { name: "Uplift Summit & Graduation", day: "Tue Aug 4", time: "4:00–7:00pm", format: "In-Person", required: true, url: "https://lu.ma/c8we4c2b" },
     ],
@@ -137,7 +144,7 @@ const PRIMARY_TABS = [
   { id: "goals",      label: "My Goals & Reflections",       tip: "Everything you've written in the portal lives here — your goals, reflections, and responses all in one place, building as you go." },
   { id: "meetings",   label: "Logged Mentorship Sessions",   tip: "Track every mentor session you've submitted — view transcripts, see which sessions have been verified, monitor your progress toward the 3-hour requirement, and check on any pending or denied sessions." },
   { id: "edu",        label: "Logged Educational Sessions",  tip: "Track the educational sessions you've attended and browse everything that's available across the full program schedule." },
-  { id: "calendar",   label: "Program Roadmap",              tip: "A high-level view of the entire 9-week program — all sessions, milestones, and key dates in one place." },
+  { id: "calendar",   label: "Program Roadmap",              tip: "A high-level view of the entire 10-week program — all sessions, milestones, and key dates in one place." },
   { id: "resources",  label: "Resources",                    tip: "External links, tools, and resources curated for you — things you should know about as a founder in this program." },
   { id: "profile",    label: "Cohort Directory",             tip: "See who's in your cohort and explore the other cohorts too — get to know your fellow founders." },
   { id: "support",    label: "Support",                      tip: "Having trouble with something? Find out how to reach the Uplift team here." },
@@ -1228,7 +1235,8 @@ const PULSE_WINDOWS = [
   { week: 6, start: new Date(2026, 6,  6), end: new Date(2026, 6, 11, 23, 59, 59) },
   { week: 7, start: new Date(2026, 6, 13), end: new Date(2026, 6, 18, 23, 59, 59) },
   { week: 8, start: new Date(2026, 6, 19), end: new Date(2026, 6, 25, 23, 59, 59) },
-  { week: 9, start: new Date(2026, 6, 27), end: new Date(2026, 7,  4, 23, 59, 59) },
+  { week: 9, start: new Date(2026, 6, 27), end: new Date(2026, 6, 31, 23, 59, 59) },
+  { week: 10, start: new Date(2026, 7,  3), end: new Date(2026, 7,  4, 23, 59, 59) },
 ];
 
 function fmtPulseDate(d) {
@@ -1536,7 +1544,7 @@ function JourneyProgressBar({ slug, activeWeek }) {
   useEffect(() => {
     let done = 0;
     let thisWeekFilled = 0;
-    for (let w = 1; w <= 9; w++) {
+    for (let w = 1; w <= 10; w++) {
       let weekHasAny = false;
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -1565,7 +1573,7 @@ function JourneyProgressBar({ slug, activeWeek }) {
       <div style={{ flex: 1 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: "#5c4eb5" }}>
-            {completedWeeks} of 9 weeks with responses
+            {completedWeeks} of 10 weeks with responses
           </span>
           <span style={{ fontSize: 11, color: "#9b8fcf" }}>
             {weekPrompts} {weekPrompts === 1 ? "prompt" : "prompts"} filled this week
@@ -1595,8 +1603,47 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
   };
   const week = WEEKS.find((w) => w.num === weekNum);
 
-  // Week 9: closing / Summit content
+  // Week 9: last call before the Summit — action items + sessions
   if (weekNum === 9) {
+    return (
+      <div>
+        {/* Action items */}
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
+          <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+            Action Items This Week
+          </p>
+          {[
+            { text: "This is your last chance to complete any remaining mentor sessions (3 total / 180 minutes) or educational sessions (3 total) before the Summit." },
+            { text: "Use this week's Mentor Office Hours and Coffee Meetup to knock out any final 1:1 time with your mentor." },
+            { text: "Reach out to ", link: { label: "uplift@techunited.co", href: "mailto:uplift@techunited.co" }, suffix: " immediately if you're behind — we want every founder in the room on Summit day." },
+          ].map((item, i, arr) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < arr.length - 1 ? 12 : 0 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 11, fontWeight: 700, marginTop: 1,
+              }}>
+                {i + 1}
+              </div>
+              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>
+                {item.text}
+                {item.link && <a href={item.link.href} style={{ color: "#5c4eb5", fontWeight: 600 }}>{item.link.label}</a>}
+                {item.suffix}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <Tagline text={week.tagline} type={week.type} />
+        <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
+        <ConnectBlock events={week.events} slug={slug} menteeName={menteeName} />
+      </div>
+    );
+  }
+
+  // Week 10: closing / Summit content
+  if (weekNum === 10) {
     const summit = week.events.find((e) => e.required);
     const bonusSessions = week.events.filter((e) => !e.required && e.kind !== "connect");
     return (
@@ -1683,7 +1730,7 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
           <p style={{ margin: "0 0 10px", fontSize: 15, fontWeight: 500, color: "#1a1733", lineHeight: 1.5 }}>
             If you'd like, we would love to share a quote from you on our <a href="https://techunited.org" target="_blank" rel="noopener noreferrer" style={{ color: "#5c4eb5" }}>webpage</a> — your name will be linked.
           </p>
-          <AutoTextarea storageKey={`${slug}_w9_quote`} placeholder="Share a quote about your Uplift experience…" slug={slug} weekNum={9} fieldKey="quote" rows={3} question="Share a quote about your Uplift experience" />
+          <AutoTextarea storageKey={`${slug}_w10_quote`} placeholder="Share a quote about your Uplift experience…" slug={slug} weekNum={10} fieldKey="quote" rows={3} question="Share a quote about your Uplift experience" />
         </div>
       </div>
     );
@@ -3058,7 +3105,7 @@ function GoalsSection({ mentee, slug }) {
 
     // Load weekly focus for all 9 weeks
     const focus = {};
-    for (let w = 1; w <= 9; w++) {
+    for (let w = 1; w <= 10; w++) {
       const val = localStorage.getItem(`${slug}_w${w}_weekly_focus`) || "";
       if (val.trim()) focus[w] = val.trim();
     }
@@ -3255,7 +3302,7 @@ function MilestoneSection({ milestones, excused = {}, onNavigate, slug, meetings
     { key: "mentorSession3",  label: "Mentor Session 3",                            due: isVeryLateMatch ? "By Aug 2" : isLateMatch ? "By Jul 25" : "By Jul 18", week: 7 },
     { key: "midpoint",        label: "Midpoint Meetup Attended",                    due: "Jun 23",    week: 4 },
     { key: "endSurvey",       label: "End of Program Survey Completed",             due: "By Jul 25", week: 8 },
-    { key: "summit",          label: "Summit & Graduation Attended",                due: "Aug 4",     week: 9 },
+    { key: "summit",          label: "Summit & Graduation Attended",                due: "Aug 4",     week: 10 },
     { key: "certificate",     label: "Certificate Received" },
   ];
 
@@ -3443,13 +3490,13 @@ function CalendarSection({ milestones = {}, excused = {} }) {
     5: "mentorSession2",
     7: "mentorSession3",
     8: "endSurvey",
-    9: "summit",
+    10: "summit",
   };
 
   return (
     <div>
       <p style={{ margin: "0 0 20px", fontSize: 15, color: "#6b6480" }}>
-        All program sessions and milestones across the 9-week Uplift Summer 2026 schedule.
+        All program sessions and milestones across the 10-week Uplift Summer 2026 schedule.
       </p>
 
       {/* Open attendance notice */}
@@ -4577,7 +4624,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
     const starts = [
       [1, "2026-06-01"], [2, "2026-06-08"], [3, "2026-06-15"],
       [4, "2026-06-22"], [5, "2026-06-29"], [6, "2026-07-06"],
-      [7, "2026-07-13"], [8, "2026-07-19"], [9, "2026-07-27"],
+      [7, "2026-07-13"], [8, "2026-07-19"], [9, "2026-07-27"], [10, "2026-08-03"],
     ];
     for (let i = starts.length - 1; i >= 0; i--) {
       if (today >= new Date(starts[i][1])) return starts[i][0];

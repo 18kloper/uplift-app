@@ -26,7 +26,7 @@ export default async function handler(req, res) {
       max_tokens: 1500,
       messages: [{
         role: "user",
-        content: `You are writing the weekly Uplift Summer 2026 newsletter. Uplift is a 9-week startup mentorship accelerator in New Jersey run by TechUnited:NJ. Write a warm, energetic, founder-focused newsletter for Week ${weekNum || "?"}.
+        content: `You are writing the weekly Uplift Summer 2026 newsletter. Uplift is a 10-week startup mentorship accelerator in New Jersey run by TechUnited:NJ. Write a warm, energetic, founder-focused newsletter for Week ${weekNum || "?"}.
 
 Here is the data for this week:
 

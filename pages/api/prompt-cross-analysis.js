@@ -105,7 +105,7 @@ export default async function handler(req, res) {
           max_tokens: 4000,
       messages: [{
         role: "user",
-        content: `You are analyzing prompt responses from early-stage startup founders across 5 cohorts in a 9-week NJ-based mentorship accelerator called Uplift. Each cohort is a group of ~15 founders.
+        content: `You are analyzing prompt responses from early-stage startup founders across 5 cohorts in a 10-week NJ-based mentorship accelerator called Uplift. Each cohort is a group of ~15 founders.
 
 Here are the responses grouped by cohort:
 
