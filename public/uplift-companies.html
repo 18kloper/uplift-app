@@ -48,7 +48,7 @@
   table.dir tr.stagehead td { background: #1d1d1f; color: white; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; padding: 8px 14px; border: none; }
   table.dir .co { font-weight: 600; }
   table.dir .ttl { color: #86868b; font-weight: 400; }
-  table.dir tr.churned td { color: #b0b0b5; }
+  table.dir .one { display: block; color: #6e6e73; font-weight: 400; font-size: 12px; margin-top: 2px; line-height: 1.4; }
   .pitchbadge { font-size: 9.5px; font-weight: 800; letter-spacing: .5px; background: #d1f5db; color: #1a7a34; padding: 2px 8px; border-radius: 10px; text-decoration: none; white-space: nowrap; vertical-align: 1px; }
   .churnbadge { font-size: 9.5px; font-weight: 800; letter-spacing: .5px; background: #f0f0f2; color: #86868b; padding: 2px 8px; border-radius: 10px; white-space: nowrap; vertical-align: 1px; }
   @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } .container { padding: 20px; } .wrap-table { overflow-x: auto; } }
@@ -60,7 +60,7 @@
   <h1>Uplift Companies — Directory &amp; Pitch Showcase Profiles</h1>
   <p>Uplift Summer 2026 · TechUnited:NJ &nbsp;·&nbsp; Compiled from the Typeform mentee applications (stage, industry, county) and the Aug 4 Pitch Showcase submissions + decks (description, product, traction, ask)</p>
   <div class="stats">
-    <div class="stat"><div class="num">80</div><div class="label">Companies in program</div></div>
+    <div class="stat"><div class="num">69</div><div class="label">Companies in program</div></div>
     <div class="stat"><div class="num">12</div><div class="label">Pitch Showcase applicants</div></div>
     <div class="stat"><div class="num">$7.8M+</div><div class="label">Combined disclosed asks</div></div>
     <div class="stat"><div class="num">$432K</div><div class="label">Highest ARR (Crewasis)</div></div>
@@ -202,7 +202,7 @@
 <div class="card" id="juegos">
   <div class="top"><h2>Juegos AI Lab</h2><span class="founder">Elisa Charters · Cohort 4 · Mentor: ebun okubanjo</span></div>
   <div class="chips"><span class="chip sector">AI / ML</span><span class="chip stage">Seed (self-reported)</span><span class="chip noraise">No deck submitted</span></div>
-  <div class="desc">No pitch deck was attached to the application, so company details are limited to the form. Self-reported as an AI/ML company at seed stage.</div>
+  <div class="desc">AI-powered social platform (juegos.social) coordinating in-person meetups and local engagement. No pitch deck was attached to the application, so deck-level details (product status, traction, ask) are unavailable — self-reported as an AI/ML company at seed stage.</div>
   <div class="grid">
     <div class="field"><div class="label">Online / Product</div><div class="val"><a href="https://juegos.social">juegos.social</a></div></div>
     <div class="field"><div class="label">Money needed</div><div class="val">Unknown — follow up with founder for materials</div></div>
@@ -224,91 +224,79 @@
 <div class="secsub">Every company in the program, from the Typeform mentee applications, grouped by self-reported company stage. Industry and county are as reported on the application; green badges link to the detailed pitch profiles above.</div>
 <div class="wrap-table">
 <table class="dir">
-<tr class="stagehead"><td colspan="5">Growth-stage — 1 company</td></tr>
-<tr><td class="co">ACI Infotech</td><td>Jagannadh Kanumuri<span class="ttl"> · Jag Kanumuri</span></td><td>AI / Data / ML</td><td>Somerset</td><td>C1</td></tr>
 <tr class="stagehead"><td colspan="5">Revenue-generating — 13 companies</td></tr>
 <tr><td class="co">Arnex Solutions LLC</td><td>Shounak Thaker<span class="ttl"> · President</span></td><td>Other</td><td>Mercer</td><td>C2</td></tr>
-<tr><td class="co">Bruce AI (OnwardJustice Inc.)</td><td>Daniel Lee<span class="ttl"> · CEO</span></td><td>AI / Data / ML</td><td></td><td>C3</td></tr>
-<tr><td class="co">Creative Sprouts Inc</td><td>Saurabh Gandhe<span class="ttl"> · Owner</span></td><td>Media / Marketing / Advertising</td><td></td><td>C5</td></tr>
-<tr><td class="co">CREWASIS.AI <a class="pitchbadge" href="#crewasis">PITCH APPLICANT ↓</a></td><td>Sharon Joseph<span class="ttl"> · ceo</span></td><td>Enterprise SaaS / B2B</td><td></td><td>C3</td></tr>
-<tr><td class="co">Diamond Hedge</td><td>Mehul Sompura<span class="ttl"> · Founder</span></td><td>Retail / Marketplace / E-commerce</td><td>Monmouth</td><td>C4</td></tr>
-<tr><td class="co">Disrupt The Gap</td><td>Shell Bobev<span class="ttl"> · Founder/Compensation Strategist</span></td><td>Government / Civic / Policy</td><td>Morris</td><td>C3</td></tr>
-<tr><td class="co">Everyday Unstoppable</td><td>Andrea Ferguson Peterson<span class="ttl"> · Founder and CEO</span></td><td>Retail / Marketplace / E-commerce</td><td>Essex</td><td>C5</td></tr>
-<tr><td class="co">First and Last PR</td><td>Stephanie Scott-Bradshaw<span class="ttl"> · CEO &amp; Communicator-in-Chief</span></td><td>Media / Marketing / Advertising</td><td>Hudson</td><td>C3</td></tr>
+<tr><td class="co">Bruce AI (OnwardJustice Inc.)<span class="one">Multilingual legal marketplace matching clients with vetted attorneys</span></td><td>Daniel Lee<span class="ttl"> · CEO</span></td><td>AI / Data / ML</td><td></td><td>C3</td></tr>
+<tr><td class="co">Creative Sprouts Inc<span class="one">Education competitions serving teachers, schools, and after-school programs</span></td><td>Saurabh Gandhe<span class="ttl"> · Owner</span></td><td>Media / Marketing / Advertising</td><td></td><td>C5</td></tr>
+<tr><td class="co">CREWASIS.AI <a class="pitchbadge" href="#crewasis">PITCH APPLICANT ↓</a><span class="one">Decision-intelligence and workflow platform for enterprise consumer brands</span></td><td>Sharon Joseph<span class="ttl"> · ceo</span></td><td>Enterprise SaaS / B2B</td><td></td><td>C3</td></tr>
+<tr><td class="co">Diamond Hedge<span class="one">Diamond price-comparison platform with augmented-reality ring try-on</span></td><td>Mehul Sompura<span class="ttl"> · Founder</span></td><td>Retail / Marketplace / E-commerce</td><td>Monmouth</td><td>C4</td></tr>
+<tr><td class="co">Disrupt The Gap<span class="one">Wage-equality initiative offering pay-equity coaching and employer resources</span></td><td>Shell Bobev<span class="ttl"> · Founder/Compensation Strategist</span></td><td>Government / Civic / Policy</td><td>Morris</td><td>C3</td></tr>
+<tr><td class="co">Everyday Unstoppable<span class="one">Scripture-based affirmation card decks for Black women</span></td><td>Andrea Ferguson Peterson<span class="ttl"> · Founder and CEO</span></td><td>Retail / Marketplace / E-commerce</td><td>Essex</td><td>C5</td></tr>
+<tr><td class="co">First and Last PR<span class="one">Jersey City PR agency for beauty, wellness, and lifestyle brands</span></td><td>Stephanie Scott-Bradshaw<span class="ttl"> · CEO &amp; Communicator-in-Chief</span></td><td>Media / Marketing / Advertising</td><td>Hudson</td><td>C3</td></tr>
 <tr><td class="co">Newyorklife</td><td>Harshil Thakkar<span class="ttl"> · Financial Associate</span></td><td>Finance / Fintech</td><td>Hudson</td><td>C4</td></tr>
-<tr><td class="co">PCLinkup</td><td>Jerry Primus<span class="ttl"> · Owner</span></td><td>AI / Data / ML</td><td>Somerset</td><td>C1</td></tr>
-<tr><td class="co">Sweet Aurora Soap &amp; Candle</td><td>Lina Escobar<span class="ttl"> · Artisan</span></td><td>CPG / Consumer Brands</td><td></td><td>C1</td></tr>
-<tr><td class="co">The Keenly Group LLC</td><td>Kima D&#x27;Anjou<span class="ttl"> · Founder and CEO</span></td><td>Enterprise SaaS / B2B</td><td>Bergen</td><td>C5</td></tr>
-<tr><td class="co">Zenia Graph</td><td>Nina Mladenovski<span class="ttl"> · Co-Founder &amp; COO</span></td><td>AI / Data / ML</td><td></td><td>C2</td></tr>
-<tr class="stagehead"><td colspan="5">Early traction — 27 companies</td></tr>
-<tr><td class="co">3DHR Consulting, LLC</td><td>Debbie Douglas-Henry<span class="ttl"> · Founder &amp; CEO</span></td><td>Media / Marketing / Advertising</td><td>Essex</td><td>C2</td></tr>
-<tr><td class="co">Altruistic Scribe</td><td>Idongesit Obeya<span class="ttl"> · Founder</span></td><td>Enterprise SaaS / B2B</td><td></td><td>C3</td></tr>
+<tr><td class="co">PCLinkup<span class="one">Managed IT services and cybersecurity provider for NJ businesses</span></td><td>Jerry Primus<span class="ttl"> · Owner</span></td><td>AI / Data / ML</td><td>Somerset</td><td>C1</td></tr>
+<tr><td class="co">Sweet Aurora Soap &amp; Candle<span class="one">Small-batch soy candles, artisan soaps, and bath products</span></td><td>Lina Escobar<span class="ttl"> · Artisan</span></td><td>CPG / Consumer Brands</td><td></td><td>C1</td></tr>
+<tr><td class="co">The Keenly Group LLC<span class="one">Strategy consultancy helping small-business CEOs fix broken operational processes</span></td><td>Kima D&#x27;Anjou<span class="ttl"> · Founder and CEO</span></td><td>Enterprise SaaS / B2B</td><td>Bergen</td><td>C5</td></tr>
+<tr><td class="co">Zenia Graph<span class="one">Semantic AI and knowledge-graph consulting for enterprise data</span></td><td>Nina Mladenovski<span class="ttl"> · Co-Founder &amp; COO</span></td><td>AI / Data / ML</td><td></td><td>C2</td></tr>
+<tr class="stagehead"><td colspan="5">Early traction — 26 companies</td></tr>
+<tr><td class="co">3DHR Consulting, LLC<span class="one">HR consulting, career coaching, and media staffing services</span></td><td>Debbie Douglas-Henry<span class="ttl"> · Founder &amp; CEO</span></td><td>Media / Marketing / Advertising</td><td>Essex</td><td>C2</td></tr>
+<tr><td class="co">Altruistic Scribe<span class="one">Health tech for culturally individualized care of limited-English-proficiency patients</span></td><td>Idongesit Obeya<span class="ttl"> · Founder</span></td><td>Enterprise SaaS / B2B</td><td></td><td>C3</td></tr>
 <tr><td class="co">Bastien Guitars</td><td>Jimmy Bastien<span class="ttl"> · CEO</span></td><td>Retail / Marketplace / E-commerce</td><td>Essex</td><td>C4</td></tr>
-<tr><td class="co">Brickcity <a class="pitchbadge" href="#brickcity">PITCH APPLICANT ↓</a></td><td>Jhamar Youngblood<span class="ttl"> · Founder</span></td><td>Other</td><td>Essex</td><td>C1</td></tr>
-<tr><td class="co">Campus Marketplace</td><td>Aliya Laliwala<span class="ttl"> · Founder and CEO</span></td><td>Retail / Marketplace / E-commerce</td><td>Bergen</td><td>C4</td></tr>
-<tr><td class="co">Clear-Sight</td><td>Mark Kallback<span class="ttl"> · Founder</span></td><td>Other</td><td>Hunterdon</td><td>C4</td></tr>
-<tr><td class="co">Contextral</td><td>Anthony Caruso<span class="ttl"> · CEO</span></td><td>AI / Data / ML</td><td>Ocean</td><td>C1</td></tr>
-<tr><td class="co">Crafty Dessert LLC</td><td>Sarah Inoue<span class="ttl"> · CEO</span></td><td>Retail / Marketplace / E-commerce</td><td>Bergen</td><td>C1</td></tr>
-<tr><td class="co">Crestwood Digital</td><td>Chirag Shah<span class="ttl"> · Founder &amp; Principal Consultant</span></td><td>Other</td><td></td><td>C5</td></tr>
-<tr><td class="co">DeepInspect.ai</td><td>Parminder Singh<span class="ttl"> · Founder</span></td><td>AI / Data / ML</td><td>Middlesex</td><td>C4</td></tr>
-<tr><td class="co">DRIFTLANE <a class="pitchbadge" href="#driftlane">PITCH APPLICANT ↓</a></td><td>Soheil Khosravinejad<span class="ttl"> · Founder</span></td><td>Media / Marketing / Advertising</td><td></td><td>C1</td></tr>
-<tr><td class="co">Dumroo.ai</td><td>Alok Rai<span class="ttl"> · CEO</span></td><td>Other</td><td>Essex</td><td>C3</td></tr>
-<tr><td class="co">Focus Posters® <a class="pitchbadge" href="#focus">PITCH APPLICANT ↓</a></td><td>Annalyce D&#x27;Agostino-Gavin<span class="ttl"> · Founder</span></td><td>Other</td><td></td><td>C2</td></tr>
-<tr><td class="co">Freelance Audio (Pre-LLC) <a class="pitchbadge" href="#viaudae">PITCH APPLICANT ↓</a></td><td>Eliana Zebro<span class="ttl"> · CEO</span></td><td>Media / Marketing / Advertising</td><td>Warren</td><td>C3</td></tr>
-<tr><td class="co">Ilika LLC</td><td>Abhaya Pawar<span class="ttl"> · CEO</span></td><td>Climate / Energy</td><td>Middlesex</td><td>C4</td></tr>
-<tr><td class="co">Infivista Inc</td><td>Shanthi Viswanathan<span class="ttl"> · President</span></td><td>Other</td><td>Hudson</td><td>C3</td></tr>
-<tr><td class="co">Juegos AI Lab <a class="pitchbadge" href="#juegos">PITCH APPLICANT ↓</a></td><td>Elisa Charters<span class="ttl"> · Founder</span></td><td>Other</td><td>Essex</td><td>C5</td></tr>
-<tr><td class="co">Ox Group</td><td>Han Nguyen<span class="ttl"> · CEO</span></td><td>Finance / Fintech</td><td>Mercer</td><td>C4</td></tr>
-<tr><td class="co">Recky Solutions LLC</td><td>Sonali Chilupuri<span class="ttl"> · Business Owner</span></td><td>Enterprise SaaS / B2B</td><td>Middlesex</td><td>C1</td></tr>
-<tr><td class="co">STEAM FOR ME</td><td>Justin Savage<span class="ttl"> · CEO</span></td><td>Enterprise SaaS / B2B</td><td>Essex</td><td>C2</td></tr>
-<tr><td class="co">tapyoca</td><td>Jordan-River Samuel<span class="ttl"> · CMO and Co-Founder</span></td><td>Enterprise SaaS / B2B</td><td>Hudson</td><td>C5</td></tr>
+<tr><td class="co">Brickcity <a class="pitchbadge" href="#brickcity">PITCH APPLICANT ↓</a><span class="one">Newark-based consumer brand — apparel and everyday goods</span></td><td>Jhamar Youngblood<span class="ttl"> · Founder</span></td><td>Other</td><td>Essex</td><td>C1</td></tr>
+<tr><td class="co">Campus Marketplace<span class="one">Student marketplace platform; award-winning NJIT capstone project</span></td><td>Aliya Laliwala<span class="ttl"> · Founder and CEO</span></td><td>Retail / Marketplace / E-commerce</td><td>Bergen</td><td>C4</td></tr>
+<tr><td class="co">Contextral<span class="one">AI systems for document search, workflow automation, and video analysis</span></td><td>Anthony Caruso<span class="ttl"> · CEO</span></td><td>AI / Data / ML</td><td>Ocean</td><td>C1</td></tr>
+<tr><td class="co">Crafty Dessert LLC<span class="one">Online shop selling handmade personalized gifts for celebrations</span></td><td>Sarah Inoue<span class="ttl"> · CEO</span></td><td>Retail / Marketplace / E-commerce</td><td>Bergen</td><td>C1</td></tr>
+<tr><td class="co">Crestwood Digital<span class="one">AI workflow-automation consulting for publishers and media companies</span></td><td>Chirag Shah<span class="ttl"> · Founder &amp; Principal Consultant</span></td><td>Other</td><td></td><td>C5</td></tr>
+<tr><td class="co">DeepInspect.ai<span class="one">Runtime AI governance and security gateway for enterprise LLM use</span></td><td>Parminder Singh<span class="ttl"> · Founder</span></td><td>AI / Data / ML</td><td>Middlesex</td><td>C4</td></tr>
+<tr><td class="co">DRIFTLANE <a class="pitchbadge" href="#driftlane">PITCH APPLICANT ↓</a><span class="one">Briefing and management system for outsourced creative work</span></td><td>Soheil Khosravinejad<span class="ttl"> · Founder</span></td><td>Media / Marketing / Advertising</td><td></td><td>C1</td></tr>
+<tr><td class="co">Dumroo.ai<span class="one">AI ecosystem for K-12 education with personalized learning tools</span></td><td>Alok Rai<span class="ttl"> · CEO</span></td><td>Other</td><td>Essex</td><td>C3</td></tr>
+<tr><td class="co">Focus Posters® <a class="pitchbadge" href="#focus">PITCH APPLICANT ↓</a><span class="one">Custom visual-routine posters for kids in healthcare and special education</span></td><td>Annalyce D&#x27;Agostino-Gavin<span class="ttl"> · Founder</span></td><td>Other</td><td></td><td>C2</td></tr>
+<tr><td class="co">Viaudae Media (Pre-LLC) <a class="pitchbadge" href="#viaudae">PITCH APPLICANT ↓</a><span class="one">AI-assisted media production studio with human editing</span></td><td>Eliana Zebro<span class="ttl"> · CEO</span></td><td>Media / Marketing / Advertising</td><td>Warren</td><td>C3</td></tr>
+<tr><td class="co">Ilika LLC<span class="one">Turns satellite earth-observation imagery into actionable geospatial insights</span></td><td>Abhaya Pawar<span class="ttl"> · CEO</span></td><td>Climate / Energy</td><td>Middlesex</td><td>C4</td></tr>
+<tr><td class="co">Infivista Inc<span class="one">Edtech product targeting business schools, learning centers, and corporate training</span></td><td>Shanthi Viswanathan<span class="ttl"> · President</span></td><td>Other</td><td>Hudson</td><td>C3</td></tr>
+<tr><td class="co">Juegos AI Lab <a class="pitchbadge" href="#juegos">PITCH APPLICANT ↓</a><span class="one">AI-powered social app coordinating in-person meetups and local engagement</span></td><td>Elisa Charters<span class="ttl"> · Founder</span></td><td>Other</td><td>Essex</td><td>C5</td></tr>
+<tr><td class="co">Ox Group<span class="one">Finance and real estate services venture</span></td><td>Han Nguyen<span class="ttl"> · CEO</span></td><td>Finance / Fintech</td><td>Mercer</td><td>C4</td></tr>
+<tr><td class="co">Recky Solutions LLC<span class="one">Staffing and marketing services firm building an AI recruiting platform</span></td><td>Sonali Chilupuri<span class="ttl"> · Business Owner</span></td><td>Enterprise SaaS / B2B</td><td>Middlesex</td><td>C1</td></tr>
+<tr><td class="co">STEAM FOR ME<span class="one">Newark nonprofit delivering hands-on STEAM education to youth</span></td><td>Justin Savage<span class="ttl"> · CEO</span></td><td>Enterprise SaaS / B2B</td><td>Essex</td><td>C2</td></tr>
+<tr><td class="co">tapyoca<span class="one">NFC fan cards helping independent musicians connect with fans</span></td><td>Jordan-River Samuel<span class="ttl"> · CMO and Co-Founder</span></td><td>Enterprise SaaS / B2B</td><td>Hudson</td><td>C5</td></tr>
 <tr><td class="co">TETHRRA</td><td>Jean Guerdy Paul<span class="ttl"> · founder</span></td><td>Enterprise SaaS / B2B</td><td>Monmouth</td><td>C3</td></tr>
-<tr><td class="co">The Zigzag Flow, Therapy Services</td><td>Natalie Kitts<span class="ttl"> · Clinical Founder,  CEO</span></td><td>Other</td><td>Morris</td><td>C5</td></tr>
-<tr><td class="co">ticker</td><td>Logan Jones<span class="ttl"> · Founder + CEO</span></td><td>Finance / Fintech</td><td></td><td>C4</td></tr>
-<tr><td class="co">Truxt <a class="pitchbadge" href="#truxt">PITCH APPLICANT ↓</a></td><td>Naveen Kumar<span class="ttl"> · Founder &amp; CEO</span></td><td>Enterprise SaaS / B2B</td><td>Bergen</td><td>C2</td></tr>
-<tr><td class="co">United Solution</td><td>Bejan Moers<span class="ttl"> · founder / ceo</span></td><td>Other</td><td>Hudson</td><td>C2</td></tr>
-<tr><td class="co">Virre</td><td>Gunjan Aggarwal<span class="ttl"> · Founder</span></td><td>AI / Data / ML</td><td>Middlesex</td><td>C5</td></tr>
-<tr class="stagehead"><td colspan="5">MVP / Early build — 23 companies</td></tr>
-<tr><td class="co">AnatomyQuest</td><td>Favio Jasso<span class="ttl"> · Co-Founder &amp; CTO</span></td><td>Enterprise SaaS / B2B</td><td></td><td>C1</td></tr>
-<tr><td class="co">AnatomyQuest</td><td>Emilia Savich<span class="ttl"> · Co-Founder &amp; CEO</span></td><td>Enterprise SaaS / B2B</td><td>Ocean</td><td>C2</td></tr>
+<tr><td class="co">The Zigzag Flow, Therapy Services<span class="one">Developmental play therapy practice for children with autism</span></td><td>Natalie Kitts<span class="ttl"> · Clinical Founder,  CEO</span></td><td>Other</td><td>Morris</td><td>C5</td></tr>
+<tr><td class="co">ticker<span class="one">Social investing app with verified trades from connected brokerage accounts</span></td><td>Logan Jones<span class="ttl"> · Founder + CEO</span></td><td>Finance / Fintech</td><td></td><td>C4</td></tr>
+<tr><td class="co">Truxt <a class="pitchbadge" href="#truxt">PITCH APPLICANT ↓</a><span class="one">AI ROI and engineering-intelligence control plane for enterprises</span></td><td>Naveen Kumar<span class="ttl"> · Founder &amp; CEO</span></td><td>Enterprise SaaS / B2B</td><td>Bergen</td><td>C2</td></tr>
+<tr><td class="co">United Solution<span class="one">Design agency for product development, UX, and business intelligence</span></td><td>Bejan Moers<span class="ttl"> · founder / ceo</span></td><td>Other</td><td>Hudson</td><td>C2</td></tr>
+<tr><td class="co">Virre<span class="one">AI-native platform for managing professional networking relationships</span></td><td>Gunjan Aggarwal<span class="ttl"> · Founder</span></td><td>AI / Data / ML</td><td>Middlesex</td><td>C5</td></tr>
+<tr class="stagehead"><td colspan="5">MVP / Early build — 21 companies</td></tr>
+<tr><td class="co">AnatomyQuest<span class="one">Community-driven interactive anatomy study resource for students</span></td><td>Emilia Savich<span class="ttl"> · Co-Founder &amp; CEO</span></td><td>Enterprise SaaS / B2B</td><td>Ocean</td><td>C2</td></tr>
 <tr><td class="co">Brooklyn Navy Yard</td><td>Britney Medich<span class="ttl"> · Workforce Talent Manager</span></td><td>Other</td><td>Hudson</td><td>C5</td></tr>
-<tr><td class="co">DreamEngine AI</td><td>Daniel Patton<span class="ttl"> · Founder &amp; CEO</span></td><td>AI / Data / ML</td><td>Middlesex</td><td>C5</td></tr>
+<tr><td class="co">DreamEngine AI<span class="one">AI platform for distributed, multi-agent infrastructure</span></td><td>Daniel Patton<span class="ttl"> · Founder &amp; CEO</span></td><td>AI / Data / ML</td><td>Middlesex</td><td>C5</td></tr>
 <tr><td class="co">Fluenci</td><td>Angie Tirado<span class="ttl"> · CEO</span></td><td>Retail / Marketplace / E-commerce</td><td></td><td>C2</td></tr>
 <tr><td class="co">Freelance Software Engineer</td><td>Abhi Ray<span class="ttl"> · solopreneur</span></td><td>AI / Data / ML</td><td>Middlesex</td><td>C3</td></tr>
-<tr><td class="co">HHALI LLC <a class="pitchbadge" href="#obligo">PITCH APPLICANT ↓</a></td><td>Hamza Zafar<span class="ttl"> · Owner/CEO</span></td><td>AI / Data / ML</td><td>Middlesex</td><td>C1</td></tr>
-<tr><td class="co">Local Window</td><td>Adeola Adeoye-Davids<span class="ttl"> · Founder &amp; CEO</span></td><td>Media / Marketing / Advertising</td><td>Passaic</td><td>C3</td></tr>
-<tr><td class="co">MechSense Labs</td><td>Kevin Navarro<span class="ttl"> · Founder</span></td><td>AI / Data / ML</td><td>Bergen</td><td>C5</td></tr>
-<tr><td class="co">Nariway</td><td>Alina Okun<span class="ttl"> · Founder</span></td><td>Other</td><td>Bergen</td><td>C1</td></tr>
-<tr><td class="co">Nooriva</td><td>Evan Peneiras<span class="ttl"> · Co-Founder</span></td><td>AI / Data / ML</td><td>Essex</td><td>C3</td></tr>
-<tr><td class="co">Ozzie <a class="pitchbadge" href="#ozzie">PITCH APPLICANT ↓</a></td><td>Paula Machado Jackler<span class="ttl"> · Founder &amp; CEO</span></td><td>Finance / Fintech</td><td></td><td>C3</td></tr>
+<tr><td class="co">HHALI LLC (Obligo) <a class="pitchbadge" href="#obligo">PITCH APPLICANT ↓</a><span class="one">Real-time runtime governance and auditing for AI agents</span></td><td>Hamza Zafar<span class="ttl"> · Owner/CEO</span></td><td>AI / Data / ML</td><td>Middlesex</td><td>C1</td></tr>
+<tr><td class="co">Local Window<span class="one">Advertising screens in clinic waiting rooms for local businesses</span></td><td>Adeola Adeoye-Davids<span class="ttl"> · Founder &amp; CEO</span></td><td>Media / Marketing / Advertising</td><td>Passaic</td><td>C3</td></tr>
+<tr><td class="co">MechSense Labs<span class="one">Autonomous rovers and drones for surveying and search-and-rescue</span></td><td>Kevin Navarro<span class="ttl"> · Founder</span></td><td>AI / Data / ML</td><td>Bergen</td><td>C5</td></tr>
+<tr><td class="co">Nariway<span class="one">Independent research institute and exhibitions on the history of work</span></td><td>Alina Okun<span class="ttl"> · Founder</span></td><td>Other</td><td>Bergen</td><td>C1</td></tr>
+<tr><td class="co">Nooriva<span class="one">Smart glasses for non-contact intraocular pressure monitoring in glaucoma</span></td><td>Evan Peneiras<span class="ttl"> · Co-Founder</span></td><td>AI / Data / ML</td><td>Essex</td><td>C3</td></tr>
+<tr><td class="co">Ozzie <a class="pitchbadge" href="#ozzie">PITCH APPLICANT ↓</a><span class="one">AI financial companion for US immigrants, in-app and on WhatsApp</span></td><td>Paula Machado Jackler<span class="ttl"> · Founder &amp; CEO</span></td><td>Finance / Fintech</td><td></td><td>C3</td></tr>
 <tr><td class="co">Quanticore</td><td>Lianna LaRiccia<span class="ttl"> · Cofounder, CTO</span></td><td>Enterprise SaaS / B2B</td><td>Passaic</td><td>C4</td></tr>
-<tr><td class="co">Ravel Genetics <a class="pitchbadge" href="#ravel">PITCH APPLICANT ↓</a></td><td>Rachel Hayes<span class="ttl"> · CEO</span></td><td>Enterprise SaaS / B2B</td><td>Bergen</td><td>C5</td></tr>
-<tr><td class="co">Rekogni AI</td><td>Radha Ratnala<span class="ttl"> · CEO</span></td><td>Enterprise SaaS / B2B</td><td>Middlesex</td><td>C3</td></tr>
+<tr><td class="co">Ravel Genetics <a class="pitchbadge" href="#ravel">PITCH APPLICANT ↓</a><span class="one">Multi-omics genomics intelligence for preventive, personalized care</span></td><td>Rachel Hayes<span class="ttl"> · CEO</span></td><td>Enterprise SaaS / B2B</td><td>Bergen</td><td>C5</td></tr>
+<tr><td class="co">Rekogni AI<span class="one">AI-native B2B platform automating routine work for software engineers</span></td><td>Radha Ratnala<span class="ttl"> · CEO</span></td><td>Enterprise SaaS / B2B</td><td>Middlesex</td><td>C3</td></tr>
 <tr><td class="co">SekurAI</td><td>Rajesh Ivaturi<span class="ttl"> · Founder &amp; CISO</span></td><td>Enterprise SaaS / B2B</td><td></td><td>C4</td></tr>
-<tr><td class="co">Sphinque</td><td>Ahmed Metwoali<span class="ttl"> · Founder &amp; CEO</span></td><td>Enterprise SaaS / B2B</td><td></td><td>C2</td></tr>
-<tr><td class="co">Staytus</td><td>Shippy Singh<span class="ttl"> · Co-founder</span></td><td>AI / Data / ML</td><td></td><td>C5</td></tr>
+<tr><td class="co">Sphinque<span class="one">AI technical screening platform simulating real codebases for engineering hiring</span></td><td>Ahmed Metwoali<span class="ttl"> · Founder &amp; CEO</span></td><td>Enterprise SaaS / B2B</td><td></td><td>C2</td></tr>
 <tr><td class="co">Stealth-mode molecular diagnostics startup</td><td>Ekaterina Kashkina<span class="ttl"> · scientific co-founder</span></td><td>Other</td><td>Camden</td><td>C2</td></tr>
-<tr><td class="co">TasteTwin AI</td><td>Mohammad Saleh Nikoopayan Tak<span class="ttl"> · Founder</span></td><td>Retail / Marketplace / E-commerce</td><td>Union</td><td>C4</td></tr>
+<tr><td class="co">TasteTwin AI<span class="one">App matching people by food taste for dining recommendations</span></td><td>Mohammad Saleh Nikoopayan Tak<span class="ttl"> · Founder</span></td><td>Retail / Marketplace / E-commerce</td><td>Union</td><td>C4</td></tr>
 <tr><td class="co">Tend to Belle</td><td>Tosca Marleen<span class="ttl"> · Founder</span></td><td>Retail / Marketplace / E-commerce</td><td></td><td>C2</td></tr>
-<tr><td class="co">TrueSkin</td><td>Andrea Vernengo<span class="ttl"> · Associate Professor of Chemical Engineering and CTO</span></td><td>Hardware / Manufacturing</td><td>Camden</td><td>C1</td></tr>
-<tr><td class="co">Wash Lodge <a class="pitchbadge" href="#washlodge">PITCH APPLICANT ↓</a></td><td>Gifty Anane<span class="ttl"> · Member</span></td><td>Retail / Marketplace / E-commerce</td><td>Middlesex</td><td>C1</td></tr>
-<tr class="stagehead"><td colspan="5">Idea stage — 16 companies</td></tr>
+<tr><td class="co">TrueSkin<span class="one">Handheld microchanneling device stimulating collagen (Rowan University spinout)</span></td><td>Andrea Vernengo<span class="ttl"> · Associate Professor of Chemical Engineering and CTO</span></td><td>Hardware / Manufacturing</td><td>Camden</td><td>C1</td></tr>
+<tr><td class="co">Wash Lodge <a class="pitchbadge" href="#washlodge">PITCH APPLICANT ↓</a><span class="one">Premium laundromat with co-working lounge in Princeton</span></td><td>Gifty Anane<span class="ttl"> · Member</span></td><td>Retail / Marketplace / E-commerce</td><td>Middlesex</td><td>C1</td></tr>
+<tr class="stagehead"><td colspan="5">Idea stage — 9 companies</td></tr>
 <tr><td class="co">BOA (startup name undecided)</td><td>Chandni Patel<span class="ttl"> · Software Engineer</span></td><td>Other</td><td>Middlesex</td><td>C5</td></tr>
-<tr><td class="co">Elune Health</td><td>Elaf Mahmoud<span class="ttl"> · Aspiring Founder</span></td><td>CPG / Consumer Brands</td><td>Morris</td><td>C2</td></tr>
-<tr><td class="co">Get Empathix</td><td>Angela Aricatt<span class="ttl"> · Founder</span></td><td>Enterprise SaaS / B2B</td><td>Essex</td><td>C3</td></tr>
-<tr><td class="co">Hosendorf &amp; Associates, LLC</td><td>Victoria Hosendorf<span class="ttl"> · President &amp; CEO</span></td><td>Other</td><td></td><td>C1</td></tr>
-<tr class="churned"><td class="co">JP Morgan Chase <span class="churnbadge">EXITED PROGRAM</span></td><td>Jasmin Jones<span class="ttl"> · Event Planner</span></td><td>Media / Marketing / Advertising</td><td></td><td>C5</td></tr>
+<tr><td class="co">Elune Health<span class="one">Smart menstrual cup with biosensors for reproductive health insights</span></td><td>Elaf Mahmoud<span class="ttl"> · Aspiring Founder</span></td><td>CPG / Consumer Brands</td><td>Morris</td><td>C2</td></tr>
+<tr><td class="co">Get Empathix<span class="one">VR de-escalation training for mental health nurses</span></td><td>Angela Aricatt<span class="ttl"> · Founder</span></td><td>Enterprise SaaS / B2B</td><td>Essex</td><td>C3</td></tr>
 <tr><td class="co">KLA Corporation</td><td>Ebunoluwa Adenekan<span class="ttl"> · Electro-Mechanical Assembly Technician</span></td><td>Hardware / Manufacturing</td><td></td><td>C4</td></tr>
 <tr><td class="co">Menti</td><td>Jeremy Ruiz Villavicencio<span class="ttl"> · Student</span></td><td>Media / Marketing / Advertising</td><td>Union</td><td>C5</td></tr>
-<tr class="churned"><td class="co">Meta <span class="churnbadge">EXITED PROGRAM</span></td><td>Neha Chopade<span class="ttl"> · UXR</span></td><td>Other</td><td>Hudson</td><td>C1</td></tr>
 <tr><td class="co">Pinterest</td><td>Stephanie Cwynar<span class="ttl"> · Senior Manager</span></td><td>Other</td><td></td><td>C3</td></tr>
-<tr><td class="co">TBD</td><td>Pearl Gabel<span class="ttl"> · Founder</span></td><td>Media / Marketing / Advertising</td><td></td><td>C2</td></tr>
-<tr><td class="co">TBD</td><td>Maab Iqbal<span class="ttl"> · Student</span></td><td>Media / Marketing / Advertising</td><td></td><td>C4</td></tr>
-<tr><td class="co">Undecided</td><td>Alisha Sharma<span class="ttl"> · CoFounder</span></td><td>Other</td><td>Morris</td><td>C2</td></tr>
-<tr><td class="co">Unnamed (Idea Stage)</td><td>Jedidiah Worrell<span class="ttl"> · N/A</span></td><td>Retail / Marketplace / E-commerce</td><td>Mercer</td><td>C1</td></tr>
 <tr><td class="co">Veriflo LLC</td><td>Pierre Girgis<span class="ttl"> · Founder</span></td><td>AI / Data / ML</td><td>Bergen</td><td>C3</td></tr>
-<tr><td class="co">Wisdom &amp; Wonder Wellness</td><td>Priyal Levine<span class="ttl"> · Founder</span></td><td>Other</td><td>Morris</td><td>C4</td></tr>
-<tr><td class="co">World Micro Stock Vinimay USA LLC <a class="pitchbadge" href="#wms">PITCH APPLICANT ↓</a></td><td>Pradeep Kumar Gohil<span class="ttl"> · CEO Founder</span></td><td>Other</td><td></td><td>C3</td></tr>
+<tr><td class="co">Wisdom &amp; Wonder Wellness<span class="one">Yoga therapy practice offering workshops for studios and wellness clients</span></td><td>Priyal Levine<span class="ttl"> · Founder</span></td><td>Other</td><td>Morris</td><td>C4</td></tr>
+<tr><td class="co">World Micro Stock Vinimay USA LLC <a class="pitchbadge" href="#wms">PITCH APPLICANT ↓</a><span class="one">Blockchain UBI crowdfunding concept</span></td><td>Pradeep Kumar Gohil<span class="ttl"> · CEO Founder</span></td><td>Other</td><td></td><td>C3</td></tr>
 </table>
 </div>
 
