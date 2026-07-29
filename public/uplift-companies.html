@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Uplift Companies — Directory &amp; Pitch Showcase</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #1d1d1f; }
+  header { background: #1d1d1f; color: white; padding: 28px 40px; }
+  header h1 { font-size: 21px; font-weight: 700; }
+  header p { font-size: 13px; opacity: .65; margin-top: 6px; }
+  header .stats { display: flex; gap: 32px; margin-top: 18px; flex-wrap: wrap; }
+  header .stat .num { font-size: 26px; font-weight: 700; }
+  header .stat .label { font-size: 12px; opacity: .6; margin-top: 2px; }
+  .container { max-width: 1080px; margin: 0 auto; padding: 28px 40px 60px; }
+
+  table.summary { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.08); font-size: 13px; margin-bottom: 32px; }
+  table.summary th { text-align: left; padding: 10px 14px; background: #1d1d1f; color: white; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+  table.summary td { padding: 10px 14px; border-top: 1px solid #f0f0f2; vertical-align: top; }
+  table.summary tr:hover { background: #fafafc; }
+  table.summary a { color: #0071e3; text-decoration: none; font-weight: 600; }
+  .ask { font-weight: 700; white-space: nowrap; }
+
+  .card { background: white; border-radius: 14px; margin-bottom: 20px; padding: 26px 30px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .card .top { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 4px; }
+  .card h2 { font-size: 19px; font-weight: 700; }
+  .card .founder { font-size: 13px; color: #6e6e73; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 14px; }
+  .chip { font-size: 11.5px; font-weight: 600; padding: 4px 11px; border-radius: 20px; background: #f0f0f5; color: #3a3a3c; }
+  .chip.sector { background: #e8f0fe; color: #1a56b8; }
+  .chip.stage { background: #f3e8fd; color: #7a2fb5; }
+  .chip.raise { background: #d1f5db; color: #1a7a34; }
+  .chip.noraise { background: #fff0d9; color: #b35c00; }
+  .card .desc { font-size: 14.5px; line-height: 1.65; color: #2c2c2e; margin-bottom: 16px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; }
+  .field .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: #86868b; margin-bottom: 4px; }
+  .field .val { font-size: 13.5px; line-height: 1.55; color: #3a3a3c; }
+  .field .val a { color: #0071e3; text-decoration: none; }
+  .full { grid-column: 1 / -1; }
+  .note { font-size: 12.5px; color: #86868b; margin-top: 24px; line-height: 1.6; }
+  .sechead { margin: 36px 0 6px; font-size: 17px; font-weight: 700; }
+  .sechead:first-of-type { margin-top: 8px; }
+  .secsub { font-size: 13px; color: #6e6e73; margin-bottom: 16px; line-height: 1.5; }
+  table.dir { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.08); font-size: 13px; }
+  table.dir td { padding: 9px 14px; border-top: 1px solid #f0f0f2; vertical-align: top; }
+  table.dir tr.stagehead td { background: #1d1d1f; color: white; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; padding: 8px 14px; border: none; }
+  table.dir .co { font-weight: 600; }
+  table.dir .ttl { color: #86868b; font-weight: 400; }
+  table.dir tr.churned td { color: #b0b0b5; }
+  .pitchbadge { font-size: 9.5px; font-weight: 800; letter-spacing: .5px; background: #d1f5db; color: #1a7a34; padding: 2px 8px; border-radius: 10px; text-decoration: none; white-space: nowrap; vertical-align: 1px; }
+  .churnbadge { font-size: 9.5px; font-weight: 800; letter-spacing: .5px; background: #f0f0f2; color: #86868b; padding: 2px 8px; border-radius: 10px; white-space: nowrap; vertical-align: 1px; }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } .container { padding: 20px; } .wrap-table { overflow-x: auto; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Uplift Companies — Directory &amp; Pitch Showcase Profiles</h1>
+  <p>Uplift Summer 2026 · TechUnited:NJ &nbsp;·&nbsp; Compiled from the Typeform mentee applications (stage, industry, county) and the Aug 4 Pitch Showcase submissions + decks (description, product, traction, ask)</p>
+  <div class="stats">
+    <div class="stat"><div class="num">80</div><div class="label">Companies in program</div></div>
+    <div class="stat"><div class="num">12</div><div class="label">Pitch Showcase applicants</div></div>
+    <div class="stat"><div class="num">$7.8M+</div><div class="label">Combined disclosed asks</div></div>
+    <div class="stat"><div class="num">$432K</div><div class="label">Highest ARR (Crewasis)</div></div>
+  </div>
+</header>
+
+<div class="container">
+
+<div class="sechead">Pitch Showcase applicants — Aug 4 Summit</div>
+<div class="secsub">The 12 companies that applied to pitch, ranked roughly by commercial maturity. Detailed profiles below the table are drawn from their submitted decks.</div>
+<div class="wrap-table">
+<table class="summary">
+  <tr><th>Company</th><th>Sector</th><th>Stage</th><th>Traction snapshot</th><th>Ask</th></tr>
+  <tr><td><a href="#crewasis">Crewasis</a></td><td>AI / ML — Enterprise SaaS</td><td>Seed</td><td>$432K ARR · 4–5 Fortune-1000 logos · 0% churn</td><td class="ask">$2.0M</td></tr>
+  <tr><td><a href="#truxt">Truxt</a></td><td>AI / ML — Dev tooling</td><td>Pre-Seed</td><td>1 paying + 2 onboarded customers · Broadcom engagement</td><td class="ask">$3.0M</td></tr>
+  <tr><td><a href="#ozzie">Ozzie</a></td><td>Fintech — Consumer</td><td>Pre-Seed</td><td>200 active users, zero paid marketing</td><td class="ask">$500K</td></tr>
+  <tr><td><a href="#ravel">Ravel Genetics</a></td><td>Healthcare / Life Sciences</td><td>Pre-Seed</td><td>MVP in development, pilots planned</td><td class="ask">$700K</td></tr>
+  <tr><td><a href="#focus">Focus Posters®</a></td><td>EdTech / Pediatric HealthTech</td><td>Early Stage</td><td>40+ pilot participants · Nasdaq Milestone Makers</td><td>Not stated</td></tr>
+  <tr><td><a href="#obligo">Obligo (HHALI)</a></td><td>SaaS — AI Governance</td><td>Pre-Seed</td><td>Working product · 2–3 design-partner convos</td><td>Design partners</td></tr>
+  <tr><td><a href="#driftlane">Driftlane</a></td><td>SaaS — Creative ops</td><td>Pre-Seed</td><td>Demo-ready application</td><td>Not stated</td></tr>
+  <tr><td><a href="#washlodge">Wash Lodge</a></td><td>Consumer Services</td><td>Pre-launch</td><td>Pre-revenue; location scoped in Princeton</td><td class="ask">$1.5M</td></tr>
+  <tr><td><a href="#brickcity">The Brickcity Group</a></td><td>Consumer Products</td><td>Pre-Seed</td><td>$3K raised · first collection launches Aug 29</td><td class="ask">$115K</td></tr>
+  <tr><td><a href="#viaudae">Viaudae Media</a></td><td>AI — Media Production</td><td>Idea / Pre-Seed</td><td>Demo productions completed</td><td>Not stated</td></tr>
+  <tr><td><a href="#juegos">Juegos AI Lab</a></td><td>AI / ML</td><td>Seed</td><td>No deck submitted</td><td>Unknown</td></tr>
+  <tr><td><a href="#wms">World Micro Stock Vinimay USA</a></td><td>Fintech — Blockchain</td><td>Concept</td><td>Concept stage</td><td>Not stated</td></tr>
+</table>
+</div>
+
+<div class="card" id="crewasis">
+  <div class="top"><h2>Crewasis</h2><span class="founder">Sharon Joseph, Founder &amp; CEO · Cohort 3 · Mentor: Joe Spivack</span></div>
+  <div class="chips"><span class="chip sector">AI / ML — Enterprise SaaS</span><span class="chip stage">Seed</span><span class="chip raise">Raising $2.0M · $300K committed · $10M post-money cap</span></div>
+  <div class="desc">Decision-intelligence platform for enterprise consumer brands — positioned as "Jira for enterprise consumer brands." Crewasis ingests multimodal market signals (reviews, social, search, first-party data), statistically ranks opportunities with its proprietary HAZRA algorithm, and turns them into cited, auditable, executed decisions via its "Winston" context layer — closing the gap where listening and agentic-marketing tools stop at insight. B2B SaaS: $60K starting ACV, $250K+ multi-brand enterprise contracts, 70%+ gross margin, 6:1 LTV:CAC.</div>
+  <div class="grid">
+    <div class="field"><div class="label">Online / Product</div><div class="val"><a href="https://www.crewasis.ai">crewasis.ai</a> — live in production with paying enterprise customers</div></div>
+    <div class="field"><div class="label">Money needed</div><div class="val">$2.0M seed ($300K committed) — recommender system, product, first sales hire; targets $1.4M ARR &amp; 10 net-new logos in 18 mo. Claims cash-flow positive 2027 without funding.</div></div>
+    <div class="field full"><div class="label">Traction</div><div class="val">$432K ARR 2026 YTD (target $600K–$1.0M) · 4–5 Fortune-1000 logos, all paid and founder-sold: Haleon (Centrum), Reckitt (Enfamil), Waterpik, PetIQ · $60K avg contract value · 0% logo churn · pipeline: Kenvue, Church &amp; Dwight, McDonald's, Burger King. Revenue history: $122K (2024) → $265K (2025) → $624K forecast (2026).</div></div>
+  </div>
+</div>
+
+<div class="card" id="truxt">
+  <div class="top"><h2>Truxt Inc</h2><span class="founder">Naveen Kumar, Co-founder &amp; CEO (with CTO Ayush Kumar, ex-Rubrik) · Cohort 2 · Mentor: Mark Nelson</span></div>
+  <div class="chips"><span class="chip sector">AI / ML — Engineering Intelligence</span><span class="chip stage">Pre-Seed</span><span class="chip raise">Raising $3.0M pre-seed</span></div>
+  <div class="desc">"Autonomous engineering control plane" — a single platform that answers the CFO question of AI ROI. Truxt maps an enterprise's full SDLC/DevOps footprint into a proprietary knowledge graph, tracks the impact and token-cost economics of every AI tool, coaches developers on adoption, and deploys autonomous agents to fix the SDLC gaps it finds. Priced per active developer ($100–$240/dev/yr), landing mid-market and expanding across engineering orgs; TAM framed at $28B by 2028.</div>
+  <div class="grid">
+    <div class="field"><div class="label">Online / Product</div><div class="val"><a href="https://truxt.ai">truxt.ai</a> — live platform with paying pilots</div></div>
+    <div class="field"><div class="label">Money needed</div><div class="val">$3.0M pre-seed (50% GTM, 30% engineering, 20% ops) — goal of 20 enterprise clients and $3M ARR to set up Series A</div></div>
+    <div class="field full"><div class="label">Traction</div><div class="val">Crosslake paying today; Ankra and Storyvord onboarded · Broadcom engagement described as a $10M+ expansion opportunity · joint GTM partnerships with Infosys and Hexaware · ~$150K ARR (2026) ramping to $3M (2027) per plan · $270K+ in cloud credits (Microsoft, Google, AWS, Anthropic).</div></div>
+  </div>
+</div>
+
+<div class="card" id="ozzie">
+  <div class="top"><h2>Ozzie</h2><span class="founder">Paula Machado Jackler, Founder &amp; CEO (with founding engineer Ramon Lopes, ex-Magazine Luiza) · Cohort 3 · Mentor: Eric Schmalzbauer</span></div>
+  <div class="chips"><span class="chip sector">Fintech — Consumer AI</span><span class="chip stage">Pre-Seed</span><span class="chip raise">Raising $500K pre-seed</span></div>
+  <div class="desc">AI financial companion for the 22.7M US immigrants excluded from mainstream wealth tools — "what Digit did for American millennials, for the immigrants they never reached." Three agentic AI roles (financial therapist, planner, and money manager) run on a proprietary money-psychology model validated across 8,000+ people, delivered seamlessly across a native app and WhatsApp in Spanish, Portuguese, and English. Revenue: $7.99–$12.99/mo B2C subscription + $3.50 per cross-border transfer ($187/yr blended ARPU), with B2B employer and government licensing behind it. Bottom-up consumer TAM of $4.2B.</div>
+  <div class="grid">
+    <div class="field"><div class="label">Online / Product</div><div class="val"><a href="https://ozziemoney.com/">ozziemoney.com</a> — live app + WhatsApp agent, launched Mar 7, 2026</div></div>
+    <div class="field"><div class="label">Money needed</div><div class="val">$500K pre-seed (53% team, 20% compliance/infrastructure incl. KYC/AML and stablecoin rails) — targets 2,500+ users and seed-ready in 18 months</div></div>
+    <div class="field full"><div class="label">Traction</div><div class="val">200 active users since launch with zero outside capital and zero paid marketing · 90% of users set financial goals, 70% completed "Money Moves" · 20-member private WhatsApp community with 100% logging in 3×/week · community-led GTM through churches and immigrant hubs in the NJ/NY metro.</div></div>
+  </div>
+</div>
+
+<div class="card" id="ravel">
+  <div class="top"><h2>Ravel Genetics</h2><span class="founder">Rachel Montel Hayes, PhD, Founder (team incl. co-founder Chris Mason, PhD) · Cohort 5 · Mentor: Yuri Fiaschi</span></div>
+  <div class="chips"><span class="chip sector">Healthcare / Life Sciences</span><span class="chip stage">Pre-Seed</span><span class="chip raise">Seeking $700K</span></div>
+  <div class="desc">Genomics-intelligence HealthTech platform — a clinical decision-support tool, not a testing company. Ravel applies deep multi-omics analysis (including mitochondrial analysis) and a systems-biology interpretation layer to unify fragmented health data into actionable, personalized preventive-care insights. Sells to functional-medicine and integrative practitioners, primary care, and specialists at a $1,200 provider-ordered price point, undercut only by genetics-only competitors. Deck maps a strategic-acquisition exit path (diagnostics, genomics, health-data platforms, pharma) within 12–48 months of clinical utilization.</div>
+  <div class="grid">
+    <div class="field"><div class="label">Online / Product</div><div class="val"><a href="https://ravelgenetics.com">ravelgenetics.com</a> — portal live; platform MVP in development (beta finalization 2026)</div></div>
+    <div class="field"><div class="label">Money needed</div><div class="val">$700K in funding (seed round plus SBIR/grants/accelerators per roadmap) — funds MVP completion, pilots, and commercial launch by 2027</div></div>
+    <div class="field full"><div class="label">Traction</div><div class="val">Pre-revenue. Roadmap: pilot &amp; clinical-utility partnerships with healthcare systems, clinics and academic centers (Q4 2026), commercial launch 2027. Market framed as growing from $3.4B toward $124B (250% projected 5-yr growth).</div></div>
+  </div>
+</div>
+
+<div class="card" id="focus">
+  <div class="top"><h2>Focus Posters®</h2><span class="founder">Annalyce D'Agostino-Gavin, Founder · Cohort 2 · Mentor: Stephen Makinen</span></div>
+  <div class="chips"><span class="chip sector">EdTech / Pediatric HealthTech</span><span class="chip stage">Early Stage</span><span class="chip noraise">No ask stated in deck</span></div>
+  <div class="desc">"Reimagine routine" — a design platform for creating custom visual-schedule posters that help children (especially in special-education and pediatric-healthcare settings) navigate routines like morning prep, medication, glucose checks, or getting an IV. Users build a custom "Focus Friend" character that looks like their child, pick from a template library (schedules, emotions, daily living skills), and get a physical or digital poster. Differentiates vs. LessonPix and AI upstarts on custom characters + consistent art + healthcare focus. Pricing: $299/yr B2B (clinics, hospitals, solo practitioners), $29.99/mo solo, $8.99 D2C; enterprise tier planned by 2029.</div>
+  <div class="grid">
+    <div class="field"><div class="label">Online / Product</div><div class="val"><a href="https://focusposters.com">focusposters.com</a> — live design platform with e-commerce</div></div>
+    <div class="field"><div class="label">Money needed</div><div class="val">Not stated in deck — revenue plan shows 500 single purchases + 60 B2B users (2026) scaling to ~$190K (2027)</div></div>
+    <div class="field full"><div class="label">Traction</div><div class="val">40+ pilot-program participants interested across the US and Canada with strong qualitative feedback from child-life teams · distribution partnership with Hearts Connected (network of 2,300+ Child Life professionals, 11 active partnerships, 3,600 webinar registrants) · 1 of 13 global founders selected for Nasdaq Entrepreneurial Center's Milestone Makers HealthTech cohort (Spring 2026) · Telly Award-winning children's content creator · press coverage. Target market: 70K nurse educators, 16K pediatric clinics, 200+ children's hospitals.</div></div>
+  </div>
+</div>
+
+<div class="card" id="obligo">
+  <div class="top"><h2>Obligo (HHALI LLC)</h2><span class="founder">Hamza Ali Zafar, Founder · Cohort 1 · Mentor: Rahul Mehendale</span></div>
+  <div class="chips"><span class="chip sector">SaaS — AI Agent Governance</span><span class="chip stage">Pre-Seed</span><span class="chip noraise">Seeking design partners, not capital</span></div>
+  <div class="desc">Runtime governance for AI agents — "audits AI agents the way auditors audit employees: in real time, not once a year." Obligo parses contracts, regulations, and internal policies into a control graph, then continuously validates what agents actually do against what the company signed — allowed, flagged, or blocked, with evidence attached. Deterministic verification (LLM proposes, engine verifies against an open control catalog) is the claimed moat; runs inside the customer's environment so contracts never leave their network. Positioned as the fourth question next to Vanta/Drata (audit), Wiz (exposure), and Okta (identity): "is what we signed being enforced right now?" Founder has eight years building regulated data platforms, including PwC financial-analytics pipelines.</div>
+  <div class="grid">
+    <div class="field"><div class="label">Online / Product</div><div class="val"><a href="https://hhali.com/obligo">hhali.com/obligo</a> — product runs end-to-end today</div></div>
+    <div class="field"><div class="label">Money needed</div><div class="val">No round stated — asking for five founding design partners with real policies/environments, plus introductions</div></div>
+    <div class="field full"><div class="label">Traction</div><div class="val">2–3 live conversations with prospective design partners and investors; working end-to-end product built solo.</div></div>
+  </div>
+</div>
+
+<div class="card" id="driftlane">
+  <div class="top"><h2>Driftlane</h2><span class="founder">Soheil Khosravinejad, Founder · Cohort 1 · Mentor: Vishal Soni</span></div>
+  <div class="chips"><span class="chip sector">SaaS — Creative Operations</span><span class="chip stage">Pre-Seed</span><span class="chip noraise">No ask stated in deck</span></div>
+  <div class="desc">Creative-operations system that makes outsourced/freelance creative work dependable. Driftlane pairs a briefing tool (turns any direction into precise project requirements so executors know exactly what's needed) with a management tool (structures the process and keeps founders on top of every project stage) — attacking the documented failure modes of external creative work: 46% report freelancer quality problems, 55% lack confidence choosing the right person. Pitch is that strong creative systems compound recognition, lower CAC, and lift conversion.</div>
+  <div class="grid">
+    <div class="field"><div class="label">Online / Product</div><div class="val"><a href="https://driftlane.com">driftlane.com</a> — application demo-ready (deck includes live demo/screenshots section)</div></div>
+    <div class="field"><div class="label">Money needed</div><div class="val">Not stated in deck</div></div>
+    <div class="field full"><div class="label">Traction</div><div class="val">Not stated in deck (roster lists company at early-traction stage).</div></div>
+  </div>
+</div>
+
+<div class="card" id="washlodge">
+  <div class="top"><h2>Wash Lodge</h2><span class="founder">Gifty Anane, Founder (ex-Business Manager, Joy Transport — 100+ employees) · Cohort 1 · Mentor: Andrew Jacobs</span></div>
+  <div class="chips"><span class="chip sector">Consumer Services — Laundry / Hospitality</span><span class="chip stage">Pre-launch</span><span class="chip raise">Raising $1.5M (+ $150K owner equity)</span></div>
+  <div class="desc">Next-generation, service-first laundromat with a co-working lounge in Princeton, NJ — the only self-service laundromat within walking distance of downtown Princeton. Combines high-efficiency Electrolux commercial machines (up to 50% water savings), same/next-day wash &amp; fold, pickup and delivery, a mobile app with real-time tracking (Cents POS), gourmet smart-fridge vending (Fraîche partnership), and membership perks. NJ laundromat market estimated at $347M with typical location revenue around $414K.</div>
+  <div class="grid">
+    <div class="field"><div class="label">Online / Product</div><div class="val"><a href="https://www.instagram.com/washlodge/">@washlodge on Instagram</a> — physical location not yet open; build-out pending funding</div></div>
+    <div class="field"><div class="label">Money needed</div><div class="val">$1.5M from investors/banks + $150K founder equity — property, machinery, lounge build-out, tech integration, marketing, working capital; open in 2026, second NJ location scouted in 2027, then New Brunswick / Jersey City / Hoboken</div></div>
+    <div class="field full"><div class="label">Traction</div><div class="val">Pre-revenue. Site and market research complete (Princeton: ~32K residents served by one outdated laundromat); strategic partnerships lined up with Electrolux Professional, Cents, and Fraîche.</div></div>
+  </div>
+</div>
+
+<div class="card" id="brickcity">
+  <div class="top"><h2>The Brickcity Group LLC</h2><span class="founder">Jhamar Youngblood, Founder · Cohort 1 · Mentor: Marty Coleman</span></div>
+  <div class="chips"><span class="chip sector">Consumer Products — Local Brand</span><span class="chip stage">Pre-Seed / Phase 2</span><span class="chip raise">Seeking $115K</span></div>
+  <div class="desc">Newark's flagship consumer brand. Newark residents spend $6B+ annually on goods and services, largely with companies headquartered elsewhere; Brickcity is building a locally-owned brand (apparel, pins, keychains, everyday goods) designed to capture a share of that spending and keep it circulating in the city, expanding category-by-category as customers validate demand. Founder ran for Newark mayor in 2026 as an independent, earning ~20% of the vote on ~$5K — the community trust the brand is built on.</div>
+  <div class="grid">
+    <div class="field"><div class="label">Online / Product</div><div class="val"><a href="https://brickcity.wtf">brickcity.wtf</a> — first collection launches August 29, 2026</div></div>
+    <div class="field"><div class="label">Money needed</div><div class="val">$115K Phase 2 — retail space ($20K), build-out ($15K), a year of inventory ($30K), marketing ($12K), staff ($20K), community events ($10K); targets $300–500K first-year revenue and validated retail + wholesale demand</div></div>
+    <div class="field full"><div class="label">Traction</div><div class="val">Phase 1 complete: $3,000 local investment secured to produce launch inventory; Uplift mentorship with Marty Coleman; first product collection ready for Aug 29 launch.</div></div>
+  </div>
+</div>
+
+<div class="card" id="viaudae">
+  <div class="top"><h2>Viaudae Media</h2><span class="founder">Eliana Zebro, Founder — audio engineer with Comedy Central, The North Face, and Square Enix production credits · Cohort 3 · Mentor: Aditi Sinha</span></div>
+  <div class="chips"><span class="chip sector">AI — Media Production</span><span class="chip stage">Idea / Pre-Seed</span><span class="chip noraise">No ask stated in deck</span></div>
+  <div class="desc">AI-first content production studio: AI raw output + human editing = broadcast-quality media in weeks instead of months. The pipeline runs ideation and scripting through LLMs, voice and visuals through ElevenLabs (v3 voices + avatars), then applies professional human video/audio editing and script refinement to reach a polished final cut — betting that the human-refinement layer is what separates watchable AI content from slop.</div>
+  <div class="grid">
+    <div class="field"><div class="label">Online / Product</div><div class="val"><a href="https://www.elianazebro.com/">elianazebro.com</a> — demo productions completed (sample episode in deck)</div></div>
+    <div class="field"><div class="label">Money needed</div><div class="val">Not stated in deck</div></div>
+    <div class="field full"><div class="label">Traction</div><div class="val">Proof-of-concept episodes produced; no commercial traction stated. Roster lists the business as pre-LLC.</div></div>
+  </div>
+</div>
+
+<div class="card" id="juegos">
+  <div class="top"><h2>Juegos AI Lab</h2><span class="founder">Elisa Charters · Cohort 4 · Mentor: ebun okubanjo</span></div>
+  <div class="chips"><span class="chip sector">AI / ML</span><span class="chip stage">Seed (self-reported)</span><span class="chip noraise">No deck submitted</span></div>
+  <div class="desc">No pitch deck was attached to the application, so company details are limited to the form. Self-reported as an AI/ML company at seed stage.</div>
+  <div class="grid">
+    <div class="field"><div class="label">Online / Product</div><div class="val"><a href="https://juegos.social">juegos.social</a></div></div>
+    <div class="field"><div class="label">Money needed</div><div class="val">Unknown — follow up with founder for materials</div></div>
+  </div>
+</div>
+
+<div class="card" id="wms">
+  <div class="top"><h2>World Micro Stock Vinimay USA LLC</h2><span class="founder">Pradeep Kumar Gohil, CEO/Founder</span></div>
+  <div class="chips"><span class="chip sector">Fintech — Blockchain / DeFi</span><span class="chip stage">Concept</span><span class="chip noraise">No specific ask stated</span></div>
+  <div class="desc">Concept for a "UBI crowdfunding blockchain network" — a proposed universal-basic-income DeFi system combining a crypto token ("A-coin"), a "World Micro Stock Exchange" for SME/startup IPO listings, home data-center franchises, and stablecoin-based returns. The deck is a vision narrative rather than an operating plan; no product, team, financials, or defined raise are presented, and it proposes a regulatory sandbox / proof-of-concept as the next step.</div>
+  <div class="grid">
+    <div class="field"><div class="label">Online / Product</div><div class="val"><a href="http://www.worldmicrostockexchange.com">worldmicrostockexchange.com</a> — no live product described</div></div>
+    <div class="field"><div class="label">Money needed</div><div class="val">Not stated</div></div>
+    <div class="field full"><div class="label">Traction</div><div class="val">None stated.</div></div>
+  </div>
+</div>
+
+<div class="sechead">Full company directory — all Uplift mentees</div>
+<div class="secsub">Every company in the program, from the Typeform mentee applications, grouped by self-reported company stage. Industry and county are as reported on the application; green badges link to the detailed pitch profiles above.</div>
+<div class="wrap-table">
+<table class="dir">
+<tr class="stagehead"><td colspan="5">Growth-stage — 1 company</td></tr>
+<tr><td class="co">ACI Infotech</td><td>Jagannadh Kanumuri<span class="ttl"> · Jag Kanumuri</span></td><td>AI / Data / ML</td><td>Somerset</td><td>C1</td></tr>
+<tr class="stagehead"><td colspan="5">Revenue-generating — 13 companies</td></tr>
+<tr><td class="co">Arnex Solutions LLC</td><td>Shounak Thaker<span class="ttl"> · President</span></td><td>Other</td><td>Mercer</td><td>C2</td></tr>
+<tr><td class="co">Bruce AI (OnwardJustice Inc.)</td><td>Daniel Lee<span class="ttl"> · CEO</span></td><td>AI / Data / ML</td><td></td><td>C3</td></tr>
+<tr><td class="co">Creative Sprouts Inc</td><td>Saurabh Gandhe<span class="ttl"> · Owner</span></td><td>Media / Marketing / Advertising</td><td></td><td>C5</td></tr>
+<tr><td class="co">CREWASIS.AI <a class="pitchbadge" href="#crewasis">PITCH APPLICANT ↓</a></td><td>Sharon Joseph<span class="ttl"> · ceo</span></td><td>Enterprise SaaS / B2B</td><td></td><td>C3</td></tr>
+<tr><td class="co">Diamond Hedge</td><td>Mehul Sompura<span class="ttl"> · Founder</span></td><td>Retail / Marketplace / E-commerce</td><td>Monmouth</td><td>C4</td></tr>
+<tr><td class="co">Disrupt The Gap</td><td>Shell Bobev<span class="ttl"> · Founder/Compensation Strategist</span></td><td>Government / Civic / Policy</td><td>Morris</td><td>C3</td></tr>
+<tr><td class="co">Everyday Unstoppable</td><td>Andrea Ferguson Peterson<span class="ttl"> · Founder and CEO</span></td><td>Retail / Marketplace / E-commerce</td><td>Essex</td><td>C5</td></tr>
+<tr><td class="co">First and Last PR</td><td>Stephanie Scott-Bradshaw<span class="ttl"> · CEO &amp; Communicator-in-Chief</span></td><td>Media / Marketing / Advertising</td><td>Hudson</td><td>C3</td></tr>
+<tr><td class="co">Newyorklife</td><td>Harshil Thakkar<span class="ttl"> · Financial Associate</span></td><td>Finance / Fintech</td><td>Hudson</td><td>C4</td></tr>
+<tr><td class="co">PCLinkup</td><td>Jerry Primus<span class="ttl"> · Owner</span></td><td>AI / Data / ML</td><td>Somerset</td><td>C1</td></tr>
+<tr><td class="co">Sweet Aurora Soap &amp; Candle</td><td>Lina Escobar<span class="ttl"> · Artisan</span></td><td>CPG / Consumer Brands</td><td></td><td>C1</td></tr>
+<tr><td class="co">The Keenly Group LLC</td><td>Kima D&#x27;Anjou<span class="ttl"> · Founder and CEO</span></td><td>Enterprise SaaS / B2B</td><td>Bergen</td><td>C5</td></tr>
+<tr><td class="co">Zenia Graph</td><td>Nina Mladenovski<span class="ttl"> · Co-Founder &amp; COO</span></td><td>AI / Data / ML</td><td></td><td>C2</td></tr>
+<tr class="stagehead"><td colspan="5">Early traction — 27 companies</td></tr>
+<tr><td class="co">3DHR Consulting, LLC</td><td>Debbie Douglas-Henry<span class="ttl"> · Founder &amp; CEO</span></td><td>Media / Marketing / Advertising</td><td>Essex</td><td>C2</td></tr>
+<tr><td class="co">Altruistic Scribe</td><td>Idongesit Obeya<span class="ttl"> · Founder</span></td><td>Enterprise SaaS / B2B</td><td></td><td>C3</td></tr>
+<tr><td class="co">Bastien Guitars</td><td>Jimmy Bastien<span class="ttl"> · CEO</span></td><td>Retail / Marketplace / E-commerce</td><td>Essex</td><td>C4</td></tr>
+<tr><td class="co">Brickcity <a class="pitchbadge" href="#brickcity">PITCH APPLICANT ↓</a></td><td>Jhamar Youngblood<span class="ttl"> · Founder</span></td><td>Other</td><td>Essex</td><td>C1</td></tr>
+<tr><td class="co">Campus Marketplace</td><td>Aliya Laliwala<span class="ttl"> · Founder and CEO</span></td><td>Retail / Marketplace / E-commerce</td><td>Bergen</td><td>C4</td></tr>
+<tr><td class="co">Clear-Sight</td><td>Mark Kallback<span class="ttl"> · Founder</span></td><td>Other</td><td>Hunterdon</td><td>C4</td></tr>
+<tr><td class="co">Contextral</td><td>Anthony Caruso<span class="ttl"> · CEO</span></td><td>AI / Data / ML</td><td>Ocean</td><td>C1</td></tr>
+<tr><td class="co">Crafty Dessert LLC</td><td>Sarah Inoue<span class="ttl"> · CEO</span></td><td>Retail / Marketplace / E-commerce</td><td>Bergen</td><td>C1</td></tr>
+<tr><td class="co">Crestwood Digital</td><td>Chirag Shah<span class="ttl"> · Founder &amp; Principal Consultant</span></td><td>Other</td><td></td><td>C5</td></tr>
+<tr><td class="co">DeepInspect.ai</td><td>Parminder Singh<span class="ttl"> · Founder</span></td><td>AI / Data / ML</td><td>Middlesex</td><td>C4</td></tr>
+<tr><td class="co">DRIFTLANE <a class="pitchbadge" href="#driftlane">PITCH APPLICANT ↓</a></td><td>Soheil Khosravinejad<span class="ttl"> · Founder</span></td><td>Media / Marketing / Advertising</td><td></td><td>C1</td></tr>
+<tr><td class="co">Dumroo.ai</td><td>Alok Rai<span class="ttl"> · CEO</span></td><td>Other</td><td>Essex</td><td>C3</td></tr>
+<tr><td class="co">Focus Posters® <a class="pitchbadge" href="#focus">PITCH APPLICANT ↓</a></td><td>Annalyce D&#x27;Agostino-Gavin<span class="ttl"> · Founder</span></td><td>Other</td><td></td><td>C2</td></tr>
+<tr><td class="co">Freelance Audio (Pre-LLC) <a class="pitchbadge" href="#viaudae">PITCH APPLICANT ↓</a></td><td>Eliana Zebro<span class="ttl"> · CEO</span></td><td>Media / Marketing / Advertising</td><td>Warren</td><td>C3</td></tr>
+<tr><td class="co">Ilika LLC</td><td>Abhaya Pawar<span class="ttl"> · CEO</span></td><td>Climate / Energy</td><td>Middlesex</td><td>C4</td></tr>
+<tr><td class="co">Infivista Inc</td><td>Shanthi Viswanathan<span class="ttl"> · President</span></td><td>Other</td><td>Hudson</td><td>C3</td></tr>
+<tr><td class="co">Juegos AI Lab <a class="pitchbadge" href="#juegos">PITCH APPLICANT ↓</a></td><td>Elisa Charters<span class="ttl"> · Founder</span></td><td>Other</td><td>Essex</td><td>C5</td></tr>
+<tr><td class="co">Ox Group</td><td>Han Nguyen<span class="ttl"> · CEO</span></td><td>Finance / Fintech</td><td>Mercer</td><td>C4</td></tr>
+<tr><td class="co">Recky Solutions LLC</td><td>Sonali Chilupuri<span class="ttl"> · Business Owner</span></td><td>Enterprise SaaS / B2B</td><td>Middlesex</td><td>C1</td></tr>
+<tr><td class="co">STEAM FOR ME</td><td>Justin Savage<span class="ttl"> · CEO</span></td><td>Enterprise SaaS / B2B</td><td>Essex</td><td>C2</td></tr>
+<tr><td class="co">tapyoca</td><td>Jordan-River Samuel<span class="ttl"> · CMO and Co-Founder</span></td><td>Enterprise SaaS / B2B</td><td>Hudson</td><td>C5</td></tr>
+<tr><td class="co">TETHRRA</td><td>Jean Guerdy Paul<span class="ttl"> · founder</span></td><td>Enterprise SaaS / B2B</td><td>Monmouth</td><td>C3</td></tr>
+<tr><td class="co">The Zigzag Flow, Therapy Services</td><td>Natalie Kitts<span class="ttl"> · Clinical Founder,  CEO</span></td><td>Other</td><td>Morris</td><td>C5</td></tr>
+<tr><td class="co">ticker</td><td>Logan Jones<span class="ttl"> · Founder + CEO</span></td><td>Finance / Fintech</td><td></td><td>C4</td></tr>
+<tr><td class="co">Truxt <a class="pitchbadge" href="#truxt">PITCH APPLICANT ↓</a></td><td>Naveen Kumar<span class="ttl"> · Founder &amp; CEO</span></td><td>Enterprise SaaS / B2B</td><td>Bergen</td><td>C2</td></tr>
+<tr><td class="co">United Solution</td><td>Bejan Moers<span class="ttl"> · founder / ceo</span></td><td>Other</td><td>Hudson</td><td>C2</td></tr>
+<tr><td class="co">Virre</td><td>Gunjan Aggarwal<span class="ttl"> · Founder</span></td><td>AI / Data / ML</td><td>Middlesex</td><td>C5</td></tr>
+<tr class="stagehead"><td colspan="5">MVP / Early build — 23 companies</td></tr>
+<tr><td class="co">AnatomyQuest</td><td>Favio Jasso<span class="ttl"> · Co-Founder &amp; CTO</span></td><td>Enterprise SaaS / B2B</td><td></td><td>C1</td></tr>
+<tr><td class="co">AnatomyQuest</td><td>Emilia Savich<span class="ttl"> · Co-Founder &amp; CEO</span></td><td>Enterprise SaaS / B2B</td><td>Ocean</td><td>C2</td></tr>
+<tr><td class="co">Brooklyn Navy Yard</td><td>Britney Medich<span class="ttl"> · Workforce Talent Manager</span></td><td>Other</td><td>Hudson</td><td>C5</td></tr>
+<tr><td class="co">DreamEngine AI</td><td>Daniel Patton<span class="ttl"> · Founder &amp; CEO</span></td><td>AI / Data / ML</td><td>Middlesex</td><td>C5</td></tr>
+<tr><td class="co">Fluenci</td><td>Angie Tirado<span class="ttl"> · CEO</span></td><td>Retail / Marketplace / E-commerce</td><td></td><td>C2</td></tr>
+<tr><td class="co">Freelance Software Engineer</td><td>Abhi Ray<span class="ttl"> · solopreneur</span></td><td>AI / Data / ML</td><td>Middlesex</td><td>C3</td></tr>
+<tr><td class="co">HHALI LLC <a class="pitchbadge" href="#obligo">PITCH APPLICANT ↓</a></td><td>Hamza Zafar<span class="ttl"> · Owner/CEO</span></td><td>AI / Data / ML</td><td>Middlesex</td><td>C1</td></tr>
+<tr><td class="co">Local Window</td><td>Adeola Adeoye-Davids<span class="ttl"> · Founder &amp; CEO</span></td><td>Media / Marketing / Advertising</td><td>Passaic</td><td>C3</td></tr>
+<tr><td class="co">MechSense Labs</td><td>Kevin Navarro<span class="ttl"> · Founder</span></td><td>AI / Data / ML</td><td>Bergen</td><td>C5</td></tr>
+<tr><td class="co">Nariway</td><td>Alina Okun<span class="ttl"> · Founder</span></td><td>Other</td><td>Bergen</td><td>C1</td></tr>
+<tr><td class="co">Nooriva</td><td>Evan Peneiras<span class="ttl"> · Co-Founder</span></td><td>AI / Data / ML</td><td>Essex</td><td>C3</td></tr>
+<tr><td class="co">Ozzie <a class="pitchbadge" href="#ozzie">PITCH APPLICANT ↓</a></td><td>Paula Machado Jackler<span class="ttl"> · Founder &amp; CEO</span></td><td>Finance / Fintech</td><td></td><td>C3</td></tr>
+<tr><td class="co">Quanticore</td><td>Lianna LaRiccia<span class="ttl"> · Cofounder, CTO</span></td><td>Enterprise SaaS / B2B</td><td>Passaic</td><td>C4</td></tr>
+<tr><td class="co">Ravel Genetics <a class="pitchbadge" href="#ravel">PITCH APPLICANT ↓</a></td><td>Rachel Hayes<span class="ttl"> · CEO</span></td><td>Enterprise SaaS / B2B</td><td>Bergen</td><td>C5</td></tr>
+<tr><td class="co">Rekogni AI</td><td>Radha Ratnala<span class="ttl"> · CEO</span></td><td>Enterprise SaaS / B2B</td><td>Middlesex</td><td>C3</td></tr>
+<tr><td class="co">SekurAI</td><td>Rajesh Ivaturi<span class="ttl"> · Founder &amp; CISO</span></td><td>Enterprise SaaS / B2B</td><td></td><td>C4</td></tr>
+<tr><td class="co">Sphinque</td><td>Ahmed Metwoali<span class="ttl"> · Founder &amp; CEO</span></td><td>Enterprise SaaS / B2B</td><td></td><td>C2</td></tr>
+<tr><td class="co">Staytus</td><td>Shippy Singh<span class="ttl"> · Co-founder</span></td><td>AI / Data / ML</td><td></td><td>C5</td></tr>
+<tr><td class="co">Stealth-mode molecular diagnostics startup</td><td>Ekaterina Kashkina<span class="ttl"> · scientific co-founder</span></td><td>Other</td><td>Camden</td><td>C2</td></tr>
+<tr><td class="co">TasteTwin AI</td><td>Mohammad Saleh Nikoopayan Tak<span class="ttl"> · Founder</span></td><td>Retail / Marketplace / E-commerce</td><td>Union</td><td>C4</td></tr>
+<tr><td class="co">Tend to Belle</td><td>Tosca Marleen<span class="ttl"> · Founder</span></td><td>Retail / Marketplace / E-commerce</td><td></td><td>C2</td></tr>
+<tr><td class="co">TrueSkin</td><td>Andrea Vernengo<span class="ttl"> · Associate Professor of Chemical Engineering and CTO</span></td><td>Hardware / Manufacturing</td><td>Camden</td><td>C1</td></tr>
+<tr><td class="co">Wash Lodge <a class="pitchbadge" href="#washlodge">PITCH APPLICANT ↓</a></td><td>Gifty Anane<span class="ttl"> · Member</span></td><td>Retail / Marketplace / E-commerce</td><td>Middlesex</td><td>C1</td></tr>
+<tr class="stagehead"><td colspan="5">Idea stage — 16 companies</td></tr>
+<tr><td class="co">BOA (startup name undecided)</td><td>Chandni Patel<span class="ttl"> · Software Engineer</span></td><td>Other</td><td>Middlesex</td><td>C5</td></tr>
+<tr><td class="co">Elune Health</td><td>Elaf Mahmoud<span class="ttl"> · Aspiring Founder</span></td><td>CPG / Consumer Brands</td><td>Morris</td><td>C2</td></tr>
+<tr><td class="co">Get Empathix</td><td>Angela Aricatt<span class="ttl"> · Founder</span></td><td>Enterprise SaaS / B2B</td><td>Essex</td><td>C3</td></tr>
+<tr><td class="co">Hosendorf &amp; Associates, LLC</td><td>Victoria Hosendorf<span class="ttl"> · President &amp; CEO</span></td><td>Other</td><td></td><td>C1</td></tr>
+<tr class="churned"><td class="co">JP Morgan Chase <span class="churnbadge">EXITED PROGRAM</span></td><td>Jasmin Jones<span class="ttl"> · Event Planner</span></td><td>Media / Marketing / Advertising</td><td></td><td>C5</td></tr>
+<tr><td class="co">KLA Corporation</td><td>Ebunoluwa Adenekan<span class="ttl"> · Electro-Mechanical Assembly Technician</span></td><td>Hardware / Manufacturing</td><td></td><td>C4</td></tr>
+<tr><td class="co">Menti</td><td>Jeremy Ruiz Villavicencio<span class="ttl"> · Student</span></td><td>Media / Marketing / Advertising</td><td>Union</td><td>C5</td></tr>
+<tr class="churned"><td class="co">Meta <span class="churnbadge">EXITED PROGRAM</span></td><td>Neha Chopade<span class="ttl"> · UXR</span></td><td>Other</td><td>Hudson</td><td>C1</td></tr>
+<tr><td class="co">Pinterest</td><td>Stephanie Cwynar<span class="ttl"> · Senior Manager</span></td><td>Other</td><td></td><td>C3</td></tr>
+<tr><td class="co">TBD</td><td>Pearl Gabel<span class="ttl"> · Founder</span></td><td>Media / Marketing / Advertising</td><td></td><td>C2</td></tr>
+<tr><td class="co">TBD</td><td>Maab Iqbal<span class="ttl"> · Student</span></td><td>Media / Marketing / Advertising</td><td></td><td>C4</td></tr>
+<tr><td class="co">Undecided</td><td>Alisha Sharma<span class="ttl"> · CoFounder</span></td><td>Other</td><td>Morris</td><td>C2</td></tr>
+<tr><td class="co">Unnamed (Idea Stage)</td><td>Jedidiah Worrell<span class="ttl"> · N/A</span></td><td>Retail / Marketplace / E-commerce</td><td>Mercer</td><td>C1</td></tr>
+<tr><td class="co">Veriflo LLC</td><td>Pierre Girgis<span class="ttl"> · Founder</span></td><td>AI / Data / ML</td><td>Bergen</td><td>C3</td></tr>
+<tr><td class="co">Wisdom &amp; Wonder Wellness</td><td>Priyal Levine<span class="ttl"> · Founder</span></td><td>Other</td><td>Morris</td><td>C4</td></tr>
+<tr><td class="co">World Micro Stock Vinimay USA LLC <a class="pitchbadge" href="#wms">PITCH APPLICANT ↓</a></td><td>Pradeep Kumar Gohil<span class="ttl"> · CEO Founder</span></td><td>Other</td><td></td><td>C3</td></tr>
+</table>
+</div>
+
+<p class="note">Sources: Typeform "August 4th Summit — Pitch Showcase Competition" applications (12 responses as of Jul 29, 2026), each company's submitted pitch deck, and the "Mentee Application" Typeform (97 responses) matched to the Uplift roster. Traction and financial figures are founder-reported and unverified. Several decks are marked confidential — treat this document as internal.</p>
+
+</div>
+</body>
+</html>
