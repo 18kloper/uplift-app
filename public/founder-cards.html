@@ -292,6 +292,12 @@
   .wall-card .w-text { font-size: 14.5px; line-height: 1.55; color: var(--ink); }
   .wall-card .w-name { margin-top: 9px; font-size: 12.5px; font-style: italic; color: var(--muted); }
   .wall-empty { margin-top: 26px; font-size: 14.5px; color: var(--muted); font-style: italic; }
+  @keyframes wallIn {
+    from { opacity: 0; transform: translateX(var(--slide, 14px)); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .wall.turning { animation: wallIn .28s ease both; }
+
   .wall-nav {
     display: flex;
     align-items: center;
@@ -784,7 +790,7 @@ shareBtn.addEventListener('click', async () => {
   shareBtn.disabled = false;
 });
 
-const WALL_PAGE_SIZE = 24;
+const wallPageSize = () => window.matchMedia('(max-width: 640px)').matches ? 8 : 24;
 let wallAnswers = [];
 let wallPage = 0;
 const wallNav = document.getElementById('wallNav');
@@ -794,7 +800,8 @@ const wallPageInfo = document.getElementById('wallPageInfo');
 
 function renderWall(answers) {
   wallAnswers = answers;
-  const pages = Math.max(1, Math.ceil(wallAnswers.length / WALL_PAGE_SIZE));
+  const PAGE = wallPageSize();
+  const pages = Math.max(1, Math.ceil(wallAnswers.length / PAGE));
   wallPage = Math.min(wallPage, pages - 1);
   if (!answers.length) { wallEmpty.style.display = 'block'; wall.innerHTML = ''; wallNav.style.display = 'none'; return; }
   wallEmpty.style.display = 'none';
@@ -802,7 +809,7 @@ function renderWall(answers) {
   wallPageInfo.textContent = `Page ${wallPage + 1} of ${pages}`;
   wallPrev.disabled = wallPage === 0;
   wallNext.disabled = wallPage === pages - 1;
-  const pageAnswers = wallAnswers.slice(wallPage * WALL_PAGE_SIZE, (wallPage + 1) * WALL_PAGE_SIZE);
+  const pageAnswers = wallAnswers.slice(wallPage * PAGE, (wallPage + 1) * PAGE);
   wall.innerHTML = pageAnswers.map(a => {
     if (a.side === 'shout') {
       return `
@@ -824,12 +831,36 @@ function renderWall(answers) {
   }).join('');
 }
 
-wallPrev.addEventListener('click', () => {
-  if (wallPage > 0) { wallPage--; renderWall(wallAnswers); wall.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
-});
-wallNext.addEventListener('click', () => {
-  wallPage++; renderWall(wallAnswers); wall.scrollIntoView({ block: 'start', behavior: 'smooth' });
-});
+function turnPage(dir) {
+  const pages = Math.max(1, Math.ceil(wallAnswers.length / wallPageSize()));
+  const target = wallPage + dir;
+  if (target < 0 || target > pages - 1) return;
+  wallPage = target;
+  wall.style.setProperty('--slide', dir > 0 ? '16px' : '-16px');
+  wall.classList.remove('turning');
+  void wall.offsetWidth;               // restart the animation
+  wall.classList.add('turning');
+  renderWall(wallAnswers);
+  wall.scrollIntoView({ block: 'start', behavior: 'smooth' });
+}
+wallPrev.addEventListener('click', () => turnPage(-1));
+wallNext.addEventListener('click', () => turnPage(1));
+
+// swipe between pages on touch devices
+let touchX = null, touchY = null;
+wall.addEventListener('touchstart', (e) => {
+  touchX = e.touches[0].clientX; touchY = e.touches[0].clientY;
+}, { passive: true });
+wall.addEventListener('touchend', (e) => {
+  if (touchX === null) return;
+  const dx = e.changedTouches[0].clientX - touchX;
+  const dy = e.changedTouches[0].clientY - touchY;
+  if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.5) turnPage(dx < 0 ? 1 : -1);
+  touchX = touchY = null;
+}, { passive: true });
+
+// re-flow when crossing the mobile breakpoint
+window.matchMedia('(max-width: 640px)').addEventListener('change', () => renderWall(wallAnswers));
 
 // ---------- Mentor shout-outs ----------
 const shoutBtn = document.getElementById('shoutBtn');
