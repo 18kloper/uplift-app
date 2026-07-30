@@ -460,6 +460,7 @@
     </div>
 
     <div class="wall" id="wall"></div>
+    <p class="wall-empty" id="wallLoading">Loading the wall…</p>
     <div class="wall-nav" id="wallNav" style="display:none">
       <button class="btn-ghost btn-small" id="wallPrev">&larr; Newer</button>
       <span class="pageinfo" id="wallPageInfo"></span>
@@ -799,6 +800,7 @@ const wallNext = document.getElementById('wallNext');
 const wallPageInfo = document.getElementById('wallPageInfo');
 
 function renderWall(answers) {
+  document.getElementById('wallLoading').style.display = 'none';
   wallAnswers = answers;
   const PAGE = wallPageSize();
   const pages = Math.max(1, Math.ceil(wallAnswers.length / PAGE));
@@ -815,7 +817,7 @@ function renderWall(answers) {
       return `
     <div class="wall-card shout-card">
       <div class="w-eyebrow">🙏 Mentor Shout-Out</div>
-      <div class="w-text">Thank you, ${esc(a.text)}.</div>
+      <div class="w-text">Thank you, ${esc(a.text.replace(/^thank you,?\s*/i, '').replace(/\.$/, ''))}.</div>
     </div>`;
     }
     const qCard = CARDS.find(c => c.n === parseInt(a.card, 10));
@@ -899,6 +901,7 @@ async function loadWall() {
     const data = await r.json();
     renderWall(data.answers || []);
   } catch (e) {
+    document.getElementById('wallLoading').style.display = 'none';
     wallEmpty.style.display = 'block';
     wallEmpty.textContent = 'The wall lives on the Uplift site — answers appear when the page is served there.';
   }
