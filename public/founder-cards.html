@@ -249,6 +249,15 @@
   .wall-card .w-text { font-size: 14.5px; line-height: 1.55; color: var(--ink); }
   .wall-card .w-name { margin-top: 9px; font-size: 12.5px; font-style: italic; color: var(--muted); }
   .wall-empty { margin-top: 26px; font-size: 14.5px; color: var(--muted); font-style: italic; }
+  .wall-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 26px;
+  }
+  .wall-nav .pageinfo { font-size: 13px; color: var(--muted); letter-spacing: .04em; }
+  .wall-nav button:disabled { opacity: .35; cursor: default; }
   .shout { max-width: 480px; margin: 28px auto 6px; }
   .shout-lead { font-size: 14.5px; color: var(--ink); line-height: 1.6; }
   .wall-card.shout-card { border-top-color: #d9a441; background: #fffdf6; }
@@ -371,20 +380,28 @@
     </div>
 
     <div class="wall" id="wall"></div>
+    <div class="wall-nav" id="wallNav" style="display:none">
+      <button class="btn-ghost btn-small" id="wallPrev">&larr; Newer</button>
+      <span class="pageinfo" id="wallPageInfo"></span>
+      <button class="btn-ghost btn-small" id="wallNext">Older &rarr;</button>
+    </div>
     <p class="wall-empty" id="wallEmpty" style="display:none">No answers on the wall yet — be the first to share one.</p>
   </div>
 </section>
 
 <section class="thanks">
   <div class="wrap">
-    <div class="eyebrow">The People Behind Your Uplift</div>
+    <div class="eyebrow">The Mentors Behind Uplift · Summer 2026</div>
     <div class="rule"></div>
     <p class="dedication">This deck is dedicated to the mentors who make Uplift possible.<br><b>A legacy is never built alone.</b></p>
     <div class="mentor-grid" id="mentorGrid"></div>
     <p class="team">
-      With thanks to the TechUnited team — Aaron Price, Mary Jane Durkin, Kennedy Loper, Jackie Anzaroot,
-      Hana Yackanich, Kailan Campbell &amp; Max Lascher. And a special thank-you to the New Jersey Economic
-      Development Authority (NJEDA), whose support helps power this program.
+      With thanks to the New Jersey Economic Development Authority (NJEDA),
+      whose support helps power this program.
+    </p>
+    <p class="team">
+      From the TechUnited team — Aaron Price, Mary Jane Durkin, Kennedy Loper, Jackie Anzaroot,
+      Hana Yackanich, Kailan Campbell &amp; Max Lascher.
     </p>
     <div class="wordmark-row">
       <span class="wm">uplift</span>
@@ -660,10 +677,26 @@ shareBtn.addEventListener('click', async () => {
   shareBtn.disabled = false;
 });
 
+const WALL_PAGE_SIZE = 24;
+let wallAnswers = [];
+let wallPage = 0;
+const wallNav = document.getElementById('wallNav');
+const wallPrev = document.getElementById('wallPrev');
+const wallNext = document.getElementById('wallNext');
+const wallPageInfo = document.getElementById('wallPageInfo');
+
 function renderWall(answers) {
-  if (!answers.length) { wallEmpty.style.display = 'block'; wall.innerHTML = ''; return; }
+  wallAnswers = answers;
+  const pages = Math.max(1, Math.ceil(wallAnswers.length / WALL_PAGE_SIZE));
+  wallPage = Math.min(wallPage, pages - 1);
+  if (!answers.length) { wallEmpty.style.display = 'block'; wall.innerHTML = ''; wallNav.style.display = 'none'; return; }
   wallEmpty.style.display = 'none';
-  wall.innerHTML = answers.map(a => {
+  wallNav.style.display = pages > 1 ? '' : 'none';
+  wallPageInfo.textContent = `Page ${wallPage + 1} of ${pages}`;
+  wallPrev.disabled = wallPage === 0;
+  wallNext.disabled = wallPage === pages - 1;
+  const pageAnswers = wallAnswers.slice(wallPage * WALL_PAGE_SIZE, (wallPage + 1) * WALL_PAGE_SIZE);
+  wall.innerHTML = pageAnswers.map(a => {
     if (a.side === 'shout') {
       return `
     <div class="wall-card shout-card">
@@ -679,6 +712,13 @@ function renderWall(answers) {
     </div>`;
   }).join('');
 }
+
+wallPrev.addEventListener('click', () => {
+  if (wallPage > 0) { wallPage--; renderWall(wallAnswers); wall.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+});
+wallNext.addEventListener('click', () => {
+  wallPage++; renderWall(wallAnswers); wall.scrollIntoView({ block: 'start', behavior: 'smooth' });
+});
 
 // ---------- Mentor shout-outs ----------
 const shoutBtn = document.getElementById('shoutBtn');

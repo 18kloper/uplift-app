@@ -9,7 +9,7 @@ import { getSheetsClient } from "../../lib/sheets-helper";
 const TAB = "Card Answers";
 const MAX_TEXT = 280;
 const MAX_NAME = 40;
-const WALL_SIZE = 120;
+const WALL_SIZE = 500;
 
 export default async function handler(req, res) {
   if (
