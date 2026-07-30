@@ -639,25 +639,38 @@ function drawCard() {
     mode = 'play';
     state.seenIntro = true;
     saveState(state);
+  } else if (current && !playcard.classList.contains('flipped')) {
+    // front is showing — this press flips instead of drawing
+    playcard.classList.add('flipped');
+    loadReflection();
+    shareNote.textContent = '';
+    updateDrawLabel();
+    return;
   }
   if (current) cardHistory.push(current);
   const pool = CARDS.filter(c => !current || c.n !== current.n);
   const c = pool[Math.floor(Math.random() * pool.length)];
   renderCard(c);
-  drawBtn.textContent = 'Draw the next card';
+  updateDrawLabel();
   backBtn.style.display = cardHistory.length ? '' : 'none';
 }
 
 backBtn.addEventListener('click', () => {
   if (!cardHistory.length) return;
   renderCard(cardHistory.pop());
+  updateDrawLabel();
   backBtn.style.display = cardHistory.length ? '' : 'none';
   shareNote.textContent = '';
 });
 
+function updateDrawLabel() {
+  if (mode !== 'play') return;
+  drawBtn.textContent = playcard.classList.contains('flipped') ? 'Draw the next card' : 'Flip';
+}
+
 stage.addEventListener('click', () => {
   playcard.classList.toggle('flipped');
-  if (mode === 'play') { loadReflection(); shareNote.textContent = ''; }
+  if (mode === 'play') { loadReflection(); shareNote.textContent = ''; updateDrawLabel(); }
 });
 drawBtn.addEventListener('click', drawCard);
 
@@ -807,7 +820,7 @@ document.getElementById('mentorGrid').innerHTML = MENTORS.map(m => `<div>${m}</d
 // first visit: walk through the special cards; returning visitors go straight to play
 if (state.seenIntro) {
   renderCard(CARDS[Math.floor(Math.random() * CARDS.length)]);
-  drawBtn.textContent = 'Draw the next card';
+  updateDrawLabel();
 } else {
   renderSpecial(0);
 }
