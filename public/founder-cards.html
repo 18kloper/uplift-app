@@ -41,7 +41,7 @@
     text-align: center;
     padding: 64px 24px 72px;
   }
-  .hero img.mtn { height: 74px; margin-bottom: 18px; }
+  .hero img.logo { height: 58px; margin-bottom: 22px; }
   .hero h1 { font-size: clamp(34px, 7vw, 52px); font-weight: 700; letter-spacing: .01em; }
   .hero .series { margin-top: 10px; }
   .hero .slogan {
@@ -290,13 +290,29 @@
   .thanks .wm { font-size: 16px; font-weight: 600; border-bottom: 2px solid var(--pink); padding: 0 4px 3px; }
   .thanks .tu { height: 16px; filter: brightness(0) invert(1); opacity: .85; }
 
+  .pnote { background: white; border-top: 1px solid #eceaf4; }
+  .pnote p {
+    max-width: 520px;
+    margin: 6px auto 0;
+    font-size: 16px;
+    line-height: 1.75;
+    font-style: italic;
+    color: var(--ink);
+  }
+  .pnote .sig {
+    margin-top: 16px;
+    font-style: normal;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
   footer { text-align: center; padding: 26px; font-size: 12px; color: #9a97ab; }
 </style>
 </head>
 <body>
 
 <header class="hero">
-  <img class="mtn" src="uplift-mountain.png" alt="">
+  <img class="logo" src="uplift-logo-white.png" alt="Uplift">
   <div class="eyebrow">★ Collector’s Edition ★</div>
   <h1>Founder Cards</h1>
   <div class="eyebrow series">Foundation Series · Summer 2026</div>
@@ -321,7 +337,7 @@
     <div class="rule"></div>
     <ol>
       <li>Pull a card.</li>
-      <li>Answer <b>Looking Back</b> — out loud, with someone.</li>
+      <li>Answer <b>Looking Back</b>.</li>
       <li>Flip it. Answer <b>Looking Forward</b>.</li>
       <li>Do the thing it made you think of.</li>
     </ol>
@@ -410,6 +426,21 @@
   </div>
 </section>
 
+<section class="pnote">
+  <div class="wrap">
+    <div class="eyebrow">A Personal Note</div>
+    <div class="rule"></div>
+    <p>
+      It’s been an immense pleasure getting to help lay out the foundational bones of this
+      program — and to see what’s possible. It’s given me a renewed enjoyment of community
+      and connectivity, it’s allowed me to express my creativity, and ultimately it’s been
+      a place where I’m inspired to work harder, held accountable by peers who are doing a
+      million things at once.
+    </p>
+    <p class="sig">— Kennedy Loper</p>
+  </div>
+</section>
+
 <footer>Uplift Founder Cards · Foundation Series · Summer 2026</footer>
 
 <script>
@@ -477,7 +508,7 @@ const SPECIALS = [
       <div class="f-rule"></div>
       <div class="f-q" style="text-align:left;font-size:15px;line-height:1.65">
         1&nbsp;&nbsp;Pull a card.<br>
-        2&nbsp;&nbsp;Answer <b>Looking Back</b> — out loud, with someone.<br>
+        2&nbsp;&nbsp;Answer <b>Looking Back</b>.<br>
         3&nbsp;&nbsp;Flip it. Answer <b>Looking Forward</b>.<br>
         4&nbsp;&nbsp;Do the thing it made you think of.
       </div>
