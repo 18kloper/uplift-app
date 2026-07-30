@@ -180,8 +180,7 @@
   }
   .btn-primary { background: var(--navy); color: white; }
   .btn-ghost { background: white; color: var(--navy); border: 1.5px solid var(--navy); }
-  .btn-ghost.saved { border-color: var(--pink); color: var(--pink); }
-  .save-note { margin-top: 12px; font-size: 13px; color: var(--pink); min-height: 18px; }
+  .btn-small { padding: 9px 18px; font-size: 12.5px; }
 
   /* ---------- Reflection ---------- */
   .reflect { display: none; max-width: 480px; margin: 34px auto 0; text-align: left; }
@@ -335,10 +334,9 @@
     <p class="hint" id="hint">Tap the card to flip it</p>
 
     <div class="controls">
+      <button class="btn-ghost btn-small" id="backBtn" style="display:none">&larr; Back</button>
       <button class="btn-primary" id="drawBtn">Draw a card</button>
-      <button class="btn-ghost" id="saveBtn">Save to my browser</button>
     </div>
-    <p class="save-note" id="saveNote"></p>
 
     <div class="reflect" id="reflect">
       <label id="sideLabel">Looking back</label>
@@ -521,8 +519,6 @@ const playcard = document.getElementById('playcard');
 const stage = document.getElementById('stage');
 const faceFront = document.getElementById('faceFront');
 const faceBack = document.getElementById('faceBack');
-const saveNote = document.getElementById('saveNote');
-const saveBtn = document.getElementById('saveBtn');
 const reflect = document.getElementById('reflect');
 const answerBox = document.getElementById('answerBox');
 const sideLabel = document.getElementById('sideLabel');
@@ -560,13 +556,14 @@ function renderCard(c) {
 
   reflect.style.display = 'block';
   loadReflection();
-  updateSaveBtn();
 }
 
 // ---------- Intro / play modes ----------
 let mode = 'play';
 let introIdx = 0;
+const cardHistory = [];
 const drawBtn = document.getElementById('drawBtn');
+const backBtn = document.getElementById('backBtn');
 const hint = document.getElementById('hint');
 
 function renderSpecial(i) {
@@ -577,10 +574,9 @@ function renderSpecial(i) {
   faceBack.innerHTML = SPECIALS[i].back;
   playcard.classList.remove('flipped');
   reflect.style.display = 'none';
-  saveBtn.style.display = 'none';
+  backBtn.style.display = 'none';
   drawBtn.textContent = i < SPECIALS.length - 1 ? 'Next card' : 'Ready for your card?';
   hint.textContent = 'Tap the card to flip it';
-  saveNote.textContent = '';
 }
 
 function drawCard() {
@@ -592,38 +588,27 @@ function drawCard() {
     mode = 'play';
     state.seenIntro = true;
     saveState(state);
-    drawBtn.textContent = 'Draw a card';
-    saveBtn.style.display = '';
   }
+  if (current) cardHistory.push(current);
   const pool = CARDS.filter(c => !current || c.n !== current.n);
   const c = pool[Math.floor(Math.random() * pool.length)];
   renderCard(c);
-  saveNote.textContent = '';
+  drawBtn.textContent = 'Draw the next card';
+  backBtn.style.display = cardHistory.length ? '' : 'none';
 }
 
-function updateSaveBtn() {
-  if (current && state.savedCard === current.n) {
-    saveBtn.textContent = '★ Saved';
-    saveBtn.classList.add('saved');
-  } else {
-    saveBtn.textContent = 'Save to my browser';
-    saveBtn.classList.remove('saved');
-  }
-}
+backBtn.addEventListener('click', () => {
+  if (!cardHistory.length) return;
+  renderCard(cardHistory.pop());
+  backBtn.style.display = cardHistory.length ? '' : 'none';
+  shareNote.textContent = '';
+});
 
 stage.addEventListener('click', () => {
   playcard.classList.toggle('flipped');
   if (mode === 'play') { loadReflection(); shareNote.textContent = ''; }
 });
 drawBtn.addEventListener('click', drawCard);
-
-saveBtn.addEventListener('click', () => {
-  if (!current) return;
-  state.savedCard = current.n;
-  saveState(state);
-  updateSaveBtn();
-  saveNote.textContent = 'Saved — this card will be waiting when you come back.';
-});
 
 answerBox.addEventListener('input', () => {
   if (!current) return;
@@ -742,12 +727,9 @@ setInterval(loadWall, 45000);
 document.getElementById('mentorGrid').innerHTML = MENTORS.map(m => `<div>${m}</div>`).join('');
 
 // first visit: walk through the special cards; returning visitors go straight to play
-const savedCard = CARDS.find(c => c.n === state.savedCard);
-if (savedCard) {
-  renderCard(savedCard);
-  saveNote.textContent = 'Welcome back — here’s your saved card.';
-} else if (state.seenIntro) {
+if (state.seenIntro) {
   renderCard(CARDS[Math.floor(Math.random() * CARDS.length)]);
+  drawBtn.textContent = 'Draw the next card';
 } else {
   renderSpecial(0);
 }
