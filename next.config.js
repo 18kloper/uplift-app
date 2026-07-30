@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async rewrites() {
+    return [
+      { source: "/uplift-legacy", destination: "/founder-cards.html" },
+    ];
+  },
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.externals = [

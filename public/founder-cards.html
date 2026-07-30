@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uplift Founder Cards — Foundation Series · Summer 2026</title>
+<meta property="og:title" content="Uplift Founder Cards — Foundation Series">
+<meta property="og:description" content="20 questions worth sitting with. Draw a card and reflect alongside us.">
+<style>
+  :root {
+    --navy: #110465;
+    --navy-deep: #0b0248;
+    --pink: #d86697;
+    --pink-soft: #f3cfdf;
+    --ink: #3a3560;
+    --muted: #8d84c9;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Avenir Next', Avenir, Futura, 'Century Gothic', 'Segoe UI', sans-serif;
+    background: #f6f5fa;
+    color: var(--navy);
+    -webkit-font-smoothing: antialiased;
+  }
+  img { max-width: 100%; }
+
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--pink);
+  }
+  .rule { width: 34px; height: 3px; background: var(--pink); border-radius: 2px; margin: 14px auto; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    background: linear-gradient(170deg, var(--navy) 0%, var(--navy-deep) 100%);
+    color: white;
+    text-align: center;
+    padding: 64px 24px 72px;
+  }
+  .hero img.mtn { height: 74px; margin-bottom: 18px; }
+  .hero h1 { font-size: clamp(34px, 7vw, 52px); font-weight: 700; letter-spacing: .01em; }
+  .hero .series { margin-top: 10px; }
+  .hero .slogan {
+    font-style: italic;
+    font-size: clamp(15px, 3.4vw, 18px);
+    color: #cfc9ee;
+    margin-top: 16px;
+  }
+  .hero .gratitude {
+    max-width: 560px;
+    margin: 26px auto 0;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #e9e6f7;
+  }
+  .hero .cta {
+    display: inline-block;
+    margin-top: 30px;
+    background: var(--pink);
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 13px 28px;
+    border-radius: 999px;
+  }
+  .hero .wordmark-row { margin-top: 34px; display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .hero .wm { font-size: 18px; font-weight: 600; border-bottom: 2px solid var(--pink); padding: 0 4px 3px; }
+  .hero .tu { height: 18px; filter: brightness(0) invert(1); opacity: .85; }
+
+  section { padding: 56px 24px; }
+  .wrap { max-width: 640px; margin: 0 auto; text-align: center; }
+  h2 { font-size: 24px; font-weight: 700; }
+
+  /* ---------- Rules ---------- */
+  .rules ol {
+    text-align: left;
+    max-width: 420px;
+    margin: 22px auto 0;
+    list-style: none;
+    counter-reset: step;
+  }
+  .rules li {
+    counter-increment: step;
+    display: flex;
+    gap: 14px;
+    align-items: baseline;
+    padding: 10px 0;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink);
+    border-bottom: 1px solid #e8e5f2;
+  }
+  .rules li:last-child { border-bottom: none; }
+  .rules li::before {
+    content: counter(step, decimal-leading-zero);
+    font-weight: 700;
+    color: var(--pink);
+    font-size: 13px;
+    letter-spacing: .1em;
+    flex: none;
+  }
+  .rules .social {
+    font-style: italic;
+    color: var(--muted);
+    margin-top: 14px;
+    font-size: 14.5px;
+  }
+
+  /* ---------- Card table ---------- */
+  .table { background: white; border-top: 1px solid #eceaf4; border-bottom: 1px solid #eceaf4; }
+  .stage {
+    perspective: 1200px;
+    width: min(320px, 84vw);
+    aspect-ratio: 5 / 7;
+    margin: 30px auto 0;
+    cursor: pointer;
+  }
+  .playcard {
+    position: relative;
+    width: 100%; height: 100%;
+    transform-style: preserve-3d;
+    transition: transform .6s cubic-bezier(.4,.1,.2,1);
+  }
+  .playcard.flipped { transform: rotateY(180deg); }
+  .face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8% 9%;
+    box-shadow: 0 10px 32px rgba(17,4,101,.18);
+  }
+  .face.front { background: linear-gradient(168deg, var(--navy), var(--navy-deep)); color: white; }
+  .face.back {
+    background: white;
+    color: var(--navy);
+    transform: rotateY(180deg);
+    box-shadow: 0 10px 32px rgba(17,4,101,.18), inset 0 0 0 2px var(--pink), inset 0 0 0 8px white, inset 0 0 0 9px var(--pink-soft);
+  }
+  .face img.mtn { height: 40px; margin-bottom: 12px; }
+  .face .f-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: var(--pink); margin-bottom: 7px; }
+  .face .f-theme { font-size: 24px; font-weight: 700; }
+  .face .f-skill { font-size: 12px; font-style: italic; margin-top: 3px; }
+  .face.front .f-skill { color: var(--pink-soft); }
+  .face.back .f-skill { color: var(--muted); }
+  .face .f-rule { width: 26px; height: 2.5px; background: var(--pink); border-radius: 2px; margin: 12px auto; }
+  .face .f-q { font-size: 17px; line-height: 1.5; font-weight: 500; }
+  .face.front .f-q { color: #efedfa; }
+  .face.back .f-q { color: var(--ink); }
+  .face .f-wm { margin-top: 18px; font-size: 14px; font-weight: 600; border-bottom: 1.5px solid var(--pink); padding: 0 4px 2px; }
+  .face.front .f-wm { color: white; }
+  .face .f-collector { position: absolute; bottom: 12px; left: 0; right: 0; font-size: 8px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; }
+  .face.front .f-collector { color: var(--muted); }
+  .face.back .f-collector { color: #b0aacb; }
+  .hint { margin-top: 14px; font-size: 13px; color: var(--muted); font-style: italic; }
+
+  .controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+  button {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    padding: 12px 24px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--navy); color: white; }
+  .btn-ghost { background: white; color: var(--navy); border: 1.5px solid var(--navy); }
+  .btn-ghost.saved { border-color: var(--pink); color: var(--pink); }
+  .save-note { margin-top: 12px; font-size: 13px; color: var(--pink); min-height: 18px; }
+
+  /* ---------- Reflection ---------- */
+  .reflect { display: none; max-width: 480px; margin: 34px auto 0; text-align: left; }
+  .reflect label { display: block; font-size: 11px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--pink); margin: 18px 0 6px; }
+  .reflect textarea {
+    width: 100%;
+    min-height: 74px;
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+    padding: 12px 14px;
+    border: 1.5px solid #e0dcee;
+    border-radius: 10px;
+    resize: vertical;
+    background: #fbfaff;
+  }
+  .reflect textarea:focus { outline: none; border-color: var(--pink); }
+  .reflect .auto { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 8px; }
+
+  .share-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
+  .share-row input {
+    flex: 1 1 160px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    padding: 11px 14px;
+    border: 1.5px solid #e0dcee;
+    border-radius: 999px;
+    background: #fbfaff;
+  }
+  .share-row input:focus { outline: none; border-color: var(--pink); }
+  .btn-share { background: var(--pink); color: white; }
+  .btn-share:disabled { opacity: .5; cursor: default; }
+  .share-note { font-size: 13px; color: var(--pink); margin-top: 10px; min-height: 18px; }
+
+  /* ---------- Wall ---------- */
+  .wall-section { background: #f0eef7; border-top: 1px solid #e4e1ef; }
+  .wall-sub { font-size: 14.5px; color: var(--muted); font-style: italic; margin-top: 12px; }
+  .wall {
+    margin: 30px auto 0;
+    max-width: 900px;
+    columns: 3 240px;
+    column-gap: 14px;
+    text-align: left;
+  }
+  .wall-card {
+    break-inside: avoid;
+    background: white;
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 10px rgba(17,4,101,.07);
+    border-top: 3px solid var(--pink);
+  }
+  .wall-card.fwd { border-top-color: var(--navy); }
+  .wall-card .w-eyebrow {
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 7px;
+  }
+  .wall-card.fwd .w-eyebrow { color: var(--muted); }
+  .wall-card .w-text { font-size: 14.5px; line-height: 1.55; color: var(--ink); }
+  .wall-card .w-name { margin-top: 9px; font-size: 12.5px; font-style: italic; color: var(--muted); }
+  .wall-empty { margin-top: 26px; font-size: 14.5px; color: var(--muted); font-style: italic; }
+  .shout { max-width: 480px; margin: 28px auto 6px; }
+  .shout-lead { font-size: 14.5px; color: var(--ink); line-height: 1.6; }
+  .wall-card.shout-card { border-top-color: #d9a441; background: #fffdf6; }
+  .wall-card.shout-card .w-eyebrow { color: #b98a2e; }
+  .wall-card.shout-card .w-text { font-weight: 600; }
+
+  /* ---------- Thanks ---------- */
+  .thanks { background: var(--navy); color: white; }
+  .thanks .dedication { font-style: italic; color: #e9e6f7; font-size: 16px; line-height: 1.6; max-width: 460px; margin: 14px auto 0; }
+  .mentor-grid {
+    margin: 30px auto 0;
+    max-width: 620px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 7px 16px;
+    font-size: 13.5px;
+    color: #cfc9ee;
+    text-align: center;
+  }
+  .thanks .team {
+    margin-top: 34px;
+    font-size: 13px;
+    font-style: italic;
+    color: var(--muted);
+    max-width: 480px;
+    margin-left: auto; margin-right: auto;
+    line-height: 1.7;
+  }
+  .thanks .wordmark-row { margin-top: 30px; display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .thanks .wm { font-size: 16px; font-weight: 600; border-bottom: 2px solid var(--pink); padding: 0 4px 3px; }
+  .thanks .tu { height: 16px; filter: brightness(0) invert(1); opacity: .85; }
+
+  footer { text-align: center; padding: 26px; font-size: 12px; color: #9a97ab; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <img class="mtn" src="uplift-mountain.png" alt="">
+  <div class="eyebrow">★ Collector’s Edition ★</div>
+  <h1>Founder Cards</h1>
+  <div class="eyebrow series">Foundation Series · Summer 2026</div>
+  <p class="slogan">20 questions worth sitting with.</p>
+  <p class="gratitude">
+    A thank-you to everyone who was part of Uplift this summer — the founders, the mentors,
+    and everyone who left us with questions worth sitting with. We wanted to do something a
+    little creative, and everyone knows we love a good game. So: play along with us.
+  </p>
+  <a class="cta" href="#play">Draw a card</a>
+  <div class="wordmark-row">
+    <span class="wm">uplift</span>
+    <img class="tu" src="techunited-logo.png" alt="TechUnited">
+  </div>
+</header>
+
+<section class="rules">
+  <div class="wrap">
+    <div class="eyebrow">How it works</div>
+    <div class="rule"></div>
+    <ol>
+      <li>Pull a card.</li>
+      <li>Answer <b>Looking Back</b> — out loud, with someone.</li>
+      <li>Flip it. Answer <b>Looking Forward</b>.</li>
+      <li>Do the thing it made you think of.</li>
+    </ol>
+    <p class="social">Play it alone — or with a peer, a colleague, your boss, a mentor. Pull a card and see where it takes you.</p>
+  </div>
+</section>
+
+<section class="table" id="play">
+  <div class="wrap">
+    <div class="eyebrow">The deck</div>
+    <div class="rule"></div>
+
+    <div class="stage" id="stage" title="Tap to flip">
+      <div class="playcard" id="playcard">
+        <div class="face front" id="faceFront"></div>
+        <div class="face back" id="faceBack"></div>
+      </div>
+    </div>
+    <p class="hint" id="hint">Tap the card to flip it</p>
+
+    <div class="controls">
+      <button class="btn-primary" id="drawBtn">Draw a card</button>
+      <button class="btn-ghost" id="saveBtn">Save to my browser</button>
+    </div>
+    <p class="save-note" id="saveNote"></p>
+
+    <div class="reflect" id="reflect">
+      <label id="sideLabel">Looking back</label>
+      <textarea id="answerBox" placeholder="Your reflection…"></textarea>
+      <p class="auto">Saved privately in your browser — nothing leaves this page unless you share it. Tap the card to flip and answer the other side.</p>
+      <div class="share-row">
+        <input id="shareName" type="text" maxlength="40" placeholder="Name (optional)">
+        <input id="shareCompany" type="text" maxlength="40" placeholder="Company (optional)">
+      </div>
+      <div class="share-row">
+        <button class="btn-share" id="shareBtn">Post your answer on the reflection wall</button>
+      </div>
+      <p class="share-note" id="shareNote"></p>
+    </div>
+  </div>
+</section>
+
+<section class="wall-section" id="wall-section">
+  <div class="wrap" style="max-width:900px">
+    <div class="eyebrow">The Reflection Wall</div>
+    <div class="rule"></div>
+    <h2>Reflecting alongside you</h2>
+    <p class="wall-sub">Answers from everyone playing along — watch it populate. Check back and you might see your name, or someone fighting for the same thing you are.</p>
+
+    <div class="shout">
+      <p class="shout-lead"><b>Bonus:</b> want to shout out someone who’s been a mentor to you? Type their name and they’ll go on the board as a thank-you.</p>
+      <div class="share-row" style="justify-content:center">
+        <input id="shoutName" type="text" maxlength="60" placeholder="Their name">
+        <button class="btn-share" id="shoutBtn">Put them on the board</button>
+      </div>
+      <p class="share-note" id="shoutNote"></p>
+    </div>
+
+    <div class="wall" id="wall"></div>
+    <p class="wall-empty" id="wallEmpty" style="display:none">No answers on the wall yet — be the first to share one.</p>
+  </div>
+</section>
+
+<section class="thanks">
+  <div class="wrap">
+    <div class="eyebrow">The People Behind Your Uplift</div>
+    <div class="rule"></div>
+    <p class="dedication">This deck is dedicated to the mentors who make Uplift possible.<br><b>A legacy is never built alone.</b></p>
+    <div class="mentor-grid" id="mentorGrid"></div>
+    <p class="team">
+      With thanks to the TechUnited team — Aaron Price, Mary Jane Durkin, Kennedy Loper, Jackie Anzaroot,
+      Hana Yackanich, Kailan Campbell &amp; Max Lascher. And a special thank-you to the New Jersey Economic
+      Development Authority (NJEDA), whose support helps power this program.
+    </p>
+    <div class="wordmark-row">
+      <span class="wm">uplift</span>
+      <img class="tu" src="techunited-logo.png" alt="TechUnited">
+    </div>
+  </div>
+</section>
+
+<footer>Uplift Founder Cards · Foundation Series · Summer 2026</footer>
+
+<script>
+const CARDS = [
+  { n: 1,  theme: "Gratitude",         skill: "Recognizes those who opened doors.",
+    back: "Who changed the direction of your career without realizing it?",
+    fwd:  "Who is one person you should thank this month?" },
+  { n: 2,  theme: "Mentorship",        skill: "Learns generously. Teaches generously.",
+    back: "What’s the best piece of advice a mentor ever gave you?",
+    fwd:  "What’s one lesson you’re excited to pass on someday?" },
+  { n: 3,  theme: "Growth",            skill: "Turns challenges into fuel.",
+    back: "What challenge made you a better founder?",
+    fwd:  "What’s something you’re still trying to figure out?" },
+  { n: 4,  theme: "Courage",           skill: "Bets on themselves before it’s safe.",
+    back: "When did you bet on yourself?",
+    fwd:  "What would you do if you knew you couldn’t fail?" },
+  { n: 5,  theme: "Community",         skill: "Creates opportunities for others.",
+    back: "What’s one connection that changed everything?",
+    fwd:  "Who are two people you could introduce this month?" },
+  { n: 6,  theme: "Momentum",          skill: "Turns wins into what’s next.",
+    back: "What’s one win you’re proud of this summer?",
+    fwd:  "What’s one goal you’re chasing next?" },
+  { n: 7,  theme: "Storytelling",      skill: "Turns experiences into lessons.",
+    back: "What moment from your journey do you find yourself retelling?",
+    fwd:  "What story do you want to be telling this time next year?" },
+  { n: 8,  theme: "Perspective",       skill: "Changes minds before changing markets.",
+    back: "What’s something you believe now that you didn’t a year ago?",
+    fwd:  "What belief do you hope guides you over the next year?" },
+  { n: 9,  theme: "Paying It Forward", skill: "Opens doors they once knocked on.",
+    back: "Who took a chance on you before you felt ready?",
+    fwd:  "Who could you take a chance on?" },
+  { n: 10, theme: "Legacy",            skill: "Builds things that outlast them.",
+    back: "What’s a moment that made you proud of your impact?",
+    fwd:  "What impact do you hope people remember you for?" },
+];
+
+const MENTORS = [
+  "Aditi Sinha","Aizaz Shariff","Anand Rai","Anatole Norland","Andrew Jacobs","Basia Walska",
+  "Bruno Bilik","Christina Dorando","Clare DeNicola","Connie Pascal","Dee Marshall","Dennis Yuscavitch",
+  "Ebun Okubanjo","Ed Sawma","Eric Schmalzbauer","Felicia Palmer","James (Jim) Scott","Jeffrey Allen",
+  "Jennifer D’Angelo","Jennifer Jolley","Jessie Lee","Joe Maruschak","Joe Spivack","Jose Gabriel Carrasco Ramirez",
+  "Joseph Gadino","Kenneth Jones","Malak Atut","Marc Kaufman","Marc Saint-Ulysse","Mark Nelson",
+  "Marty Coleman","Michael Baer","Miquel de Quadras","Natalie Kaminski","Orin Davis","Pavan Kumar",
+  "Rahul Mehendale","Roman Tsibulevskiy","Sara Bender-Bier","Sid Nag","Soojin Choung","Stella Alvo",
+  "Stephen Makinen","Vikram Wadhawan","Vishal Goyal","Vishal Soni","Wadnes Castelly","Yuri Fiaschi",
+];
+
+const pad = n => String(n).padStart(2, '0');
+const LS_KEY = 'uplift-founder-cards';
+
+// ---------- Intro sequence: the deck's special cards ----------
+const SPECIALS = [
+  {
+    front: `
+      <img class="mtn" src="uplift-mountain.png" alt="">
+      <div class="f-eyebrow">★ Collector’s Edition ★</div>
+      <div class="f-theme">Founder Cards</div>
+      <div class="f-eyebrow" style="margin-top:6px">Foundation Series · Summer 2026</div>
+      <div class="f-rule"></div>
+      <div class="f-q" style="font-style:italic">20 questions worth sitting with.</div>
+      <div class="f-wm">uplift</div>
+      <div class="f-collector">Title Card · Foundation Series · Summer 2026</div>`,
+    back: `
+      <div class="f-eyebrow">How It Works</div>
+      <div class="f-rule"></div>
+      <div class="f-q" style="text-align:left;font-size:15px;line-height:1.65">
+        1&nbsp;&nbsp;Pull a card.<br>
+        2&nbsp;&nbsp;Answer <b>Looking Back</b> — out loud, with someone.<br>
+        3&nbsp;&nbsp;Flip it. Answer <b>Looking Forward</b>.<br>
+        4&nbsp;&nbsp;Do the thing it made you think of.
+      </div>
+      <div class="f-skill" style="margin-top:12px">Play it alone — or with a peer, a colleague, your boss, a mentor.</div>
+      <div class="f-wm">uplift</div>
+      <div class="f-collector">Title Card · Foundation Series · Summer 2026</div>`,
+  },
+  {
+    front: `
+      <img class="mtn" src="uplift-mountain.png" alt="">
+      <div class="f-eyebrow">★ Wild Card ★</div>
+      <div class="f-theme">The Founder</div>
+      <div class="f-skill">Plays every role until it works.</div>
+      <div class="f-rule"></div>
+      <div class="f-q">Part builder, part storyteller, part stubborn optimist.<br><br>That’s you.</div>
+      <div class="f-wm">uplift</div>
+      <div class="f-collector">The Founder · Foundation Series · Summer 2026</div>`,
+    back: `
+      <div class="f-eyebrow">The Deck</div>
+      <div class="f-rule"></div>
+      <div class="f-q" style="text-align:left;font-size:13.5px;line-height:1.6">
+        01&nbsp;&nbsp;Gratitude<br>02&nbsp;&nbsp;Mentorship<br>03&nbsp;&nbsp;Growth<br>04&nbsp;&nbsp;Courage<br>05&nbsp;&nbsp;Community<br>06&nbsp;&nbsp;Momentum<br>07&nbsp;&nbsp;Storytelling<br>08&nbsp;&nbsp;Perspective<br>09&nbsp;&nbsp;Paying It Forward<br>10&nbsp;&nbsp;Legacy
+      </div>
+      <div class="f-collector">The Founder · Foundation Series · Summer 2026</div>`,
+  },
+  {
+    front: `
+      <img class="mtn" src="uplift-mountain.png" alt="">
+      <div class="f-eyebrow">Foundation Series · Summer 2026</div>
+      <div class="f-theme">uplift</div>
+      <div class="f-rule"></div>
+      <div class="f-q" style="font-style:italic">A legacy is never built alone.</div>
+      <div class="f-skill" style="margin-top:12px">This deck is dedicated to the mentors who make Uplift possible.</div>
+      <div class="f-collector">Mentor Edition · Foundation Series · Summer 2026</div>`,
+    back: `
+      <div class="f-eyebrow">The People Behind Your Uplift</div>
+      <div class="f-rule"></div>
+      <div class="f-q" style="font-size:15px;line-height:1.6;font-style:italic">This deck is dedicated to the 48 mentors who make Uplift possible.</div>
+      <div class="f-skill" style="margin-top:12px">Every one of them is named at the bottom of this page.</div>
+      <div class="f-wm">uplift</div>
+      <div class="f-collector">Mentor Edition · Foundation Series · Summer 2026</div>`,
+  },
+];
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch (e) { return {}; }
+}
+function saveState(st) {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(st)); } catch (e) {}
+}
+
+let state = loadState();
+let current = null;
+
+const playcard = document.getElementById('playcard');
+const stage = document.getElementById('stage');
+const faceFront = document.getElementById('faceFront');
+const faceBack = document.getElementById('faceBack');
+const saveNote = document.getElementById('saveNote');
+const saveBtn = document.getElementById('saveBtn');
+const reflect = document.getElementById('reflect');
+const answerBox = document.getElementById('answerBox');
+const sideLabel = document.getElementById('sideLabel');
+
+const currentSide = () => playcard.classList.contains('flipped') ? 'fwd' : 'back';
+
+function loadReflection() {
+  if (!current) return;
+  const side = currentSide();
+  sideLabel.textContent = side === 'fwd' ? 'Looking forward' : 'Looking back';
+  const saved = (state.answers || {})[current.n] || {};
+  answerBox.value = saved[side] || '';
+  answerBox.placeholder = side === 'fwd' ? current.fwd : current.back;
+}
+
+function renderCard(c) {
+  current = c;
+  faceFront.innerHTML = `
+    <img class="mtn" src="uplift-mountain.png" alt="">
+    <div class="f-eyebrow">Looking Back</div>
+    <div class="f-theme">${c.theme}</div>
+    <div class="f-skill">${c.skill}</div>
+    <div class="f-rule"></div>
+    <div class="f-q">${c.back}</div>
+    <div class="f-wm">uplift</div>
+    <div class="f-collector">${pad(c.n)}/10 · Foundation Series · Summer 2026</div>`;
+  faceBack.innerHTML = `
+    <div class="f-eyebrow">Looking Forward</div>
+    <div class="f-theme">${c.theme}</div>
+    <div class="f-rule"></div>
+    <div class="f-q">${c.fwd}</div>
+    <div class="f-wm">uplift</div>
+    <div class="f-collector">${pad(c.n)}/10 · Foundation Series · Summer 2026</div>`;
+  playcard.classList.remove('flipped');
+
+  reflect.style.display = 'block';
+  loadReflection();
+  updateSaveBtn();
+}
+
+// ---------- Intro / play modes ----------
+let mode = 'play';
+let introIdx = 0;
+const drawBtn = document.getElementById('drawBtn');
+const hint = document.getElementById('hint');
+
+function renderSpecial(i) {
+  mode = 'intro';
+  introIdx = i;
+  current = null;
+  faceFront.innerHTML = SPECIALS[i].front;
+  faceBack.innerHTML = SPECIALS[i].back;
+  playcard.classList.remove('flipped');
+  reflect.style.display = 'none';
+  saveBtn.style.display = 'none';
+  drawBtn.textContent = i < SPECIALS.length - 1 ? 'Next card' : 'Ready for your card?';
+  hint.textContent = 'Tap the card to flip it';
+  saveNote.textContent = '';
+}
+
+function drawCard() {
+  if (mode === 'intro' && introIdx < SPECIALS.length - 1) {
+    renderSpecial(introIdx + 1);
+    return;
+  }
+  if (mode === 'intro') {
+    mode = 'play';
+    state.seenIntro = true;
+    saveState(state);
+    drawBtn.textContent = 'Draw a card';
+    saveBtn.style.display = '';
+  }
+  const pool = CARDS.filter(c => !current || c.n !== current.n);
+  const c = pool[Math.floor(Math.random() * pool.length)];
+  renderCard(c);
+  saveNote.textContent = '';
+}
+
+function updateSaveBtn() {
+  if (current && state.savedCard === current.n) {
+    saveBtn.textContent = '★ Saved';
+    saveBtn.classList.add('saved');
+  } else {
+    saveBtn.textContent = 'Save to my browser';
+    saveBtn.classList.remove('saved');
+  }
+}
+
+stage.addEventListener('click', () => {
+  playcard.classList.toggle('flipped');
+  if (mode === 'play') { loadReflection(); shareNote.textContent = ''; }
+});
+drawBtn.addEventListener('click', drawCard);
+
+saveBtn.addEventListener('click', () => {
+  if (!current) return;
+  state.savedCard = current.n;
+  saveState(state);
+  updateSaveBtn();
+  saveNote.textContent = 'Saved — this card will be waiting when you come back.';
+});
+
+answerBox.addEventListener('input', () => {
+  if (!current) return;
+  state.answers = state.answers || {};
+  state.answers[current.n] = state.answers[current.n] || {};
+  state.answers[current.n][currentSide()] = answerBox.value;
+  saveState(state);
+});
+
+// ---------- Community wall ----------
+const shareBtn = document.getElementById('shareBtn');
+const shareNote = document.getElementById('shareNote');
+const shareName = document.getElementById('shareName');
+const shareCompany = document.getElementById('shareCompany');
+const wall = document.getElementById('wall');
+const wallEmpty = document.getElementById('wallEmpty');
+
+shareName.value = state.name || '';
+shareCompany.value = state.company || '';
+shareName.addEventListener('input', () => { state.name = shareName.value; saveState(state); });
+shareCompany.addEventListener('input', () => { state.company = shareCompany.value; saveState(state); });
+
+const esc = t => t.replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
+shareBtn.addEventListener('click', async () => {
+  if (!current) return;
+  const text = answerBox.value.trim();
+  if (!text) { shareNote.textContent = 'Write an answer above first, then share it.'; return; }
+  shareBtn.disabled = true;
+  shareNote.textContent = 'Sharing…';
+  try {
+    await fetch('/api/card-answers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: shareName.value.trim(),
+        company: shareCompany.value.trim(),
+        card: current.n,
+        theme: current.theme,
+        side: currentSide(),
+        text,
+      }),
+    });
+    shareNote.textContent = 'Posted — your answer is on the reflection wall below.';
+    loadWall();
+  } catch (e) {
+    shareNote.textContent = 'Couldn’t reach the wall just now — your answer is still saved here.';
+  }
+  shareBtn.disabled = false;
+});
+
+function renderWall(answers) {
+  if (!answers.length) { wallEmpty.style.display = 'block'; wall.innerHTML = ''; return; }
+  wallEmpty.style.display = 'none';
+  wall.innerHTML = answers.map(a => {
+    if (a.side === 'shout') {
+      return `
+    <div class="wall-card shout-card">
+      <div class="w-eyebrow">🙏 Mentor Shout-Out</div>
+      <div class="w-text">Thank you, ${esc(a.text)}.</div>
+      <div class="w-name">— ${esc(a.name || 'someone playing along')}${a.company ? ', ' + esc(a.company) : ''}</div>
+    </div>`;
+    }
+    return `
+    <div class="wall-card ${a.side === 'fwd' ? 'fwd' : ''}">
+      <div class="w-eyebrow">${esc(a.theme || '')} · ${a.side === 'fwd' ? 'Looking Forward' : 'Looking Back'}</div>
+      <div class="w-text">${esc(a.text)}</div>
+      <div class="w-name">— ${esc(a.name || 'someone playing along')}${a.company ? ', ' + esc(a.company) : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+// ---------- Mentor shout-outs ----------
+const shoutBtn = document.getElementById('shoutBtn');
+const shoutName = document.getElementById('shoutName');
+const shoutNote = document.getElementById('shoutNote');
+shoutBtn.addEventListener('click', async () => {
+  const who = shoutName.value.trim();
+  if (!who) { shoutNote.textContent = 'Type their name first.'; return; }
+  shoutBtn.disabled = true;
+  shoutNote.textContent = 'Adding to the board…';
+  try {
+    await fetch('/api/card-answers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: shareName.value.trim(),
+        company: shareCompany.value.trim(),
+        card: 0,
+        theme: 'Shout-out',
+        side: 'shout',
+        text: who,
+      }),
+    });
+    shoutNote.textContent = `${who} is on the board. 🙏`;
+    shoutName.value = '';
+    loadWall();
+  } catch (e) {
+    shoutNote.textContent = 'Couldn’t reach the board just now — try again in a moment.';
+  }
+  shoutBtn.disabled = false;
+});
+
+async function loadWall() {
+  try {
+    const r = await fetch('/api/card-answers');
+    const data = await r.json();
+    renderWall(data.answers || []);
+  } catch (e) {
+    wallEmpty.style.display = 'block';
+    wallEmpty.textContent = 'The wall lives on the Uplift site — answers appear when the page is served there.';
+  }
+}
+loadWall();
+setInterval(loadWall, 45000);
+
+document.getElementById('mentorGrid').innerHTML = MENTORS.map(m => `<div>${m}</div>`).join('');
+
+// first visit: walk through the special cards; returning visitors go straight to play
+const savedCard = CARDS.find(c => c.n === state.savedCard);
+if (savedCard) {
+  renderCard(savedCard);
+  saveNote.textContent = 'Welcome back — here’s your saved card.';
+} else if (state.seenIntro) {
+  renderCard(CARDS[Math.floor(Math.random() * CARDS.length)]);
+} else {
+  renderSpecial(0);
+}
+</script>
+
+</body>
+</html>
