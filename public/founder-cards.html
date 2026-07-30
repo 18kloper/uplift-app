@@ -354,20 +354,6 @@
   </div>
 </header>
 
-<section class="rules">
-  <div class="wrap">
-    <div class="eyebrow">How it works</div>
-    <div class="rule"></div>
-    <ol>
-      <li>Pull a card.</li>
-      <li>Answer <b>Looking Back</b>.</li>
-      <li>Flip it. Answer <b>Looking Forward</b>.</li>
-      <li>Do the thing it made you think of.</li>
-    </ol>
-    <p class="social">Play it alone — or with a peer, a colleague, your boss, a mentor. Pull a card and see where it takes you.</p>
-  </div>
-</section>
-
 <section class="table" id="play">
   <div class="wrap">
     <div class="eyebrow">The deck</div>
@@ -570,6 +556,7 @@ const SPECIALS = [
       <div class="f-q" style="font-style:italic">A legacy is never built alone.</div>
       <div class="f-skill" style="margin-top:12px">This deck is dedicated to the mentors who make Uplift possible.</div>
       <div class="f-collector">Mentor Edition · Foundation Series · Summer 2026</div>`,
+    startFlipped: true,
     back: `
       <div class="f-eyebrow">The People Behind Your Uplift</div>
       <div class="f-rule"></div>
@@ -647,7 +634,7 @@ function renderSpecial(i) {
   current = null;
   faceFront.innerHTML = SPECIALS[i].front;
   faceBack.innerHTML = SPECIALS[i].back;
-  playcard.classList.remove('flipped');
+  playcard.classList.toggle('flipped', !!SPECIALS[i].startFlipped);
   reflect.style.display = 'none';
   backBtn.style.display = 'none';
   drawBtn.textContent = i < SPECIALS.length - 1 ? 'Next card' : 'Ready for your card?';
