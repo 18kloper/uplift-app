@@ -246,6 +246,9 @@
     margin-bottom: 7px;
   }
   .wall-card.fwd .w-eyebrow { color: var(--muted); }
+  .wall-card.pinned { box-shadow: 0 2px 14px rgba(217,164,65,.25); }
+  .wall-card .w-pin { float: right; font-size: 11px; color: #d9a441; }
+  .wall-card .w-q { font-size: 11px; font-style: italic; color: var(--muted); margin: -2px 0 6px; line-height: 1.45; }
   .wall-card .w-text { font-size: 14.5px; line-height: 1.55; color: var(--ink); }
   .wall-card .w-name { margin-top: 9px; font-size: 12.5px; font-style: italic; color: var(--muted); }
   .wall-empty { margin-top: 26px; font-size: 14.5px; color: var(--muted); font-style: italic; }
@@ -322,7 +325,7 @@
     and everyone who left us with questions worth sitting with. We wanted to do something a
     little creative, and everyone knows we love a good game. And anyone can play — whether
     you’re joining us from across the state, the other side of the country, or you’re lucky
-    enough to be reading this on a beach. We’d love to have you.
+    enough to be reading this on a beach. We’re happy to have you.
   </p>
   <a class="cta" href="#play">Draw a card</a>
   <div class="wordmark-row">
@@ -384,7 +387,7 @@
     <div class="eyebrow">The Reflection Wall</div>
     <div class="rule"></div>
     <h2>Reflecting alongside you</h2>
-    <p class="wall-sub">Answers from everyone playing along — watch it populate. Check back and you might see your name, or someone fighting for the same thing you are.</p>
+    <p class="wall-sub">Answers from everyone playing along — watch it populate. Check back and you might see your name, or something someone said that you relate to.</p>
 
     <div class="shout">
       <p class="shout-lead"><b>Bonus:</b> want to shout out someone who’s been a mentor to you? Type their name and they’ll go on the board as a thank-you.</p>
@@ -431,12 +434,11 @@
     <div class="eyebrow">A Personal Note</div>
     <div class="rule"></div>
     <p>
-      It’s been an immense pleasure getting to help lay out the foundational bones of this
-      program — and to see what’s possible. It’s given me a renewed enjoyment of community
-      and connectivity, it’s allowed me to express my creativity, and ultimately it’s been
-      a place where I’m inspired to work harder — motivated by the sheer audacity of the
-      founders in this program, who do a million things at once and still find time to
-      lift each other up.
+      It’s been an immense pleasure helping lay the foundation for this program and seeing
+      what’s possible. This experience has given me a renewed appreciation for the power of
+      community and connection. It’s been an outlet for my creativity, and more than
+      anything, a place where I’m inspired every day to work harder and dream bigger
+      because of the incredible founders in this program.
     </p>
     <p class="sig">— Kennedy Loper</p>
   </div>
@@ -481,11 +483,11 @@ const CARDS = [
 const MENTORS = [
   "Aditi Sinha","Aizaz Shariff","Anand Rai","Anatole Norland","Andrew Jacobs","Basia Walska",
   "Bruno Bilik","Christina Dorando","Clare DeNicola","Connie Pascal","Dee Marshall","Dennis Yuscavitch",
-  "Ebun Okubanjo","Ed Sawma","Eric Schmalzbauer","Felicia Palmer","James (Jim) Scott","Jeffrey Allen",
+  "Ed Sawma","Eric Schmalzbauer","Felicia Palmer","James (Jim) Scott","Jeffrey Allen",
   "Jennifer D’Angelo","Jennifer Jolley","Jessie Lee","Joe Maruschak","Joe Spivack","Jose Gabriel Carrasco Ramirez",
-  "Joseph Gadino","Kenneth Jones","Malak Atut","Marc Kaufman","Marc Saint-Ulysse","Mark Nelson",
+  "Joseph Gadino","Jossy Harrington","Kenneth Jones","Malak Atut","Marc Kaufman","Marc Saint-Ulysse","Mark Nelson",
   "Marty Coleman","Michael Baer","Miquel de Quadras","Natalie Kaminski","Orin Davis","Pavan Kumar",
-  "Rahul Mehendale","Roman Tsibulevskiy","Sara Bender-Bier","Sid Nag","Soojin Choung","Stella Alvo",
+  "Rahul Mehendale","Roman Tsibulevskiy","Soojin Choung","Stella Alvo",
   "Stephen Makinen","Vikram Wadhawan","Vishal Goyal","Vishal Soni","Wadnes Castelly","Yuri Fiaschi",
 ];
 
@@ -547,7 +549,7 @@ const SPECIALS = [
     back: `
       <div class="f-eyebrow">The People Behind Your Uplift</div>
       <div class="f-rule"></div>
-      <div class="f-q" style="font-size:15px;line-height:1.6;font-style:italic">This deck is dedicated to the 48 mentors who make Uplift possible.</div>
+      <div class="f-q" style="font-size:15px;line-height:1.6;font-style:italic">This deck is dedicated to the 46 mentors who make Uplift possible.</div>
       <div class="f-skill" style="margin-top:12px">Every one of them is named at the bottom of this page.</div>
       <div class="f-wm">uplift</div>
       <div class="f-collector">Mentor Edition · Foundation Series · Summer 2026</div>`,
@@ -736,9 +738,13 @@ function renderWall(answers) {
       <div class="w-text">Thank you, ${esc(a.text)}.</div>
     </div>`;
     }
+    const qCard = CARDS.find(c => c.n === parseInt(a.card, 10));
+    const question = qCard ? (a.side === 'fwd' ? qCard.fwd : qCard.back) : '';
     return `
-    <div class="wall-card ${a.side === 'fwd' ? 'fwd' : ''}">
+    <div class="wall-card ${a.side === 'fwd' ? 'fwd' : ''}${a.pinned ? ' pinned' : ''}">
+      ${a.pinned ? '<span class="w-pin">★</span>' : ''}
       <div class="w-eyebrow">${esc(a.theme || '')} · ${a.side === 'fwd' ? 'Looking Forward' : 'Looking Back'}</div>
+      ${question ? `<div class="w-q">${esc(question)}</div>` : ''}
       <div class="w-text">${esc(a.text)}</div>
       <div class="w-name">— ${esc(a.name || 'someone playing along')}${a.company ? ', ' + esc(a.company) : ''}</div>
     </div>`;

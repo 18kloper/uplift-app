@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uplift Founder Cards — Foundation Series · Summer 2026</title>
+<style>
+  :root {
+    --navy: #110465;
+    --pink: #d86697;
+    --pink-soft: #f3cfdf;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Avenir Next', Avenir, Futura, 'Century Gothic', sans-serif;
+    background: #ececf1;
+    color: var(--navy);
+  }
+
+  /* ---------- Screen-only intro ---------- */
+  .intro {
+    max-width: 8.5in;
+    margin: 32px auto 0;
+    padding: 28px 36px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(17,4,101,.12);
+  }
+  .intro img { height: 44px; display: block; margin-bottom: 14px; }
+  .intro h1 { font-size: 22px; font-weight: 600; }
+  .intro p { font-size: 14px; line-height: 1.55; color: #444; margin-top: 8px; }
+  .intro .steps { margin-top: 10px; padding-left: 18px; font-size: 14px; color: #444; line-height: 1.65; }
+  @media print { .intro { display: none; } }
+
+  /* ---------- Sheets ---------- */
+  .sheet {
+    width: 8.5in;
+    height: 11in;
+    margin: 24px auto;
+    background: white;
+    box-shadow: 0 2px 10px rgba(17,4,101,.15);
+    padding: 0.55in 0.3in 0.25in;
+    position: relative;
+    page-break-after: always;
+  }
+  @media print {
+    body { background: white; }
+    .sheet { margin: 0; box-shadow: none; }
+    @page { size: letter; margin: 0; }
+  }
+
+  .sheet-label {
+    position: absolute;
+    top: 0.22in;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 8.5pt;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #b0b0b8;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 2.5in);
+    grid-template-rows: repeat(2, 3.5in);
+    justify-content: center;
+    align-content: start;
+    row-gap: 0.45in;
+    column-gap: 0.2in;
+  }
+
+  /* ---------- Card (coaster design language) ---------- */
+  .card {
+    width: 2.5in;
+    height: 3.5in;
+    border-radius: 0.125in;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0.2in 0.18in;
+    outline: 1px dashed #c8c8d2;   /* cut guide */
+    overflow: hidden;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .card.empty { outline: none; }
+
+  .card-front { background: var(--navy); color: white; }
+  .card-back  { background: white; color: var(--navy); box-shadow: inset 0 0 0 1.5px var(--pink), inset 0 0 0 6px white, inset 0 0 0 6.8px var(--pink-soft); }
+
+  .card-front .eyebrow { color: var(--pink); }
+  .card-front .theme   { color: white; }
+  .card-front .skill   { color: var(--pink-soft); }
+  .card-front .question{ color: #e9e6f7; }
+  .card-front .flip    { color: var(--pink); }
+  .card-front .collector { color: #8d84c9; }
+  .card-front .wordmark { color: white; }
+
+  .card-back .eyebrow { color: var(--pink); }
+  .card-back .theme   { color: var(--navy); }
+  .card-back .skill   { color: #8d84c9; }
+  .card-back .question{ color: #3a3560; }
+  .card-back .collector { color: #b0aacb; }
+
+  .mountain { height: 0.28in; margin-bottom: 7px; }
+
+  .eyebrow {
+    font-size: 5.6pt;
+    font-weight: 600;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .theme {
+    font-size: 12.5pt;
+    font-weight: 700;
+    letter-spacing: .015em;
+    margin-bottom: 2px;
+  }
+  .theme.long { font-size: 10.5pt; }
+
+  .skill {
+    font-size: 6.4pt;
+    font-style: italic;
+    font-weight: 500;
+    margin-bottom: 3px;
+  }
+
+  .theme-rule {
+    width: 22px; height: 2px;
+    background: var(--pink);
+    border-radius: 2px;
+    margin: 4px auto 8px;
+  }
+
+  .question {
+    font-size: 8.8pt;
+    line-height: 1.42;
+    font-weight: 500;
+    max-width: 1.95in;
+  }
+
+  .flip {
+    margin-top: 10px;
+    font-size: 5.6pt;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+  }
+
+  .wordmark {
+    margin-top: 10px;
+    font-size: 8.5pt;
+    font-weight: 600;
+    letter-spacing: .02em;
+    color: var(--navy);
+    line-height: 1;
+    border-bottom: 1px solid var(--pink);
+    padding: 0 4px 2px;
+  }
+
+  /* TechUnited co-brand — always smaller than the uplift mark */
+  .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 10px;
+  }
+  .brand-row .wordmark { margin-top: 0; }
+  .tu-mini { height: 0.15in; display: block; }
+  .tu-foot {
+    position: absolute;
+    bottom: 0.28in;
+    left: 0; right: 0;
+    display: flex;
+    justify-content: center;
+  }
+  .tu-foot img { height: 0.13in; }
+  .card-front .tu-foot img { filter: brightness(0) invert(1); opacity: .9; }
+
+  .cb-top {
+    position: absolute;
+    top: 0.18in;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 5.2pt;
+    font-weight: 600;
+    letter-spacing: .26em;
+    text-transform: uppercase;
+    color: var(--pink);
+  }
+
+  .collector {
+    position: absolute;
+    bottom: 0.14in;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 4.8pt;
+    font-weight: 600;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+  }
+
+  /* ---------- Mentor dedication card ---------- */
+  .tagline {
+    font-size: 9.5pt;
+    line-height: 1.45;
+    font-weight: 500;
+    font-style: italic;
+    max-width: 1.85in;
+  }
+  .dedication {
+    font-size: 6.6pt;
+    line-height: 1.4;
+    font-style: italic;
+    color: #6b648f;
+    max-width: 1.95in;
+    margin-bottom: 6px;
+  }
+  .mentor-names {
+    column-count: 2;
+    column-gap: 10px;
+    font-size: 4.9pt;
+    line-height: 1.24;
+    font-weight: 500;
+    color: #3a3560;
+    text-align: left;
+    width: 2.1in;
+  }
+  .mentor-names div { break-inside: avoid; }
+  .team-thanks {
+    font-size: 4.6pt;
+    font-style: italic;
+    line-height: 1.4;
+    color: #8d84c9;
+    max-width: 2.05in;
+    margin-top: 4px;
+  }
+
+  /* ---------- Tuck box ---------- */
+  .box-note {
+    text-align: center;
+    font-size: 8pt;
+    color: #9a97ab;
+    margin-top: 8px;
+  }
+  .dieline { display: block; margin: 0.1in auto 0; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <img src="uplift-logo.png" alt="Uplift">
+  <h1>Uplift Founder Cards — Foundation Series · Summer 2026</h1>
+  <p>Thirteen collectible trading cards (standard 2.5″ × 3.5″) in the coaster design: navy Looking Back front, white Looking Forward back with the pink ring — a title card, ten themed cards, The Founder wild card, and a Mentor Edition dedication card listing every Uplift mentor. Sheets are ordered front/back for duplex printing, plus belly-band wraps on the last page.</p>
+  <ol class="steps">
+    <li>Print on heavy cardstock, <strong>double-sided, flip on long edge</strong>, at 100% scale (no “fit to page”).</li>
+    <li>Cut along dashed guides; round the corners with a corner punch (⅛″ radius) for a real trading-card feel.</li>
+    <li>For a print shop (or makeplayingcards.com): order <strong>poker-size 2.5″ × 3.5″ cards, 300gsm+, rounded corners</strong> — they’ll take these designs directly.</li>
+  </ol>
+</div>
+
+<div id="sheets"></div>
+
+<script>
+const CARDS = [
+  { n: 1,  theme: "Gratitude",         skill: "Recognizes those who opened doors.",
+    back: "Who changed the direction of your career without realizing it?",
+    fwd:  "Who is one person you should thank this month?" },
+  { n: 2,  theme: "Mentorship",        skill: "Learns generously. Teaches generously.",
+    back: "What’s the best piece of advice a mentor ever gave you?",
+    fwd:  "What’s one lesson you’re excited to pass on someday?" },
+  { n: 3,  theme: "Growth",            skill: "Turns challenges into fuel.",
+    back: "What challenge made you a better founder?",
+    fwd:  "What’s something you’re still trying to figure out?" },
+  { n: 4,  theme: "Courage",           skill: "Bets on themselves before it’s safe.",
+    back: "When did you bet on yourself?",
+    fwd:  "What would you do if you knew you couldn’t fail?" },
+  { n: 5,  theme: "Community",         skill: "Creates opportunities for others.",
+    back: "What’s one connection that changed everything?",
+    fwd:  "Who are two people you could introduce this month?" },
+  { n: 6,  theme: "Momentum",          skill: "Turns wins into what’s next.",
+    back: "What’s one win you’re proud of this summer?",
+    fwd:  "What’s one goal you’re chasing next?" },
+  { n: 7,  theme: "Storytelling",      skill: "Turns experiences into lessons.",
+    back: "What moment from your journey do you find yourself retelling?",
+    fwd:  "What story do you want to be telling this time next year?" },
+  { n: 8,  theme: "Perspective",       skill: "Changes minds before changing markets.",
+    back: "What’s something you believe now that you didn’t a year ago?",
+    fwd:  "What belief do you hope guides you over the next year?" },
+  { n: 9,  theme: "Paying It Forward", skill: "Opens doors they once knocked on.",
+    back: "Who took a chance on you before you felt ready?",
+    fwd:  "Who could you take a chance on?" },
+  { n: 10, theme: "Legacy",            skill: "Builds things that outlast them.",
+    back: "What’s a moment that made you proud of your impact?",
+    fwd:  "What impact do you hope people remember you for?" },
+];
+
+const pad = n => String(n).padStart(2, '0');
+
+function mountainSVG(color) {
+  return `<img class="mountain" src="uplift-mountain.png" alt="">`;
+}
+
+const flipArrow = `<svg width="8" height="8" viewBox="0 0 16 16" style="vertical-align:-1px" xmlns="http://www.w3.org/2000/svg">
+  <path d="M8 2 a6 6 0 1 1 -5.2 3" fill="none" stroke="#d86697" stroke-width="2" stroke-linecap="round"/>
+  <path d="M2.8 1.5 L2.8 5.4 L6.6 5.4" fill="none" stroke="#d86697" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+
+function frontCard(c) {
+  const longTheme = c.theme.length > 12;
+  return `<div class="card card-front">
+    ${mountainSVG('#d86697')}
+    <div class="eyebrow">Looking Back</div>
+    <div class="theme${longTheme ? ' long' : ''}">${c.theme}</div>
+    <div class="skill">${c.skill}</div>
+    <div class="theme-rule"></div>
+    <div class="question">${c.back}</div>
+    <div class="flip">${flipArrow}</div>
+    <div class="wordmark">uplift</div>
+    <div class="tu-foot"><img src="techunited-logo.png" alt="TechUnited"></div>
+    <div class="collector">${pad(c.n)}/10 · Foundation Series · Summer 2026</div>
+  </div>`;
+}
+
+function backCard(c) {
+  return `<div class="card card-back">
+    <div class="cb-top">${c.theme}</div>
+    <div class="eyebrow">Looking Forward</div>
+    <div class="theme-rule"></div>
+    <div class="question" style="font-size:10.5pt;line-height:1.5">${c.fwd}</div>
+    <div class="wordmark" style="margin-top:16px">uplift</div>
+    <div class="tu-foot"><img src="techunited-logo.png" alt="TechUnited"></div>
+    <div class="collector">${pad(c.n)}/10 · Foundation Series · Summer 2026</div>
+  </div>`;
+}
+
+/* ---------- Special cards: instructions + mentor dedication ---------- */
+const MENTORS = [
+  "Aditi Sinha","Aizaz Shariff","Anand Rai","Anatole Norland","Andrew Jacobs","Basia Walska",
+  "Bruno Bilik","Christina Dorando","Clare DeNicola","Connie Pascal","Dee Marshall","Dennis Yuscavitch",
+  "Ed Sawma","Eric Schmalzbauer","Felicia Palmer","James (Jim) Scott","Jeffrey Allen",
+  "Jennifer D’Angelo","Jennifer Jolley","Jessie Lee","Joe Maruschak","Joe Spivack","Jose Gabriel Carrasco Ramirez",
+  "Joseph Gadino","Jossy Harrington","Kenneth Jones","Malak Atut","Marc Kaufman","Marc Saint-Ulysse","Mark Nelson",
+  "Marty Coleman","Michael Baer","Miquel de Quadras","Natalie Kaminski","Orin Davis","Pavan Kumar",
+  "Rahul Mehendale","Roman Tsibulevskiy","Soojin Choung","Stella Alvo",
+  "Stephen Makinen","Vikram Wadhawan","Vishal Goyal","Vishal Soni","Wadnes Castelly","Yuri Fiaschi",
+];
+
+function instructionFront() {
+  // The deck's joker: The Founder
+  return `<div class="card card-front">
+    ${mountainSVG('#d86697')}
+    <div class="eyebrow">★ Wild Card ★</div>
+    <div class="theme">The Founder</div>
+    <div class="skill">Plays every role until it works.</div>
+    <div class="theme-rule"></div>
+    <div class="question">Part builder, part storyteller, part stubborn optimist.<br><br>That’s you.</div>
+    <div class="flip">${flipArrow}</div>
+    <div class="wordmark">uplift</div>
+    <div class="tu-foot"><img src="techunited-logo.png" alt="TechUnited"></div>
+    <div class="collector">The Founder · Foundation Series · Summer 2026</div>
+  </div>`;
+}
+
+function instructionBack() {
+  return `<div class="card card-back">
+    ${mountainSVG('#110465')}
+    <div class="eyebrow">How It Works</div>
+    <div class="theme-rule" style="margin-top:2px"></div>
+    <div class="question" style="text-align:left;font-size:7.4pt;line-height:1.55">
+      1 &nbsp;Pull a card.<br>
+      2 &nbsp;Answer <b>Looking Back</b> — out loud, with someone.<br>
+      3 &nbsp;Flip it. Answer <b>Looking Forward</b>.<br>
+      4 &nbsp;Do the thing it made you think of.
+      <div style="font-style:italic;color:#8d84c9;margin-top:7px;font-size:6.8pt">Play it alone — or with a peer, a colleague, your boss, a mentor. Pull a card and see where it takes you.</div>
+    </div>
+    <div class="wordmark">uplift</div>
+    <div class="tu-foot"><img src="techunited-logo.png" alt="TechUnited"></div>
+    <div class="collector">The Founder · Foundation Series · Summer 2026</div>
+  </div>`;
+}
+
+function titleFront() {
+  // Deck cover — sits on top, visible through the belly band
+  return `<div class="card card-front">
+    ${mountainSVG('#d86697')}
+    <div class="eyebrow">★ Collector’s Edition ★</div>
+    <div class="theme">Founder Cards</div>
+    <div class="eyebrow" style="margin-bottom:2px">Foundation Series</div>
+    <div class="skill">20 questions worth sitting with.</div>
+    <div class="theme-rule"></div>
+    <div class="skill" style="max-width:1.85in;line-height:1.5">For the founders, the mentors, and everyone who left us with questions worth sitting with — thank you.</div>
+    <div class="eyebrow" style="margin-top:5px">Looking Back · Looking Forward</div>
+    <div class="flip">${flipArrow}</div>
+    <div class="wordmark">uplift</div>
+    <div class="tu-foot"><img src="techunited-logo.png" alt="TechUnited"></div>
+    <div class="collector">Title Card · Foundation Series · Summer 2026</div>
+  </div>`;
+}
+
+function titleBack() {
+  const list = CARDS.map(c => `<div>${pad(c.n)} &nbsp;${c.theme}</div>`).join('')
+    + `<div style="color:#d86697">★ &nbsp;The Founder</div>`
+    + `<div style="color:#d86697">★ &nbsp;Mentor Edition</div>`;
+  return `<div class="card card-back">
+    ${mountainSVG('#110465')}
+    <div class="eyebrow">The Deck</div>
+    <div class="theme-rule" style="margin-top:2px"></div>
+    <div class="question" style="text-align:left;font-size:6.7pt;line-height:1.5">${list}</div>
+    <div class="wordmark" style="margin-top:8px">uplift</div>
+    <div class="collector">Title Card · Foundation Series · Summer 2026</div>
+  </div>`;
+}
+
+function mentorFront() {
+  return `<div class="card card-front">
+    ${mountainSVG('#d86697')}
+    <div class="eyebrow">Foundation Series · Summer 2026</div>
+    <div class="theme">uplift</div>
+    <div class="theme-rule"></div>
+    <div class="tagline">A legacy is never built alone.</div>
+    <div class="skill" style="margin-top:6px;max-width:1.8in;line-height:1.5">This deck is dedicated to the mentors who make Uplift possible.</div>
+    <div class="flip">${flipArrow}</div>
+    <div class="tu-foot"><img src="techunited-logo.png" alt="TechUnited"></div>
+    <div class="collector">Mentor Edition · Foundation Series · Summer 2026</div>
+  </div>`;
+}
+
+function mentorBack() {
+  return `<div class="card card-back" style="justify-content:flex-start;padding-top:0.13in">
+    <div class="eyebrow">The People Behind Your Uplift</div>
+    <div class="dedication">This deck is dedicated to the mentors who make Uplift possible.</div>
+    <div class="theme-rule" style="margin:2px auto 5px"></div>
+    <div class="mentor-names">${MENTORS.map(m => `<div>${m}</div>`).join('')}</div>
+    <div class="brand-row" style="margin-top:5px"><span class="wordmark">uplift</span><img class="tu-mini" src="techunited-logo.png" alt="TechUnited"></div>
+    <div class="team-thanks">With thanks to the TechUnited team — Aaron Price, Mary&nbsp;Jane Durkin, Kennedy Loper, Jackie Anzaroot, Hana Yackanich, Kailan Campbell &amp; Max Lascher.</div>
+    <div class="team-thanks" style="margin-top:2px">And a special thank-you to the New Jersey Economic Development Authority (NJEDA), whose support helps power this program.</div>
+  </div>`;
+}
+
+/* ---------- Sheet layout: 12 cards = 2 duplex sheets of 6 ---------- */
+const LAYOUT = [
+  { front: titleFront(), back: titleBack() },
+  ...CARDS.map(c => ({ front: frontCard(c), back: backCard(c) })),
+  { front: instructionFront(), back: instructionBack() },
+  { front: mentorFront(),      back: mentorBack() },
+];
+
+const emptyCell = '<div class="card empty"></div>';
+const sheets = document.getElementById('sheets');
+let html = '';
+const perPage = 6;         // 3×2 grid
+const cols = 3;
+const pages = Math.ceil(LAYOUT.length / perPage);
+
+for (let p = 0; p < pages; p++) {
+  const group = LAYOUT.slice(p * perPage, (p + 1) * perPage);
+
+  // FRONT sheet — row-major 0,1,2 / 3,4,5
+  let cells = [];
+  for (let i = 0; i < 6; i++) cells.push(group[i] ? group[i].front : emptyCell);
+  html += `<div class="sheet">
+    <div class="sheet-label">Sheet ${p + 1} &middot; Fronts &middot; print duplex, flip on long edge</div>
+    <div class="grid">${cells.join('')}</div>
+  </div>`;
+
+  // BACK sheet — columns mirrored per row: 2,1,0 / 5,4,3
+  let backCells = [];
+  for (let r = 0; r < 2; r++)
+    for (let cIdx = cols - 1; cIdx >= 0; cIdx--) {
+      const i = r * cols + cIdx;
+      backCells.push(group[i] ? group[i].back : emptyCell);
+    }
+  html += `<div class="sheet">
+    <div class="sheet-label">Sheet ${p + 1} &middot; Backs &middot; positions mirrored for duplex</div>
+    <div class="grid">${backCells.join('')}</div>
+  </div>`;
+}
+
+/* ---------- Belly band dieline (replaces tuck box) ---------- */
+const IN = 72; // svg units per inch
+// Deck: 2.5 x 3.5 x ~0.2in (12 cards, 300gsm). Band wraps width + thickness.
+const FP = 2.5, SP = 0.22, TABB = 0.5, BH = 1.4;
+const BW = FP + SP + FP + SP + TABB;
+function ss(x) { return (x * IN).toFixed(1); }
+
+function bellyBand() {
+  const x1 = FP, x2 = FP + SP, x3 = FP + SP + FP, x4 = FP + SP + FP + SP;
+  return `<svg class="dieline" width="${ss(BW)}" height="${ss(BH)}" xmlns="http://www.w3.org/2000/svg" font-family="Avenir Next, Avenir, Futura, sans-serif" style="margin-bottom:0.32in">
+    <!-- cut outline -->
+    <rect x="0.5" y="0.5" width="${ss(BW) - 1}" height="${ss(BH) - 1}" fill="none" stroke="#110465" stroke-width="1"/>
+    <!-- FRONT panel (navy) -->
+    <rect x="1.5" y="1.5" width="${ss(FP) - 2}" height="${ss(BH) - 3}" fill="#110465"/>
+    <image href="uplift-mountain.png" x="${ss(FP / 2 - 0.28)}" y="6" height="${ss(0.28)}"/>
+    <text x="${ss(FP / 2)}" y="49" text-anchor="middle" fill="#ffffff" font-size="11.5" font-weight="700" letter-spacing="0.5">UPLIFT FOUNDER CARDS</text>
+    <text x="${ss(FP / 2)}" y="66" text-anchor="middle" fill="#d86697" font-size="6" letter-spacing="1.2">FOUNDATION SERIES · SUMMER 2026</text>
+    <text x="${ss(FP / 2)}" y="84" text-anchor="middle" fill="#cfc9ee" font-size="7" font-style="italic">20 questions worth sitting with.</text>
+    <!-- spine panels (pink) -->
+    <rect x="${ss(x1)}" y="1.5" width="${ss(SP)}" height="${ss(BH) - 3}" fill="#d86697"/>
+    <rect x="${ss(x3)}" y="1.5" width="${ss(SP)}" height="${ss(BH) - 3}" fill="#d86697"/>
+    <!-- BACK panel (white) -->
+    <text x="${ss(x2 + FP / 2)}" y="26" text-anchor="middle" fill="#110465" font-size="8" font-style="italic">A legacy is never built alone.</text>
+    <text x="${ss(x2 + FP / 2)}" y="44" text-anchor="middle" fill="#d86697" font-size="6" letter-spacing="1.6">LOOKING BACK · LOOKING FORWARD</text>
+    <text x="${ss(x2 + FP / 2 - 0.28)}" y="72" text-anchor="middle" fill="#110465" font-size="10.5" font-weight="600">uplift</text>
+    <line x1="${ss(x2 + FP / 2 - 0.28)}" y1="76" x2="${ss(x2 + FP / 2 - 0.28)}" y2="76" stroke="#d86697"/>
+    <rect x="${ss(x2 + FP / 2 - 0.42)}" y="74.5" width="${ss(0.28)}" height="1.5" fill="#d86697"/>
+    <image href="techunited-logo.png" x="${ss(x2 + FP / 2 + 0.05)}" y="60" height="${ss(0.16)}"/>
+    <!-- glue tab -->
+    <text x="${ss(x4 + TABB / 2)}" y="${ss(BH / 2)}" text-anchor="middle" fill="#b0b0b8" font-size="6" letter-spacing="1.5">GLUE</text>
+    <!-- fold lines -->
+    <g stroke="#d86697" stroke-width="0.8" stroke-dasharray="4 3">
+      <line x1="${ss(x1)}" y1="0" x2="${ss(x1)}" y2="${ss(BH)}"/>
+      <line x1="${ss(x2)}" y1="0" x2="${ss(x2)}" y2="${ss(BH)}"/>
+      <line x1="${ss(x3)}" y1="0" x2="${ss(x3)}" y2="${ss(BH)}"/>
+      <line x1="${ss(x4)}" y1="0" x2="${ss(x4)}" y2="${ss(BH)}"/>
+    </g>
+  </svg>`;
+}
+
+html += `<div class="sheet">
+  <div class="sheet-label">Belly Bands &middot; one per deck &middot; solid = cut, dashed = fold</div>
+  <div style="text-align:center;padding-top:0.15in">${bellyBand()}${bellyBand()}${bellyBand()}${bellyBand()}</div>
+  <div class="box-note">Wrap around the stacked deck (front panel over the top card), fold at the dashed lines, and glue or tape the tab on the back. Sized for the 13-card deck on 300gsm stock.</div>
+</div>`;
+
+sheets.innerHTML = html;
+</script>
+
+</body>
+</html>

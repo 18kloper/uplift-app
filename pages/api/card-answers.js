@@ -29,7 +29,7 @@ export default async function handler(req, res) {
     try {
       const read = await sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: `${TAB}!A2:G`,
+        range: `${TAB}!A2:H`,
       });
       const rows = read.data.values || [];
       const answers = rows
@@ -44,7 +44,10 @@ export default async function handler(req, res) {
           theme: r[4] || "",
           side: r[5] === "fwd" ? "fwd" : r[5] === "shout" ? "shout" : "back",
           text: String(r[6]).slice(0, MAX_TEXT),
+          pinned: /^(true|yes|1|★)$/i.test(String(r[7] || "").trim()),
         }));
+      // Pinned answers stay permanently at the top of the wall
+      answers.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
       return res.status(200).json({ answers });
     } catch (_) {
       // Tab doesn't exist yet — empty wall
