@@ -39,6 +39,41 @@
   }
   .rule { width: 34px; height: 3px; background: var(--pink); border-radius: 2px; margin: 14px auto; }
 
+  /* ---------- Top nav ---------- */
+  .topnav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    padding: 13px 22px;
+    background: rgba(11, 2, 72, .88);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(216,102,151,.25);
+  }
+  .topnav .nav-brand {
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    border-bottom: 2px solid var(--pink);
+    padding: 0 3px 2px;
+  }
+  .topnav .nav-links { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .topnav a {
+    color: #e9e6f7;
+    text-decoration: none;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+  }
+  .topnav a:hover { color: var(--pink); }
+  section, .hero { scroll-margin-top: 58px; }
+
   /* ---------- Hero ---------- */
   .hero {
     background: linear-gradient(170deg, var(--navy) 0%, var(--navy-deep) 100%);
@@ -339,6 +374,16 @@
 </head>
 <body>
 
+<nav class="topnav">
+  <span class="nav-brand">uplift</span>
+  <div class="nav-links">
+    <a href="#play">Beta Product</a>
+    <a href="#wall-section">Reflection Wall</a>
+    <a href="#mentors">The Mentors of Uplift</a>
+    <a href="#note">My Personal Note</a>
+  </div>
+</nav>
+
 <header class="hero">
   <img class="logo" src="uplift-logo-white.png" alt="Uplift">
   <div class="eyebrow">★ Collector’s Edition ★</div>
@@ -419,7 +464,7 @@
   </div>
 </section>
 
-<section class="thanks">
+<section class="thanks" id="mentors">
   <div class="wrap">
     <div class="eyebrow">The Mentors Behind Uplift · Summer 2026</div>
     <div class="rule"></div>
@@ -441,7 +486,7 @@
   </div>
 </section>
 
-<section class="pnote">
+<section class="pnote" id="note">
   <div class="wrap">
     <img class="headshot" src="kennedy-loper.webp" alt="Kennedy Loper">
     <div>
