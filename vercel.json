@@ -2,14 +2,6 @@
   "framework": "nextjs",
   "crons": [
     {
-      "path": "/api/cron/daily-recap",
-      "schedule": "0 22 * * 1-5"
-    },
-    {
-      "path": "/api/cron/friday-themes",
-      "schedule": "0 16 * * 5"
-    },
-    {
       "path": "/api/cron/sync-to-cio",
       "schedule": "0 11 * * *"
     }
