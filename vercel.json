@@ -1,9 +1,3 @@
 {
-  "framework": "nextjs",
-  "crons": [
-    {
-      "path": "/api/cron/sync-to-cio",
-      "schedule": "0 11 * * *"
-    }
-  ]
+  "framework": "nextjs"
 }

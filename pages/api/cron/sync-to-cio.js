@@ -244,11 +244,19 @@ export default async function handler(req, res) {
 
         // Get enriched profile from CIO - Mentees tab
         const cioRow    = cioMenteeByEmail[email] || [];
-        const industry  = cioRow[5]  || mentee.industry || "";
-        const stage     = cioRow[6]  || mentee.stage    || "";
-        const county    = cioRow[7]  || mentee.county   || "";
+        // null (not "") when unknown, so the key can be omitted below. Writing ""
+        // makes CIO clear the attribute and destroys enrichment data.
+        const industry  = cioRow[5]  || mentee.industry || null;
+        const stage     = cioRow[6]  || mentee.stage    || null;
+        const county    = cioRow[7]  || mentee.county   || null;
         const cohortNum = parseInt(cioRow[8]) || mentee.cohort;
-        const linkedin  = cioRow[10] || "";
+        // Only accept real /in/ profile URLs. A blank or malformed sheet cell
+        // must NOT produce "", which CIO applies as a clear and wipes enrichment.
+        const rawLinkedin = (cioRow[10] || "").trim();
+        const liSlug = rawLinkedin.match(/^https?:\/\/(?:www\.)?linkedin\.com\/in\/([^\/?#]+)/i)?.[1];
+        const linkedin = liSlug && !/^(none|null|na|n\/a|test|-)$/i.test(liSlug)
+          ? rawLinkedin
+          : null;
         const mentorName  = cioRow[11] || mentorByMentee[mentee.slug]?.name  || "";
         const mentorEmail = cioRow[12] || mentorByMentee[mentee.slug]?.email || "";
 
@@ -258,10 +266,14 @@ export default async function handler(req, res) {
           first_name:   cioRow[1] || mentee.first,
           last_name:    cioRow[2] || mentee.last,
           company:      cioRow[3] || mentee.company,
-          industry,
-          stage,
-          county,
-          linkedin_url: linkedin,
+          // Every optional field below is omitted when unknown rather than sent
+          // as "", so a blank sheet cell never overwrites existing CIO data.
+          // "Industry" is the canonical CIO attribute (capital I). Lowercase
+          // "industry" was a duplicate this sync created; do not reintroduce it.
+          ...(industry ? { Industry: industry } : {}),
+          ...(stage    ? { stage }    : {}),
+          ...(county   ? { county }   : {}),
+          ...(linkedin ? { linkedin_url: linkedin } : {}),
           last_synced_at: new Date().toISOString(),
 
           // Uplift-specific fields
