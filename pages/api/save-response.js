@@ -5,6 +5,7 @@
 // updates the "Last Active" timestamp on the Dashboard.
 
 import { getSheetsClient } from "../../lib/sheets-helper";
+import { postPortalInput } from "../../lib/slack-portal-inputs";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
@@ -13,6 +14,9 @@ export default async function handler(req, res) {
   if (!slug || weekNum == null || !fieldKey) {
     return res.status(400).json({ error: "Missing required fields" });
   }
+
+  // Fire-and-forget: every portal input also lands in #uplift-portal-inputs
+  postPortalInput({ slug, weekNum, fieldKey, value, question });
 
   // Graceful degradation — if env vars aren't set, skip silently
   if (
