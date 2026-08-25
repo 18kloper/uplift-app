@@ -15,6 +15,10 @@ export default async function handler(req, res) {
   if (!slug || weekNum == null || !fieldKey) {
     return res.status(400).json({ error: "Missing required fields" });
   }
+  // Passwords are written only by /api/portal-auth (hashed, no Slack post).
+  if (fieldKey === "portal_password") {
+    return res.status(400).json({ error: "Reserved field" });
+  }
 
   // Fire-and-forget: every portal input also lands in #uplift-portal-inputs
   postPortalInput({ slug, weekNum, fieldKey, value, question });
