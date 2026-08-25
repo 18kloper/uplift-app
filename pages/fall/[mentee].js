@@ -32,14 +32,14 @@ const WEEKS = [
     note: "All seven sessions cover the same material. Pick whichever slot works for you. Luma links land here once created.",
     type: "onboarding",
     events: [
-      { name: "Welcome & Onboarding 1 (Edison)", day: "Wed Sept 9", time: "10:00\u201310:45 AM", format: "Virtual", url: "" },
-      { name: "Welcome & Onboarding 2 (Hopper)", day: "Wed Sept 9", time: "12:30\u20131:15 PM", format: "Virtual", url: "" },
-      { name: "Welcome & Onboarding 3 (Bardeen)", day: "Wed Sept 9", time: "5:30\u20136:15 PM", format: "Virtual", url: "" },
-      { name: "Welcome & Onboarding 4 (Lawrence)", day: "Thu Sept 10", time: "10:00\u201310:45 AM", format: "Virtual", url: "" },
-      { name: "Welcome & Onboarding 5 (Morrison)", day: "Thu Sept 10", time: "12:30\u20131:15 PM", format: "Virtual", url: "" },
+      { name: "Welcome & Onboarding 1 (Edison)", day: "Wed Sept 9", time: "10:00\u201310:45 AM", format: "Virtual", url: "https://luma.com/techun-q0gf" },
+      { name: "Welcome & Onboarding 2 (Hopper)", day: "Wed Sept 9", time: "12:30\u20131:15 PM", format: "Virtual", url: "https://luma.com/0ajrxrma" },
+      { name: "Welcome & Onboarding 3 (Bardeen)", day: "Wed Sept 9", time: "5:30\u20136:15 PM", format: "Virtual", url: "https://luma.com/1joflzni" },
+      { name: "Welcome & Onboarding 4 (Lawrence)", day: "Thu Sept 10", time: "10:00\u201310:45 AM", format: "Virtual", url: "https://luma.com/2egw051q" },
+      { name: "Welcome & Onboarding 5 (Morrison)", day: "Thu Sept 10", time: "12:30\u20131:15 PM", format: "Virtual", url: "https://luma.com/zchii8yf" },
       { name: "AI Demo Night \ud83c\udf89", day: "Thu Sept 10", time: "Evening", format: "In-Person", optional: true, url: "", note: "Bonus event. Not directly connected to the program, but a head start on connecting with our community. Your ticket is free: use code UPLIFT to claim it." },
-      { name: "Welcome & Onboarding 6", day: "Fri Sept 11", time: "10:00\u201310:45 AM", format: "Virtual", url: "" },
-      { name: "Welcome & Onboarding 7", day: "Fri Sept 11", time: "11:30 AM\u201312:15 PM", format: "Virtual", url: "" },
+      { name: "Welcome & Onboarding 6", day: "Fri Sept 11", time: "10:00\u201310:45 AM", format: "Virtual", url: "https://luma.com/hw8z03dq" },
+      { name: "Welcome & Onboarding 7", day: "Fri Sept 11", time: "11:30 AM\u201312:15 PM", format: "Virtual", url: "https://luma.com/4lw55vqz" },
       { name: "Educational Session 1", day: "Fri Sept 11", time: "12:30 PM ET", format: "Virtual", url: "https://luma.com/techun-lfmg" , note: "Double up: finish Welcome & Onboarding 7 at 12:15, then go straight into this session and get a head start on your 3 educational sessions." },
     ],
   },
@@ -449,7 +449,7 @@ function EventsSection({ events: allEvents, submitLabel, submitPrimary, note, fo
       )}
       {submitLabel && (
         <div style={{ marginTop: hasEvents ? 14 : 0, paddingTop: hasEvents ? 12 : 0, borderTop: hasEvents ? "1px solid #f5f3ff" : "none" }}>
-          <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{
+          <a href={`https://form.typeform.com/to/e0L62296?slug=${encodeURIComponent(slug)}`} target="_blank" rel="noopener noreferrer" style={{
             display: "inline-block",
             padding: submitPrimary ? "10px 22px" : "0",
             background: submitPrimary ? "#5c4eb5" : "transparent",
@@ -1377,7 +1377,7 @@ function Week2({ mentee, slug, mentorUnlocked, holding }) {
 
       {/* Submit meeting button */}
       <div style={{ textAlign: "center", marginBottom: 24 }}>
-        <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{
+        <a href={`https://form.typeform.com/to/e0L62296?slug=${encodeURIComponent(slug)}`} target="_blank" rel="noopener noreferrer" style={{
           display: "inline-block", padding: "14px 36px",
           background: "#5c4eb5", color: "#fff", borderRadius: 10,
           fontSize: 16, fontWeight: 700, textDecoration: "none",
@@ -1438,13 +1438,15 @@ function Week2({ mentee, slug, mentorUnlocked, holding }) {
 // ─── Weekly pulse check-in ────────────────────────────────────────────────────
 // Use new Date(y,m,d) (local midnight) — never ISO strings, which parse as UTC and shift the display date
 const PULSE_WINDOWS = [
-  { week: 2, start: new Date(2026, 8, 14), end: new Date(2026, 8, 20, 23, 59, 59) },
-  { week: 3, start: new Date(2026, 8, 21), end: new Date(2026, 8, 27, 23, 59, 59) },
-  { week: 4, start: new Date(2026, 8, 28), end: new Date(2026, 9,  4, 23, 59, 59) },
-  { week: 5, start: new Date(2026, 9,  5), end: new Date(2026, 9, 11, 23, 59, 59) },
-  { week: 6, start: new Date(2026, 9, 12), end: new Date(2026, 9, 25, 23, 59, 59) },
-  { week: 7, start: new Date(2026, 9, 26), end: new Date(2026, 10, 1, 23, 59, 59) },
-  { week: 8, start: new Date(2026, 10, 2), end: new Date(2026, 10, 6, 23, 59, 59) },
+  // Pulse checks open and close on Fridays: each week's pulse opens the prior
+  // Friday and closes that week's Friday night.
+  { week: 2, start: new Date(2026, 8, 11), end: new Date(2026, 8, 18, 23, 59, 59) },
+  { week: 3, start: new Date(2026, 8, 18), end: new Date(2026, 8, 25, 23, 59, 59) },
+  { week: 4, start: new Date(2026, 8, 25), end: new Date(2026, 9,  2, 23, 59, 59) },
+  { week: 5, start: new Date(2026, 9,  2), end: new Date(2026, 9,  9, 23, 59, 59) },
+  { week: 6, start: new Date(2026, 9,  9), end: new Date(2026, 9, 23, 23, 59, 59) },
+  { week: 7, start: new Date(2026, 9, 23), end: new Date(2026, 9, 30, 23, 59, 59) },
+  { week: 8, start: new Date(2026, 9, 30), end: new Date(2026, 10, 6, 23, 59, 59) },
 ];
 
 function fmtPulseDate(d) {
@@ -1943,10 +1945,10 @@ function ActionItems({ slug, weekNum, items, footnote }) {
   );
 }
 
-function SubmitMeetingButton({ label }) {
+function SubmitMeetingButton({ label, slug }) {
   return (
     <div style={{ textAlign: "center", marginBottom: 24 }}>
-      <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{
+      <a href={`https://form.typeform.com/to/e0L62296?slug=${encodeURIComponent(slug)}`} target="_blank" rel="noopener noreferrer" style={{
         display: "inline-block", padding: "14px 36px",
         background: "#5c4eb5", color: "#fff", borderRadius: 10,
         fontSize: 16, fontWeight: 700, textDecoration: "none",
@@ -1995,7 +1997,7 @@ function WeekReflection({ weekNum, slug, prompts, menteeName, milestones }) {
           { text: "Do your 10-second pulse check at the top of this page (required)." },
           { text: "Share a Win of the Week (optional): any win you submit goes out in Tuesday's update." },
         ]} />
-        <SubmitMeetingButton label={week.submitLabel} />
+        <SubmitMeetingButton label={week.submitLabel} slug={slug} />
         <EventsSection events={week.events} slug={slug} menteeName={menteeName} eduDone={eduDone} />
         <WeeklyFocus slug={slug} weekNum={3} />
 
@@ -2083,7 +2085,7 @@ function WeekReflection({ weekNum, slug, prompts, menteeName, milestones }) {
           ]}
           footnote="*By the end of this stretch you should have all 3 mentor meetings and at least 2 educational sessions done."
         />
-        <SubmitMeetingButton label={week.submitLabel} />
+        <SubmitMeetingButton label={week.submitLabel} slug={slug} />
         <EventsSection events={week.events} slug={slug} menteeName={menteeName} eduDone={eduDone} />
         <WeeklyFocus slug={slug} weekNum={6} />
       </div>
@@ -2129,7 +2131,7 @@ function WeekReflection({ weekNum, slug, prompts, menteeName, milestones }) {
           )}
         </div>
 
-        <SubmitMeetingButton label="Submit additional meetings" />
+        <SubmitMeetingButton label="Submit additional meetings" slug={slug} />
 
         {/* A good kind of uncomfortable — deck wording */}
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", borderLeft: "4px solid #c99a2e", padding: "20px 24px", marginBottom: 24 }}>
@@ -2208,7 +2210,7 @@ function WeekReflection({ weekNum, slug, prompts, menteeName, milestones }) {
 
         <EventsSection events={week.events} slug={slug} menteeName={menteeName} eduDone={eduDone} />
 
-        <SubmitMeetingButton label="Submit additional meetings" />
+        <SubmitMeetingButton label="Submit additional meetings" slug={slug} />
 
         {/* End report */}
         <div style={{ textAlign: "center", marginBottom: 28 }}>
@@ -2815,7 +2817,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
           </p>
         </div>
         <a
-          href="https://form.typeform.com/to/e0L62296"
+          href={`https://form.typeform.com/to/e0L62296?slug=${encodeURIComponent(slug)}`}
           target="_blank"
           rel="noopener noreferrer"
           style={{
@@ -2916,7 +2918,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
         </p>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <a
-            href="https://form.typeform.com/to/e0L62296"
+            href={`https://form.typeform.com/to/e0L62296?slug=${encodeURIComponent(slug)}`}
             target="_blank"
             rel="noopener noreferrer"
             style={{
@@ -3880,7 +3882,7 @@ function MilestoneSection({ milestones, excused = {}, onNavigate, slug, meetings
 }
 
 // ─── Calendar section ─────────────────────────────────────────────────────────
-function CalendarSection({ milestones = {}, excused = {} }) {
+function CalendarSection({ milestones = {}, excused = {}, slug }) {
   // Map week number → the milestone key that marks it "done"
   const WEEK_MILESTONE = {
     1: "onboarding",
@@ -4034,7 +4036,7 @@ function CalendarSection({ milestones = {}, excused = {} }) {
           )}
           {week.submitLabel && (
             <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #f5f3ff" }}>
-              <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 700, color: week.submitPrimary ? "#5c4eb5" : "#9a7200", textDecoration: "underline", textUnderlineOffset: "3px" }}>
+              <a href={`https://form.typeform.com/to/e0L62296?slug=${encodeURIComponent(slug)}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 700, color: week.submitPrimary ? "#5c4eb5" : "#9a7200", textDecoration: "underline", textUnderlineOffset: "3px" }}>
                 {week.submitLabel} →
               </a>
             </div>
@@ -5362,7 +5364,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
   const renderTabContent = () => {
     switch (activeTab) {
       case "journey": return renderWeekContent();
-      case "calendar": return <CalendarSection milestones={liveMilestones || mentee.milestones || {}} excused={excusedMilestones} />;
+      case "calendar": return <CalendarSection milestones={liveMilestones || mentee.milestones || {}} excused={excusedMilestones} slug={slug} />;
       case "resources": return <ResourcesSection slug={slug} menteeName={`${mentee.first} ${mentee.last}`.trim()} />;
       case "milestones": return <MilestoneSection milestones={liveMilestones || mentee.milestones || {}} excused={excusedMilestones} onNavigate={(week) => { setActiveTab("journey"); setActiveWeek(week); }} slug={slug} meetings={meetings || []} lumaAttendance={lumaAttendance} />;
       case "goals": return <GoalsSection mentee={mentee} slug={slug} />;
@@ -5398,42 +5400,10 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       {activeModal === "coffee" && <CoffeeMeetupModal onClose={dismissModal} />}
       {activeModal === "officehours" && <OfficeHoursModal onClose={dismissModal} />}
       {activeModal === "company" && <CompanySnapshotModal mentee={mentee} onClose={dismissModal} />}
-      {activeModal === "fallhours" && <FallOfficeHoursModal onClose={dismissModal} />}
-      {activeModal === "fallcoffee" && <FallCoffeeModal onClose={dismissModal} />}
-      {activeModal === "falldemo" && <FallDemoNightModal onClose={dismissModal} />}
-
-      {/* Bottom-right stack: fall announcement chips + Upton, the portal bot.
-          New chips get added here as events are booked. */}
-      <PortalBotWidget slug={mentee.slug} firstName={mentee.first}>
-        {!activeModal && (
-          <>
-            <button onClick={() => setActiveModal("fallhours")} style={{
-              display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 30, border: "none",
-              background: "linear-gradient(135deg, #1a6e50 0%, #2a9d6e 100%)", color: "#fff",
-              fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-              boxShadow: "0 6px 20px rgba(26,110,80,0.4)",
-            }}>
-              🤝 Meet your mentor
-            </button>
-            <button onClick={() => setActiveModal("fallcoffee")} style={{
-              display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 30, border: "none",
-              background: "linear-gradient(135deg, #7a3d14 0%, #c97b2d 100%)", color: "#fff",
-              fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-              boxShadow: "0 6px 20px rgba(122,61,20,0.4)",
-            }}>
-              ☕ Coffee meetups
-            </button>
-            <button onClick={() => setActiveModal("falldemo")} style={{
-              display: "flex", alignItems: "center", gap: 8, padding: "12px 18px", borderRadius: 30, border: "none",
-              background: "linear-gradient(135deg, #5c4eb5 0%, #c0006e 100%)", color: "#fff",
-              fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-              boxShadow: "0 6px 20px rgba(92,78,181,0.4)",
-            }}>
-              🎤 Submit your pitch
-            </button>
-          </>
-        )}
-      </PortalBotWidget>
+      {/* Bottom-right stack: Upton, the portal bot. The fall-hours/coffee/demo
+          chips from summer (office hours, coffee meetups, AI Demo Night pitch
+          submission) were removed — not relevant to this cohort. */}
+      <PortalBotWidget slug={mentee.slug} firstName={mentee.first} />
 
       <div style={{ minHeight: "100vh", background: "#f7f5ff", fontFamily: "'Inter', system-ui, sans-serif" }}>
         {/* Header */}

@@ -36,13 +36,15 @@ const D = {
 
 // Pulse windows (must mirror pages/fall/[mentee].js)
 const PULSE_WEEKS = [
-  { week: 2, start: new Date(2026, 8, 14), end: new Date(2026, 8, 20, 23, 59, 59) },
-  { week: 3, start: new Date(2026, 8, 21), end: new Date(2026, 8, 27, 23, 59, 59) },
-  { week: 4, start: new Date(2026, 8, 28), end: new Date(2026, 9, 4, 23, 59, 59) },
-  { week: 5, start: new Date(2026, 9, 5), end: new Date(2026, 9, 11, 23, 59, 59) },
-  { week: 6, start: new Date(2026, 9, 12), end: new Date(2026, 9, 25, 23, 59, 59) },
-  { week: 7, start: new Date(2026, 9, 26), end: new Date(2026, 10, 1, 23, 59, 59) },
-  { week: 8, start: new Date(2026, 10, 2), end: new Date(2026, 10, 6, 23, 59, 59) },
+  // Pulse checks open and close on Fridays: each week's pulse opens the prior
+  // Friday and closes that week's Friday night.
+  { week: 2, start: new Date(2026, 8, 11), end: new Date(2026, 8, 18, 23, 59, 59) },
+  { week: 3, start: new Date(2026, 8, 18), end: new Date(2026, 8, 25, 23, 59, 59) },
+  { week: 4, start: new Date(2026, 8, 25), end: new Date(2026, 9,  2, 23, 59, 59) },
+  { week: 5, start: new Date(2026, 9,  2), end: new Date(2026, 9,  9, 23, 59, 59) },
+  { week: 6, start: new Date(2026, 9,  9), end: new Date(2026, 9, 23, 23, 59, 59) },
+  { week: 7, start: new Date(2026, 9, 23), end: new Date(2026, 9, 30, 23, 59, 59) },
+  { week: 8, start: new Date(2026, 9, 30), end: new Date(2026, 10, 6, 23, 59, 59) },
 ];
 
 const DEEP_WORK_KEYS = ["five_relationship", "five_clarity", "five_resources", "five_mentor", "five_community", "primary_refine"];
@@ -124,6 +126,13 @@ async function readMeetings(roster) {
       const answers = item.answers || [];
       const first = answers[0]?.text || "";
       const last = answers[1]?.text || "";
+      // Hidden "slug" field (personalized form link) is an exact match — see
+      // pages/api/meetings.js for the same logic and why it's preferred.
+      const hiddenSlug = item.hidden?.slug;
+      if (hiddenSlug) {
+        if (bySlug[hiddenSlug]) bySlug[hiddenSlug].push({ submittedAt: item.submitted_at });
+        continue;
+      }
       for (const m of roster) {
         if (matchesMentee(first, last, m.slug)) {
           bySlug[m.slug].push({ submittedAt: item.submitted_at });
