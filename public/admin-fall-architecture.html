@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fall Admin · Why This One Won't Break</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f0ecff; color: #1a1733; font-size: 15px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 24px 80px; }
+  .cover { background: #0f0729; color: #fff; border-radius: 18px; padding: 38px 36px; margin-bottom: 32px; }
+  .cover .kicker { font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #b8aef5; margin-bottom: 10px; }
+  .cover h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.8px; line-height: 1.15; margin-bottom: 10px; }
+  .cover p { font-size: 15px; max-width: 680px; opacity: 0.9; }
+  .section-label { font-size: 12px; font-weight: 800; letter-spacing: 2.5px; text-transform: uppercase; color: #5c4eb5; margin: 44px 0 14px; display: flex; align-items: center; gap: 12px; }
+  .section-label::after { content: ''; flex: 1; height: 2px; background: #ddd6f5; border-radius: 2px; }
+  .sub { font-size: 14px; color: #6b648c; margin-bottom: 18px; max-width: 700px; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 14px; overflow: hidden; border: 1px solid #e8e4f5; }
+  th { background: #f5f3ff; text-align: left; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #5c4eb5; padding: 12px 16px; }
+  td { padding: 13px 16px; font-size: 13px; border-top: 1px solid #f0edfb; vertical-align: top; color: #37324e; line-height: 1.6; }
+  td.fail { color: #8a1a1a; }
+  td.fix strong { color: #1a6e42; }
+  .card { background: #fff; border: 1px solid #e8e4f5; border-radius: 14px; padding: 22px 26px; margin-bottom: 14px; }
+  .card h3 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+  .card p, .card li { font-size: 13.5px; color: #55506e; line-height: 1.65; }
+  .card ul { list-style: none; margin-top: 8px; }
+  .card ul li { padding: 4px 0 4px 20px; position: relative; }
+  .card ul li::before { content: ''; position: absolute; left: 2px; top: 13px; width: 10px; height: 3px; background: #5c4eb5; border-radius: 2px; }
+  .tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+  .tabcard { border: 1px solid #e8e4f5; border-radius: 10px; padding: 12px 16px; background: #fff; }
+  .tabcard h4 { font-size: 13px; font-weight: 800; color: #3d2f8a; margin-bottom: 3px; }
+  .tabcard p { font-size: 11.5px; color: #6b648c; line-height: 1.5; }
+  code { background: #f0ecff; border-radius: 4px; padding: 1px 6px; font-size: 12px; color: #3d2f8a; }
+  .remain { background: #fffbeb; border: 1px solid #f5d97a; border-radius: 14px; padding: 22px 26px; }
+  .remain li { color: #5c4a10; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="cover">
+    <div class="kicker">Internal · Fall 2026 Admin · Architecture &amp; Accountability</div>
+    <h1>Why this admin won't break like the last one.</h1>
+    <p>The summer admin collapsed under 70 founders: request storms, stale mirrors, contradictory statuses, and a Google Sheet that sprawled to 70+ tabs. This doc puts the fall build explicitly against those failures: what was corrected, which bugs are structurally impossible now, and the honest list of what remains.</p>
+  </div>
+
+  <div class="section-label">Failure by failure: summer vs fall</div>
+  <table>
+    <tr><th style="width:32%">What broke in summer</th><th style="width:26%">Root cause</th><th>How fall fixes it structurally</th></tr>
+    <tr>
+      <td class="fail">The dashboard buckled at 70 founders: slow loads, timeouts, tabs that never finished.</td>
+      <td>The browser fanned out API calls per founder per tab. 70 founders meant 70+ requests on every view, each hitting Sheets separately.</td>
+      <td class="fix"><strong>One request powers the whole admin.</strong> <code>/api/admin/fall-overview</code> aggregates milestones, meetings, pulse, and wins in 3 bulk reads server-side (one Sheets batch, one Typeform page, one milestones read), cached 60s. Load is identical at 3 founders or 300.</td>
+    </tr>
+    <tr>
+      <td class="fail">"Crosshairs": tabs contradicted each other and nobody trusted the numbers.</td>
+      <td>Statuses were hand-set and mirrored into the sheet, then drifted from reality. Data had no visible age.</td>
+      <td class="fix"><strong>Nothing is hand-set.</strong> Every status is computed from the sources of truth on every request via the fall rulebook. The header shows exactly how old the data is ("Data as of 1:33 PM, 0s ago") with a force-refresh button and 60s auto-refresh. Two tabs can't disagree because there is one payload.</td>
+    </tr>
+    <tr>
+      <td class="fail">The Google Sheet sprawled to 70+ tabs, one per person, and became unnavigable and fragile.</td>
+      <td><code>save-response</code> created a tab per founder; every bulk read became a fan-out; renames and deletions broke silently.</td>
+      <td class="fix"><strong>Four tabs, total, mirroring the admin:</strong> <code>FallResponses</code> (every portal input, one row each), <code>FallMentees</code> (application decisions), <code>FallMentors</code> (mentor decisions), <code>FallMatches</code> (pairings). Fall founders' portal saves route to FallResponses automatically; per-person tabs are never created again.</td>
+    </tr>
+    <tr>
+      <td class="fail">Matching was clunky and broke whenever new candidates or applications arrived.</td>
+      <td>Matching worked off frozen imports and spreadsheets copied at a point in time; new applicants didn't exist until someone re-imported.</td>
+      <td class="fix"><strong>Applicants stream live from the original Typeforms on every load</strong>: new applications simply appear, already parsed, scored, and filterable. Matches append to FallMatches instantly. When a stronger mentor enters the pool for someone already matched, a better-fit flag raises itself.</td>
+    </tr>
+    <tr>
+      <td class="fail">Late matches broke every deadline and needed hand-patched slug lists (HOLDING_SLUGS, LATE_MATCH_SLUGS, VERY_LATE_MATCH_SLUGS).</td>
+      <td>Deadlines were welded to summer calendar weeks, so any human delay demanded a code patch.</td>
+      <td class="fix"><strong>No patch lists exist in the fall build.</strong> The rulebook uses program-level dates today and moves to per-match rolling clocks with the ingest, so a late match automatically gets a fair schedule instead of a code change.</td>
+    </tr>
+    <tr>
+      <td class="fail">Fifteen-plus tabs with unclear ownership; finding "what do I do now" took archaeology.</td>
+      <td>Tabs accreted per crisis with no funnel model.</td>
+      <td class="fix"><strong>The tabs are the funnel</strong>: Mentee Apps → Mentor Apps → Accepted Founders / Accepted Mentors → Matching → Matched, plus Roster, Sessions, Pulse &amp; Wins, and a <strong>📋 Today queue</strong> that sorts every open action by urgency (risk → warning → info, oldest first), check-off-able, with Today / Yesterday / N-days-overdue aging.</td>
+    </tr>
+    <tr>
+      <td class="fail">Verification piled up at the end: attendance reconstructed from CSVs, signatures chased in the final week.</td>
+      <td>No as-you-go pipeline; everything reconciled at the finish.</td>
+      <td class="fix"><strong>As-you-go by design</strong>: meetings submit at the moment they happen and count live; Luma registrations sync every 5 minutes; every portal input also posts to <code>#uplift-portal-inputs</code>; BreezeDoc signatures close the loop at the end instead of opening it.</td>
+    </tr>
+  </table>
+
+  <div class="section-label">Bugs this architecture makes structurally hard</div>
+  <div class="card">
+    <ul>
+      <li><strong>Request storms:</strong> the browser makes at most three data requests (overview, people, sessions), each bulk, each cached. Founder count no longer multiplies anything.</li>
+      <li><strong>Stale mirrors:</strong> there are no mirrors. Derived values (status, gate, eligibility, match grades) are computed at read time and never written back.</li>
+      <li><strong>Silent truncation:</strong> Typeform reads pull 1000 responses per form (current volume: ~116/63); Luma listing paginates all pages (the summer bug that silently dropped July events is fixed and carried over).</li>
+      <li><strong>Orphan people:</strong> applicants can't fall out of the system between import cycles because there are no import cycles; the forms are read live.</li>
+      <li><strong>Conflicting decisions:</strong> approvals, rejections, and matches are append-only rows with last-write-wins reads, so history is never destroyed and any decision can be undone with an "undo" or "unmatch" without touching the sheet by hand.</li>
+      <li><strong>Sheets quota blowups:</strong> batch reads plus 60s / 5min caches keep API usage flat; a stampede of admin refreshes costs one upstream read.</li>
+      <li><strong>Portal saves failing on side effects:</strong> Slack posting is fire-and-forget and the whole save path degrades gracefully; a Slack or Sheets hiccup can't lose a founder's Deep Work.</li>
+    </ul>
+  </div>
+
+  <div class="section-label">The clean backend: four tabs, mapped to the admin</div>
+  <div class="tabs">
+    <div class="tabcard"><h4>FallResponses</h4><p>Every portal input, one row: slug, week, field, question, value, timestamp. Feeds Roster, Pulse &amp; Wins, and the Week 1 gate.</p></div>
+    <div class="tabcard"><h4>FallMentees</h4><p>Application decisions (approve / reject / undo), append-only. Feeds the Accepted Founders tab and the Matching queue.</p></div>
+    <div class="tabcard"><h4>FallMentors</h4><p>Mentor decisions, same shape. Feeds Accepted Mentors and the match pool.</p></div>
+    <div class="tabcard"><h4>FallMatches</h4><p>Pairings with timestamps and status. Feeds the Matched tab and better-fit flags.</p></div>
+  </div>
+  <p class="sub" style="margin-top: 12px;">Existing tabs that stay: <code>Milestone Dashboard</code> and <code>Participation</code> (milestones, written by the same APIs as summer so nothing live breaks), <code>SessionReview</code> and <code>LumaAttendance</code> (verification pipelines). The original Typeforms (hAbo7Jdh, AayoroO1, e0L62296) remain the source of truth for applications and meetings.</p>
+
+  <div class="section-label">What the admin now tracks</div>
+  <div class="card">
+    <ul>
+      <li><strong>Pre-program goals:</strong> 100 mentee + 100 mentor applications by Sept 3, 80 of each qualified, live progress bars with a day countdown.</li>
+      <li><strong>Program &amp; cohort health:</strong> statuses, Week 1 gate completion, meeting and edu averages, per cohort and whole-program.</li>
+      <li><strong>Session logistics:</strong> 22/22 sessions live on Luma, registration counts synced every 5 minutes, and the current gap: sessions still needing speakers, titles, and descriptions.</li>
+      <li><strong>Matching quality:</strong> every suggestion graded (Perfect / Excellent / Strong / Good / Weak) from session-tier alignment (the heaviest weight), focus overlap, shared language between what founders want and mentors offer, stage fit, and scheduling.</li>
+      <li><strong>Pulse and wins:</strong> the green/yellow/red grid and the Tuesday-update wins feed with one-click copy.</li>
+    </ul>
+  </div>
+
+  <div class="section-label">What remains · the honest build list</div>
+  <div class="remain">
+    <ul style="list-style: none;">
+      <li>1. <strong>Application ingest → roster:</strong> approving a founder should auto-provision their portal (today the roster is the three test slugs in <code>lib/fall-roster.js</code>; approved applicants queue in the sheet but don't get portals yet).</li>
+      <li>2. <strong>Matches → portals:</strong> pairings in FallMatches should drive the portal mentor reveal (today the reveal reads the roster file).</li>
+      <li>3. <strong>Per-match rolling clocks:</strong> replace program-level deadlines with clocks keyed to each pair's match date.</li>
+      <li>4. <strong>Onboarding auto-verify:</strong> create the 7 onboarding Luma events and wire the attendance tag to the onboarding milestone.</li>
+      <li>5. <strong>Server-enforced gate:</strong> quiz + Deep Work checks currently read the founder's browser locally; enforce from FallResponses server-side.</li>
+      <li>6. <strong>OverdriveAI RSVP + check-in</strong> and the 50% in-person meter.</li>
+      <li>7. <strong>BreezeDoc send pipeline</strong> for completion signatures, and the wins → Tuesday email automation.</li>
+      <li>8. <strong>Ops:</strong> create #uplift-portal-inputs in Slack and invite the bot (10 seconds, Kennedy); replace the shared "admin" password; Today check-offs are per-browser until they move to the sheet.</li>
+    </ul>
+  </div>
+
+  <div class="section-label">Endpoints, for reference</div>
+  <p class="sub"><code>/api/admin/fall-overview</code> health + roster · <code>/api/admin/fall-people</code> applications, decisions, matches · <code>/api/admin/fall-sessions</code> Luma sync · <code>/api/admin/fall-decide</code> approve/reject · <code>/api/admin/fall-match</code> match/unmatch · <code>/api/admin/tf-file</code> headshot proxy · admin at <code>/admin-fall</code>, code <code>admin</code>.</p>
+
+</div>
+</body>
+</html>

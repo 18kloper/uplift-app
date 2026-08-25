@@ -6,6 +6,7 @@
 
 import { getSheetsClient } from "../../lib/sheets-helper";
 import { postPortalInput } from "../../lib/slack-portal-inputs";
+import { FALL_SLUGS, FALL_RESPONSES_TAB, FALL_RESPONSES_HEADERS } from "../../lib/fall-roster";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
@@ -32,7 +33,51 @@ export default async function handler(req, res) {
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
     const timestamp = new Date().toISOString();
 
-    // ── Ensure mentee tab exists (create if missing) ─────────────────────────
+    // ── Fall founders write to ONE shared tab: no per-person tabs ────────────
+    if (FALL_SLUGS.includes(slug)) {
+      let fallRows = [];
+      try {
+        const read = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${FALL_RESPONSES_TAB}!A:C` });
+        fallRows = read.data.values || [];
+      } catch (_) {
+        await sheets.spreadsheets.batchUpdate({
+          spreadsheetId,
+          requestBody: { requests: [{ addSheet: { properties: { title: FALL_RESPONSES_TAB } } }] },
+        }).catch(() => {});
+        await sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: `${FALL_RESPONSES_TAB}!A1`,
+          valueInputOption: "USER_ENTERED",
+          requestBody: { values: [FALL_RESPONSES_HEADERS] },
+        }).catch(() => {});
+      }
+      let rowIdx = -1;
+      for (let i = 1; i < fallRows.length; i++) {
+        if (fallRows[i][0] === slug && String(fallRows[i][1]) === String(weekNum) && fallRows[i][2] === fieldKey) {
+          rowIdx = i;
+          break;
+        }
+      }
+      if (rowIdx > -1) {
+        await sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: `${FALL_RESPONSES_TAB}!D${rowIdx + 1}:F${rowIdx + 1}`,
+          valueInputOption: "USER_ENTERED",
+          requestBody: { values: [[question || "", value || "", timestamp]] },
+        });
+      } else {
+        await sheets.spreadsheets.values.append({
+          spreadsheetId,
+          range: `${FALL_RESPONSES_TAB}!A:F`,
+          valueInputOption: "USER_ENTERED",
+          insertDataOption: "INSERT_ROWS",
+          requestBody: { values: [[slug, String(weekNum), fieldKey, question || "", value || "", timestamp]] },
+        });
+      }
+      return res.status(200).json({ ok: true, tab: FALL_RESPONSES_TAB });
+    }
+
+    // ── Summer founders keep the legacy per-person tabs ───────────────────────
     let existingRows = [];
     try {
       const read = await sheets.spreadsheets.values.get({

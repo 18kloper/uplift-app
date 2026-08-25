@@ -13,10 +13,7 @@
 import { getSheetsClient, MILESTONE_KEYS, MILESTONE_LABELS } from "../../../lib/sheets-helper";
 import { MENTEES } from "../../../lib/mentees";
 import { matchesMentee } from "../meetings";
-
-// Fall roster: the test slugs for now. The application-ingest build replaces
-// this with accepted fall applicants.
-const FALL_SLUGS = ["kennedy", "hana", "mj"];
+import { FALL_SLUGS, FALL_RESPONSES_TAB } from "../../../lib/fall-roster";
 
 const MEETING_FORM_ID = "e0L62296";
 const FALL_CUTOFF = new Date("2026-08-26"); // ignore summer-era submissions
@@ -72,8 +69,16 @@ async function readMilestones(sheets, spreadsheetId) {
   } catch (_) {}
 
   try {
-    const r = await sheets.spreadsheets.values.get({ spreadsheetId, range: "Dashboard!A:Z" });
-    const rows = r.data.values || [];
+    // The milestone tab's name has drifted historically; try the known set
+    const DASHBOARD_NAMES = ["Dashboard", "Milestone Dashboard", "Master Tracker", "Milestones", "Tracker"];
+    let rows = [];
+    for (const name of DASHBOARD_NAMES) {
+      try {
+        const r = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${name}!A:Z` });
+        rows = r.data.values || [];
+        if (rows.length > 1) break;
+      } catch (_) {}
+    }
     if (rows.length > 1) {
       const header = rows[0] || [];
       const churnedIdx = header.findIndex(h => h?.toLowerCase() === "churned");
@@ -133,24 +138,27 @@ async function readMeetings(roster) {
 }
 
 async function readPortalActivity(sheets, spreadsheetId, roster) {
+  // One tab, one read, however many founders. This replaces the summer
+  // pattern of a sheet tab per person.
   const bySlug = Object.fromEntries(roster.map(m => [m.slug, { rows: [] }]));
   try {
-    const r = await sheets.spreadsheets.values.batchGet({
+    const r = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      ranges: roster.map(m => `${m.slug}!A2:E500`),
+      range: `${FALL_RESPONSES_TAB}!A2:F5000`,
     });
-    (r.data.valueRanges || []).forEach((vr, i) => {
-      const slug = roster[i].slug;
-      bySlug[slug].rows = (vr.values || []).map(row => ({
-        week: Number(row[0]) || 0,
-        fieldKey: row[1] || "",
-        question: row[2] || "",
-        value: row[3] || "",
-        updatedAt: row[4] || "",
-      })).filter(x => x.fieldKey);
-    });
+    for (const row of r.data.values || []) {
+      const slug = row[0];
+      if (!bySlug[slug]) continue;
+      bySlug[slug].rows.push({
+        week: Number(row[1]) || 0,
+        fieldKey: row[2] || "",
+        question: row[3] || "",
+        value: row[4] || "",
+        updatedAt: row[5] || "",
+      });
+    }
   } catch (err) {
-    console.error("[fall-overview] batchGet failed:", err.message);
+    console.error("[fall-overview] FallResponses read failed:", err.message);
   }
   return bySlug;
 }

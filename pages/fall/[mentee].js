@@ -34,7 +34,7 @@ const WEEKS = [
     events: [
       { name: "Welcome & Onboarding 1 (Edison)", day: "Wed Sept 9", time: "10:00\u201310:45 AM", format: "Virtual", url: "" },
       { name: "Welcome & Onboarding 2 (Hopper)", day: "Wed Sept 9", time: "12:30\u20131:15 PM", format: "Virtual", url: "" },
-      { name: "Welcome & Onboarding 3 (Bardeen)", day: "Wed Sept 9", time: "5:30\u20136:00 PM", format: "Virtual", url: "" },
+      { name: "Welcome & Onboarding 3 (Bardeen)", day: "Wed Sept 9", time: "5:30\u20136:15 PM", format: "Virtual", url: "" },
       { name: "Welcome & Onboarding 4 (Lawrence)", day: "Thu Sept 10", time: "10:00\u201310:45 AM", format: "Virtual", url: "" },
       { name: "Welcome & Onboarding 5 (Morrison)", day: "Thu Sept 10", time: "12:30\u20131:15 PM", format: "Virtual", url: "" },
       { name: "AI Demo Night \ud83c\udf89", day: "Thu Sept 10", time: "Evening", format: "In-Person", optional: true, url: "", note: "Bonus event. Not directly connected to the program, but a head start on connecting with our community. Your ticket is free: use code UPLIFT to claim it." },
@@ -2308,6 +2308,82 @@ function WeekReflection({ weekNum, slug, prompts, menteeName, milestones }) {
         slug={slug} weekNum={weekNum} blockIndex={0} accentColor="#5c4eb5"
       />
     </div>
+  );
+}
+
+// ─── Fall announcement modals (the floating chip pop-ups) ────────────────────
+function FallChipModal({ kicker, title, cta, ctaHref, onClose, children }) {
+  return (
+    <div onClick={onClose} style={{
+      position: "fixed", inset: 0, zIndex: 10000,
+      background: "rgba(16,9,45,0.62)", backdropFilter: "blur(3px)",
+      display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
+      fontFamily: "'Inter', system-ui, sans-serif",
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        background: "#fff", borderRadius: 16, width: "min(520px, 96vw)", maxHeight: "90vh",
+        overflowY: "auto", boxShadow: "0 24px 80px rgba(16,9,45,0.45)", padding: "26px 28px",
+      }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+          <div>
+            <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>{kicker}</p>
+            <p style={{ margin: "0 0 12px", fontSize: 19, fontWeight: 800, color: "#1a1733" }}>{title}</p>
+          </div>
+          <button onClick={onClose} style={{ border: "none", background: "#f0ecff", color: "#5c4eb5", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>✕ Close</button>
+        </div>
+        {children}
+        {cta && (
+          <a href={ctaHref} target="_blank" rel="noopener noreferrer" style={{
+            display: "block", textAlign: "center", marginTop: 16, padding: "12px 20px",
+            background: "#5c4eb5", color: "#fff", borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: "none",
+          }}>
+            {cta}
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FallOfficeHoursModal({ onClose }) {
+  return (
+    <FallChipModal kicker="Every Friday, all program" title="🤝 Meet your mentor & the Uplift team" onClose={onClose}>
+      <p style={{ margin: "0 0 10px", fontSize: 14, color: "#37324e", lineHeight: 1.7 }}>
+        <strong>Office hours run every Friday, 9:00&ndash;11:00 AM</strong>, all eight weeks. Questions, ideas, issues, anything Uplift-related: just show up, no agenda needed.
+      </p>
+      <p style={{ margin: 0, fontSize: 14, color: "#37324e", lineHeight: 1.7 }}>
+        They also work for 1:1 time: invite your mentor, join on the same link, and knock out mentor minutes when scheduling is tight. Links land in your Tuesday email and here in the portal.
+      </p>
+    </FallChipModal>
+  );
+}
+
+function FallCoffeeModal({ onClose }) {
+  return (
+    <FallChipModal kicker="In-person · optional" title="☕ Coffee meetups are coming back" onClose={onClose}>
+      <p style={{ margin: "0 0 10px", fontSize: 14, color: "#37324e", lineHeight: 1.7 }}>
+        The summer's coffee meetups were some of the best hours of the program, so they return this fall. Casual, in-person, coffee on us.
+      </p>
+      <p style={{ margin: 0, fontSize: 14, color: "#37324e", lineHeight: 1.7 }}>
+        Dates and locations get announced in the Tuesday email and appear in your weekly sessions list as they&apos;re booked.
+      </p>
+    </FallChipModal>
+  );
+}
+
+function FallDemoNightModal({ onClose }) {
+  return (
+    <FallChipModal kicker="TechUnited AI Demo Night" title="🎤 Submit your pitch" cta="Apply to demo →" ctaHref="https://form.typeform.com/to/voMHQcT0" onClose={onClose}>
+      <p style={{ margin: "0 0 10px", fontSize: 14, color: "#37324e", lineHeight: 1.7 }}>
+        AI Demo Nights run almost monthly, and Uplift founders are invited to apply to demo. Great practice, great exposure, and a real audience for what you&apos;re building.
+      </p>
+      <p style={{ margin: "0 0 10px", fontSize: 14, color: "#37324e", lineHeight: 1.7 }}>
+        The first one is <strong>September 10</strong>, night two of the program. Your ticket is free: use code <strong>UPLIFT</strong>.
+      </p>
+      <p style={{ margin: 0, fontSize: 13, color: "#6b6480", lineHeight: 1.6, fontStyle: "italic" }}>
+        Working on your pitch might be a great reason to grab a mentor session. 😉
+      </p>
+    </FallChipModal>
   );
 }
 
@@ -5134,9 +5210,44 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       {activeModal === "coffee" && <CoffeeMeetupModal onClose={dismissModal} />}
       {activeModal === "officehours" && <OfficeHoursModal onClose={dismissModal} />}
       {activeModal === "company" && <CompanySnapshotModal mentee={mentee} onClose={dismissModal} />}
+      {activeModal === "fallhours" && <FallOfficeHoursModal onClose={dismissModal} />}
+      {activeModal === "fallcoffee" && <FallCoffeeModal onClose={dismissModal} />}
+      {activeModal === "falldemo" && <FallDemoNightModal onClose={dismissModal} />}
 
       {/* Fall announcement chips get added here as events are booked */}
-      {/* Meeting structure guide lives on Week 1 (MeetingStructureCheck) */}
+      {/* Floating announcement chips — persistent reopeners for the fall pop-ups */}
+      {!activeModal && (
+        <div style={{
+          position: "fixed", bottom: 20, right: 20, zIndex: 9998,
+          display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10,
+          fontFamily: "'Inter', system-ui, sans-serif",
+        }}>
+          <button onClick={() => setActiveModal("fallhours")} style={{
+            display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 30, border: "none",
+            background: "linear-gradient(135deg, #1a6e50 0%, #2a9d6e 100%)", color: "#fff",
+            fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+            boxShadow: "0 6px 20px rgba(26,110,80,0.4)",
+          }}>
+            🤝 Meet your mentor
+          </button>
+          <button onClick={() => setActiveModal("fallcoffee")} style={{
+            display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 30, border: "none",
+            background: "linear-gradient(135deg, #7a3d14 0%, #c97b2d 100%)", color: "#fff",
+            fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+            boxShadow: "0 6px 20px rgba(122,61,20,0.4)",
+          }}>
+            ☕ Coffee meetups
+          </button>
+          <button onClick={() => setActiveModal("falldemo")} style={{
+            display: "flex", alignItems: "center", gap: 8, padding: "12px 18px", borderRadius: 30, border: "none",
+            background: "linear-gradient(135deg, #5c4eb5 0%, #c0006e 100%)", color: "#fff",
+            fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+            boxShadow: "0 6px 20px rgba(92,78,181,0.4)",
+          }}>
+            🎤 Submit your pitch
+          </button>
+        </div>
+      )}
 
       <div style={{ minHeight: "100vh", background: "#f7f5ff", fontFamily: "'Inter', system-ui, sans-serif" }}>
         {/* Header */}
