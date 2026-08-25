@@ -2387,6 +2387,145 @@ function FallDemoNightModal({ onClose }) {
   );
 }
 
+// ─── Portal bot ──────────────────────────────────────────────────────────────
+// Closed-book support chat over /api/portal-chat. Knows the program rulebook
+// and this founder's live state, and routes everything else to
+// uplift@techunited.co. Bottom-left so it never collides with the chip stack.
+function PortalBotWidget({ slug, firstName }) {
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    {
+      role: "assistant",
+      content: `Hey ${firstName}! I'm the Uplift portal bot. I know this program inside and out, and impressively little else. Try me: "am I behind?", "where do I log my meeting?", "when is my Roadmap meeting due?"`,
+    },
+  ]);
+  const [draft, setDraft] = useState("");
+  const [busy, setBusy] = useState(false);
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages, open, busy]);
+
+  const send = async () => {
+    const q = draft.trim();
+    if (!q || busy) return;
+    setDraft("");
+    const next = [...messages, { role: "user", content: q }];
+    setMessages(next);
+    setBusy(true);
+    try {
+      const r = await fetch("/api/portal-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, question: q, history: next.slice(1, -1).slice(-8) }),
+      });
+      const data = await r.json();
+      setMessages(m => [...m, {
+        role: "assistant",
+        content: data.answer || "Something glitched on my end. Email uplift@techunited.co and a human will help.",
+      }]);
+    } catch {
+      setMessages(m => [...m, {
+        role: "assistant",
+        content: "Something glitched on my end. Email uplift@techunited.co and a human will help.",
+      }]);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div style={{
+      position: "fixed", bottom: 20, left: 20, zIndex: 9997,
+      display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 10,
+      fontFamily: "'Inter', system-ui, sans-serif",
+    }}>
+      {open && (
+        <div style={{
+          width: "min(360px, calc(100vw - 40px))", height: 460, borderRadius: 18, overflow: "hidden",
+          background: "#fff", boxShadow: "0 18px 50px rgba(26,14,79,0.35)",
+          display: "flex", flexDirection: "column", border: "1px solid #e6e2f5",
+        }}>
+          <div style={{ background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)", color: "#fff", padding: "14px 16px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ fontWeight: 800, fontSize: 15 }}>🤖 Uplift Portal Bot</div>
+              <button onClick={() => setOpen(false)} style={{
+                border: "none", background: "rgba(255,255,255,0.18)", color: "#fff", borderRadius: 8,
+                width: 26, height: 26, cursor: "pointer", fontSize: 14, fontWeight: 700, lineHeight: 1,
+              }}>×</button>
+            </div>
+            <div style={{ fontSize: 11.5, opacity: 0.75, marginTop: 3 }}>
+              Automated. Knows the program and your progress, nothing else.
+            </div>
+          </div>
+
+          <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: 14, display: "flex", flexDirection: "column", gap: 10, background: "#f7f5ff" }}>
+            {messages.map((m, i) => (
+              <div key={i} style={{
+                alignSelf: m.role === "user" ? "flex-end" : "flex-start",
+                maxWidth: "85%", padding: "9px 13px", borderRadius: 14, fontSize: 13.5, lineHeight: 1.55,
+                whiteSpace: "pre-wrap",
+                background: m.role === "user" ? "linear-gradient(135deg, #3d2f8a, #5c4eb5)" : "#fff",
+                color: m.role === "user" ? "#fff" : "#37324e",
+                border: m.role === "user" ? "none" : "1px solid #e6e2f5",
+                borderBottomRightRadius: m.role === "user" ? 4 : 14,
+                borderBottomLeftRadius: m.role === "user" ? 14 : 4,
+              }}>
+                {m.content}
+              </div>
+            ))}
+            {busy && (
+              <div style={{
+                alignSelf: "flex-start", padding: "9px 13px", borderRadius: 14, borderBottomLeftRadius: 4,
+                background: "#fff", border: "1px solid #e6e2f5", fontSize: 13.5, color: "#8a84a3",
+              }}>
+                thinking<span className="botdots">...</span>
+              </div>
+            )}
+          </div>
+
+          <div style={{ borderTop: "1px solid #ece8f8", background: "#fff", padding: 10 }}>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                value={draft}
+                onChange={e => setDraft(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") send(); }}
+                placeholder="Ask about the program or your progress..."
+                maxLength={600}
+                style={{
+                  flex: 1, border: "1.5px solid #d9d3ef", borderRadius: 10, padding: "9px 12px",
+                  fontSize: 13.5, fontFamily: "inherit", outline: "none", color: "#1a0e4f",
+                }}
+              />
+              <button onClick={send} disabled={busy || !draft.trim()} style={{
+                border: "none", borderRadius: 10, padding: "0 16px", fontWeight: 700, fontSize: 13.5,
+                fontFamily: "inherit", cursor: busy || !draft.trim() ? "default" : "pointer",
+                background: busy || !draft.trim() ? "#d9d3ef" : "linear-gradient(135deg, #c0006e, #ff2d87)",
+                color: "#fff",
+              }}>Send</button>
+            </div>
+            <div style={{ fontSize: 10.5, color: "#8a84a3", marginTop: 7, textAlign: "center" }}>
+              I&apos;m a bot. For real humans (and real exceptions): uplift@techunited.co
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!open && (
+        <button onClick={() => setOpen(true)} style={{
+          display: "flex", alignItems: "center", gap: 8, padding: "11px 17px", borderRadius: 30, border: "none",
+          background: "linear-gradient(135deg, #1a0e4f 0%, #5c4eb5 100%)", color: "#fff",
+          fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+          boxShadow: "0 6px 20px rgba(26,14,79,0.4)",
+        }}>
+          🤖 Questions? Ask the portal bot
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ─── Meeting structure check (Week 1) ────────────────────────────────────────
 // Founders must open the Discover/Act/Roadmap guide before they can acknowledge it.
 function MeetingStructureCheck({ slug }) {
@@ -5291,6 +5430,8 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
           </button>
         </div>
       )}
+
+      <PortalBotWidget slug={mentee.slug} firstName={mentee.first} />
 
       <div style={{ minHeight: "100vh", background: "#f7f5ff", fontFamily: "'Inter', system-ui, sans-serif" }}>
         {/* Header */}
