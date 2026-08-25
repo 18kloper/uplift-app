@@ -2387,16 +2387,18 @@ function FallDemoNightModal({ onClose }) {
   );
 }
 
-// ─── Portal bot ──────────────────────────────────────────────────────────────
+// ─── Portal bot (Upton) ──────────────────────────────────────────────────────
 // Closed-book support chat over /api/portal-chat. Knows the program rulebook
 // and this founder's live state, and routes everything else to
-// uplift@techunited.co. Bottom-left so it never collides with the chip stack.
-function PortalBotWidget({ slug, firstName }) {
+// uplift@techunited.co. Lives in the bottom-right stack with the event chips
+// (passed in as children); opening the panel swaps the stack out, minimizing
+// brings it back with the conversation kept.
+function PortalBotWidget({ slug, firstName, children }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: `Hey ${firstName}! I'm the Uplift portal bot. I know this program inside and out, and impressively little else. Try me: "am I behind?", "where do I log my meeting?", "when is my Roadmap meeting due?"`,
+      content: `Hey ${firstName}! I'm Upton, your portal bot. I know this program inside and out, and impressively little else. Try me:\n"What do I need to do in Week 2?"\n"How many meetings do I need, and where do I log them?"\n"Show me the meeting structure one-pager."\n"Where do I find the educational sessions?"`,
     },
   ]);
   const [draft, setDraft] = useState("");
@@ -2437,23 +2439,24 @@ function PortalBotWidget({ slug, firstName }) {
 
   return (
     <div style={{
-      position: "fixed", bottom: 20, left: 20, zIndex: 9997,
-      display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 10,
+      position: "fixed", bottom: 20, right: 20, zIndex: 9998,
+      display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10,
       fontFamily: "'Inter', system-ui, sans-serif",
     }}>
       {open && (
         <div style={{
-          width: "min(360px, calc(100vw - 40px))", height: 460, borderRadius: 18, overflow: "hidden",
+          width: "min(360px, calc(100vw - 40px))", height: "min(460px, calc(100vh - 120px))", borderRadius: 18, overflow: "hidden",
           background: "#fff", boxShadow: "0 18px 50px rgba(26,14,79,0.35)",
           display: "flex", flexDirection: "column", border: "1px solid #e6e2f5",
         }}>
           <div style={{ background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)", color: "#fff", padding: "14px 16px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ fontWeight: 800, fontSize: 15 }}>🤖 Uplift Portal Bot</div>
-              <button onClick={() => setOpen(false)} style={{
+              <div style={{ fontWeight: 800, fontSize: 15 }}>🤖 Upton · Uplift Portal Bot</div>
+              <button onClick={() => setOpen(false)} title="Minimize (your chat is saved)" style={{
                 border: "none", background: "rgba(255,255,255,0.18)", color: "#fff", borderRadius: 8,
-                width: 26, height: 26, cursor: "pointer", fontSize: 14, fontWeight: 700, lineHeight: 1,
-              }}>×</button>
+                width: 30, height: 26, cursor: "pointer", fontSize: 16, fontWeight: 800, lineHeight: 1,
+                display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: 4,
+              }}>–</button>
             </div>
             <div style={{ fontSize: 11.5, opacity: 0.75, marginTop: 3 }}>
               Automated. Knows the program and your progress, nothing else.
@@ -2513,14 +2516,17 @@ function PortalBotWidget({ slug, firstName }) {
       )}
 
       {!open && (
-        <button onClick={() => setOpen(true)} style={{
-          display: "flex", alignItems: "center", gap: 8, padding: "11px 17px", borderRadius: 30, border: "none",
-          background: "linear-gradient(135deg, #1a0e4f 0%, #5c4eb5 100%)", color: "#fff",
-          fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-          boxShadow: "0 6px 20px rgba(26,14,79,0.4)",
-        }}>
-          🤖 Questions? Ask the portal bot
-        </button>
+        <>
+          {children}
+          <button onClick={() => setOpen(true)} style={{
+            display: "flex", alignItems: "center", gap: 8, padding: "11px 17px", borderRadius: 30, border: "none",
+            background: "linear-gradient(135deg, #1a0e4f 0%, #5c4eb5 100%)", color: "#fff",
+            fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+            boxShadow: "0 6px 20px rgba(26,14,79,0.4)",
+          }}>
+            🤖 Ask Upton
+          </button>
+        </>
       )}
     </div>
   );
@@ -5396,42 +5402,38 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       {activeModal === "fallcoffee" && <FallCoffeeModal onClose={dismissModal} />}
       {activeModal === "falldemo" && <FallDemoNightModal onClose={dismissModal} />}
 
-      {/* Fall announcement chips get added here as events are booked */}
-      {/* Floating announcement chips — persistent reopeners for the fall pop-ups */}
-      {!activeModal && (
-        <div style={{
-          position: "fixed", bottom: 20, right: 20, zIndex: 9998,
-          display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10,
-          fontFamily: "'Inter', system-ui, sans-serif",
-        }}>
-          <button onClick={() => setActiveModal("fallhours")} style={{
-            display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 30, border: "none",
-            background: "linear-gradient(135deg, #1a6e50 0%, #2a9d6e 100%)", color: "#fff",
-            fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-            boxShadow: "0 6px 20px rgba(26,110,80,0.4)",
-          }}>
-            🤝 Meet your mentor
-          </button>
-          <button onClick={() => setActiveModal("fallcoffee")} style={{
-            display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 30, border: "none",
-            background: "linear-gradient(135deg, #7a3d14 0%, #c97b2d 100%)", color: "#fff",
-            fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-            boxShadow: "0 6px 20px rgba(122,61,20,0.4)",
-          }}>
-            ☕ Coffee meetups
-          </button>
-          <button onClick={() => setActiveModal("falldemo")} style={{
-            display: "flex", alignItems: "center", gap: 8, padding: "12px 18px", borderRadius: 30, border: "none",
-            background: "linear-gradient(135deg, #5c4eb5 0%, #c0006e 100%)", color: "#fff",
-            fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-            boxShadow: "0 6px 20px rgba(92,78,181,0.4)",
-          }}>
-            🎤 Submit your pitch
-          </button>
-        </div>
-      )}
-
-      <PortalBotWidget slug={mentee.slug} firstName={mentee.first} />
+      {/* Bottom-right stack: fall announcement chips + Upton, the portal bot.
+          New chips get added here as events are booked. */}
+      <PortalBotWidget slug={mentee.slug} firstName={mentee.first}>
+        {!activeModal && (
+          <>
+            <button onClick={() => setActiveModal("fallhours")} style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 30, border: "none",
+              background: "linear-gradient(135deg, #1a6e50 0%, #2a9d6e 100%)", color: "#fff",
+              fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+              boxShadow: "0 6px 20px rgba(26,110,80,0.4)",
+            }}>
+              🤝 Meet your mentor
+            </button>
+            <button onClick={() => setActiveModal("fallcoffee")} style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 30, border: "none",
+              background: "linear-gradient(135deg, #7a3d14 0%, #c97b2d 100%)", color: "#fff",
+              fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+              boxShadow: "0 6px 20px rgba(122,61,20,0.4)",
+            }}>
+              ☕ Coffee meetups
+            </button>
+            <button onClick={() => setActiveModal("falldemo")} style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "12px 18px", borderRadius: 30, border: "none",
+              background: "linear-gradient(135deg, #5c4eb5 0%, #c0006e 100%)", color: "#fff",
+              fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+              boxShadow: "0 6px 20px rgba(92,78,181,0.4)",
+            }}>
+              🎤 Submit your pitch
+            </button>
+          </>
+        )}
+      </PortalBotWidget>
 
       <div style={{ minHeight: "100vh", background: "#f7f5ff", fontFamily: "'Inter', system-ui, sans-serif" }}>
         {/* Header */}
