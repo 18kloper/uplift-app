@@ -119,8 +119,11 @@ export default async function handler(req, res) {
       messages: [...past, { role: "user", content: q }],
     });
 
+    // House style: no em dashes, ever. The model is told, but enforce it too.
     const answer =
-      response.content.filter(b => b.type === "text").map(b => b.text).join("").trim() || FALLBACK;
+      (response.content.filter(b => b.type === "text").map(b => b.text).join("").trim() || FALLBACK)
+        .replace(/\s*—\s*/g, ", ")
+        .replace(/\s*–\s*/g, ", ");
 
     // Log the exchange to #uplift-portal-inputs; never block the response on it.
     postPortalInput({ slug, weekNum: 0, fieldKey: "bot_chat", question: q, value: answer }).catch(() => {});
