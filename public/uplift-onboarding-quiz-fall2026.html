@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uplift Fall 2026 &middot; Onboarding Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #5B8DEF;
+    --purple: #9B59B6;
+    --magenta: #E91E8C;
+    --orange: #F4A261;
+    --dark: #0A0A0A;
+    --light: #FFFFFF;
+    --text-dark: #1A1A1A;
+    --text-muted: #6B6B6B;
+    --soft-bg: #F0EEF8;
+    --good: #1F8F63;
+    --bad: #C0392B;
+    --brand-grad: linear-gradient(90deg, #5B8DEF 0%, #9B59B6 50%, #E91E8C 100%);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: 'Poppins', -apple-system, sans-serif;
+    background: #1a1a1a;
+    color: var(--text-dark);
+  }
+  body { padding: 40px 20px 80px; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+
+  .header {
+    background: linear-gradient(180deg, #fff 0%, var(--soft-bg) 100%);
+    border-radius: 20px;
+    padding: 36px 40px;
+    margin-bottom: 20px;
+  }
+  .eyebrow {
+    font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--text-dark); margin-bottom: 14px; display: flex; align-items: center; gap: 14px;
+  }
+  .eyebrow::before { content: ''; width: 44px; height: 4px; background: var(--magenta); border-radius: 2px; }
+  h1 {
+    font-size: 32px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.15; margin-bottom: 10px;
+  }
+  .grad-text {
+    background: var(--brand-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .sub { font-size: 15px; color: var(--text-muted); line-height: 1.6; font-style: italic; }
+
+  .progress-bar {
+    position: sticky; top: 0; z-index: 10; background: #1a1a1a; padding: 14px 0 18px;
+  }
+  .progress-track { height: 8px; background: rgba(255,255,255,0.12); border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; width: 0%; background: var(--brand-grad); border-radius: 999px; transition: width 0.25s ease; }
+  .progress-label { color: rgba(255,255,255,0.55); font-size: 12px; font-weight: 600; letter-spacing: 1px; margin-top: 8px; text-transform: uppercase; }
+
+  .q-card {
+    background: #fff; border-radius: 16px; padding: 26px 28px; margin-bottom: 14px;
+    border-left: 6px solid var(--soft-bg); transition: border-color 0.2s ease;
+  }
+  .q-card.correct { border-left-color: var(--good); }
+  .q-card.incorrect { border-left-color: var(--bad); }
+  .q-num { font-size: 11.5px; font-weight: 800; letter-spacing: 2px; color: var(--magenta); margin-bottom: 8px; }
+  .q-text { font-size: 17px; font-weight: 700; line-height: 1.45; margin-bottom: 16px; }
+
+  .opt {
+    display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 10px;
+    border: 1.5px solid #E7E4F2; margin-bottom: 8px; cursor: pointer; transition: all 0.15s ease;
+  }
+  .opt:hover { border-color: var(--sky); background: #F7F8FF; }
+  .opt input { margin-top: 3px; accent-color: var(--magenta); flex-shrink: 0; }
+  .opt span { font-size: 14.5px; line-height: 1.5; color: var(--text-dark); }
+  .opt.selected { border-color: var(--purple); background: #FAF6FC; }
+  .opt.opt-correct { border-color: var(--good); background: #EEFBF5; }
+  .opt.opt-wrong { border-color: var(--bad); background: #FDEEEC; }
+  .opt .mark { margin-left: auto; font-weight: 800; font-size: 13px; flex-shrink: 0; display: none; }
+  .opt.opt-correct .mark { display: block; color: var(--good); }
+  .opt.opt-wrong .mark { display: block; color: var(--bad); }
+
+  .footer-bar {
+    background: #fff; border-radius: 16px; padding: 24px 28px; text-align: center; margin-top: 22px;
+  }
+  .btn {
+    display: inline-block; border: none; border-radius: 999px; padding: 15px 40px; font-size: 15px;
+    font-weight: 700; font-family: inherit; cursor: pointer; background: var(--brand-grad); color: #fff;
+    letter-spacing: 0.3px; transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn.secondary { background: none; border: 1.5px solid var(--text-muted); color: var(--text-dark); margin-top: 10px; }
+
+  .result {
+    display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--soft-bg);
+  }
+  .result.show { display: block; }
+  .result-score { font-size: 40px; font-weight: 800; margin-bottom: 6px; }
+  .result-score.pass { color: var(--good); }
+  .result-score.fail { color: var(--bad); }
+  .result-msg { font-size: 15px; color: var(--text-muted); line-height: 1.6; margin-bottom: 4px; }
+
+  .hint { font-size: 12.5px; color: var(--text-muted); margin-top: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="eyebrow">Before Week 2</div>
+    <h1>Quick check: <span class="grad-text">did it stick?</span></h1>
+    <p class="sub">10 questions from your onboarding session. Get all 10 right to unlock Week 2. Missed one? Review the highlights and try again, no penalty.</p>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">0 of 10 answered</div>
+  </div>
+
+  <form id="quizForm"></form>
+
+  <div class="footer-bar">
+    <button class="btn" id="submitBtn" disabled>Check my answers</button>
+    <div class="result" id="result">
+      <div class="result-score" id="resultScore"></div>
+      <div class="result-msg" id="resultMsg"></div>
+      <button class="btn secondary" id="retryBtn" style="display:none;">Review &amp; try again</button>
+    </div>
+  </div>
+
+  <p class="hint">Trouble with a question? It's straight out of your onboarding deck &middot; ping your program manager if anything's unclear.</p>
+
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "What's the deal with educational sessions: how many, when are they offered, and where do you find them?",
+    options: [
+      "5 in-person sessions, no deadline, texted to you weekly",
+      "3 virtual sessions minimum (Mon 12:30, Tue 5:30, or Fri 12:30, any combo), at least 1 done by Oct 1 &middot; find them on Luma and in your portal",
+      "2 sessions, whenever you want, check your email",
+      "3 sessions, all done in your first week, Zoom link from your mentor"
+    ],
+    correct: 1
+  },
+  {
+    q: "What are your three required mentor meetings called, in order?",
+    options: [
+      "Intro, Feedback, Wrap-up",
+      "Plan, Execute, Review",
+      "Discover, Act, Roadmap",
+      "Match, Meet, Move"
+    ],
+    correct: 2
+  },
+  {
+    q: "Meeting 1 (Discover) is due...",
+    options: [
+      "Within 7 days of being matched with your mentor",
+      "By Oct 1",
+      "Within 30 days of onboarding",
+      "On the first day of the program"
+    ],
+    correct: 0
+  },
+  {
+    q: "Meeting 3 (Roadmap) is suggested to be done by...",
+    options: [
+      "Whenever you feel like it, there's no real deadline",
+      "The very end of the program",
+      "Before Uplift at OverdriveAI, Oct 27 in Newark, NJ",
+      "Sept 27"
+    ],
+    correct: 2
+  },
+  {
+    q: "What's your required in-person event, and when is it?",
+    options: [
+      "Founder Summit, Nov 1",
+      "OverdriveAI, Oct 27, 2026",
+      "Demo Day, Oct 1",
+      "Propelify, Sept 9"
+    ],
+    correct: 1
+  },
+  {
+    q: "How do you log a mentor meeting after it happens?",
+    options: [
+      "Email your program manager",
+      "You don't have to, TechUnited tracks it automatically",
+      "Text your mentor to confirm",
+      "A portal link per meeting: date, length, and notes"
+    ],
+    correct: 3
+  },
+  {
+    q: "What's the communication SLA for replying to your mentor, mentee, PM, or TechUnited?",
+    options: [
+      "24 hours",
+      "72 hours (except OOO / vacation notices)",
+      "1 week",
+      "There's no set timeline"
+    ],
+    correct: 1
+  },
+  {
+    q: "The weekly pulse check takes about...",
+    options: [
+      "10 minutes, once a week",
+      "It's optional, skip it if you're busy",
+      "10 seconds, once a week",
+      "5 minutes, twice a week"
+    ],
+    correct: 2
+  },
+  {
+    q: "How will you typically hear from the program each week?",
+    options: [
+      "A text message every Monday",
+      "Only through your mentor",
+      "A Friday phone call",
+      "A Tuesday-morning recap email"
+    ],
+    correct: 3
+  },
+  {
+    q: "Meeting 2 (Act) is due...",
+    options: [
+      "By Sept 20",
+      "Within 10 days of Meeting 1",
+      "Within 30 days of being matched",
+      "On the same day as Meeting 1"
+    ],
+    correct: 1
+  }
+];
+
+const form = document.getElementById('quizForm');
+const submitBtn = document.getElementById('submitBtn');
+const retryBtn = document.getElementById('retryBtn');
+const result = document.getElementById('result');
+const resultScore = document.getElementById('resultScore');
+const resultMsg = document.getElementById('resultMsg');
+const progressFill = document.getElementById('progressFill');
+const progressLabel = document.getElementById('progressLabel');
+
+let submitted = false;
+
+function render() {
+  form.innerHTML = QUESTIONS.map((item, qi) => `
+    <div class="q-card" data-qi="${qi}">
+      <div class="q-num">QUESTION ${qi + 1} OF 10</div>
+      <div class="q-text">${item.q}</div>
+      ${item.options.map((opt, oi) => `
+        <label class="opt" data-oi="${oi}">
+          <input type="radio" name="q${qi}" value="${oi}">
+          <span>${opt}</span>
+          <span class="mark"></span>
+        </label>
+      `).join('')}
+    </div>
+  `).join('');
+
+  form.querySelectorAll('input[type="radio"]').forEach(input => {
+    input.addEventListener('change', onAnswerChange);
+  });
+}
+
+function onAnswerChange(e) {
+  const card = e.target.closest('.q-card');
+  card.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
+  e.target.closest('.opt').classList.add('selected');
+  updateProgress();
+}
+
+function updateProgress() {
+  const answered = QUESTIONS.filter((_, qi) => form.querySelector(`input[name="q${qi}"]:checked`)).length;
+  progressFill.style.width = (answered / QUESTIONS.length * 100) + '%';
+  progressLabel.textContent = answered + ' of ' + QUESTIONS.length + ' answered';
+  submitBtn.disabled = answered < QUESTIONS.length;
+}
+
+function grade() {
+  submitted = true;
+  let score = 0;
+  QUESTIONS.forEach((item, qi) => {
+    const card = form.querySelector(`.q-card[data-qi="${qi}"]`);
+    const checked = form.querySelector(`input[name="q${qi}"]:checked`);
+    const checkedOi = checked ? parseInt(checked.value, 10) : null;
+    const isCorrect = checkedOi === item.correct;
+    if (isCorrect) score++;
+    card.classList.add(isCorrect ? 'correct' : 'incorrect');
+    card.querySelectorAll('.opt').forEach(optEl => {
+      const oi = parseInt(optEl.dataset.oi, 10);
+      const input = optEl.querySelector('input');
+      input.disabled = true;
+      if (oi === item.correct) {
+        optEl.classList.add('opt-correct');
+        optEl.querySelector('.mark').textContent = 'Correct';
+      } else if (oi === checkedOi) {
+        optEl.classList.add('opt-wrong');
+        optEl.querySelector('.mark').textContent = 'Your answer';
+      }
+    });
+  });
+
+  result.classList.add('show');
+  submitBtn.style.display = 'none';
+  retryBtn.style.display = 'inline-block';
+
+  if (score === QUESTIONS.length) {
+    resultScore.className = 'result-score pass';
+    resultScore.textContent = score + ' / ' + QUESTIONS.length;
+    resultMsg.textContent = "Perfect score. You're cleared for Week 2 — nice work.";
+  } else {
+    resultScore.className = 'result-score fail';
+    resultScore.textContent = score + ' / ' + QUESTIONS.length;
+    resultMsg.textContent = 'You need 10 out of 10 to move on. Check the highlighted answers above, then try again.';
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function reset() {
+  submitted = false;
+  result.classList.remove('show');
+  submitBtn.style.display = 'inline-block';
+  submitBtn.disabled = true;
+  retryBtn.style.display = 'none';
+  render();
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+submitBtn.addEventListener('click', grade);
+retryBtn.addEventListener('click', reset);
+
+render();
+</script>
+</body>
+</html>

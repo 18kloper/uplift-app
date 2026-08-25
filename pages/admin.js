@@ -2144,7 +2144,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
       MILESTONE_FILTERS.filter(f => milestoneFilters.includes(f.key)).some(f => f.test(m));
     const needsMentorMatch = !needsMentorFilter || (!m.isTest && (declinedSlugs.has(m.slug) || (!m.mentorName && !confirmedSlugs.has(m.slug))));
     const confirmedMentorMatch = !confirmedMentorFilter || (!m.isTest && confirmedSlugs.has(m.slug));
-    const pendingMentorMatch = !pendingMentorFilter || (!m.isTest && m.mentorName && !respondedMentorNames.has(m.mentorName));
+    const pendingMentorMatch = !pendingMentorFilter || (!m.isTest && m.mentorName && !respondedMentorNames.has(m.mentorName.trim().toLowerCase()));
     const participatedNotOnboardedMatch = !participatedNotOnboardedFilter || (!m.isTest && m.milestones?.participation && !m.milestones?.onboarding);
     const onboardedPendingMentorMatch = !onboardedPendingMentorFilter || (!m.isTest && m.milestones?.onboarding && !confirmedSlugs.has(m.slug));
     return cohortMatch && searchMatch && statusMatch && milestoneMatch && needsMentorMatch && confirmedMentorMatch && pendingMentorMatch && participatedNotOnboardedMatch && onboardedPendingMentorMatch;
@@ -2650,12 +2650,6 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
                   🟡 {cohortBreakdown.attention} needs attention
                 </span>
               )}
-              <span style={{ fontSize: 13, color: "#1a6e42", fontWeight: 700 }}>
-                🟢 {cohortBreakdown.onTrack} on track
-              </span>
-              <span style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 700 }}>
-                🔵 {cohortBreakdown.onboarding} onboarding complete
-              </span>
             </div>
             <div style={{ minWidth: 200 }}>
               <p style={{ margin: "0 0 4px", fontSize: 11, color: "#9b8fcf" }}>Avg milestones (active)</p>
@@ -2757,7 +2751,7 @@ function Dashboard({ data, refreshedAt, confirmedSlugs = new Set(), declinedSlug
 
           {/* Pending Mentor Match filter */}
           {(() => {
-            const pmCount = mentees.filter(m => m.mentorName && !respondedMentorNames.has(m.mentorName)).length;
+            const pmCount = mentees.filter(m => m.mentorName && !respondedMentorNames.has(m.mentorName.trim().toLowerCase())).length;
             return (
               <button onClick={() => setPendingMentorFilter(p => !p)} style={{
                 display: "flex", alignItems: "center", gap: 5,
@@ -3328,7 +3322,7 @@ export default function AdminPage() {
       fetch("/api/get-mentor-sessions").then(r => r.json()).catch(() => ({})),
     ]).then(([d, emailData, confData, sessData]) => {
       setData(d);
-      setRespondedMentorNames(new Set((emailData.responses || []).filter(r => !r.noReply).map(r => r.mentor.name)));
+      setRespondedMentorNames(new Set((emailData.responses || []).filter(r => !r.noReply).map(r => (r.mentor.name || "").trim().toLowerCase())));
       setNonResponsiveMentorEmails(new Set((emailData.responses || []).filter(r => r.noReply).map(r => r.mentor.email.toLowerCase())));
       // Sheet is source of truth — merge over localStorage
       if (confData.confirmations && Object.keys(confData.confirmations).length > 0) {

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matching Logic — Internal Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1C1830;
+    --ink-soft: #4A4560;
+    --paper: #FAF8FC;
+    --paper-raised: #FFFFFF;
+    --line: #E4E0EE;
+    --accent-magenta: #D91E7A;
+    --accent-purple: #6E4FB0;
+    --accent-sky: #3E6FD9;
+    --good: #1F8F63;
+    --good-bg: #E6F5EE;
+    --warn: #B4791E;
+    --warn-bg: #FBF0DD;
+    --chip-muted-bg: #EFEBF6;
+    --chip-muted-fg: #6E6685;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #F1EEFA; --ink-soft: #B8B2D0; --paper: #14111F; --paper-raised: #1D1930;
+      --line: #332C4C; --accent-magenta: #F0559D; --accent-purple: #A98CE8; --accent-sky: #7FA1F2;
+      --good: #4FCB98; --good-bg: #123527; --warn: #E3AA52; --warn-bg: #3A2C10;
+      --chip-muted-bg: #262038; --chip-muted-fg: #9F97B8;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #F1EEFA; --ink-soft: #B8B2D0; --paper: #14111F; --paper-raised: #1D1930;
+    --line: #332C4C; --accent-magenta: #F0559D; --accent-purple: #A98CE8; --accent-sky: #7FA1F2;
+    --good: #4FCB98; --good-bg: #123527; --warn: #E3AA52; --warn-bg: #3A2C10;
+    --chip-muted-bg: #262038; --chip-muted-fg: #9F97B8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: 'Source Sans 3', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: 'Poppins', sans-serif; font-weight: 800; letter-spacing: -0.01em; text-wrap: balance; margin: 0; }
+  .mono { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
+  code { font-family: 'IBM Plex Mono', monospace; font-size: 0.92em; background: var(--chip-muted-bg); color: var(--accent-purple); padding: 1px 6px; border-radius: 5px; }
+
+  .app { max-width: 880px; margin: 0 auto; padding: 40px 24px 90px; display: flex; flex-direction: column; gap: 26px; }
+
+  .banner {
+    background: var(--warn-bg); color: var(--warn); border-radius: 12px; padding: 12px 16px;
+    font-size: 13px; font-weight: 700; display: flex; gap: 10px; align-items: center;
+  }
+
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-magenta); margin-bottom: 8px; }
+  h1 { font-size: clamp(26px, 4vw, 34px); margin-bottom: 8px; }
+  .subtitle { color: var(--ink-soft); font-size: 15px; max-width: 68ch; line-height: 1.55; }
+
+  .card { background: var(--paper-raised); border: 1px solid var(--line); border-radius: 16px; padding: 24px 26px; }
+  .card h2 { font-size: 19px; margin-bottom: 6px; }
+  .card .sub { font-size: 13px; color: var(--ink-soft); margin-bottom: 16px; line-height: 1.5; }
+
+  .system-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .system-grid { grid-template-columns: 1fr; } }
+  .system {
+    border-radius: 14px; padding: 16px 18px; border-top: 4px solid var(--accent-purple); background: var(--chip-muted-bg);
+  }
+  .system.active { border-top-color: var(--good); }
+  .system .tag { font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .system.active .tag { color: var(--good); }
+  .system:not(.active) .tag { color: var(--chip-muted-fg); }
+  .system h3 { font-size: 15px; margin-bottom: 4px; }
+  .system p { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; margin-bottom: 6px; }
+  .system .src { font-size: 11px; color: var(--ink-soft); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { text-align: left; padding: 11px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); font-weight: 700; }
+  td.pts { font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: var(--accent-purple); white-space: nowrap; }
+  td.neg { color: var(--warn); }
+  .table-scroll { overflow-x: auto; }
+
+  .tier-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .tier-row:last-child { border-bottom: none; }
+  .tier-badge { flex-shrink: 0; width: 118px; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px; text-align: center; }
+  .tier-score { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--ink-soft); width: 70px; flex-shrink: 0; }
+  .tier-desc { font-size: 13px; color: var(--ink-soft); }
+
+  .flag-list { display: flex; flex-direction: column; gap: 10px; }
+  .flag { border-radius: 10px; padding: 12px 14px; font-size: 13.5px; line-height: 1.5; background: var(--warn-bg); color: var(--warn); display: flex; gap: 10px; }
+  .flag strong { color: var(--ink); }
+  .flag.info { background: var(--chip-muted-bg); color: var(--ink-soft); }
+  .flag.info strong { color: var(--ink); }
+
+  .footnote { font-size: 12px; color: var(--ink-soft); line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="banner">🔒 Internal reference only — do not share this page externally. For the shareable version, see the Matching one-pager.</div>
+
+  <div>
+    <div class="eyebrow">Uplift · Fall 2026 · Internal</div>
+    <h1>How matching actually works.</h1>
+    <p class="subtitle">The real scoring logic behind founder–mentor pairings, so anyone on the team can explain it accurately, debug a weird match, or update it responsibly. Every number here is read directly from the code, not summarized from memory — file:line citations throughout.</p>
+  </div>
+
+  <div class="card">
+    <h2>Two systems exist. Only one is live for Fall.</h2>
+    <p class="sub">These produce different tier labels and work completely differently. Don't mix them up when talking to anyone about "the algorithm."</p>
+    <div class="system-grid">
+      <div class="system active">
+        <div class="tag">● Live — Fall 2026</div>
+        <h3>Deterministic rules scorer</h3>
+        <p>Plain JavaScript, runs client-side in the admin UI. No AI call. Same inputs always produce the same score.</p>
+        <p class="src mono">pages/admin-fall.js:5–72</p>
+      </div>
+      <div class="system">
+        <div class="tag">○ Not used for Fall</div>
+        <h3>LLM-based suggestion tool</h3>
+        <p>Calls Claude directly with founder/mentor profiles in the prompt; the model returns ranked pairings. Built for Summer 2026 — not wired into the Fall flow.</p>
+        <p class="src mono">pages/api/admin/suggest-matches.js:1–106</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>The Fall scoring formula</h2>
+    <p class="sub">Every mentor gets scored against every founder. Session commitment is weighted heaviest by design &mdash; the code comment states pairs "only work when both sides expect the same amount of time together." <span class="mono">scoreMentor()</span>, pages/admin-fall.js:38–71.</p>
+    <div class="table-scroll">
+      <table>
+        <tr><th>Factor</th><th>How it's checked</th><th>Points</th></tr>
+        <tr>
+          <td><strong>Session commitment</strong></td>
+          <td>Mentee's requested tier vs. mentor's offered tier, banded into 3 / 4–6 / 7–10 sessions (<code>tierBand()</code>, :17–23)</td>
+          <td class="pts">+4 exact&nbsp;band<br>+2 mentor&nbsp;offers&nbsp;more<br class="neg"><span class="neg">−2 mentor&nbsp;offers&nbsp;fewer</span></td>
+        </tr>
+        <tr>
+          <td><strong>Focus area overlap</strong></td>
+          <td>Mentee's topics/primary focus vs. mentor's focus areas, matched against a fixed 16-word keyword list (<code>FOCUS_KEYWORDS</code>, :9)</td>
+          <td class="pts">+2 per keyword<br>(max 3 counted = +6)</td>
+        </tr>
+        <tr>
+          <td><strong>Shared language</strong></td>
+          <td>Words ≥5 characters (stopword-filtered) in mentee's "hoping"/"value sought" vs. mentor's "why"/"give" free-text fields</td>
+          <td class="pts">+2 for 2+ shared words<br>+1 for exactly 1</td>
+        </tr>
+        <tr>
+          <td><strong>Stage fit</strong></td>
+          <td>First word of mentee's stage found in mentor's stated stage preferences</td>
+          <td class="pts">+2</td>
+        </tr>
+        <tr>
+          <td><strong>Schedule overlap</strong></td>
+          <td>Mentor lists "flexible," or mentee/mentor share a morning/evening/weekend keyword in time preference</td>
+          <td class="pts">+1</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Tiers</h2>
+    <p class="sub"><span class="mono">gradeOf(score)</span>, pages/admin-fall.js:30–36</p>
+    <div>
+      <div class="tier-row"><span class="tier-badge" style="background:#e8f8f0; color:#1a6e42;">Perfect match</span><span class="tier-score">score ≥ 11</span><span class="tier-desc">Top of the range — strong alignment across nearly every factor.</span></div>
+      <div class="tier-row"><span class="tier-badge" style="background:#e8f8f0; color:#1a6e42;">Excellent match</span><span class="tier-score">score ≥ 8</span><span class="tier-desc">Strong alignment on most factors, typically including session commitment.</span></div>
+      <div class="tier-row"><span class="tier-badge" style="background:#eafaf7; color:#0e7c6b;">Strong match</span><span class="tier-score">score ≥ 6</span><span class="tier-desc">Solid overlap, usually missing one dimension.</span></div>
+      <div class="tier-row"><span class="tier-badge" style="background:#fffbeb; color:#7a5c00;">Good match</span><span class="tier-score">score ≥ 3</span><span class="tier-desc">Workable, but worth a second look before confirming.</span></div>
+      <div class="tier-row"><span class="tier-badge" style="background:#f0eef8; color:#9b8fcf;">Weak match</span><span class="tier-score">score &lt; 3</span><span class="tier-desc">Low signal overlap — usually only surfaces when better options are exhausted.</span></div>
+    </div>
+    <p class="footnote" style="margin-top: 14px;">Note: these are the real labels. "Excellent / Great / Strong / Good / No match" has circulated informally but doesn't match the code — there's no "Great" tier and no "No match" tier, and the bottom tier is "Weak," not "No match."</p>
+  </div>
+
+  <div class="card">
+    <h2>The human step</h2>
+    <p style="font-size: 14px; line-height: 1.6; color: var(--ink);">Scoring never finalizes a match by itself. Ranked mentor candidates are shown per founder in the admin UI; a person reviews the list and reasons, then clicks to confirm a pairing. That click calls <code>doMatch()</code> (admin-fall.js:236–241), which POSTs to <code>pages/api/admin/fall-match.js:31–58</code> &mdash; a pure Google Sheets append. No scoring or auto-selection happens server-side; the endpoint only records what a human already decided.</p>
+  </div>
+
+  <div class="card">
+    <h2>What this doesn't do (yet)</h2>
+    <div class="flag-list">
+      <div class="flag"><span>⚠</span><div><strong>No industry or geography factor.</strong> Despite being a common assumption, industry alignment and NJ county/location are not scored anywhere in this formula. County appears in the admin UI for reference (admin-fall.js:313, 328) but doesn't affect the match score.</div></div>
+      <div class="flag"><span>⚠</span><div><strong>Focus-area matching is keyword-based, not semantic.</strong> It only recognizes the 16 fixed terms in <code>FOCUS_KEYWORDS</code> — a mentee and mentor describing the same need in different words (e.g. "runway" vs. "fundraising") may not register as overlap unless the exact keyword appears.</div></div>
+      <div class="flag info"><span>ℹ</span><div><strong>The Summer LLM tool did consider industry.</strong> Its prompt explicitly told the model to prioritize "industry alignment → focus area alignment → stage fit → NJ county proximity" (suggest-matches.js:82) — that ordering does not carry over to the Fall scorer, which is a different system entirely.</div></div>
+    </div>
+  </div>
+
+  <p class="footnote">Verified against the codebase Aug 25, 2026. If the scoring logic changes, this page will drift out of date — check pages/admin-fall.js:5–72 directly if something here seems off.</p>
+
+</div>
+</body>
+</html>

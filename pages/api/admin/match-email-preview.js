@@ -284,12 +284,12 @@ export function renderHTML(d) {
         What's happening in the program
       </div>
       <p style="font-size:13px;color:#4a4060;line-height:1.65;margin-bottom:14px">
-        While you're meeting, ${esc(mentee.first)} is also attending weekly educational sessions, completing reflections and prompts in the portal, and doing the work to make sure they're getting the most out of your time together.
+        While you're meeting, ${esc(mentee.first)} is also attending weekly educational sessions, completing Deep Work reflections in the portal, and doing the work to make sure they're getting the most out of your time together.
       </p>
       <div>
-        ${checkItem("Minimum <strong>3 one-hour mentoring sessions</strong> required")}
-        ${checkItem("All sessions completed by <strong>August 4th, 2026</strong>")}
-        ${checkItem("<strong>At least 1 session</strong> must happen before the midpoint meetup")}
+        ${checkItem("3 required meetings: <strong>Discover, Act, and Roadmap</strong>")}
+        ${checkItem("<strong>Discover</strong> due within 7 days of this match &middot; <strong>Act</strong> due within 10 days of Discover")}
+        ${checkItem("<strong>Roadmap</strong> suggested by Oct 23, ahead of Uplift at OverdriveAI on Oct 27")}
         ${checkItem("Mentee is responsible for booking, coordinating &amp; logging all sessions")}
       </div>
     </div>
@@ -321,6 +321,7 @@ export function renderHTML(d) {
         ${checkItem("You are responsible for scheduling, coordinating, and following up on every session")}
         ${checkItem("Log every meeting in the program portal, unlogged sessions do not count toward your 3")}
         ${checkItem("Come prepared to each session with a clear agenda or questions")}
+        ${checkItem("Reply within <strong>72 hours</strong> to your mentor, your Program Manager, and TechUnited (OOO/vacation notices excepted)")}
       </div>
     </div>
 
@@ -334,7 +335,7 @@ export function renderHTML(d) {
   <!-- Footer -->
   <div style="background:#1a1733;border-radius:0 0 16px 16px;padding:24px 40px;text-align:center">
     <p style="font-size:12px;color:#6b6480;line-height:1.7">
-      You're receiving this because you're part of the Uplift Summer 2026 Mentorship Program.<br/>
+      You're receiving this because you're part of the Uplift Fall 2026 Mentorship Program.<br/>
       <a href="#" style="color:#9b8fcf;text-decoration:underline">Unsubscribe</a>
     </p>
   </div>

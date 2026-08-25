@@ -703,19 +703,80 @@ function MentorCard({ mentee, revealed, holding }) {
 }
 
 // ─── Password gate ────────────────────────────────────────────────────────────
+// Server-checked via /api/portal-auth. First login uses the access code from
+// the welcome email; the founder then sets their own password (8+ characters).
+// The team's master password opens any portal.
 function PasswordGate({ slug, onAuthenticated }) {
   const [input, setInput] = useState("");
   const [error, setError] = useState(false);
-  const correctPassword = slug.split("-")[0];
+  const [errorMsg, setErrorMsg] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [step, setStep] = useState("enter"); // "enter" | "create"
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
 
-  const handleSubmit = (e) => {
+  const fail = (msg) => {
+    setErrorMsg(msg);
+    setError(true);
+    setTimeout(() => setError(false), 4000);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (input.toLowerCase().trim() === correctPassword) {
-      sessionStorage.setItem(`auth_${slug}`, "1");
-      onAuthenticated();
-    } else {
-      setError(true);
-      setTimeout(() => setError(false), 3000);
+    if (busy) return;
+    setBusy(true);
+    try {
+      const r = await fetch("/api/portal-auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, password: input, action: "check" }),
+      });
+      const data = await r.json();
+      if (data.ok && data.needsSetup) {
+        setStep("create");
+      } else if (data.ok) {
+        sessionStorage.setItem(`auth_${slug}`, "1");
+        onAuthenticated();
+      } else {
+        fail("Incorrect code. Contact uplift@techunited.co");
+      }
+    } catch {
+      // Auth API unreachable: fall back to the legacy access code so a blip
+      // never locks a founder out.
+      if (input.toLowerCase().trim() === slug.split("-")[0]) {
+        sessionStorage.setItem(`auth_${slug}`, "1");
+        onAuthenticated();
+      } else {
+        fail("Incorrect code. Contact uplift@techunited.co");
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if (busy) return;
+    if (newPw.length < 8) return fail("Use at least 8 characters.");
+    if (newPw !== confirmPw) return fail("Those don't match. One more try.");
+    setBusy(true);
+    try {
+      const r = await fetch("/api/portal-auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, password: input, action: "set", newPassword: newPw }),
+      });
+      const data = await r.json();
+      if (data.ok) {
+        sessionStorage.setItem(`auth_${slug}`, "1");
+        onAuthenticated();
+      } else {
+        fail(data.error || "Could not save that password. Contact uplift@techunited.co");
+      }
+    } catch {
+      fail("Could not save that password. Contact uplift@techunited.co");
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -732,34 +793,83 @@ function PasswordGate({ slug, onAuthenticated }) {
       }}>
         <img src="/uplift-logo.png" alt="Uplift" style={{ height: 44, margin: "0 auto 24px", display: "block" }} />
         <h1 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 700, color: "#1a1733" }}>Uplift Fall 2026</h1>
-        <p style={{ margin: "0 0 28px", fontSize: 14, color: "#9b8fcf" }}>Enter your access code to continue</p>
-        <form onSubmit={handleSubmit}>
-          <input
-            type="password"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Access code"
-            autoFocus
-            style={{
-              width: "100%", padding: "13px 14px", borderRadius: 8,
-              border: error ? "1.5px solid #e05050" : "1.5px solid #d4d0e8",
-              background: "#fafafa", fontSize: 16, fontFamily: "inherit",
-              boxSizing: "border-box", outline: "none", marginBottom: 10,
-              transition: "border-color 0.15s",
-            }}
-          />
-          {error && (
-            <p style={{ margin: "0 0 10px", fontSize: 13, color: "#e05050", fontWeight: 500 }}>
-              Incorrect code. Contact uplift@techunited.co
+        {step === "enter" ? (
+          <>
+            <p style={{ margin: "0 0 28px", fontSize: 14, color: "#9b8fcf" }}>Enter your access code or password to continue</p>
+            <form onSubmit={handleSubmit}>
+              <input
+                type="password"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Access code or password"
+                autoFocus
+                style={{
+                  width: "100%", padding: "13px 14px", borderRadius: 8,
+                  border: error ? "1.5px solid #e05050" : "1.5px solid #d4d0e8",
+                  background: "#fafafa", fontSize: 16, fontFamily: "inherit",
+                  boxSizing: "border-box", outline: "none", marginBottom: 10,
+                  transition: "border-color 0.15s",
+                }}
+              />
+              {error && (
+                <p style={{ margin: "0 0 10px", fontSize: 13, color: "#e05050", fontWeight: 500 }}>
+                  {errorMsg || "Incorrect code. Contact uplift@techunited.co"}
+                </p>
+              )}
+              <button type="submit" disabled={busy} style={{
+                width: "100%", padding: "13px", borderRadius: 8, border: "none",
+                background: busy ? "#a89ede" : "#5c4eb5", color: "#fff", fontWeight: 700, fontSize: 15, cursor: busy ? "default" : "pointer",
+              }}>
+                {busy ? "Checking..." : "Enter"}
+              </button>
+            </form>
+          </>
+        ) : (
+          <>
+            <p style={{ margin: "0 0 8px", fontSize: 14, color: "#3a3555", fontWeight: 600 }}>Welcome! One quick thing.</p>
+            <p style={{ margin: "0 0 24px", fontSize: 13.5, color: "#9b8fcf", lineHeight: 1.5 }}>
+              Create your own password for this portal. You&apos;ll use it from now on instead of the access code.
             </p>
-          )}
-          <button type="submit" style={{
-            width: "100%", padding: "13px", borderRadius: 8, border: "none",
-            background: "#5c4eb5", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer",
-          }}>
-            Enter
-          </button>
-        </form>
+            <form onSubmit={handleCreate}>
+              <input
+                type="password"
+                value={newPw}
+                onChange={(e) => setNewPw(e.target.value)}
+                placeholder="New password (8+ characters)"
+                autoFocus
+                style={{
+                  width: "100%", padding: "13px 14px", borderRadius: 8,
+                  border: error ? "1.5px solid #e05050" : "1.5px solid #d4d0e8",
+                  background: "#fafafa", fontSize: 16, fontFamily: "inherit",
+                  boxSizing: "border-box", outline: "none", marginBottom: 10,
+                }}
+              />
+              <input
+                type="password"
+                value={confirmPw}
+                onChange={(e) => setConfirmPw(e.target.value)}
+                placeholder="Confirm password"
+                style={{
+                  width: "100%", padding: "13px 14px", borderRadius: 8,
+                  border: error ? "1.5px solid #e05050" : "1.5px solid #d4d0e8",
+                  background: "#fafafa", fontSize: 16, fontFamily: "inherit",
+                  boxSizing: "border-box", outline: "none", marginBottom: 10,
+                }}
+              />
+              {error && (
+                <p style={{ margin: "0 0 10px", fontSize: 13, color: "#e05050", fontWeight: 500 }}>
+                  {errorMsg}
+                </p>
+              )}
+              <button type="submit" disabled={busy} style={{
+                width: "100%", padding: "13px", borderRadius: 8, border: "none",
+                background: busy ? "#a89ede" : "#5c4eb5", color: "#fff", fontWeight: 700, fontSize: 15, cursor: busy ? "default" : "pointer",
+              }}>
+                {busy ? "Saving..." : "Set password & enter"}
+              </button>
+            </form>
+          </>
+        )}
       </div>
     </div>
   );
@@ -2389,7 +2499,7 @@ function FallDemoNightModal({ onClose }) {
   );
 }
 
-// ─── Portal bot (Upton) ──────────────────────────────────────────────────────
+// ─── Ulrike, the Uplift chat box ──────────────────────────────────────────────────────
 // Closed-book support chat over /api/portal-chat. Knows the program rulebook
 // and this founder's live state, and routes everything else to
 // uplift@techunited.co. Lives in the bottom-right stack with the event chips
@@ -2400,7 +2510,7 @@ function PortalBotWidget({ slug, firstName, children }) {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: `Hey ${firstName}! I'm Upton, your portal bot. I know this program inside and out, and impressively little else. Try me:\n"What do I need to do in Week 2?"\n"How many meetings do I need, and where do I log them?"\n"Show me the meeting structure one-pager."\n"Where do I find the educational sessions?"`,
+      content: `Hi ${firstName}! I'm the Uplift chat box. My name is Ulrike. I know this program inside and out, and impressively little else. Ask me questions from onboarding, about program requirements, resources, or how to structure your mentor meetings.`,
     },
   ]);
   const [draft, setDraft] = useState("");
@@ -2453,7 +2563,7 @@ function PortalBotWidget({ slug, firstName, children }) {
         }}>
           <div style={{ background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)", color: "#fff", padding: "14px 16px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ fontWeight: 800, fontSize: 15 }}>🤖 Upton · Uplift Portal Bot</div>
+              <div style={{ fontWeight: 800, fontSize: 15 }}>🤖 Ulrike · Uplift Chat Box</div>
               <button onClick={() => setOpen(false)} title="Minimize (your chat is saved)" style={{
                 border: "none", background: "rgba(255,255,255,0.18)", color: "#fff", borderRadius: 8,
                 width: 30, height: 26, cursor: "pointer", fontSize: 16, fontWeight: 800, lineHeight: 1,
@@ -2511,7 +2621,7 @@ function PortalBotWidget({ slug, firstName, children }) {
               }}>Send</button>
             </div>
             <div style={{ fontSize: 10.5, color: "#8a84a3", marginTop: 7, textAlign: "center" }}>
-              I&apos;m a bot. For real humans (and real exceptions): uplift@techunited.co
+              I&apos;m a bot. For real humans: uplift@techunited.co
             </div>
           </div>
         </div>
@@ -2526,7 +2636,7 @@ function PortalBotWidget({ slug, firstName, children }) {
             fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
             boxShadow: "0 6px 20px rgba(26,14,79,0.4)",
           }}>
-            🤖 Ask Upton
+            🤖 Ask Ulrike
           </button>
         </>
       )}
@@ -4461,7 +4571,8 @@ function ProfileSection({ mentee, slug, cohortMates, allCohortMembers }) {
         ))}
       </div>
 
-      {/* Browse other cohorts */}
+      {/* Browse other cohorts (hidden while the fall directory is just this cohort) */}
+      {(allCohortMembers || []).length > 0 && (
       <div style={{ borderTop: "2px solid #e8e4f5", paddingTop: 32 }}>
         <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "#1a1733" }}>Browse Other Cohorts</p>
         <p style={{ margin: "0 0 18px", fontSize: 13, color: "#9b8fcf" }}>
@@ -4511,6 +4622,7 @@ function ProfileSection({ mentee, slug, cohortMates, allCohortMembers }) {
           );
         })}
       </div>
+      )}
     </div>
   );
 }
@@ -5400,10 +5512,42 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       {activeModal === "coffee" && <CoffeeMeetupModal onClose={dismissModal} />}
       {activeModal === "officehours" && <OfficeHoursModal onClose={dismissModal} />}
       {activeModal === "company" && <CompanySnapshotModal mentee={mentee} onClose={dismissModal} />}
-      {/* Bottom-right stack: Upton, the portal bot. The fall-hours/coffee/demo
-          chips from summer (office hours, coffee meetups, AI Demo Night pitch
-          submission) were removed — not relevant to this cohort. */}
-      <PortalBotWidget slug={mentee.slug} firstName={mentee.first} />
+      {activeModal === "fallhours" && <FallOfficeHoursModal onClose={dismissModal} />}
+      {activeModal === "fallcoffee" && <FallCoffeeModal onClose={dismissModal} />}
+      {activeModal === "falldemo" && <FallDemoNightModal onClose={dismissModal} />}
+
+      {/* Bottom-right stack: fall announcement chips + Ulrike, the Uplift chat box.
+          New chips get added here as events are booked. */}
+      <PortalBotWidget slug={mentee.slug} firstName={mentee.first}>
+        {!activeModal && (
+          <>
+            <button onClick={() => setActiveModal("fallhours")} style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 30, border: "none",
+              background: "linear-gradient(135deg, #1a6e50 0%, #2a9d6e 100%)", color: "#fff",
+              fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+              boxShadow: "0 6px 20px rgba(26,110,80,0.4)",
+            }}>
+              🤝 Meet your mentor
+            </button>
+            <button onClick={() => setActiveModal("fallcoffee")} style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 30, border: "none",
+              background: "linear-gradient(135deg, #7a3d14 0%, #c97b2d 100%)", color: "#fff",
+              fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+              boxShadow: "0 6px 20px rgba(122,61,20,0.4)",
+            }}>
+              ☕ Coffee meetups
+            </button>
+            <button onClick={() => setActiveModal("falldemo")} style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "12px 18px", borderRadius: 30, border: "none",
+              background: "linear-gradient(135deg, #5c4eb5 0%, #c0006e 100%)", color: "#fff",
+              fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+              boxShadow: "0 6px 20px rgba(92,78,181,0.4)",
+            }}>
+              🎤 Submit your pitch
+            </button>
+          </>
+        )}
+      </PortalBotWidget>
 
       <div style={{ minHeight: "100vh", background: "#f7f5ff", fontFamily: "'Inter', system-ui, sans-serif" }}>
         {/* Header */}
@@ -5463,13 +5607,15 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
             </div>
             <p style={{ margin: "0 0 16px", opacity: 0.8, fontSize: 15 }}>
               {mentee.application ? (
-                <TabTooltip tip="Your company at a glance · click" direction="down">
+                <TabTooltip tip="Your company at a glance" direction="down">
                   <button onClick={() => setActiveModal("company")} style={{
-                    border: "none", background: "none", padding: 0, cursor: "pointer",
-                    color: "#fff", fontSize: 15, fontFamily: "inherit", fontWeight: 600,
-                    textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3,
+                    border: "none", cursor: "pointer",
+                    background: "rgba(255,255,255,0.18)", borderRadius: 20,
+                    padding: "4px 12px", boxShadow: "0 0 0 1.5px rgba(255,255,255,0.55)",
+                    color: "#fff", fontSize: 14, fontFamily: "inherit", fontWeight: 700,
+                    display: "inline-flex", alignItems: "center", gap: 6,
                   }}>
-                    {mentee.company}
+                    🏢 {mentee.company}
                   </button>
                 </TabTooltip>
               ) : mentee.company} · {mentee.stage} · {mentee.industry}
@@ -5664,15 +5810,15 @@ export async function getStaticProps({ params }) {
     photo: m.photo || null,
   });
 
-  const TEST_SLUGS = ["kennedy", "jackie", "aaron", "mj", "hana"];
+  // The fall test cohort is just the three test founders; summer alumni stay
+  // out of this directory. Grows with application ingest.
+  const FALL_ROSTER = ["kennedy", "mj", "hana"];
 
   const cohortMates = MENTEES
-    .filter((m) => m.cohort === mentee.cohort && !TEST_SLUGS.includes(m.slug))
+    .filter((m) => FALL_ROSTER.includes(m.slug))
     .map(directoryFields);
 
-  const allCohortMembers = MENTEES
-    .filter((m) => m.cohort !== mentee.cohort && !TEST_SLUGS.includes(m.slug))
-    .map(directoryFields);
+  const allCohortMembers = [];
 
   return { props: { menteeData: { ...mentee, milestones: mentee.milestones }, cohortMates, allCohortMembers } };
 }

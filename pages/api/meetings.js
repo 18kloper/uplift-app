@@ -342,10 +342,17 @@ export async function fetchMeetings(slug, prefetched = null, opts = {}) {
       const first    = get(answers, FIELDS.first)?.text?.trim() || "";
       const last     = get(answers, FIELDS.last)?.text?.trim()  || "";
 
-      // Match this response to the mentee using the roster's real first/last
-      // names (tolerant of truncated/partial last names and multi-word first
-      // names), with the original slug match kept as a fallback.
-      if (!matchesMentee(first, last, slug)) continue;
+      // Hidden "slug" field (passed as ?slug=... on the personalized form link
+      // from the Fall portal) is an exact, unambiguous match — prefer it over
+      // name matching whenever present. Falls through to name matching for
+      // responses submitted without it (older links, or the field not yet
+      // configured in Typeform), so nothing previously working regresses.
+      const hiddenSlug = item.hidden?.slug;
+      if (hiddenSlug) {
+        if (hiddenSlug !== slug) continue;
+      } else if (!matchesMentee(first, last, slug)) {
+        continue;
+      }
 
       // Capture display name from first matching response
       if (!menteeName) {

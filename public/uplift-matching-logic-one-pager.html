@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Uplift · How We Match Founders &amp; Mentors</title>
+<style>
+  @page { size: letter; margin: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #110465;
+    --pink: #d86697;
+    --paper: #fafafc;
+    --gold: #c99a2e;
+    --ink: #1c1a2e;
+    --muted: #5f5c78;
+  }
+  body {
+    font-family: 'Avenir Next', Avenir, Futura, 'Century Gothic', sans-serif;
+    background: #e9e7f2;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    width: 8.5in; min-height: 11in; margin: 24px auto; background: var(--paper);
+    padding: 0.35in 0.6in 0.25in; display: flex; flex-direction: column;
+    box-shadow: 0 4px 30px rgba(17,4,101,0.15);
+  }
+  @media print {
+    body { background: var(--paper); }
+    .page { margin: 0; box-shadow: none; }
+  }
+  @media (max-width: 900px) {
+    .page { width: 100%; min-height: auto; padding: 32px 24px; margin: 0; }
+  }
+
+  .hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .hdr img { height: 26px; width: auto; }
+  .hdr .tag { font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--pink); text-align: right; line-height: 1.35; }
+
+  h1 { font-size: 23px; font-weight: 700; color: var(--navy); letter-spacing: -0.5px; line-height: 1.12; margin-bottom: 6px; }
+  .intro { font-size: 12px; color: var(--muted); line-height: 1.5; max-width: 6.9in; margin-bottom: 9px; }
+  .intro strong { color: var(--ink); }
+
+  .steps { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+  .step {
+    display: flex; gap: 13px; align-items: flex-start; background: #fff;
+    border: 1.5px solid #dedbec; border-radius: 10px; padding: 7px 13px;
+  }
+  .step-num {
+    flex-shrink: 0; width: 21px; height: 21px; border-radius: 50%; background: var(--navy); color: #fff;
+    font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 1px;
+  }
+  .step h3 { font-size: 12.5px; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
+  .step p { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+  .factors-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--navy); margin-bottom: 5px; }
+  .factors { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 10px; }
+  .factor {
+    background: #fff; border-radius: 9px; padding: 7px 12px; border-left: 4px solid var(--pink);
+  }
+  .factor h4 { font-size: 11.5px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+  .factor p { font-size: 10.5px; color: var(--muted); line-height: 1.35; }
+
+  .human {
+    background: #f3f1fa; border-radius: 10px; padding: 7px 15px; margin-bottom: 6px;
+  }
+  .human h3 { font-size: 12.5px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .human p { font-size: 11px; color: var(--ink); line-height: 1.4; }
+
+  .faq { display: flex; flex-direction: column; gap: 4px; margin-bottom: 0; }
+  .faq-item { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+  .faq-item h4 { font-size: 11px; font-weight: 700; color: var(--navy); }
+  .faq-item p { font-size: 10.5px; color: var(--muted); line-height: 1.35; }
+
+  .foot { margin-top: auto; border-top: 2px solid var(--navy); padding-top: 7px; display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+  .foot .logi { font-size: 11px; color: var(--muted); line-height: 1.6; max-width: 5.4in; }
+  .foot .logi strong { color: var(--navy); }
+  .foot .brand { font-size: 11px; font-weight: 700; color: var(--navy); text-align: right; line-height: 1.6; white-space: nowrap; }
+
+  .pdf-btn {
+    position: fixed; top: 20px; right: 20px; z-index: 10;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--navy); color: #fff; border: none; border-radius: 999px;
+    padding: 10px 20px; font-family: inherit; font-size: 13px; font-weight: 700;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(17,4,101,0.25);
+  }
+  .pdf-btn:hover { background: #1a0a7d; }
+  @media print { .pdf-btn { display: none; } }
+  @media (max-width: 900px) { .pdf-btn { top: 12px; right: 12px; padding: 8px 16px; font-size: 12px; } }
+</style>
+</head>
+<body>
+<button class="pdf-btn" onclick="window.print()">&#8681; Download PDF</button>
+<div class="page">
+
+  <div class="hdr">
+    <img src="/uplift-logo.png" alt="Uplift" />
+    <div class="tag">Uplift Mentorship Program<br />How Matching Works</div>
+  </div>
+
+  <h1>How we match founders <span style="color: var(--pink);">&amp;</span> mentors.</h1>
+  <p class="intro">Every founder gets paired with a mentor based on real signal from both applications, not a coin flip and not alphabetical order. Here&rsquo;s what actually goes into it.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div>
+        <h3>We start with what you told us</h3>
+        <p>Your application: where your company is today, what you need from a mentor, and your availability.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div>
+        <h3>We compare that to every mentor&rsquo;s profile</h3>
+        <p>Their focus areas, what they&rsquo;re offering, and their availability &mdash; we look for real overlap.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div>
+        <h3>Our tool surfaces the strongest candidates</h3>
+        <p>Not one "correct" answer &mdash; a ranked shortlist of mentors who align well with you.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div>
+        <h3>A person makes the final call</h3>
+        <p>Every match is confirmed by our team, never assigned automatically.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="factors-label">What actually factors in</div>
+  <div class="factors">
+    <div class="factor">
+      <h4>Time commitment fit</h4>
+      <p>Your expected meeting cadence matched against what your mentor has signed up to give.</p>
+    </div>
+    <div class="factor">
+      <h4>Focus area alignment</h4>
+      <p>Topics you want help with (fundraising, GTM, hiring, product) against what your mentor knows best.</p>
+    </div>
+    <div class="factor">
+      <h4>What you're hoping for, in your own words</h4>
+      <p>Real overlap between what you said you need and what your mentor offers.</p>
+    </div>
+    <div class="factor">
+      <h4>Stage fit</h4>
+      <p>Where your company is now against the stage your mentor usually works with.</p>
+    </div>
+    <div class="factor">
+      <h4>Schedule overlap</h4>
+      <p>Whether your general availability (mornings, evenings, weekends, or flexible) has a real window in common.</p>
+    </div>
+  </div>
+
+  <div class="human">
+    <h3>The short version</h3>
+    <p>Matching starts with real data from both sides, gets narrowed by a tool built specifically for this program, and always ends with a human decision. If something about your match doesn&rsquo;t feel right, tell your Program Manager &mdash; that&rsquo;s exactly the kind of signal the process is built to respond to.</p>
+  </div>
+
+  <div class="faq">
+    <div class="faq-item">
+      <h4>Can I request a specific mentor?</h4>
+      <p>Reach out to your Program Manager. We can&rsquo;t promise a specific pairing, but we do take requests into account.</p>
+    </div>
+    <div class="faq-item">
+      <h4>What if the match isn&rsquo;t working?</h4>
+      <p>Tell us. Rematching is a normal, judgment-free part of the process, not a last resort.</p>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="logi"><strong>Questions?</strong> uplift@techunited.co, or ask your Program Manager directly.</div>
+    <div class="brand">Uplift Mentorship Program<br />techunited.co</div>
+  </div>
+
+</div>
+</body>
+</html>

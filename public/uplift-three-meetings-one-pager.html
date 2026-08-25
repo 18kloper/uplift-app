@@ -82,9 +82,21 @@
   .foot .logi { font-size: 11px; color: var(--muted); line-height: 1.6; max-width: 5.4in; }
   .foot .logi strong { color: var(--navy); }
   .foot .brand { font-size: 11px; font-weight: 700; color: var(--navy); text-align: right; line-height: 1.6; white-space: nowrap; }
+
+  .pdf-btn {
+    position: fixed; top: 20px; right: 20px; z-index: 10;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--navy); color: #fff; border: none; border-radius: 999px;
+    padding: 10px 20px; font-family: inherit; font-size: 13px; font-weight: 700;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(17,4,101,0.25);
+  }
+  .pdf-btn:hover { background: #1a0a7d; }
+  @media print { .pdf-btn { display: none; } }
+  @media (max-width: 900px) { .pdf-btn { top: 12px; right: 12px; padding: 8px 16px; font-size: 12px; } }
 </style>
 </head>
 <body>
+<button class="pdf-btn" onclick="window.print()">&#8681; Download PDF</button>
 <div class="page">
 
   <div class="hdr">
