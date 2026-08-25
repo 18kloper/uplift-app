@@ -5074,20 +5074,24 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
   const renderWeekContent = () => {
     if (activeWeek === "certificate") {
       const cert = CERTIFICATES[slug];
-      if (cert) {
+      const ms = liveMilestones || mentee.milestones || {};
+      const signed = !!ms.summit; // Signature Verification Signed (BreezeDoc)
+      const awaitingSignature = !signed && !!ms.endSurvey;
+      if (cert && signed) {
         return (
           <div style={{
             background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5",
             padding: "48px 32px", textAlign: "center", maxWidth: 560, margin: "0 auto",
             boxShadow: "0 2px 14px rgba(17,4,101,0.08)",
           }}>
-            <div style={{ fontSize: 52, marginBottom: 16 }}>🎓</div>
+            <div style={{ fontSize: 52, marginBottom: 16 }}>🎉</div>
             <p style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 800, color: "#1a1733" }}>
-              Your Certificate of Completion
+              Congratulations, your certificate is here.
             </p>
             <p style={{ margin: "0 0 20px", fontSize: 14, color: "#6b6480", lineHeight: 1.7 }}>
-              {mentee.first}, you completed every requirement of the Uplift Mentorship Program.
-              Your official certificate, signed by TechUnited:NJ, is ready.
+              {mentee.first}, your BreezeDoc signature is verified and every requirement of the
+              Uplift Mentorship Program is complete. Your official certificate, signed by
+              TechUnited:NJ, is ready.
             </p>
             <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginBottom: 26 }}>
               <span style={{
@@ -5125,6 +5129,43 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
           </div>
         );
       }
+      if (signed) {
+        return (
+          <div style={{
+            background: "#f0faf5", borderRadius: 14, border: "1px solid #b8e8d0",
+            padding: "48px 32px", textAlign: "center", maxWidth: 520, margin: "0 auto",
+          }}>
+            <div style={{ fontSize: 52, marginBottom: 16 }}>🎉</div>
+            <p style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 800, color: "#1a6e42" }}>
+              Congratulations, your signature is verified.
+            </p>
+            <p style={{ margin: 0, fontSize: 14, color: "#2a7f5a", lineHeight: 1.8 }}>
+              Your certificate is being stamped with its number and lands right here shortly.
+            </p>
+          </div>
+        );
+      }
+      if (awaitingSignature) {
+        return (
+          <div style={{
+            background: "#fff", borderRadius: 14, border: "2px solid #f5d97a",
+            padding: "48px 32px", textAlign: "center", maxWidth: 520, margin: "0 auto",
+          }}>
+            <div style={{ fontSize: 52, marginBottom: 16 }}>📬</div>
+            <p style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 800, color: "#7a5c00" }}>
+              One signature between you and your certificate.
+            </p>
+            <p style={{ margin: "0 0 14px", fontSize: 14, color: "#6b6480", lineHeight: 1.8 }}>
+              Check your email: a BreezeDoc is waiting for you. It asks you to verify that your
+              logged educational sessions and mentor meetings are accurate. The moment we verify
+              your signature, this page unlocks with your certificate.
+            </p>
+            <p style={{ margin: 0, fontSize: 12.5, color: "#9b8fcf", fontStyle: "italic" }}>
+              Can&apos;t find it? Search your inbox for &ldquo;BreezeDoc&rdquo; or email uplift@techunited.co.
+            </p>
+          </div>
+        );
+      }
       return (
         <div style={{
           background: "#fff", borderRadius: 14, border: "2px dashed #d4d0e8",
@@ -5142,7 +5183,9 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
             🔒 Locked
           </div>
           <p style={{ margin: 0, fontSize: 14, color: "#6b6480", lineHeight: 1.8 }}>
-            After completing your end-of-program report and receiving approval from the Uplift team, your certificate of completion will be available here to download.
+            Complete the program, submit your end report and exit survey, then sign the BreezeDoc
+            that lands in your email. The moment your signature is verified, your certificate
+            unlocks right here.
           </p>
         </div>
       );
