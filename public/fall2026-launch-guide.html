@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Uplift Fall 2026 · Cohort Launch Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: #f0ecff;
+    color: #1a1733;
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 24px 90px; }
+
+  /* ── Cover ── */
+  .cover {
+    background: linear-gradient(135deg, #5c4eb5, #3d2f8a);
+    color: #fff; border-radius: 18px; padding: 44px 40px 38px; margin-bottom: 40px;
+    position: relative; overflow: hidden;
+  }
+  .cover .kicker { font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; opacity: 0.75; margin-bottom: 12px; }
+  .cover h1 { font-size: 40px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; margin-bottom: 14px; }
+  .cover p { font-size: 16px; max-width: 640px; opacity: 0.92; }
+  .cover .meta { margin-top: 22px; font-size: 13px; font-weight: 600; opacity: 0.8; }
+
+  /* ── Chips ── */
+  .chip { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: 1.2px; border-radius: 4px; padding: 2px 8px; vertical-align: middle; text-transform: uppercase; }
+  .chip.new     { background: #eafaf2; color: #1a7a4a; }
+  .chip.changed { background: #fff3e0; color: #b35c00; }
+  .chip.removed { background: #fff5f5; color: #b32424; }
+  .chip.same    { background: #eeeeee; color: #666; }
+  .cover .chip { margin-right: 8px; }
+  .cover .chip.new { background: rgba(255,255,255,0.18); color: #b8f5d4; }
+  .cover .chip.changed { background: rgba(255,255,255,0.18); color: #ffd9a3; }
+  .cover .chip.removed { background: rgba(255,255,255,0.18); color: #ffb8b8; }
+  .cover .chip.same { background: rgba(255,255,255,0.18); color: #ddd; }
+
+  /* ── Sections ── */
+  .section-label {
+    font-size: 12px; font-weight: 800; letter-spacing: 2.5px; text-transform: uppercase;
+    color: #5c4eb5; margin: 52px 0 6px; display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 2px; background: #ddd6f5; border-radius: 2px; }
+  .section-sub { font-size: 14.5px; color: #6b648c; margin-bottom: 22px; max-width: 660px; }
+
+  /* ── Big swap cards ── */
+  .swaps { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .swap {
+    background: #fff; border: 1px solid #e8e4f5; border-radius: 14px; padding: 22px 24px;
+    box-shadow: 0 2px 12px rgba(92,78,181,0.06);
+  }
+  .swap .from { font-size: 13px; color: #9a93b8; text-decoration: line-through; margin-bottom: 2px; }
+  .swap .to { font-size: 19px; font-weight: 800; letter-spacing: -0.3px; color: #1a1733; margin-bottom: 8px; }
+  .swap p { font-size: 13.5px; color: #55506e; }
+  .swap .chip { margin-bottom: 10px; }
+
+  /* ── Journey week cards (portal look) ── */
+  .week {
+    background: #fff; border: 1px solid #e8e4f5; border-radius: 14px;
+    padding: 24px 28px 22px; margin-bottom: 18px; box-shadow: 0 2px 12px rgba(92,78,181,0.05);
+    position: relative;
+  }
+  .week .when { font-size: 11.5px; font-weight: 800; letter-spacing: 2px; color: #5c4eb5; text-transform: uppercase; margin-bottom: 4px; }
+  .week h3 { font-size: 21px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 10px; }
+  .week .corner { position: absolute; top: 22px; right: 24px; }
+  .pill { border-radius: 10px; padding: 12px 16px; font-size: 13.5px; font-weight: 500; margin-bottom: 14px; }
+  .pill.default  { background: #f5f3ff; color: #3d2f8a; }
+  .pill.emphasis { background: #fffbeb; border: 1px solid #f5d97a; color: #7a5c00; }
+  .pill.warning  { background: #fff5f5; border: 1px solid #ffc5c5; color: #8a1a1a; }
+  .week ul { list-style: none; margin: 0 0 6px; }
+  .week ul li { padding: 5px 0 5px 22px; position: relative; font-size: 14px; color: #37324e; }
+  .week ul li::before { content: ''; position: absolute; left: 2px; top: 13px; width: 10px; height: 3px; background: #5c4eb5; border-radius: 2px; }
+  .event {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: #fafafa; border: 1px solid #eee9fb; border-radius: 10px;
+    padding: 10px 14px; margin-top: 10px; font-size: 13.5px;
+  }
+  .event .name { font-weight: 700; }
+  .event .fmt { font-size: 11px; font-weight: 700; border-radius: 4px; padding: 1px 7px; }
+  .fmt.virtual  { background: #eafaf2; color: #1a7a4a; }
+  .fmt.inperson { background: #fff3e0; color: #b35c00; }
+  .fmt.required { background: #f5f3ff; color: #5c4eb5; }
+  .mock-btn {
+    display: inline-block; margin-top: 14px; background: #5c4eb5; color: #fff;
+    font-size: 13px; font-weight: 700; border-radius: 8px; padding: 9px 18px; cursor: default;
+  }
+  .mock-btn.ghost { background: #fff; color: #5c4eb5; border: 1.5px solid #5c4eb5; }
+
+  /* ── Milestones mock ── */
+  .miles { background: #fff; border: 1px solid #e8e4f5; border-radius: 14px; padding: 26px 28px; box-shadow: 0 2px 12px rgba(92,78,181,0.05); }
+  .mile { display: flex; gap: 12px; align-items: flex-start; padding: 9px 0; border-bottom: 1px dashed #eee9fb; font-size: 14px; }
+  .mile:last-child { border-bottom: none; }
+  .mile .box { flex-shrink: 0; width: 20px; height: 20px; border-radius: 6px; border: 2px solid #c8bfef; margin-top: 1px; }
+  .mile .due { color: #9a93b8; font-size: 12.5px; }
+  .mile .chip { margin-left: 8px; }
+  .mile.locked { opacity: 0.85; }
+  .mile.locked .box { border-style: dashed; }
+
+  /* ── Carrots ── */
+  .carrots { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .carrot { background: #fff; border: 1px solid #e8e4f5; border-left: 4px solid #2a9d6e; border-radius: 12px; padding: 20px 22px; }
+  .carrot .emoji { font-size: 22px; margin-bottom: 8px; display: block; }
+  .carrot h4 { font-size: 15.5px; font-weight: 800; margin-bottom: 6px; }
+  .carrot p { font-size: 13px; color: #55506e; }
+  .carrot .chip { float: right; }
+
+  /* ── Removed / retired ── */
+  .retired { background: #fff; border: 1px solid #f5d5d5; border-radius: 14px; padding: 26px 28px; }
+  .retire-row { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px dashed #f5e2e2; }
+  .retire-row:last-child { border-bottom: none; }
+  .retire-row .x { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: #fff5f5; color: #b32424; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+  .retire-row h4 { font-size: 15px; font-weight: 800; }
+  .retire-row p { font-size: 13.5px; color: #55506e; }
+
+  /* ── Decide strip ── */
+  .decide { background: #fffbeb; border: 1px solid #f5d97a; border-radius: 14px; padding: 22px 26px; }
+  .decide h4 { font-size: 13px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #7a5c00; margin-bottom: 10px; }
+  .decide li { font-size: 14px; color: #5c4a10; margin-left: 20px; padding: 3px 0; }
+
+  /* ── Build note ── */
+  .buildnote { background: #1a1733; color: #fff; border-radius: 14px; padding: 26px 28px; }
+  .buildnote h4 { font-size: 13px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #b8aef5; margin-bottom: 12px; }
+  .buildnote li { font-size: 13.5px; margin-left: 20px; padding: 3px 0; color: rgba(255,255,255,0.88); }
+  .buildnote code { background: rgba(255,255,255,0.12); border-radius: 4px; padding: 1px 6px; font-size: 12.5px; }
+
+  .same-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .same-tag { background: #fff; border: 1px solid #e8e4f5; border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 600; color: #5c4eb5; }
+
+  @media (max-width: 640px) {
+    .swaps, .carrots { grid-template-columns: 1fr; }
+    .cover h1 { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- COVER -->
+  <div class="cover">
+    <div class="kicker">Fall 2026 Cohort Launch Guide · Kennedy's preview build</div>
+    <h1>The Fall 2026 portal, week by week.</h1>
+    <p>This is the summer portal restructured around the fall plan: eight weeks, a named mentor arc, OverdriveAI as the required in-person, and a certificate at the finish line. Every piece below is tagged with what happened to it.</p>
+    <div class="meta">
+      <span class="chip new">New</span>
+      <span class="chip changed">Changed</span>
+      <span class="chip removed">Removed</span>
+      <span class="chip same">Same</span>
+      &nbsp;·&nbsp; September 9 to November 6, 2026 &nbsp;·&nbsp; Companions: <a href="/onboarding-deck-fall2026-test.html" style="color:#fff;">onboarding deck</a> · <a href="/admin-dashboard-fall2026-test.html" style="color:#fff;">fall dashboard</a> · <a href="/uplift-three-meetings-one-pager.html" style="color:#fff;">three-meetings one-pager</a>
+    </div>
+  </div>
+
+  <!-- BIG SWAPS -->
+  <div class="section-label">The big swaps</div>
+  <p class="section-sub">Six moves define the fall portal. Everything else is the same product founders already know.</p>
+  <div class="swaps">
+    <div class="swap">
+      <span class="chip changed">Changed</span>
+      <div class="from">10 weeks, June to August</div>
+      <div class="to">8 weeks, Sept 9 to Nov 6</div>
+      <p>Tighter program, same requirements: 3 mentor meetings, 3 educational sessions, 1 required in-person. Less drift, faster momentum.</p>
+    </div>
+    <div class="swap">
+      <span class="chip changed">Changed</span>
+      <div class="from">Midpoint Meetup + Summit</div>
+      <div class="to">OverdriveAI · Oct 27</div>
+      <p>One required in-person moment, and it's TechUnited's marquee event. Founders get showcased to the whole community instead of a program-only room.</p>
+    </div>
+    <div class="swap">
+      <span class="chip changed">Changed</span>
+      <div class="from">"Meet in week 2, 5, and 7"</div>
+      <div class="to">Discover → Act → Roadmap</div>
+      <p>The three meetings get names and rolling deadlines: Meeting 1 within 7 days of match, Meeting 2 within 10 days of Meeting 1, Meeting 3 by Oct 23 (hard deadline).</p>
+    </div>
+    <div class="swap">
+      <span class="chip new">New</span>
+      <div class="from">Uplift Wrapped as the finale</div>
+      <div class="to">Certificate as the promise</div>
+      <p>A signed, numbered certificate of completion, delivered in the portal. We can guarantee it for every completer on day one. Wrapped moves to surprise status.</p>
+    </div>
+    <div class="swap">
+      <span class="chip new">New</span>
+      <div class="from">Ad-hoc check-ins</div>
+      <div class="to">Weekly pulse check</div>
+      <p>One 10-second check-in per week, in the portal. Green: A-okay. Yellow: okay, but a check-in would be nice. Red: things are not going as planned. Catches struggling founders early.</p>
+    </div>
+    <div class="swap">
+      <span class="chip new">New</span>
+      <div class="from">Wrapped as the only carrot</div>
+      <div class="to">A carrot shelf</div>
+      <p>Certificate, OverdriveAI showcase, founder spotlight article, Founder Card, alumni perks. Multiple reasons to finish, all deliverable at scale.</p>
+    </div>
+  </div>
+
+  <!-- JOURNEY -->
+  <div class="section-label">My Journey · fall edition</div>
+  <p class="section-sub">What the Journey tab looks like rebuilt on the fall calendar. Luma links and session speakers get slotted in as they're booked.</p>
+
+  <div class="week">
+    <div class="corner"><span class="chip changed">Changed</span></div>
+    <div class="when">Week 1 · Onboarding · Sept 9–13</div>
+    <h3>Welcome &amp; Onboarding</h3>
+    <div class="pill default">Onboarding gets its own runway week before the mentor clock starts. Attend your cohort's session, get portal access, set your goals.</div>
+    <ul>
+      <li>Attend your cohort's onboarding session (any of the five works if timing is tight)</li>
+      <li>Answer the in-depth goals reflection: the more you share, the better your match works</li>
+      <li>RSVP for OverdriveAI (Oct 27) right now, while you're thinking about it</li>
+      <li>Download your AI note-taker: Granola (preferred), Fathom, or Otter</li>
+    </ul>
+    <div class="event"><span class="name">Onboarding sessions × 5</span><span class="fmt virtual">Virtual</span><span>Sept 9–13 · times TBD per cohort</span></div>
+    <div class="event"><span class="name">AI Demo Night 🎉</span><span class="fmt inperson">In-Person</span><span>Thu Sept 10 · optional · first taste of the wider community</span></div>
+  </div>
+
+  <div class="week">
+    <div class="corner"><span class="chip changed">Changed</span></div>
+    <div class="when">Week 2 · Sept 14–20</div>
+    <h3>Mentor Match · Meeting 1: Discover</h3>
+    <div class="pill emphasis">Your mentor match lands this week. Meeting 1 (Discover) is due within 7 days of being matched.</div>
+    <ul>
+      <li>Meet your mentor's profile card in the portal, then get the first hour on the calendar</li>
+      <li>Discover: goals, context, where you're stuck, what winning looks like by November</li>
+      <li>Tell your mentor which AI note-taker you're running before the call starts</li>
+    </ul>
+    <span class="mock-btn">Submit your first meeting</span>
+  </div>
+
+  <div class="week">
+    <div class="corner"><span class="chip changed">Changed</span></div>
+    <div class="when">Week 3 · Sept 21–27</div>
+    <h3>Meeting 2: Act</h3>
+    <div class="pill emphasis">Meeting 2 (Act) is due within 10 days of Meeting 1. Momentum is the whole point of the shorter program.</div>
+    <ul>
+      <li>Act: turn Discover into a concrete move. One decision made, one experiment shipped</li>
+      <li>Educational sessions are live: Mon 12:30–1, Tue 5:30–6, Fri 12:30–1</li>
+      <li>First weekly pulse check unlocks in the portal</li>
+    </ul>
+    <span class="mock-btn">Submit your second meeting</span>
+  </div>
+
+  <div class="week">
+    <div class="corner"><span class="chip same">Same</span></div>
+    <div class="when">Weeks 4–6 · Sept 28–Oct 25</div>
+    <h3>Deep Work</h3>
+    <div class="pill default">The middle stretch. Educational sessions every week, pulse checks every week, and one hard deadline on the horizon. The reflection prompts in this stretch are all deep work: the more you put in, the more you get out.</div>
+    <ul>
+      <li>Hit at least 1 of your 3 educational sessions by Oct 1</li>
+      <li>Meeting 3 (Roadmap) due by Oct 23: a hard deadline, no summer-style grace period</li>
+      <li>Missed a session you wanted? A brief written reflection covers it</li>
+      <li>Friday office hours, 9:00–11:00 AM, every week: questions, ideas, issues, just show up</li>
+    </ul>
+    <div class="event"><span class="name">Expert Insights / Peer Development / Industry Q&amp;A</span><span class="fmt virtual">Virtual</span><span>weekly · booked via Luma as speakers confirm</span></div>
+    <span class="mock-btn">Submit your third meeting</span>
+  </div>
+
+  <div class="week">
+    <div class="corner"><span class="chip new">New</span></div>
+    <div class="when">Week 7 · Oct 26–Nov 1</div>
+    <h3>Uplift at OverdriveAI ★</h3>
+    <div class="pill warning">Required in-person. All things future of AI, future of tech, future of New Jersey. Make sure you're available Oct 27.</div>
+    <ul>
+      <li>You're on the inside of TechUnited's marquee event: real visibility, real connections</li>
+      <li>We showcase Uplift founders to the community and our networks, on purpose</li>
+      <li>Attendance checked in through the portal, same as the summer Summit</li>
+    </ul>
+    <div class="event"><span class="name">Uplift at OverdriveAI</span><span class="fmt inperson">In-Person</span><span class="fmt required">Required</span><span>Tue Oct 27 · Newark</span></div>
+  </div>
+
+  <div class="week">
+    <div class="corner"><span class="chip same">Same</span></div>
+    <div class="when">Week 8 · Nov 2–6</div>
+    <h3>Final Stretch</h3>
+    <div class="pill emphasis">Last week of programming. Close out any remaining sessions and file your end report.</div>
+    <ul>
+      <li>All 3 mentor meetings and 3 educational sessions wrapped by Nov 6</li>
+      <li>End report: 5 minutes, tells us what moved for you and your company</li>
+      <li>Expect a 1:1 check-in from Kennedy: come with wins, we're championing what you built</li>
+    </ul>
+    <div class="event"><span class="name">🔒 Exit survey · Founders</span><span class="fmt required">Attached · unlocks Week 7</span><span>the summer survey, reused: ~3 min, mirrors your application so we can show before/after</span></div>
+    <div class="event"><span class="name">🔒 Exit survey · Mentors</span><span class="fmt required">Attached · unlocks Week 7</span><span>verification sign-off plus program feedback</span></div>
+    <span class="mock-btn">Submit your End Report (5 min)</span>
+  </div>
+
+  <div class="week">
+    <div class="corner"><span class="chip changed">Changed</span></div>
+    <div class="when">Completion · Nov 7–20</div>
+    <h3>Completion &amp; Documentation</h3>
+    <div class="pill default">Paperwork window. Mentor sign-off, exit surveys, verification. Then the certificate lands in your portal.</div>
+    <ul>
+      <li>Sign your paperwork: you verify by signature that your logged educational sessions and mentor meetings are accurate; your mentor signs off too</li>
+      <li>Certificate of completion issued: signed, numbered, LinkedIn-ready PDF</li>
+      <li>Certificate lands in your portal; anything beyond it stays a surprise</li>
+    </ul>
+    <span class="mock-btn ghost">Download your certificate</span>
+  </div>
+
+  <!-- MILESTONES -->
+  <div class="section-label">Milestones · fall edition</div>
+  <p class="section-sub">The checklist a founder sees all program. The certificate is the visible finish line at the bottom of the list.</p>
+  <div class="miles">
+    <div class="mile"><span class="box"></span><div><strong>Attend an onboarding session</strong> <span class="due">· Sept 9–13</span></div></div>
+    <div class="mile"><span class="box"></span><div><strong>Accept the participation agreement</strong> <span class="due">· in the portal, Week 1</span></div></div>
+    <div class="mile"><span class="box"></span><div><strong>Discover</strong> <span class="due">· Meeting 1, within 7 days of your match</span><span class="chip changed">Changed</span></div></div>
+    <div class="mile"><span class="box"></span><div><strong>Act</strong> <span class="due">· Meeting 2, within 10 days of Meeting 1</span><span class="chip changed">Changed</span></div></div>
+    <div class="mile"><span class="box"></span><div><strong>Roadmap</strong> <span class="due">· Meeting 3, by Oct 23, hard deadline</span><span class="chip changed">Changed</span></div></div>
+    <div class="mile"><span class="box"></span><div><strong>3 educational sessions</strong> <span class="due">· at least 1 by Oct 1</span></div></div>
+    <div class="mile"><span class="box"></span><div><strong>Attend OverdriveAI</strong> <span class="due">· Oct 27, required in-person</span><span class="chip new">New</span></div></div>
+    <div class="mile"><span class="box"></span><div><strong>Weekly pulse checks</strong> <span class="due">· 10 seconds, once a week</span><span class="chip new">New</span></div></div>
+    <div class="mile"><span class="box"></span><div><strong>End report, exit survey + signature verification</strong> <span class="due">· by Nov 20 · you sign to confirm your logged sessions and meetings are accurate</span></div></div>
+    <div class="mile locked"><span class="box"></span><div><strong>🎓 Certificate of completion unlocked</strong> <span class="due">· auto-issues when everything above is checked</span><span class="chip new">New</span></div></div>
+  </div>
+
+  <!-- CARROTS -->
+  <div class="section-label">The carrot shelf</div>
+  <p class="section-sub">Two promises we make out loud, because we can keep them for every completer. Everything below the line is a surprise, never a guarantee.</p>
+  <div class="carrots">
+    <div class="carrot">
+      <span class="chip new">New promise</span>
+      <span class="emoji">🎓</span>
+      <h4>Certificate of completion</h4>
+      <p>Signed, numbered (UP26F-###), delivered as a PDF in your portal. The summer pipeline already exists, we point it at the fall roster.</p>
+    </div>
+    <div class="carrot">
+      <span class="chip new">New</span>
+      <span class="emoji">🎤</span>
+      <h4>Showcased at OverdriveAI</h4>
+      <p>Uplift founders get introduced to the room at TechUnited's marquee event: investors, operators, press, the whole NJ community.</p>
+    </div>
+    <div class="carrot">
+      <span class="chip changed">Surprise, not promised</span>
+      <span class="emoji">📰</span>
+      <h4>Founder spotlight article</h4>
+      <p>May happen for some founders, and never promised. Off the guarantee list.</p>
+    </div>
+    <div class="carrot">
+      <span class="chip changed">Surprise, not promised</span>
+      <span class="emoji">🃏</span>
+      <h4>Your Founder Card</h4>
+      <p>The community wall lives on, and cards stay a delight we ship when we can, never a guarantee.</p>
+    </div>
+    <div class="carrot">
+      <span class="chip changed">Surprise, not promised</span>
+      <span class="emoji">🚪</span>
+      <h4>Alumni access</h4>
+      <p>Off the promise list. What alumni get after the program stays ours to decide, never something founders are owed.</p>
+    </div>
+    <div class="carrot">
+      <span class="chip changed">Demoted</span>
+      <span class="emoji">🎁</span>
+      <h4>Uplift Wrapped, as a surprise</h4>
+      <p>Off the promise list. If a founder's reflections and pulse data are rich enough, Wrapped still ships as an unannounced send-off. Delight, no guarantee.</p>
+    </div>
+  </div>
+
+  <!-- REMOVED -->
+  <div class="section-label">Removed or retired</div>
+  <p class="section-sub">Gone from the fall portal, with the reason on record.</p>
+  <div class="retired">
+    <div class="retire-row">
+      <span class="x">✕</span>
+      <div>
+        <h4>Uplift Wrapped as a promised deliverable</h4>
+        <p>It depends on how much a founder writes into the portal, so quiet founders got thin Wrappeds. A promise we can only keep for some people is a promise we shouldn't make. It lives on as a surprise for founders with rich data.</p>
+      </div>
+    </div>
+    <div class="retire-row">
+      <span class="x">✕</span>
+      <div>
+        <h4>Midpoint Meetup as a separate required event</h4>
+        <p>Two required in-persons in eight weeks is a big ask. OverdriveAI absorbs the in-person requirement and gives founders a bigger room.</p>
+      </div>
+    </div>
+    <div class="retire-row">
+      <span class="x">✕</span>
+      <div>
+        <h4>Week-locked meeting deadlines</h4>
+        <p>"Meet by week 2" broke every time a match ran late. Rolling deadlines (7 days from match, 10 days from Meeting 1) flex automatically, so the late-match patch lists in the code go away.</p>
+      </div>
+    </div>
+    <div class="retire-row">
+      <span class="x">✕</span>
+      <div>
+        <h4>Two buffer weeks of programming</h4>
+        <p>The summer's catch-up weeks (6 and 9) mostly signaled that drifting was fine. Eight weeks with rolling deadlines keeps everyone closer to on-pace.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAME -->
+  <div class="section-label">Untouched</div>
+  <p class="section-sub">Everything founders already know how to use carries straight over.</p>
+  <div class="same-row">
+    <span class="same-tag">Cohort directory</span>
+    <span class="same-tag">Goals &amp; reflections</span>
+    <span class="same-tag">Session logging + AI note-taker</span>
+    <span class="same-tag">Mentor session verification</span>
+    <span class="same-tag">Program roadmap</span>
+    <span class="same-tag">Resources</span>
+    <span class="same-tag">Support tab</span>
+    <span class="same-tag">72-hour reply SLA</span>
+  </div>
+
+  <!-- DECIDE -->
+  <div class="section-label">Still to decide</div>
+  <div class="decide">
+    <h4>Open before we build for real</h4>
+    <ul>
+      <li>Closing moment: does the program end with a small graduation gathering, or does OverdriveAI carry all the ceremony and certificates go digital-only?</li>
+      <li>Onboarding session times per cohort (deck says Sept 9–13, times TBD) and the five Luma links.</li>
+      <li>Final carrot shelf sign-off: anything above we can't deliver for 100% of completers comes off the list.</li>
+      <li>Pulse check windows: which day of the week they open and close.</li>
+    </ul>
+  </div>
+
+  <!-- BUILD NOTE -->
+  <div class="section-label">How this becomes the real portal</div>
+  <div class="buildnote">
+    <h4>Build checklist, once the plan is signed off</h4>
+    <ul>
+      <li>Swap the <code>WEEKS</code> array in <code>pages/[mentee].js</code> for the 8 fall entries above; re-date <code>PULSE_WINDOWS</code></li>
+      <li>Replace week-locked meeting logic with rolling due dates keyed to match date (kills the late-match slug sets)</li>
+      <li>Retire the Wrapped tab from the default nav; keep the component so surprise Wrappeds still render</li>
+      <li>Point the certificate pipeline at the fall roster with <code>UP26F-###</code> ids; surface the locked certificate milestone from day one</li>
+      <li>Attach the existing exit surveys (<code>uplift-exit-survey-mentee.md</code>, <code>uplift-exit-survey-mentor.md</code>) as portal links, locked until Week 7 opens</li>
+      <li>Add the Discover / Act / Roadmap one-pager to the Resources tab</li>
+      <li>Add OverdriveAI as the required event with portal RSVP + attendance check-in</li>
+      <li>Drop in fall Luma links, speakers, and onboarding times as they're booked</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

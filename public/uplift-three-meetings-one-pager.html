@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Uplift · Your Three Mentor Meetings</title>
+<style>
+  @page { size: letter; margin: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #110465;
+    --pink: #d86697;
+    --paper: #fafafc;
+    --gold: #c99a2e;
+    --ink: #1c1a2e;
+    --muted: #5f5c78;
+  }
+  body {
+    font-family: 'Avenir Next', Avenir, Futura, 'Century Gothic', sans-serif;
+    background: #e9e7f2;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    width: 8.5in; min-height: 11in; margin: 24px auto; background: var(--paper);
+    padding: 0.3in 0.6in 0.28in; display: flex; flex-direction: column;
+    box-shadow: 0 4px 30px rgba(17,4,101,0.15);
+  }
+  @media print {
+    body { background: var(--paper); }
+    .page { margin: 0; box-shadow: none; }
+  }
+  @media (max-width: 900px) {
+    .page { width: 100%; min-height: auto; padding: 32px 24px; margin: 0; }
+  }
+
+  /* Header */
+  .hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .hdr img { height: 34px; width: auto; }
+  .hdr .tag { font-size: 10px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--pink); text-align: right; line-height: 1.4; }
+
+  h1 { font-size: 26px; font-weight: 700; color: var(--navy); letter-spacing: -0.5px; line-height: 1.1; margin-bottom: 6px; }
+  h1 .arrows { color: var(--pink); }
+  .intro { font-size: 12.5px; color: var(--muted); line-height: 1.5; max-width: 6.6in; margin-bottom: 14px; }
+  .intro strong { color: var(--ink); }
+
+  /* Meeting blocks */
+  .meeting {
+    border: 1.5px solid #dedbec; border-radius: 12px; padding: 11px 20px 9px;
+    margin-bottom: 8px; position: relative; background: #fff;
+  }
+  .meeting .num {
+    position: absolute; top: -11px; left: 18px; background: var(--navy); color: #fff;
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    border-radius: 20px; padding: 3px 12px;
+  }
+  .meeting.m2 .num { background: var(--pink); }
+  .meeting.m3 .num { background: var(--gold); }
+  .meeting h2 { font-size: 17px; font-weight: 700; color: var(--navy); margin: 3px 0 1px; }
+  .meeting .due { font-size: 10.5px; font-weight: 600; color: var(--pink); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 5px; }
+  .meeting .job { font-size: 12.5px; line-height: 1.4; color: var(--ink); margin-bottom: 6px; }
+  .cols { display: flex; gap: 18px; }
+  .col { flex: 1; }
+  .col h3 { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+  .col ul { list-style: none; }
+  .col li { font-size: 11.5px; line-height: 1.35; padding: 1px 0 1px 14px; position: relative; color: var(--ink); }
+  .col li::before { content: ''; position: absolute; left: 0; top: 8px; width: 7px; height: 2.5px; background: var(--pink); border-radius: 2px; }
+
+  /* More-than-three note */
+  .more {
+    background: #f3f1fa; border-radius: 10px; padding: 8px 18px; font-size: 11px;
+    line-height: 1.4; color: var(--ink); margin-bottom: 8px;
+  }
+  .more strong { color: var(--navy); }
+  .tracks { display: flex; flex-direction: column; gap: 3px; margin-top: 6px; }
+  .track-row { display: flex; align-items: center; gap: 8px; }
+  .track-label { font-size: 9px; font-weight: 700; color: var(--muted); width: 70px; flex-shrink: 0; text-transform: uppercase; letter-spacing: 0.5px; }
+  .track-chip { display: inline-block; padding: 1px 7px; border-radius: 6px; color: #fff; font-size: 9px; font-weight: 700; }
+
+  /* Footer */
+  .foot { margin-top: auto; border-top: 2px solid var(--navy); padding-top: 8px; display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+  .foot .logi { font-size: 11px; color: var(--muted); line-height: 1.6; max-width: 5.4in; }
+  .foot .logi strong { color: var(--navy); }
+  .foot .brand { font-size: 11px; font-weight: 700; color: var(--navy); text-align: right; line-height: 1.6; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hdr">
+    <img src="/uplift-logo.png" alt="Uplift" />
+    <div class="tag">Uplift Mentorship Program<br />Fall 2026 · Mentor Meetings</div>
+  </div>
+
+  <h1>Discover <span class="arrows">&rarr;</span> Act <span class="arrows">&rarr;</span> Roadmap</h1>
+  <p class="intro">Your three mentor meetings each have a job. Whether these are your only three meetings or the first three of many, this arc takes you from context to action to a plan that outlasts the program. <strong>One hour each, logged in your portal, AI note-taker running.</strong></p>
+
+  <div class="meeting m1">
+    <span class="num">Meeting 1 · Within 7 days of your match</span>
+    <h2>Discover</h2>
+    <div class="due">The job: context and trust. Pick the problem worth your hours together.</div>
+    <div class="cols">
+      <div class="col">
+        <h3>Bring</h3>
+        <ul>
+          <li>Your goals reflection from the portal</li>
+          <li>Where the company actually is: traction, runway, blockers</li>
+          <li>The one decision you keep circling</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3>Leave with</h3>
+        <ul>
+          <li>One focus area you both agree matters most</li>
+          <li>What winning looks like by November</li>
+          <li>Your next meeting on the calendar</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="meeting m2">
+    <span class="num">Meeting 2 · Within 10 days of Meeting 1</span>
+    <h2>Act</h2>
+    <div class="due">The job: turn Discover into a move. Advice becomes action here.</div>
+    <div class="cols">
+      <div class="col">
+        <h3>Bring</h3>
+        <ul>
+          <li>What you tried since your previous meeting, including what flopped</li>
+          <li>Real numbers, real customer conversations</li>
+          <li>The obstacle that surprised you</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3>Leave with</h3>
+        <ul>
+          <li>One concrete commitment with a date on it</li>
+          <li>An experiment, a decision, or an intro your mentor can make</li>
+          <li>A clear picture of what to measure before your next meeting</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="meeting m3">
+    <span class="num">Meeting 3 · Suggested by October 23</span>
+    <h2>Roadmap</h2>
+    <div class="due">The job: zoom out. Build the 90-day plan that runs past graduation.</div>
+    <div class="cols">
+      <div class="col">
+        <h3>Bring</h3>
+        <ul>
+          <li>Results from your Act commitment</li>
+          <li>An honest read on what&rsquo;s changed since your Discover meeting</li>
+          <li>Your biggest open question for the next quarter</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3>Leave with</h3>
+        <ul>
+          <li>Your next three moves, in order</li>
+          <li>The signals that tell you it's working</li>
+          <li>An agreement on staying in touch, on your terms</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="more">
+    <strong>Why start strong?</strong> Getting Discover, Act, and Roadmap done inside your first few weeks means you're not still getting oriented halfway through. You walk into the second half of the program already knowing your focus, your mentor, and your plan, so you can move with more intentionality instead of figuring it out as you go.
+    <div class="tracks">
+      <div class="track-row">
+        <div class="track-label">Minimum</div>
+        <span class="track-chip" style="background:var(--navy);">Discover</span>
+        <span class="track-chip" style="background:var(--pink);">Act</span>
+        <span class="track-chip" style="background:var(--gold);">Roadmap</span>
+      </div>
+      <div class="track-row">
+        <div class="track-label">6 meetings</div>
+        <span class="track-chip" style="background:var(--navy);">Discover</span>
+        <span class="track-chip" style="background:var(--pink);">Act</span>
+        <span class="track-chip" style="background:var(--gold);">Roadmap</span>
+        <span class="track-chip" style="background:var(--pink);">Act</span>
+        <span class="track-chip" style="background:var(--pink);">Act</span>
+        <span class="track-chip" style="background:var(--pink);">Act</span>
+      </div>
+      <div class="track-row">
+        <div class="track-label">9 meetings</div>
+        <span class="track-chip" style="background:var(--navy);">Discover</span>
+        <span class="track-chip" style="background:var(--pink);">Act</span>
+        <span class="track-chip" style="background:var(--gold);">Roadmap</span>
+        <span class="track-chip" style="background:var(--pink);">Act</span>
+        <span class="track-chip" style="background:var(--pink);">Act</span>
+        <span class="track-chip" style="background:var(--pink);">Act</span>
+        <span class="track-chip" style="background:var(--pink);">Act</span>
+        <span class="track-chip" style="background:var(--pink);">Act</span>
+        <span class="track-chip" style="background:var(--pink);">Act</span>
+      </div>
+    </div>
+    <div style="font-size: 11px; color: var(--muted); margin-top: 8px; line-height: 1.5;">Discover and Roadmap stay the spine at meeting 1 and 3, no matter your total. Every meeting after Roadmap is another Act, going deeper on the work between milestones. Sessions four and beyond count toward your tier commitment and get logged the same way.</div>
+  </div>
+
+  <div class="more"><strong>Your Roadmap is what you bring to Overdrive AI on Oct 27, your launch pad.</strong> Be a little uncomfortable. Share the ugly baby before it's ready. Then launch into Overdrive. (Wink, wink.)</div>
+
+  <div class="foot">
+    <div class="logi"><strong>Logistics:</strong> 3 meetings and 3 hours minimum to complete the program. Log every meeting in your portal right after it happens. Tell your mentor which AI note-taker you're running (Granola preferred, Fathom, or Otter). Stuck or off-pace? uplift@techunited.co.</div>
+    <div class="brand">Uplift Mentorship Program<br />techunited.co</div>
+  </div>
+
+</div>
+</body>
+</html>

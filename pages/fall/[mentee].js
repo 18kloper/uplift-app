@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
 import Head from "next/head";
-import { getMenteeBySlug, MENTEES, PROMPTS, getFocusKey } from "../lib/mentees";
-import { PROGRAM_EMAILS, RESOURCES, COHORTS } from "../lib/program-data";
-import { WRAPPED_DATA } from "../lib/wrapped-data";
-import { CERTIFICATES } from "../lib/certificates";
-import UpliftWrapped from "../components/UpliftWrapped";
+import { getMenteeBySlug, MENTEES, PROMPTS, getFocusKey } from "../../lib/mentees";
+import { PROGRAM_EMAILS, RESOURCES_FALL as RESOURCES, COHORTS } from "../../lib/program-data";
+import { CERTIFICATES } from "../../lib/certificates";
 
 // Mentees whose match is approved but pending mentor acceptance — show holding notice
 const HOLDING_SLUGS = new Set([
@@ -26,130 +24,115 @@ const VERY_LATE_MATCH_SLUGS = new Set([
   "gifty-anane",
 ]);
 
-// ─── Week definitions ─────────────────────────────────────────────────────────
+// ─── Week definitions (Fall 2026) ─────────────────────────────────────────────
 const WEEKS = [
   {
-    num: 1, label: "Week 1", title: "Welcome & Onboarding", dateRange: "Jun 1–6",
-    tagline: "Get acclimated. Attend your cohort's onboarding session to meet your peers — or any session if that time doesn't work. Start mapping your asks, your needs, and what you're looking for from your mentor.",
-    note: "We encourage you to attend your own cohort's session to meet your peers. If the timing doesn't work, any of the five sessions will do — just register through Luma.",
+    num: 1, label: "Week 1", title: "Welcome & Onboarding", dateRange: "Sept 9\u201313",
+    tagline: "Get acclimated. Attend one of the seven onboarding sessions, and start mapping your asks, your needs, and what you're looking for from your mentor.",
+    note: "All seven sessions cover the same material. Pick whichever slot works for you. Luma links land here once created.",
     type: "onboarding",
     events: [
-      { name: "Onboarding — Edison", day: "Mon Jun 1", time: "12:30–1:15pm", format: "Virtual", url: "https://lu.ma/q2hlxrhu" },
-      { name: "Onboarding — Hopper", day: "Tue Jun 2", time: "5:30–6:15pm", format: "Virtual", url: "https://lu.ma/boqqrwg2" },
-      { name: "Onboarding — Bardeen", day: "Wed Jun 3", time: "12:30–1:15pm", format: "Virtual", url: "https://lu.ma/ddusqg24" },
-      { name: "Onboarding — Lawrence", day: "Thu Jun 4", time: "12:30–1:15pm", format: "Virtual", url: "https://lu.ma/dg4muvxk" },
-      { name: "Onboarding — Morrison", day: "Sat Jun 6", time: "10:00–10:45am", format: "Virtual", url: "https://lu.ma/p9zkhdle" },
+      { name: "Welcome & Onboarding 1 (Edison)", day: "Wed Sept 9", time: "10:00\u201310:45 AM", format: "Virtual", url: "" },
+      { name: "Welcome & Onboarding 2 (Hopper)", day: "Wed Sept 9", time: "12:30\u20131:15 PM", format: "Virtual", url: "" },
+      { name: "Welcome & Onboarding 3 (Bardeen)", day: "Wed Sept 9", time: "5:30\u20136:00 PM", format: "Virtual", url: "" },
+      { name: "Welcome & Onboarding 4 (Lawrence)", day: "Thu Sept 10", time: "10:00\u201310:45 AM", format: "Virtual", url: "" },
+      { name: "Welcome & Onboarding 5 (Morrison)", day: "Thu Sept 10", time: "12:30\u20131:15 PM", format: "Virtual", url: "" },
+      { name: "AI Demo Night \ud83c\udf89", day: "Thu Sept 10", time: "Evening", format: "In-Person", optional: true, url: "", note: "Bonus event. Not directly connected to the program, but a head start on connecting with our community. Your ticket is free: use code UPLIFT to claim it." },
+      { name: "Welcome & Onboarding 6", day: "Fri Sept 11", time: "10:00\u201310:45 AM", format: "Virtual", url: "" },
+      { name: "Welcome & Onboarding 7", day: "Fri Sept 11", time: "11:30 AM\u201312:15 PM", format: "Virtual", url: "" },
+      { name: "Educational Session 1", day: "Fri Sept 11", time: "12:30 PM ET", format: "Virtual", url: "https://luma.com/techun-lfmg" , note: "Double up: finish Welcome & Onboarding 7 at 12:15, then go straight into this session and get a head start on your 3 educational sessions." },
     ],
   },
   {
-    num: 2, label: "Week 2", title: "Meet Your Mentor", dateRange: "Jun 8–13",
-    tagline: "All pairs should meet for 1 hour by the end of this week.",
+    num: 2, label: "Week 2", title: "Meet Your Mentor \u00b7 Discover", dateRange: "Sept 14\u201320",
+    tagline: "Your mentor match lands this week. Discover (Meeting 1) is due within 7 days of your match.",
     taglineType: "emphasis",
     type: "mentor-meeting",
-    submitLabel: "Submit your 1st mentor meeting",
+    submitLabel: "Submit your first meeting",
     events: [
-      { name: "Expert Insight — Edison", day: "Mon Jun 8", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/vxnzwket", speaker: { name: "Aerica Shimizu Banks", linkedin: "https://www.linkedin.com/in/aericashimizubanks/" } },
-      { name: "Pitch Without a Deck | Uplift Mentorship Workshop 🎤", day: "Fri Jun 12", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/0dh6bt4o", note: "Originally scheduled as an Ask Me Anything — swapped to a peer pitch workshop. Working in small groups of three, you'll pitch for 3 minutes to fellow founders and get direct, structured feedback. No slides, no deck, no camera. Just your voice and your story. 🔥" },
+      { name: "Educational Session 2", day: "Mon Sept 14", time: "12:30 PM ET", format: "Virtual", url: "https://luma.com/3qg5eegx" },
+      { name: "Educational Session 3", day: "Tue Sept 15", time: "5:30 PM ET", format: "Virtual", url: "https://luma.com/vxh6h310" },
+      { name: "Educational Session 4", day: "Fri Sept 18", time: "12:30 PM ET", format: "Virtual", url: "https://luma.com/smzvhwxk" },
     ],
   },
   {
-    num: 3, label: "Week 3", title: "Keep the Momentum", dateRange: "Jun 15–20",
-    tagline: "We know everyone's schedules look different — by this time you should have met with your mentor for at least an hour. If you have not done so, this is an opportunity to catch up. If you have already done so, we encourage you to continue communication with your mentor and to attend one of this week's virtual sessions.",
+    num: 3, label: "Week 3", title: "Act", dateRange: "Sept 21\u201327",
+    tagline: "Act (Meeting 2) is due within 10 days of your Discover meeting. Momentum is the whole point of the shorter program.",
+    taglineType: "emphasis",
+    type: "reflection",
+    submitLabel: "Submit your second meeting",
+    events: [
+      { name: "Educational Session 5", day: "Mon Sept 21", time: "12:30 PM ET", format: "Virtual", url: "https://luma.com/zkb2rc8p" },
+      { name: "Educational Session 6", day: "Tue Sept 22", time: "5:30 PM ET", format: "Virtual", url: "https://luma.com/de3y5zeu" },
+      { name: "Educational Session 7", day: "Fri Sept 25", time: "12:30 PM ET", format: "Virtual", url: "https://luma.com/k1mvgwvs" },
+    ],
+  },
+  {
+    num: 4, label: "Week 4", title: "Find Your Rhythm", dateRange: "Sept 28\u2013Oct 4",
+    tagline: "Deep Work begins. At least 1 of your 3 educational sessions should be done by October 1.",
     type: "reflection",
     events: [
-      { name: "Expert Insight — Hopper", day: "Mon Jun 15", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/nj4xfgv6", speaker: { name: "Marc Saint-Ulysse", linkedin: "https://www.linkedin.com/in/marc-saint-ulysse-5b13262a" } },
-      { name: "Peer Development — Edison", day: "Tue Jun 16", time: "5:30–6:00pm", format: "Virtual", url: "https://lu.ma/h9vhfsb2" },
+      { name: "Educational Session 8", day: "Mon Sept 28", time: "12:30 PM ET", format: "Virtual", url: "https://luma.com/pidrg7sw" },
+      { name: "Educational Session 9", day: "Tue Sept 29", time: "5:30 PM ET", format: "Virtual", url: "https://luma.com/bruqh9hf" },
+      { name: "Educational Session 10", day: "Fri Oct 2", time: "12:30 PM ET", format: "Virtual", url: "https://luma.com/rjxdyml0" },
     ],
   },
   {
-    num: 4, label: "Week 4", title: "Midpoint Meetup", dateRange: "Jun 22–27",
-    tagline: "If you have not met with your mentor by the end of this week, you are at risk of being removed from the program.",
+    num: 5, label: "Week 5", title: "Keep Building", dateRange: "Oct 5\u201311",
+    tagline: "The middle of the program. Keep the rhythm: sessions, pulse checks, and momentum with your mentor.",
+    type: "reflection",
+    events: [
+      { name: "Educational Session 11", day: "Mon Oct 5", time: "12:30 PM ET", format: "Virtual", url: "https://luma.com/7ajm07pv" },
+      { name: "Educational Session 12", day: "Tue Oct 6", time: "5:30 PM ET", format: "Virtual", url: "https://luma.com/6fqmptfu" },
+      { name: "Educational Session 13", day: "Fri Oct 9", time: "12:30 PM ET", format: "Virtual", url: "https://luma.com/872810d3" },
+    ],
+  },
+  {
+    num: 6, label: "Week 6", title: "Roadmap", dateRange: "Oct 12\u201325",
+    tagline: "Roadmap (Meeting 3) is due by October 23. Hard deadline.",
     taglineType: "warning",
     type: "reflection",
+    submitLabel: "Submit your third meeting",
     events: [
-      { name: "Midpoint Meetup", day: "Tue Jun 23", time: "4:00–7:00pm", format: "In-Person", location: "Antique Lofts, Hoboken, NJ — 2 min walk from the PATH", required: true, url: "https://lu.ma/zfr1e2gt" },
-      { name: "Industry Q&A — Hopper", day: "Fri Jun 26", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/e0sayfyh", speaker: { name: "Joanne Wilson", linkedin: "https://www.linkedin.com/in/joanne-wilson-b0886110" } },
+      { name: "Educational Session 14", day: "Mon Oct 12", time: "12:30 PM ET", format: "Virtual", url: "https://luma.com/g2j1tlk4" },
+      { name: "Educational Session 15", day: "Fri Oct 16", time: "12:30 PM ET", format: "Virtual", url: "https://luma.com/mbjuraiq" },
+      { name: "Educational Session 16", day: "Mon Oct 19", time: "12:30 PM ET", format: "Virtual", url: "https://luma.com/6droguib" },
+      { name: "Educational Session 17", day: "Tue Oct 20", time: "5:30 PM ET", format: "Virtual", url: "https://luma.com/krpytz6i" },
+      { name: "Educational Session 18", day: "Tue Oct 20", time: "5:30 PM ET", format: "Virtual", url: "https://luma.com/hbm2pxfg" },
+      { name: "Educational Session 19", day: "Wed Oct 21", time: "12:30 PM ET", format: "Virtual", url: "https://luma.com/widxhy78" },
+      { name: "Educational Session 20", day: "Fri Oct 23", time: "5:30 PM ET", format: "Virtual", url: "https://luma.com/s012hqvf" },
     ],
   },
   {
-    num: 5, label: "Week 5", title: "Deepen the Conversation", dateRange: "Jun 29–Jul 4",
-    tagline: "All pairs should meet for an additional hour this week (total of 2 hours to date).",
+    num: 7, label: "Week 7", title: "Uplift at OverdriveAI \u2605", dateRange: "Oct 26\u2013Nov 1",
+    tagline: "Your required in-person moment. All things future of AI, future of tech, future of New Jersey.",
+    type: "reflection",
+    events: [
+      { name: "Uplift at OverdriveAI", day: "Tue Oct 27", time: "Details TBD", format: "In-Person", required: true, url: "" },
+    ],
+  },
+  {
+    num: 8, label: "Week 8", title: "Final Stretch & Completion", dateRange: "Nov 2\u20136",
+    tagline: "Last week of programming. Close out your meetings and sessions, then finish the paperwork.",
     taglineType: "emphasis",
-    type: "reflection",
-    submitLabel: "Submit your 2nd mentor meeting",
-    events: [
-      { name: "Expert Insight — Bardeen", day: "Mon Jun 29", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/mvcaeaiu", speaker: { name: "Christina Perla", linkedin: "https://www.linkedin.com/in/christinaperla/" } },
-      { name: "Peer Development — Hopper", day: "Tue Jun 30", time: "5:30–6:00pm", format: "Virtual", url: "https://lu.ma/ycu81x75" },
-      { name: "Industry Q&A — Bardeen", day: "Fri Jul 3", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/zs1dqfeq" },
-    ],
-  },
-  {
-    num: 6, label: "Week 6", title: "Keep Building", dateRange: "Jul 6–11",
-    tagline: "If you've fallen behind on hours with your mentor, use this week to catch up. If you're on track — keep the energy going.",
-    type: "reflection",
-    events: [
-      { name: "Expert Insight — Lawrence", day: "Mon Jul 6", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/o20rkult" },
-      { name: "Peer Development — Bardeen", day: "Tue Jul 7", time: "5:30–6:00pm", format: "Virtual", url: "https://lu.ma/sesem19h" },
-    ],
-  },
-  {
-    num: 7, label: "Week 7", title: "Meet With Your Mentor #3", dateRange: "Jul 13–18",
-    tagline: "All pairs should meet for an additional hour this week (total of 3 hours to date).",
-    taglineType: "emphasis",
-    type: "reflection",
-    submitLabel: "Submit your 3rd mentor meeting",
-    events: [
-      { name: "Expert Insight — Morrison", day: "Mon Jul 13", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/oh01c8fi", speaker: { name: "Crissy Buteas", linkedin: "https://www.linkedin.com/in/chrissy-buteas-9382063/" } },
-      { name: "Peer Development — Lawrence", day: "Tue Jul 14", time: "5:30–6:00pm", format: "Virtual", url: "https://lu.ma/jgqgpyvx" },
-      { name: "Industry Q&A — Lawrence", day: "Fri Jul 17", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/ekk5ycbt", speaker: { name: "Jie Li", linkedin: "https://www.linkedin.com/in/jieli2016/" } },
-    ],
-  },
-  {
-    num: 8, label: "Week 8", title: "Let's Cross the Finish Line Together", dateRange: "Jul 19–25",
-    tagline: "Take this time to tee up the finish — complete your educational sessions, finish your 1:1s with your mentor, and dive deeper. Also expect a 1:1 check-in from Kennedy — come with some wins, we're prepping an article celebrating what you've built.",
     type: "reflection",
     submitLabel: "Submit your End Report (5 min)",
-    submitPrimary: true,
     events: [
-      { name: "Expert Session — Edison", day: "Mon Jul 20", time: "12:30–1:00pm", format: "Virtual", url: "https://lu.ma/9slfqpvz", speaker: { name: "Tony Triumph", linkedin: "https://www.linkedin.com/in/tonytriumph/" } },
-      { name: "Coffee Meetup — Haraz Coffee, Hoboken", day: "Mon Jul 20", time: "5:30–7:00pm", format: "In-Person", kind: "connect", optional: true, url: "https://luma.com/484rkj45" },
-      { name: "Mentor Office Hours", day: "Tue Jul 21", time: "12:30–1:00pm", format: "Virtual", kind: "connect", url: "https://luma.com/to3qzkei" },
-      { name: "Mentor Office Hours", day: "Wed Jul 22", time: "8:00–9:00am", format: "Virtual", kind: "connect", url: "https://luma.com/1x08hum7" },
-      { name: "Mentor Office Hours", day: "Thu Jul 23", time: "8:00–9:00am", format: "Virtual", kind: "connect", url: "https://luma.com/k5i56qxl" },
-    ],
-  },
-  {
-    num: 9, label: "Week 9", title: "One Week to the Summit", dateRange: "Jul 27–31",
-    tagline: "The Summit is one week away — this is your last chance to lock in any remaining sessions before we celebrate together.",
-    type: "emphasis",
-    events: [
-      { name: "Coffee Meetup — Haraz Coffee, Hoboken", day: "Mon Jul 27", time: "5:30–7:00pm", format: "In-Person", kind: "connect", optional: true, url: "https://luma.com/9gvf5pkb" },
-      { name: "Mentor Office Hours", day: "Tue Jul 28", time: "12:30–1:00pm", format: "Virtual", kind: "connect", url: "https://luma.com/xicbroar" },
-      { name: "Peer Development — Morrison", day: "Tue Jul 28", time: "5:30–6:00pm", format: "Virtual", url: "https://lu.ma/uy7rs79a" },
-      { name: "Mentor Office Hours", day: "Wed Jul 29", time: "8:00–9:00am", format: "Virtual", kind: "connect", url: "https://luma.com/e2x9abad" },
-      { name: "Mentor Office Hours", day: "Thu Jul 30", time: "8:00–9:00am", format: "Virtual", kind: "connect", url: "https://luma.com/m4rr4gjj" },
-    ],
-  },
-  {
-    num: 10, label: "Week 10", title: "Summit & Graduation", dateRange: "Aug 3–4",
-    tagline: "We are nearing the END — can't wait to celebrate you.",
-    type: "closing",
-    events: [
-      { name: "Coffee Meetup — Haraz Coffee, Hoboken", day: "Mon Aug 3", time: "5:30–7:00pm", format: "In-Person", kind: "connect", optional: true, url: "https://luma.com/8wd7c753" },
-      { name: "Uplift Summit & Graduation", day: "Tue Aug 4", time: "4:00–7:00pm", format: "In-Person", required: true, url: "https://lu.ma/c8we4c2b" },
+      { name: "Educational Session 21", day: "Tue Nov 3", time: "5:30 PM ET", format: "Virtual", url: "https://luma.com/c5o9r8zg" },
+      { name: "Educational Session 22", day: "Wed Nov 4", time: "12:30 PM ET", format: "Virtual", url: "https://luma.com/b7bf0c6h" },
     ],
   },
 ];
 
 const PRIMARY_TABS = [
-  { id: "journey",    label: "My Journey",                   tip: "Week-by-week action items for the program — follow along to see where you should be and what's coming up next." },
+  { id: "journey",    label: "My Journey",                   tip: "Week-by-week action items for the program, follow along to see where you should be and what's coming up next." },
   { id: "milestones", label: "Milestones",                   tip: "A high-level overview of every task to complete in the program. See at a glance what's been checked off and what still needs to happen." },
-  { id: "goals",      label: "My Goals & Reflections",       tip: "Everything you've written in the portal lives here — your goals, reflections, and responses all in one place, building as you go." },
-  { id: "meetings",   label: "Logged Mentorship Sessions",   tip: "Track every mentor session you've submitted — view transcripts, see which sessions have been verified, monitor your progress toward the 3-hour requirement, and check on any pending or denied sessions." },
+  { id: "goals",      label: "My Goals & Reflections",       tip: "Everything you've written in the portal lives here, your goals, reflections, and responses all in one place, building as you go." },
+  { id: "meetings",   label: "Logged Mentorship Sessions",   tip: "Track every mentor session you've submitted, view transcripts, see which sessions have been verified, monitor your progress toward the 3-hour requirement, and check on any pending or denied sessions." },
   { id: "edu",        label: "Logged Educational Sessions",  tip: "Track the educational sessions you've attended and browse everything that's available across the full program schedule." },
-  { id: "calendar",   label: "Program Roadmap",              tip: "A high-level view of the entire 10-week program — all sessions, milestones, and key dates in one place." },
-  { id: "resources",  label: "Resources",                    tip: "External links, tools, and resources curated for you — things you should know about as a founder in this program." },
-  { id: "profile",    label: "Cohort Directory",             tip: "See who's in your cohort and explore the other cohorts too — get to know your fellow founders." },
+  { id: "calendar",   label: "Program Roadmap",              tip: "A high-level view of the entire 8-week program, all sessions, milestones, and key dates in one place." },
+  { id: "resources",  label: "Resources",                    tip: "External links, tools, and resources curated for you, things you should know about as a founder in this program." },
+  { id: "profile",    label: "Cohort Directory",             tip: "See who's in your cohort and explore the other cohorts too, get to know your fellow founders." },
   { id: "support",    label: "Support",                      tip: "Having trouble with something? Find out how to reach the Uplift team here." },
 ];
 const TAB_ROW_1 = ["journey", "goals", "milestones", "meetings", "edu"];
@@ -306,7 +289,7 @@ function AutoTextarea({ storageKey, placeholder, slug, weekNum, fieldKey, rows =
           margin: "7px 0 0", fontSize: 12, color: "#9b8fcf",
           fontStyle: "italic", lineHeight: 1.6,
         }}>
-          Your response has been recorded. A full collection of everything you've written lives in the <strong style={{ fontStyle: "normal", fontWeight: 600 }}>My Goals &amp; Reflections</strong> tab — consider it your personal journal for this program. This field stays editable, so feel free to come back and update your thinking anytime.
+          Your response has been recorded. A full collection of everything you've written lives in the <strong style={{ fontStyle: "normal", fontWeight: 600 }}>My Goals &amp; Reflections</strong> tab, consider it your personal journal for this program. This field stays editable, so feel free to come back and update your thinking anytime.
         </p>
       )}
     </div>
@@ -341,6 +324,9 @@ function PromptBlock({ theme, questions, slug, weekNum, blockIndex, accentColor 
       background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
       padding: "24px 28px", marginBottom: 20, borderLeft: `4px solid ${accentColor}`,
     }}>
+      <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
+        🧠 Deep Work
+      </p>
       <p style={{
         margin: "0 0 16px", fontWeight: 700, fontSize: 13,
         letterSpacing: "0.06em", textTransform: "uppercase", color: accentColor,
@@ -363,7 +349,7 @@ function PromptBlock({ theme, questions, slug, weekNum, blockIndex, accentColor 
 }
 
 // ─── Events section ───────────────────────────────────────────────────────────
-function EventsSection({ events: allEvents, submitLabel, submitPrimary, note, footerNote, intro, isOnboarding, onboardingVerified, slug, menteeName }) {
+function EventsSection({ events: allEvents, submitLabel, submitPrimary, note, footerNote, intro, isOnboarding, onboardingVerified, slug, menteeName, eduDone }) {
   // Connect events (office hours, in-person meetups) are not educational sessions — they render in ConnectBlock instead.
   const events = (allEvents || []).filter((e) => e.kind !== "connect");
   const hasEvents = events && events.length > 0;
@@ -394,6 +380,11 @@ function EventsSection({ events: allEvents, submitLabel, submitPrimary, note, fo
 
   return (
     <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
+      {typeof eduDone === "number" && (
+        <p style={{ margin: "0 0 10px", fontSize: 11.5, fontWeight: 700, color: "#9b8fcf", letterSpacing: "0.03em" }}>
+          🎓 {eduDone} of 3 educational sessions done · {Math.max(0, 3 - eduDone)} to go
+        </p>
+      )}
       {note && (
         <p style={{ margin: "0 0 14px", fontSize: 13, color: "#5c4eb5", fontWeight: 600, background: "#f5f3ff", borderRadius: 6, padding: "8px 12px" }}>
           ℹ️ {note}
@@ -406,8 +397,8 @@ function EventsSection({ events: allEvents, submitLabel, submitPrimary, note, fo
           </p>
           <p style={{ margin: "0 0 14px", fontSize: 12, color: "#9b8fcf", fontStyle: "italic", lineHeight: 1.65 }}>
             {intro || (isOnboarding
-              ? "All five onboarding sessions cover the same material — they're organized by cohort to help you meet your peers, but you're welcome to attend any one that fits your schedule. Note: onboarding sessions are separate from the 3 required educational sessions and do not count toward that requirement."
-              : "All sessions are open to every mentee. You'll notice sessions are labeled by cohort (Edison, Hopper, Bardeen, Lawrence, Morrison) — these labels simply group participants to help build close relationships with peers. You are welcome and encouraged to attend any and all sessions across every cohort. Our speakers bring a wide range of expertise relevant to founders at every stage and in every industry. We also know schedules are unpredictable — Uplift is designed to be accessible and work around your life. If the time works for you, show up. Every session you attend counts toward your 3 required educational sessions."
+              ? "All seven onboarding sessions cover the same material, so attend whichever one fits your schedule. Note: onboarding sessions are separate from the 3 required educational sessions and do not count toward that requirement."
+              : "We vary the format. Educational sessions rotate between three formats (Expert Insights, Peer Development, and Industry Q&A) based on the guest speaker's preference and the needs and wants you've communicated across the program. You can attend any of them, and you must attend three. If the time works for you, show up: every session counts toward your 3."
             )}
           </p>
           {events.map((ev, i) => (
@@ -424,7 +415,7 @@ function EventsSection({ events: allEvents, submitLabel, submitPrimary, note, fo
                   </span>
                 )}
                 <span style={{ marginLeft: 6, fontSize: 13, color: "#6b6480" }}>
-                  — {ev.day}{ev.time ? `, ${ev.time}` : ""} · {ev.format}
+                  · {ev.day}{ev.time ? `, ${ev.time}` : ""} · {ev.format}
                 </span>
                 {ev.speaker && (
                   <p style={{ margin: "3px 0 0", fontSize: 12, color: "#6b6480" }}>
@@ -503,7 +494,7 @@ function ConnectGroup({ title, note, items, isLast, trackEventClick }) {
               </span>
             )}
             <span style={{ marginLeft: 6, fontSize: 13, color: "#6b6480" }}>
-              — {ev.day}{ev.time ? `, ${ev.time}` : ""} · {ev.format}
+              · {ev.day}{ev.time ? `, ${ev.time}` : ""} · {ev.format}
             </span>
           </div>
           <a href={ev.url || "#"} target="_blank" rel="noopener noreferrer"
@@ -553,12 +544,12 @@ function ConnectBlock({ events, slug, menteeName }) {
   const groups = [
     {
       title: "Mentor Office Hours",
-      note: "These don't count toward your three educational sessions — they're here to ease the scheduling friction so you and your mentor can get your one-on-one time in. Invite your mentor, join on the same link, and we'll break you into a private room (30 minutes counts as half a mentor session, a full hour counts as a whole one).",
+      note: "These don't count toward your three educational sessions, they're here to ease the scheduling friction so you and your mentor can get your one-on-one time in. Invite your mentor, join on the same link, and we'll break you into a private room (30 minutes counts as half a mentor session, a full hour counts as a whole one).",
       items: officeHours,
     },
     {
       title: "Coffee Meetups",
-      note: "Optional — Mondays, 5:30–7:00 PM at Haraz Coffee in Hoboken. Coffee, tea, and decaf are on us.",
+      note: "Optional · Mondays, 5:30–7:00 PM at Haraz Coffee in Hoboken. Coffee, tea, and decaf are on us.",
       items: coffeeMeetups,
     },
     { title: "Other", note: null, items: other },
@@ -567,7 +558,7 @@ function ConnectBlock({ events, slug, menteeName }) {
   return (
     <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", borderLeft: "4px solid #2a9d6e", padding: "20px 24px", marginBottom: 24 }}>
       <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#2a9d6e" }}>
-        New — More Ways to Get Your 1:1 Time
+        New · More Ways to Get Your 1:1 Time
       </p>
       <p style={{ margin: "0 0 16px", fontSize: 13, color: "#6b6480", fontStyle: "italic", lineHeight: 1.65 }}>
         You asked for more ways to connect, so we added these to help.
@@ -614,7 +605,7 @@ function MentorCard({ mentee, revealed, holding }) {
             Your match is in progress
           </p>
           <p style={{ margin: 0, fontSize: 14, color: "#b45309", lineHeight: 1.6 }}>
-            We've selected your mentor and your pairing has been approved — we're waiting on their final confirmation before making the introduction. You'll see your mentor here as soon as it's confirmed.
+            We've selected your mentor and your pairing has been approved, we're waiting on their final confirmation before making the introduction. You'll see your mentor here as soon as it's confirmed.
           </p>
         </div>
       );
@@ -629,7 +620,7 @@ function MentorCard({ mentee, revealed, holding }) {
           Your mentor hasn't been revealed yet
         </p>
         <p style={{ margin: 0, fontSize: 14, color: "#9b8fcf", lineHeight: 1.6 }}>
-          We'll unlock your mentor match after we've completed onboarding sessions. No action needed from you — it will appear here automatically.
+          Your mentor unlocks once you've attended an onboarding session, completed your Week 1 Deep Work, and passed the onboarding quiz. No action needed from you, it will appear here automatically.
         </p>
       </div>
     );
@@ -740,7 +731,7 @@ function PasswordGate({ slug, onAuthenticated }) {
         boxShadow: "0 4px 32px rgba(92,78,181,0.12)", textAlign: "center",
       }}>
         <img src="/uplift-logo.png" alt="Uplift" style={{ height: 44, margin: "0 auto 24px", display: "block" }} />
-        <h1 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 700, color: "#1a1733" }}>Uplift Summer 2026</h1>
+        <h1 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 700, color: "#1a1733" }}>Uplift Fall 2026</h1>
         <p style={{ margin: "0 0 28px", fontSize: 14, color: "#9b8fcf" }}>Enter your access code to continue</p>
         <form onSubmit={handleSubmit}>
           <input
@@ -759,7 +750,7 @@ function PasswordGate({ slug, onAuthenticated }) {
           />
           {error && (
             <p style={{ margin: "0 0 10px", fontSize: 13, color: "#e05050", fontWeight: 500 }}>
-              Incorrect code — contact uplift@techunited.co
+              Incorrect code. Contact uplift@techunited.co
             </p>
           )}
           <button type="submit" style={{
@@ -874,7 +865,7 @@ function ParticipationWidget({ slug, onAccepted, participationConfirmed }) {
         Before you begin, please confirm your participation.
       </p>
       <p style={{ margin: "0 0 16px", fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
-        Accepting lets us know you're moving forward with the program. We need to hear from you by <strong style={{ color: "#1a1733" }}>Wednesday, June 3rd</strong>.
+        Accepting lets us know you're moving forward with the program. We need to hear from you by <strong style={{ color: "#1a1733" }}>Wednesday, September 9th</strong>.
       </p>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <button
@@ -906,33 +897,196 @@ function ParticipationWidget({ slug, onAccepted, participationConfirmed }) {
   );
 }
 
+// ─── Onboarding quiz (10/10 to pass; part of the Week 1 gate) ────────────────
+const ONBOARDING_QUIZ = [
+  { q: "How many 1:1 mentor meetings does the program require?", options: ["1", "2", "3", "5"], answer: 2 },
+  { q: "When is Discover (Meeting 1) due?", options: ["Within 7 days of your match", "By October 1", "Whenever works for you both", "Within 30 days"], answer: 0 },
+  { q: "When is Act (Meeting 2) due?", options: ["By October 23", "Within 10 days of Discover", "Within 72 hours of Discover", "By November 6"], answer: 1 },
+  { q: "Roadmap (Meeting 3) is due by:", options: ["September 27", "October 1", "October 23", "November 20"], answer: 2 },
+  { q: "How many educational sessions must you attend, and when is your first due?", options: ["2 total, no deadline", "3 total, first by October 1", "5 total, first by October 23", "1 total, by November 6"], answer: 1 },
+  { q: "What is the required in-person event?", options: ["AI Demo Night, September 10", "The Midpoint Meetup", "Uplift at OverdriveAI, October 27", "The Summit, August 4"], answer: 2 },
+  { q: "A yellow pulse check means:", options: ["Things are not going as planned", "A-okay", "Okay, but a check-in would be nice", "You skipped the week"], answer: 2 },
+  { q: "How quickly do you commit to responding to your mentor and the program?", options: ["Within 24 hours", "Within 72 hours", "Within a week", "Whenever you can"], answer: 1 },
+  { q: "How do you log a mentor meeting?", options: ["Your mentor logs it for you", "Email your notes to TechUnited", "Submit it in the portal: date, length, and notes", "It's tracked automatically"], answer: 2 },
+  { q: "What do you sign at the end of the program?", options: ["Nothing, attendance is enough", "BreezeDoc forms verifying your logged sessions and meetings are accurate", "A liability waiver", "Your certificate"], answer: 1 },
+];
+
+function QuizModal({ slug, onPassed, onClose }) {
+  const [picks, setPicks] = useState({});
+  const [result, setResult] = useState(null);
+  const answered = Object.keys(picks).length;
+
+  const grade = () => {
+    const score = ONBOARDING_QUIZ.reduce((n, item, i) => n + (picks[i] === item.answer ? 1 : 0), 0);
+    setResult(score);
+    if (score === ONBOARDING_QUIZ.length) {
+      localStorage.setItem(`${slug}_quiz_passed`, "1");
+      persistToSheet(slug, 1, "quiz_passed", `${score}/${ONBOARDING_QUIZ.length}`, "Onboarding quiz");
+      if (onPassed) onPassed();
+    }
+  };
+
+  return (
+    <div onClick={onClose} style={{
+      position: "fixed", inset: 0, zIndex: 10000,
+      background: "rgba(16,9,45,0.62)", backdropFilter: "blur(3px)",
+      display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
+      fontFamily: "'Inter', system-ui, sans-serif",
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        background: "#fff", borderRadius: 16, width: "min(640px, 96vw)", maxHeight: "90vh",
+        overflowY: "auto", boxShadow: "0 24px 80px rgba(16,9,45,0.45)", padding: "26px 28px",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
+          <p style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#1a1733" }}>📝 The Onboarding Quiz</p>
+          <button onClick={onClose} style={{ border: "none", background: "#f0ecff", color: "#5c4eb5", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>✕ Close</button>
+        </div>
+        <p style={{ margin: "0 0 18px", fontSize: 13.5, color: "#6b6480", lineHeight: 1.6 }}>
+          Ten questions on how the program works. You need 10 out of 10, and you can retake it as many times as you like.
+        </p>
+        {ONBOARDING_QUIZ.map((item, i) => (
+          <div key={i} style={{ marginBottom: 16, paddingBottom: 14, borderBottom: i < ONBOARDING_QUIZ.length - 1 ? "1px solid #f0edf9" : "none" }}>
+            <p style={{ margin: "0 0 8px", fontSize: 14, fontWeight: 700, color: "#1a1733" }}>{i + 1}. {item.q}</p>
+            {item.options.map((opt, oi) => {
+              const picked = picks[i] === oi;
+              const wrong = result !== null && result < ONBOARDING_QUIZ.length && picked && oi !== item.answer;
+              return (
+                <button key={oi} onClick={() => { setPicks(p => ({ ...p, [i]: oi })); setResult(null); }} style={{
+                  display: "block", width: "100%", textAlign: "left", marginBottom: 6,
+                  padding: "8px 14px", borderRadius: 8, fontSize: 13.5, fontFamily: "inherit", cursor: "pointer",
+                  border: picked ? (wrong ? "1.5px solid #e74c3c" : "1.5px solid #5c4eb5") : "1.5px solid #e8e4f5",
+                  background: picked ? (wrong ? "#fef0f0" : "#f5f3ff") : "#fff",
+                  color: "#1a1733", fontWeight: picked ? 600 : 400,
+                }}>
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+        <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+          {result === ONBOARDING_QUIZ.length ? (
+            <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: "#1a7a4a" }}>🎉 10/10. You passed. This counts toward unlocking your mentor.</p>
+          ) : (
+            <>
+              <button onClick={grade} disabled={answered < ONBOARDING_QUIZ.length} style={{
+                border: "none", borderRadius: 8, padding: "10px 22px", fontSize: 14, fontWeight: 700, fontFamily: "inherit",
+                background: answered === ONBOARDING_QUIZ.length ? "#5c4eb5" : "#e8e4f5",
+                color: answered === ONBOARDING_QUIZ.length ? "#fff" : "#9b8fcf",
+                cursor: answered === ONBOARDING_QUIZ.length ? "pointer" : "default",
+              }}>
+                {result === null ? "Submit answers" : "Submit again"}
+              </button>
+              {result !== null && result < ONBOARDING_QUIZ.length && (
+                <span style={{ fontSize: 13.5, fontWeight: 700, color: "#c0392b" }}>{result}/{ONBOARDING_QUIZ.length}. You need 10/10: fix the highlighted picks and resubmit.</span>
+              )}
+              {result === null && answered < ONBOARDING_QUIZ.length && (
+                <span style={{ fontSize: 12.5, color: "#9b8fcf", fontStyle: "italic" }}>{answered}/{ONBOARDING_QUIZ.length} answered</span>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QuizCheck({ slug }) {
+  const [show, setShow] = useState(false);
+  const [passed, setPassed] = useState(false);
+  useEffect(() => { setPassed(!!localStorage.getItem(`${slug}_quiz_passed`)); }, [slug]);
+  return (
+    <div>
+      <p style={{ margin: "0 0 12px", fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
+        You cannot do your Deep Work or unlock your mentor until you get a <strong style={{ color: "#1a1733" }}>10 out of 10</strong> on this quiz. Ten quick questions on how the program works; retakes unlimited.
+      </p>
+      <p style={{ margin: "0 0 12px", fontSize: 12.5, color: "#9b8fcf", fontStyle: "italic" }}>
+        Pro tip: need to reference the deck? You'll find it under your Resources tab.
+      </p>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+        <button onClick={() => setShow(true)} style={{
+          border: "none", borderRadius: 8, padding: "9px 18px",
+          background: "#5c4eb5", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+        }}>
+          {passed ? "Review the quiz" : "Take the quiz"}
+        </button>
+        {passed && <span style={{ fontSize: 13, fontWeight: 700, color: "#1a7a4a" }}>✓ Passed 10/10</span>}
+      </div>
+      {show && <QuizModal slug={slug} onPassed={() => setPassed(true)} onClose={() => setShow(false)} />}
+    </div>
+  );
+}
+
+// ─── Collapsible step (Week 1 flow) ──────────────────────────────────────────
+function Step({ num, title, chip, defaultOpen, locked, lockedNote, children }) {
+  const [open, setOpen] = useState(!!defaultOpen);
+  if (locked) {
+    return (
+      <div style={{ background: "#fafafa", border: "1.5px dashed #d4d0e8", borderRadius: 14, marginBottom: 14, padding: "16px 20px", display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{
+          width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+          background: "#e8e4f5", color: "#9b8fcf",
+          display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800,
+        }}>{num}</span>
+        <div style={{ flex: 1 }}>
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#9b8fcf" }}>🔒 {title}</p>
+          {lockedNote && <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "#b0a8cc", fontStyle: "italic" }}>{lockedNote}</p>}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div style={{ background: "#fff", border: "1px solid #e8e4f5", borderRadius: 14, marginBottom: 14, overflow: "hidden" }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "16px 20px",
+        border: "none", background: open ? "#f7f5ff" : "#fff", cursor: "pointer",
+        fontFamily: "inherit", textAlign: "left",
+      }}>
+        <span style={{
+          width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+          background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)", color: "#fff",
+          display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800,
+        }}>{num}</span>
+        <span style={{ fontSize: 15, fontWeight: 700, color: "#1a1733", flex: 1 }}>{title}</span>
+        {chip && <span style={{ fontSize: 10, fontWeight: 700, color: "#9b8fcf", background: "#f0ecff", borderRadius: 4, padding: "2px 8px", flexShrink: 0, whiteSpace: "nowrap" }}>{chip}</span>}
+        <span style={{ color: "#9b8fcf", fontSize: 12, flexShrink: 0 }}>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && <div style={{ padding: "16px 18px 6px" }}>{children}</div>}
+    </div>
+  );
+}
+
 // ─── Week 1: Welcome & Onboarding ─────────────────────────────────────────────
 function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted, milestones }) {
+  const [quizPassed, setQuizPassed] = useState(false);
+  useEffect(() => {
+    const check = () => setQuizPassed(!!localStorage.getItem(`${slug}_quiz_passed`));
+    check();
+    const t = setInterval(check, 1500);
+    return () => clearInterval(t);
+  }, [slug]);
   const week = WEEKS[0];
   const cohort = COHORTS.find((c) => c.num === mentee.cohort);
   return (
     <div>
-      {/* Participation confirmation — above welcome banner */}
-      <ParticipationWidget slug={slug} onAccepted={onParticipationAccepted} participationConfirmed={milestones?.participation} />
-
       {/* Welcome banner */}
       <div style={{
         background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)",
         borderRadius: 14, padding: "28px 32px", color: "#fff", marginBottom: 24,
       }}>
         <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 600, letterSpacing: "0.08em", opacity: 0.65, textTransform: "uppercase" }}>
-          Welcome to Uplift Summer 2026
+          Welcome to Uplift Fall 2026
         </p>
         <p style={{ margin: "0 0 14px", fontSize: 21, fontWeight: 700, lineHeight: 1.3 }}>
           {mentee.first}, we're so excited to have you.
         </p>
         <p style={{ margin: "0 0 20px", fontSize: 14, lineHeight: 1.8, opacity: 0.9 }}>
-          We're thrilled you've been accepted into this program and honored to be a small part of your entrepreneurial journey. This summer is going to be big — let's make the most of it.
+          We're thrilled you've been accepted into this program and honored to be a small part of your entrepreneurial journey. This fall is going to be big. Let's make the most of it.
         </p>
         {cohort && (
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 18 }}>
             <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", opacity: 0.6 }}>
-              You've been placed in Cohort {cohort.num} — {cohort.name}
+              You've been placed in Cohort {cohort.num} · {cohort.name}
             </p>
             <p style={{ margin: "0 0 10px", fontSize: 16, fontWeight: 700 }}>{cohort.namesake}</p>
             <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7, opacity: 0.85 }}>{cohort.why}</p>
@@ -940,69 +1094,110 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
         )}
       </div>
 
-      {/* Action items */}
-      <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
-        <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
-          Action Items This Week
+      {/* Confirm participation, right after the welcome */}
+      <ParticipationWidget slug={slug} onAccepted={onParticipationAccepted} participationConfirmed={milestones?.participation} />
+
+
+      {/* Week 1 flow: welcome → confirm → session → deep work → bonuses */}
+      <Step num={2} title="Pick your onboarding session" chip="Required" defaultOpen>
+      <ActionItems slug={slug} weekNum={1} items={[
+        { text: "Get acclimated, review your portal and familiarize yourself with the program." },
+        {
+          text: "Register and attend an onboarding session.",
+          sub: "Seven sessions across Wednesday, Thursday, and Friday, all covering the same material. Pick whichever fits your schedule and register through Luma.",
+        },
+        { text: "Complete your onboarding verification quiz and answer your Deep Work to unlock your mentor.", sub: "Steps 2 and 3 below. Your mentor match reveals automatically once all three action items are done." },
+      ]} />
+
+      <EventsSection events={week.events.filter((e) => e.name.startsWith("Welcome & Onboarding"))} note={week.note} footerNote="*You will only receive your mentor match after attending an onboarding session." isOnboarding onboardingVerified={milestones?.onboarding} slug={slug} menteeName={`${mentee.first} ${mentee.last}`.trim()} />
+
+      {/* Get a head start — bonus block, tucked under this week's sessions */}
+      <div style={{ background: "#f7f5ff", borderRadius: 12, border: "1.5px dashed #c8bfef", padding: "16px 20px 4px", marginBottom: 24 }}>
+        <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+          🎁 Psst. Get a head start
         </p>
-        {[
-          { text: "Get acclimated — review your portal and familiarize yourself with the program." },
-          {
-            text: "Register and attend an onboarding session.",
-            sub: cohort
-              ? `We encourage you to attend the Cohort ${cohort.num} — ${cohort.name} session to meet your peers. We understand everyone's schedules are different — any of the five sessions will be accepted. Register through Luma.`
-              : "We encourage you to attend your cohort's session to meet your peers. We understand everyone's schedules are different — any of the five sessions will be accepted. Register through Luma.",
-          },
-          { text: "Start mapping your asks, your needs, and what you're looking for from your mentor.", sub: "Please review and refine your goals below and take some time to answer the prompts before your first meeting." },
-        ].map((item, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 2 ? 12 : 0 }}>
-            <div style={{
-              width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-              background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
-              color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 11, fontWeight: 700, marginTop: 1,
-            }}>
-              {i + 1}
-            </div>
-            <div>
-              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>{item.text}</p>
-              {item.sub && <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9b8fcf", lineHeight: 1.5, fontStyle: "italic" }}>{item.sub}</p>}
-            </div>
-          </div>
-        ))}
+        <p style={{ margin: "0 0 12px", fontSize: 13, color: "#6b6480", lineHeight: 1.6 }}>
+          Two ways to get ahead in Week 1. Neither is required; both are worth it.
+        </p>
+        <EventsSection events={week.events.filter((e) => !e.name.startsWith("Welcome & Onboarding"))} slug={slug} menteeName={`${mentee.first} ${mentee.last}`.trim()} />
       </div>
 
-      <EventsSection events={week.events} note={week.note} footerNote="*You will only receive your mentor match after attending an onboarding session." isOnboarding onboardingVerified={milestones?.onboarding} slug={slug} menteeName={`${mentee.first} ${mentee.last}`.trim()} />
+      </Step>
 
-      {/* Mentor reveal status */}
-      {mentorUnlocked ? (
-        <div style={{
-          background: "#f0faf5", borderRadius: 12, border: "1px solid #b8e8d0",
-          padding: "16px 22px", marginBottom: 24, display: "flex", alignItems: "center", gap: 12,
-        }}>
-          <span style={{ fontSize: 22 }}>🎉</span>
-          <div>
-            <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 14, color: "#1a6e42" }}>
-              Your mentor has been unlocked!
-            </p>
-            <p style={{ margin: 0, fontSize: 13, color: "#22a366" }}>
-              Head to Week 2 to meet them and prepare for your first meeting.
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div style={{
-          background: "#f7f5ff", borderRadius: 12, border: "2px dashed #c8bfef",
-          padding: "22px 26px", marginBottom: 24,
-        }}>
-          <p style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 15, color: "#3d2f8a" }}>
-            🔒 Your mentor reveal is pending
+      <Step num={3} title="📝 The Onboarding Quiz" chip="Required">
+        <QuizCheck slug={slug} />
+      </Step>
+
+      <Step num={3} title="🧠 Deep Work · Your action items from onboarding" chip="Required" locked={!quizPassed} lockedNote="Unlocks after a 10/10 on the onboarding quiz above.">
+      {/* Application snapshot — pulled straight from the fall Typeform, the ingest reference */}
+      {mentee.application && (
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "24px 28px", marginBottom: 24 }}>
+          <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
+            A quick reminder from your application
           </p>
-          <p style={{ margin: 0, fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
-            We'll unlock your mentor match after we've completed onboarding sessions. It will appear automatically in <strong>Week 2</strong> — no action needed from you.
+          <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "#1a1733" }}>
+            {mentee.company} · {mentee.application.title}
+          </p>
+          <p style={{ margin: "0 0 14px", fontSize: 14, color: "#6b6480", fontStyle: "italic", lineHeight: 1.6 }}>
+            &ldquo;{mentee.application.bio}&rdquo;
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+            {[mentee.application.journeyStage, mentee.stage, mentee.industry,
+              mentee.application.snapshot?.revenueRange,
+              mentee.application.snapshot?.lookingForCustomers && "Looking for customers",
+              mentee.application.snapshot?.seekingPartnerships && "Seeking partnerships",
+            ].filter(Boolean).map((chip, i) => (
+              <span key={i} style={{ background: "#f0ecff", color: "#5c4eb5", borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 500 }}>{chip}</span>
+            ))}
+          </div>
+          {[
+            ["Hoping to accomplish", mentee.application.hopingToAccomplish],
+            ["What success looks like", (mentee.application.successCriteria || []).join(" · ")],
+            ["Your mentor ask", mentee.application.valueSought],
+            ["Logistics", [mentee.application.sessionTier, (mentee.application.timePreference || []).join(", "), (mentee.application.meetingMethod || []).join(", ")].filter(Boolean).join(" · ")],
+          ].map(([label, val]) => val ? (
+            <div key={label} style={{ borderTop: "1px solid #f0edf9", paddingTop: 10, marginTop: 10 }}>
+              <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5c4eb5" }}>{label}</p>
+              <p style={{ margin: 0, fontSize: 13.5, color: "#37324e", lineHeight: 1.6 }}>{val}</p>
+            </div>
+          ) : null)}
+          <p style={{ margin: "14px 0 0", fontSize: 12, color: "#9b8fcf", fontStyle: "italic" }}>
+            Something changed since you applied? Update it in your goals reflection below, or tell us at uplift@techunited.co.
           </p>
         </div>
       )}
+
+      {/* The five guarantees — every founder leaves with these */}
+      <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "24px 28px", marginBottom: 24, borderLeft: "4px solid #5c4eb5" }}>
+        <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
+          A reminder from onboarding
+        </p>
+        <p style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 700, color: "#1a1733" }}>
+          Every founder leaves Uplift with five things.
+        </p>
+        <p style={{ margin: "0 0 20px", fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
+          Define what each one means to you, in a sentence or less. This helps us better curate a program that is ultimately self-guided, and put the right tools in front of you.
+        </p>
+        {[
+          { key: "five_relationship", emoji: "🤝", label: "A stronger relationship" },
+          { key: "five_clarity",      emoji: "🎯", label: "Greater clarity" },
+          { key: "five_resources",    emoji: "🛠️", label: "New resources" },
+          { key: "five_mentor",       emoji: "👤", label: "A trusted mentor" },
+          { key: "five_community",    emoji: "🏠", label: "A community" },
+        ].map((g) => (
+          <div key={g.key} style={{ marginBottom: 18 }}>
+            <p style={{ margin: "0 0 8px", fontSize: 14, fontWeight: 700, color: "#1a1733" }}>
+              <span style={{ marginRight: 8 }}>{g.emoji}</span>{g.label}
+            </p>
+            <AutoTextarea
+              storageKey={`${slug}_w1_${g.key}`}
+              placeholder="In a sentence: what this means to me…"
+              slug={slug} weekNum={1} fieldKey={g.key} rows={2}
+              question={`What does "${g.label}" mean to you? A sentence or less.`}
+            />
+          </div>
+        ))}
+      </div>
 
       {/* Goals card */}
       <div style={{
@@ -1048,7 +1243,7 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
           Based on what you've told us, here's where we'll focus this summer.
         </p>
         <p style={{ margin: "0 0 20px", fontSize: 13, color: "#9b8fcf", fontStyle: "italic" }}>
-          Be as specific as you can — your answers here will be revisited at the end of the cohort so you can see how far you've come.
+          A reminder: in your application you told us your focus areas. Now let's get specific and more granular on your primary and secondary focus. Your answers here will be revisited at the end of the program so you can see how far you've come.
         </p>
 
         <div style={{ marginBottom: 20 }}>
@@ -1056,32 +1251,32 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
             Let's get more granular with your goals.
           </p>
           <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#5c4eb5", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            Primary focus — {mentee.primaryFocus}
+            Primary focus · {mentee.primaryFocus}
           </p>
           <p style={{ margin: "0 0 8px", fontSize: 14, color: "#6b6480" }}>
-            What does real progress on this look like for you by August?
+            What does real progress on this look like for you by November?
           </p>
           <AutoTextarea
             storageKey={`${slug}_w1_primary_refine`}
             placeholder="e.g. I want to close my first 3 paying customers and have a clear pricing model…"
             slug={slug} weekNum={1} fieldKey="primary_refine" rows={3}
-            question="What does real progress on your primary focus look like for you by August?"
+            question="What does real progress on your primary focus look like for you by November?"
           />
         </div>
 
         {mentee.secondaryFoci && mentee.secondaryFoci.length > 0 && (
           <div style={{ marginBottom: 20 }}>
             <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#2a7fd4", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              Secondary focus — {mentee.secondaryFoci[0]}
+              Secondary focus · {mentee.secondaryFoci[0]}
             </p>
             <p style={{ margin: "0 0 8px", fontSize: 14, color: "#6b6480" }}>
-              What's the one thing that would move the needle here this summer?
+              What's the one thing that would move the needle here this fall?
             </p>
             <AutoTextarea
               storageKey={`${slug}_w1_secondary_refine`}
               placeholder="e.g. I want to have at least one investor conversation and understand what they'd need to see…"
               slug={slug} weekNum={1} fieldKey="secondary_refine" rows={3}
-              question="What's the one thing that would move the needle on your secondary focus this summer?"
+              question="What's the one thing that would move the needle on your secondary focus this fall?"
             />
           </div>
         )}
@@ -1094,14 +1289,11 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
       <div style={{ marginBottom: 14 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
           <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "#3d2f8a" }}>
-            Prompts to Think About During Onboarding Week
+            Deep Work · Prompts to Think About During Week 1
           </p>
-          <span style={{ background: "#f0ecff", color: "#9b8fcf", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
-            Optional
-          </span>
         </div>
         <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf", lineHeight: 1.5 }}>
-          Take a moment with these — there are no right answers. At the end of the program, we'll reflect them back to you as part of your Uplift Wrapped.
+          No longer optional. Take a moment with these; there are no right answers. These prompts are all deep work: the more you put in, the more you get out.
         </p>
       </div>
       <PromptBlock
@@ -1109,6 +1301,41 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
         questions={prompts[0].questions}
         slug={slug} weekNum={1} blockIndex={0} accentColor="#5c4eb5"
       />
+      </Step>
+
+      {/* Mentor reveal status */}
+      {mentorUnlocked ? (
+        <div style={{
+          background: "#f0faf5", borderRadius: 12, border: "1px solid #b8e8d0",
+          padding: "16px 22px", marginBottom: 24, display: "flex", alignItems: "center", gap: 12,
+        }}>
+          <span style={{ fontSize: 22 }}>🎉</span>
+          <div>
+            <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 14, color: "#1a6e42" }}>
+              Your mentor has been unlocked!
+            </p>
+            <p style={{ margin: 0, fontSize: 13, color: "#22a366" }}>
+              Head to Week 2 to meet them and prepare for your Discover meeting.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div style={{
+          background: "#f7f5ff", borderRadius: 12, border: "2px dashed #c8bfef",
+          padding: "22px 26px", marginBottom: 24,
+        }}>
+          <p style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 15, color: "#3d2f8a" }}>
+            🔒 Your mentor reveal is pending
+          </p>
+          <p style={{ margin: 0, fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
+            Your mentor unlocks once you've attended an onboarding session, completed your Week 1 Deep Work, and passed the onboarding quiz. It will appear automatically in <strong>Week 2</strong>, no action needed from you. Once everything is wrapped, we cross-reference your Week 1 Deep Work to double-check and validate the match, and to flag anything that might need adjusting.
+          </p>
+        </div>
+      )}
+
+
+
+
     </div>
   );
 }
@@ -1127,37 +1354,17 @@ function Week2({ mentee, slug, mentorUnlocked, holding }) {
       {/* Mentor card */}
       <MentorCard mentee={mentee} revealed={mentorUnlocked} holding={holding} />
 
-      {/* Action items */}
-      <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
-        <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
-          Action Items This Week
-        </p>
-        {[
-          { text: "Schedule your first meeting with your mentor." },
-          { text: "Participate in your first mentorship session." },
-          { text: "Attend one of this week's sessions — check them out below." },
-          { text: "Take some time to think about the prompts below." },
-          { text: "Submit your first mentor meeting." },
-        ].map((item, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 4 ? 12 : 0 }}>
-            <div style={{
-              width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-              background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
-              color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 11, fontWeight: 700, marginTop: 1,
-            }}>
-              {i + 1}
-            </div>
-            <div>
-              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>{item.text}</p>
-              {item.sub && <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9b8fcf", lineHeight: 1.5, fontStyle: "italic" }}>{item.sub}</p>}
-            </div>
-          </div>
-        ))}
-        <p style={{ margin: "14px 0 0", fontSize: 11, color: "#9b8fcf", fontStyle: "italic" }}>
-          *You must attend a minimum of 3 virtual educational sessions by the end of this program.
-        </p>
-      </div>
+      <ActionItems slug={slug} weekNum={2} footnote="*You must attend a minimum of 3 virtual educational sessions by the end of this program." items={[
+        { text: "Verify you completed all the prompts and Deep Work in Week 1. This is required to unlock your mentor." },
+        { text: "Review the suggested structure of your meetings, in the guide below, then confirm you've reviewed it." },
+        { text: "Respond to your mentor within 72 hours of being matched." },
+        { text: "Schedule your first meeting within 7 days of that." },
+        { text: "Attend one of this week's sessions, check them out below." },
+        { text: "Continue your deep work in the portal." },
+        { text: "Submit your meeting after you have it." },
+        { text: "Do your 10-second pulse check at the top of this page (required)." },
+        { text: "Share a Win of the Week (optional): any win you submit goes out in Tuesday's update." },
+      ]} />
 
       {/* Reminder — above the submit button */}
       <p style={{
@@ -1165,7 +1372,7 @@ function Week2({ mentee, slug, mentorUnlocked, holding }) {
         background: "#fffbeb", border: "1px solid #f5d97a",
         borderRadius: 8, padding: "10px 16px", marginBottom: 14, fontStyle: "italic",
       }}>
-        All pairs should meet for 1 hour by the end of this week.
+        Discover (Meeting 1) is due within 7 days of your match.
       </p>
 
       {/* Submit meeting button */}
@@ -1176,18 +1383,19 @@ function Week2({ mentee, slug, mentorUnlocked, holding }) {
           fontSize: 16, fontWeight: 700, textDecoration: "none",
           boxShadow: "0 4px 14px rgba(92,78,181,0.35)",
         }}>
-          Submit your 1st mentor meeting →
+          Submit your first meeting →
         </a>
       </div>
 
       {/* Sessions */}
+      <MeetingStructureCheck slug={slug} />
       <EventsSection events={week.events} slug={slug} menteeName={`${mentee.first} ${mentee.last}`.trim()} />
 
       {/* Pre-meeting reflection */}
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
           <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#5c4eb5", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-            Pre-Meeting Prompts
+            Deep Work · Pre-Meeting Prompts
           </p>
           <span style={{ background: "#f0ecff", color: "#9b8fcf", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 600, flexShrink: 0 }}>
             Optional
@@ -1211,14 +1419,14 @@ function Week2({ mentee, slug, mentorUnlocked, holding }) {
         </div>
       ))}
       <p style={{ fontSize: 12, color: "#b0a8cc", fontStyle: "italic", marginBottom: 36, lineHeight: 1.6 }}>
-        *These notes are not shared with your mentor — they're intended for you to help surface what you might want to talk about in your first meeting.
+        *These notes are not shared with your mentor. They're intended for you, to help surface what you might want to talk about in your first meeting.
       </p>
 
       {/* Week 1 sense-check recap */}
       {w1Goals && (
         <div style={{ background: "#f0faf5", borderRadius: 12, border: "1px solid #b8e8d0", padding: "22px 26px" }}>
           <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: 14, color: "#1a6e42" }}>
-            Here's what you said in the sense check — Week 1:
+            Here's what you said in the sense check · Week 1:
           </p>
           <p style={{ margin: 0, fontSize: 14, color: "#1a4a32", lineHeight: 1.7 }}>{w1Goals}</p>
         </div>
@@ -1230,16 +1438,13 @@ function Week2({ mentee, slug, mentorUnlocked, holding }) {
 // ─── Weekly pulse check-in ────────────────────────────────────────────────────
 // Use new Date(y,m,d) (local midnight) — never ISO strings, which parse as UTC and shift the display date
 const PULSE_WINDOWS = [
-  { week: 1, start: new Date(2026, 5,  1), end: new Date(2026, 5,  6, 23, 59, 59) },
-  { week: 2, start: new Date(2026, 5,  8), end: new Date(2026, 5, 13, 23, 59, 59) },
-  { week: 3, start: new Date(2026, 5, 15), end: new Date(2026, 5, 20, 23, 59, 59) },
-  { week: 4, start: new Date(2026, 5, 22), end: new Date(2026, 5, 27, 23, 59, 59) },
-  { week: 5, start: new Date(2026, 5, 29), end: new Date(2026, 6,  4, 23, 59, 59) },
-  { week: 6, start: new Date(2026, 6,  6), end: new Date(2026, 6, 11, 23, 59, 59) },
-  { week: 7, start: new Date(2026, 6, 13), end: new Date(2026, 6, 18, 23, 59, 59) },
-  { week: 8, start: new Date(2026, 6, 19), end: new Date(2026, 6, 25, 23, 59, 59) },
-  { week: 9, start: new Date(2026, 6, 27), end: new Date(2026, 6, 31, 23, 59, 59) },
-  { week: 10, start: new Date(2026, 7,  3), end: new Date(2026, 7,  4, 23, 59, 59) },
+  { week: 2, start: new Date(2026, 8, 14), end: new Date(2026, 8, 20, 23, 59, 59) },
+  { week: 3, start: new Date(2026, 8, 21), end: new Date(2026, 8, 27, 23, 59, 59) },
+  { week: 4, start: new Date(2026, 8, 28), end: new Date(2026, 9,  4, 23, 59, 59) },
+  { week: 5, start: new Date(2026, 9,  5), end: new Date(2026, 9, 11, 23, 59, 59) },
+  { week: 6, start: new Date(2026, 9, 12), end: new Date(2026, 9, 25, 23, 59, 59) },
+  { week: 7, start: new Date(2026, 9, 26), end: new Date(2026, 10, 1, 23, 59, 59) },
+  { week: 8, start: new Date(2026, 10, 2), end: new Date(2026, 10, 6, 23, 59, 59) },
 ];
 
 function fmtPulseDate(d) {
@@ -1252,11 +1457,9 @@ function fmtPulseDate(d) {
 }
 
 const PULSE_RATINGS = [
-  { value: 1, emoji: "😌", label: "Could be better" },
-  { value: 2, emoji: "🙂", label: "Getting there" },
-  { value: 3, emoji: "😊", label: "Feeling good" },
-  { value: 4, emoji: "😄", label: "Feeling great" },
-  { value: 5, emoji: "🚀", label: "Crushing it" },
+  { value: 3, emoji: "🟢", label: "A-okay" },
+  { value: 2, emoji: "🟡", label: "Okay, but a check-in would be nice" },
+  { value: 1, emoji: "🔴", label: "Not going as planned" },
 ];
 
 function WeeklyPulse({ slug, weekNum }) {
@@ -1323,7 +1526,7 @@ function WeeklyPulse({ slug, weekNum }) {
           ))}
         </div>
         <p style={{ margin: 0, fontSize: 11, color: "#b0a8cc", fontStyle: "italic" }}>
-          🔒 Unlocks {fmtPulseDate(win.start)} — available until {fmtPulseDate(win.end)}.
+          🔒 Unlocks {fmtPulseDate(win.start)}, available until {fmtPulseDate(win.end)}.
         </p>
       </div>
     );
@@ -1408,7 +1611,7 @@ function WeeklyPulse({ slug, weekNum }) {
           <span style={{ fontSize: 20 }}>{PULSE_RATINGS[selected - 1]?.emoji}</span>
           <div>
             <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 600, color: "#5c4eb5" }}>
-              ✓ Response updated — you&apos;ve used your one change for this week.
+              ✓ Response updated, you&apos;ve used your one change for this week.
             </p>
             <p style={{ margin: 0, fontSize: 11, color: "#9b8fcf" }}>
               Your response: {PULSE_RATINGS[selected - 1]?.label}
@@ -1467,12 +1670,12 @@ function WeeklyFocus({ slug, weekNum }) {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
           <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#9b8fcf" }}>
-            Share what you&apos;re focused on this week.
+            Deep Work · What are you focused on this week?
           </p>
           <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 600, background: "#f0ecff", borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>Optional</span>
         </div>
         <p style={{ margin: "0 0 10px", fontSize: 12, color: "#c0b8d8", lineHeight: 1.6 }}>
-          Whether it&apos;s a small goal, a project, or a deadline — share what you&apos;re building or working on. If there&apos;s a program participant working on the same thing or something similar, we&apos;ll connect you.
+          Whether it&apos;s a small goal, a project, or a deadline, share what you&apos;re building or working on. If there&apos;s a program participant working on the same thing or something similar, we&apos;ll connect you.
         </p>
         <div style={{
           background: "#f7f5ff", borderRadius: 8, padding: "12px 16px",
@@ -1494,7 +1697,7 @@ function WeeklyFocus({ slug, weekNum }) {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: savedValue ? 8 : 0 }}>
           <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#6b6480" }}>
-            Share what you&apos;re focused on this week.
+            Deep Work · What are you focused on this week?
           </p>
           <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 600, background: "#f0ecff", borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>
             Closed
@@ -1517,14 +1720,14 @@ function WeeklyFocus({ slug, weekNum }) {
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
         <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1a1733" }}>
-          Share what you&apos;re focused on this week.
+          Deep Work · What are you focused on this week?
         </p>
         <span style={{ fontSize: 10, color: "#9b8fcf", fontWeight: 600, background: "#f0ecff", borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>
           Optional
         </span>
       </div>
       <p style={{ margin: "0 0 12px", fontSize: 12, color: "#9b8fcf", lineHeight: 1.7 }}>
-        Whether it&apos;s a small goal, a project, or a deadline — share what you&apos;re building or working on. If there&apos;s a program participant working on the same thing or something similar, we&apos;ll connect you. · Available {fmtPulseDate(win.start)} – {fmtPulseDate(win.end)}.
+        Whether it&apos;s a small goal, a project, or a deadline, share what you&apos;re building or working on. If there&apos;s a program participant working on the same thing or something similar, we&apos;ll connect you. · Available {fmtPulseDate(win.start)} – {fmtPulseDate(win.end)}.
       </p>
       <AutoTextarea
         storageKey={storageKey}
@@ -1540,6 +1743,95 @@ function WeeklyFocus({ slug, weekNum }) {
 }
 
 // ─── Journey progress bar ─────────────────────────────────────────────────────
+// ─── Win of the Week ──────────────────────────────────────────────────────────
+// Any submitted win goes out in the Tuesday update to all mentors and mentees.
+function WinOfTheWeek({ slug, weekNum }) {
+  const storageKey = `${slug}_w${weekNum}_win_of_week`;
+  const [value, setValue] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(storageKey);
+    setValue(saved || "");
+    setSubmitted(!!(saved && saved.trim()));
+    setEditing(false);
+  }, [storageKey]);
+
+  const handleSubmit = () => {
+    if (!value.trim()) return;
+    localStorage.setItem(storageKey, value);
+    persistToSheet(slug, weekNum, "win_of_week", value, "Win of the Week");
+    setSubmitted(true);
+    setEditing(false);
+  };
+
+  return (
+    <div style={{
+      background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5",
+      borderLeft: "4px solid #c99a2e", padding: "18px 22px", marginBottom: 20,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#a37c1f" }}>
+          🏆 Win of the Week
+        </p>
+        <span style={{ background: "#fdf6e3", color: "#a37c1f", borderRadius: 4, padding: "1px 7px", fontSize: 10, fontWeight: 700 }}>
+          OPTIONAL
+        </span>
+      </div>
+      <p style={{ margin: "0 0 12px", fontSize: 13, color: "#6b6480", lineHeight: 1.6 }}>
+        Big or small, share a win. Every win submitted goes out in our <strong style={{ color: "#1a1733" }}>Tuesday update to all mentors and mentees</strong>, so the whole community sees what you&apos;re building.
+      </p>
+      {submitted && !editing ? (
+        <div>
+          <div style={{ background: "#fdf6e3", borderRadius: 8, padding: "12px 16px", marginBottom: 10 }}>
+            <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>{value}</p>
+          </div>
+          <p style={{ margin: 0, fontSize: 12.5, color: "#1a7a4a", fontWeight: 600 }}>
+            ✓ In! Your win goes out in Tuesday&apos;s update.{" "}
+            <button onClick={() => setEditing(true)} style={{
+              border: "none", background: "none", color: "#5c4eb5", fontWeight: 600,
+              fontSize: 12.5, cursor: "pointer", textDecoration: "underline", fontFamily: "inherit", padding: 0,
+            }}>
+              Edit
+            </button>
+          </p>
+        </div>
+      ) : (
+        <div>
+          <textarea
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            rows={2}
+            placeholder="e.g. Landed my first paying customer, closed a partnership, had a breakthrough mentor conversation…"
+            style={{
+              width: "100%", padding: "10px 14px", borderRadius: 8,
+              border: "1.5px solid #e8e4f5", fontSize: 14, lineHeight: 1.5,
+              fontFamily: "inherit", boxSizing: "border-box", outline: "none", resize: "vertical",
+            }}
+            onFocus={(e) => e.currentTarget.style.borderColor = "#c99a2e"}
+            onBlur={(e) => e.currentTarget.style.borderColor = "#e8e4f5"}
+          />
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8 }}>
+            <button onClick={handleSubmit} disabled={!value.trim()} style={{
+              border: "none", borderRadius: 8, padding: "8px 18px",
+              background: value.trim() ? "#c99a2e" : "#e8e4f5",
+              color: value.trim() ? "#fff" : "#9b8fcf",
+              fontSize: 13, fontWeight: 700, cursor: value.trim() ? "pointer" : "default",
+              fontFamily: "inherit",
+            }}>
+              Submit my win
+            </button>
+            <span style={{ fontSize: 11.5, color: "#9b8fcf", fontStyle: "italic" }}>
+              Goes out Tuesday. Skip any week you like.
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function JourneyProgressBar({ slug, activeWeek }) {
   const [completedWeeks, setCompletedWeeks] = useState(0);
   const [weekPrompts, setWeekPrompts] = useState(0);
@@ -1547,7 +1839,7 @@ function JourneyProgressBar({ slug, activeWeek }) {
   useEffect(() => {
     let done = 0;
     let thisWeekFilled = 0;
-    for (let w = 1; w <= 10; w++) {
+    for (let w = 1; w <= 8; w++) {
       let weekHasAny = false;
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -1565,7 +1857,7 @@ function JourneyProgressBar({ slug, activeWeek }) {
     setWeekPrompts(thisWeekFilled);
   }, [slug, activeWeek]);
 
-  const pct = (completedWeeks / 9) * 100;
+  const pct = (completedWeeks / 8) * 100;
 
   return (
     <div style={{
@@ -1576,7 +1868,7 @@ function JourneyProgressBar({ slug, activeWeek }) {
       <div style={{ flex: 1 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: "#5c4eb5" }}>
-            {completedWeeks} of 10 weeks with responses
+            {completedWeeks} of 8 weeks with responses
           </span>
           <span style={{ fontSize: 11, color: "#9b8fcf" }}>
             {weekPrompts} {weekPrompts === 1 ? "prompt" : "prompts"} filled this week
@@ -1594,8 +1886,92 @@ function JourneyProgressBar({ slug, activeWeek }) {
   );
 }
 
-// ─── Generic reflection week ──────────────────────────────────────────────────
-function WeekReflection({ weekNum, slug, prompts, menteeName }) {
+// ─── Generic reflection week (Fall 2026) ─────────────────────────────────────
+function ActionItems({ slug, weekNum, items, footnote }) {
+  const storageKey = `${slug}_w${weekNum}_actions`;
+  const [checked, setChecked] = useState({});
+  useEffect(() => {
+    try { setChecked(JSON.parse(localStorage.getItem(storageKey) || "{}")); } catch { setChecked({}); }
+  }, [storageKey]);
+  const toggle = (i, label) => {
+    setChecked(prev => {
+      const next = { ...prev, [i]: !prev[i] };
+      localStorage.setItem(storageKey, JSON.stringify(next));
+      persistToSheet(slug, weekNum, `action_${i + 1}`, next[i] ? "done" : "", label);
+      return next;
+    });
+  };
+  return (
+    <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
+      <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+        Action Items This Week
+      </p>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#f5f3ff", borderRadius: 8, padding: "8px 12px", marginBottom: 14 }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
+          <span style={{ width: 16, height: 16, borderRadius: "50%", background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800 }}>1</span>
+          <span style={{ fontSize: 11, color: "#9b8fcf", fontWeight: 700 }}>→</span>
+          <span style={{ width: 16, height: 16, borderRadius: "50%", background: "#22a366", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800 }}>✓</span>
+        </span>
+        <p style={{ margin: 0, fontSize: 11.5, color: "#3d2f8a", lineHeight: 1.5 }}>
+          Tap each item to check it off; it saves as you go. These are yours to do, and your way to verify what you&apos;re getting done.
+        </p>
+      </div>
+      {items.map((item, i, arr) => (
+        <div key={i} onClick={() => toggle(i, item.text)} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < arr.length - 1 ? 12 : 0, cursor: "pointer" }}>
+          <div style={{
+            width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+            background: checked[i] ? "#22a366" : "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
+            color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 11, fontWeight: 700, marginTop: 1,
+          }}>
+            {checked[i] ? "✓" : i + 1}
+          </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ margin: 0, fontSize: 14, color: checked[i] ? "#9b8fcf" : "#1a1733", lineHeight: 1.6 }}>
+              {item.text}
+              {item.link && <a href={item.link.href} onClick={(e) => e.stopPropagation()} style={{ color: "#5c4eb5", fontWeight: 600 }}>{item.link.label}</a>}
+              {item.suffix}
+            </p>
+            {item.sub && <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9b8fcf", lineHeight: 1.5, fontStyle: "italic" }}>{item.sub}</p>}
+          </div>
+        </div>
+      ))}
+      {footnote && (
+        <p style={{ margin: "14px 0 0", fontSize: 11, color: "#9b8fcf", fontStyle: "italic" }}>{footnote}</p>
+      )}
+    </div>
+  );
+}
+
+function SubmitMeetingButton({ label }) {
+  return (
+    <div style={{ textAlign: "center", marginBottom: 24 }}>
+      <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{
+        display: "inline-block", padding: "14px 36px",
+        background: "#5c4eb5", color: "#fff", borderRadius: 10,
+        fontSize: 16, fontWeight: 700, textDecoration: "none",
+        boxShadow: "0 4px 14px rgba(92,78,181,0.35)",
+      }}>
+        {label} →
+      </a>
+      <p style={{ margin: "10px 0 0", fontSize: 12, color: "#9b8fcf", fontStyle: "italic" }}>
+        The form asks for the date, the length, and your notes. Works with your AI note-taker or your own written notes.
+      </p>
+    </div>
+  );
+}
+
+function SessionsTBD() {
+  return (
+    <div style={{ background: "#fff", borderRadius: 12, border: "1px dashed #d4d0e8", padding: "16px 22px", marginBottom: 24 }}>
+      <p style={{ margin: 0, fontSize: 13, color: "#6b6480", lineHeight: 1.6 }}>
+        📅 Educational sessions run Mon 12:30&ndash;1, Tue 5:30&ndash;6, and Fri 12:30&ndash;1. This week&apos;s lineup gets announced on TechUnited&apos;s Luma page and will appear here once booked.
+      </p>
+    </div>
+  );
+}
+
+function WeekReflection({ weekNum, slug, prompts, menteeName, milestones }) {
   const trackEventClick = (title, url) => {
     if (!slug) return;
     fetch("/api/track-event", {
@@ -1605,50 +1981,118 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
     }).catch(() => {});
   };
   const week = WEEKS.find((w) => w.num === weekNum);
+  const eduDone = [milestones?.edu1, milestones?.edu2, milestones?.edu3].filter(Boolean).length;
 
-  // Week 9: last call before the Summit — action items + sessions
-  if (weekNum === 9) {
+  // Week 2 (Act): the second meeting, on a 10-day clock from Discover
+  if (weekNum === 3) {
     return (
       <div>
-        {/* Action items */}
-        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
-          <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
-            Action Items This Week
-          </p>
-          {[
-            { text: "This is your last chance to complete any remaining mentor sessions (3 total / 180 minutes) or educational sessions (3 total) before the Summit." },
-            { text: "Use this week's Mentor Office Hours and Coffee Meetup to knock out any final 1:1 time with your mentor." },
-            { text: "Reach out to ", link: { label: "uplift@techunited.co", href: "mailto:uplift@techunited.co" }, suffix: " immediately if you're behind — we want every founder in the room on Summit day." },
-          ].map((item, i, arr) => (
-            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < arr.length - 1 ? 12 : 0 }}>
-              <div style={{
-                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-                background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
-                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 11, fontWeight: 700, marginTop: 1,
-              }}>
-                {i + 1}
-              </div>
-              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>
-                {item.text}
-                {item.link && <a href={item.link.href} style={{ color: "#5c4eb5", fontWeight: 600 }}>{item.link.label}</a>}
-                {item.suffix}
-              </p>
-            </div>
-          ))}
-        </div>
+        <Tagline text={week.tagline} type={week.taglineType} />
+        <ActionItems slug={slug} weekNum={weekNum} items={[
+          { text: "Hold your Act meeting (Meeting 2): turn Discover (Meeting 1) into a move. One decision made, or one experiment shipped." },
+          { text: "Submit the meeting below right after it happens." },
+          { text: "Educational sessions continue to be live this week. Register through Luma and lock them into your calendar." },
+          { text: "Do your 10-second pulse check at the top of this page (required)." },
+          { text: "Share a Win of the Week (optional): any win you submit goes out in Tuesday's update." },
+        ]} />
+        <SubmitMeetingButton label={week.submitLabel} />
+        <EventsSection events={week.events} slug={slug} menteeName={menteeName} eduDone={eduDone} />
+        <WeeklyFocus slug={slug} weekNum={3} />
 
-        <Tagline text={week.tagline} type={week.type} />
-        <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
-        <ConnectBlock events={week.events} slug={slug} menteeName={menteeName} />
       </div>
     );
   }
 
-  // Week 10: closing / Summit content
-  if (weekNum === 10) {
-    const summit = week.events.find((e) => e.required);
-    const bonusSessions = week.events.filter((e) => !e.required && e.kind !== "connect");
+  // Week 3 (Deep Work begins)
+  if (weekNum === 4) {
+    return (
+      <div>
+        <Tagline text={week.tagline} />
+
+        {/* Deep Work intro */}
+        <div style={{ background: "#f5f3ff", borderRadius: 12, padding: "20px 24px", marginBottom: 24 }}>
+          <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+            The Middle Stretch
+          </p>
+          <p style={{ margin: 0, fontSize: 14, color: "#3d2f8a", lineHeight: 1.7 }}>
+            The next three weeks are the middle stretch: educational sessions every week, a pulse check every week, and your Roadmap meeting on the horizon. The prompts in this stretch are all deep work. <strong>The more you put in, the more you get out.</strong>
+          </p>
+        </div>
+
+        <ActionItems slug={slug} weekNum={weekNum} items={[
+          { text: "Complete at least 1 of your 3 educational sessions by October 1." },
+          { text: "Keep momentum with your mentor between meetings: a quick email update beats silence." },
+          { text: "Do your 10-second pulse check at the top of this page (required)." },
+          { text: "Share a Win of the Week (optional): any win you submit goes out in Tuesday's update." },
+        ]} />
+        <EventsSection events={week.events} slug={slug} menteeName={menteeName} eduDone={eduDone} />
+        <WeeklyFocus slug={slug} weekNum={4} />
+
+        {prompts && prompts[0] && (
+          <PromptBlock
+            theme={prompts[0].theme}
+            questions={prompts[0].questions}
+            slug={slug} weekNum={4} blockIndex={0} accentColor="#5c4eb5"
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Week 4 (Deep Work, middle)
+  if (weekNum === 5) {
+    return (
+      <div>
+        <Tagline text={week.tagline} />
+        <ActionItems slug={slug} weekNum={weekNum} items={[
+          { text: "Knock out your second educational session if you haven't yet." },
+          { text: "Start thinking about Roadmap: what changed since September, and what the next quarter needs." },
+          { text: "Do your 10-second pulse check at the top of this page (required)." },
+          { text: "Share a Win of the Week (optional): any win you submit goes out in Tuesday's update." },
+        ]} />
+        <EventsSection events={week.events} slug={slug} menteeName={menteeName} eduDone={eduDone} />
+        <WeeklyFocus slug={slug} weekNum={5} />
+
+
+        {prompts && prompts[1] && (
+          <>
+            <PromptBlock
+              theme={prompts[1].theme}
+              questions={prompts[1].questions}
+              slug={slug} weekNum={5} blockIndex={1} accentColor="#2a7fd4"
+            />
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // Week 5 (Deep Work · Roadmap due)
+  if (weekNum === 6) {
+    return (
+      <div>
+        <Tagline text={week.tagline} type={week.taglineType} />
+        <ActionItems
+          slug={slug} weekNum={weekNum}
+          items={[
+            { text: "Schedule and hold your Roadmap meeting before October 23. This is the one hard deadline in the program." },
+            { text: "Bring your results from Act, an honest read on what changed since September, and your biggest open question for the next quarter." },
+            { text: "Submit the meeting below right after it happens." },
+            { text: "Do your 10-second pulse check at the top of this page (required)." },
+            { text: "Share a Win of the Week (optional): any win you submit goes out in Tuesday's update." },
+          ]}
+          footnote="*By the end of this stretch you should have all 3 mentor meetings and at least 2 educational sessions done."
+        />
+        <SubmitMeetingButton label={week.submitLabel} />
+        <EventsSection events={week.events} slug={slug} menteeName={menteeName} eduDone={eduDone} />
+        <WeeklyFocus slug={slug} weekNum={6} />
+      </div>
+    );
+  }
+
+  // Week 6 (OverdriveAI, required in-person)
+  if (weekNum === 7) {
+    const overdrive = week.events.find((e) => e.required);
     return (
       <div>
         {/* Attendance required banner */}
@@ -1660,599 +2104,113 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
             Required to complete the program
           </p>
           <p style={{ margin: "0 0 12px", fontSize: 22, fontWeight: 700, lineHeight: 1.3 }}>
-            🎓 Uplift Summit &amp; Graduation
+            🚀 Uplift at OverdriveAI
           </p>
           <p style={{ margin: "0 0 20px", fontSize: 15, lineHeight: 1.7, opacity: 0.9 }}>
-            You <strong>must attend the Summit and Graduation to complete the program</strong> and receive your certificate. This is the finish line — we can't wait to celebrate everything you've built this summer.
+            TechUnited&apos;s marquee event, and your <strong>required in-person moment</strong>. All things future of AI, future of tech, future of New Jersey, and a room full of the exact people who can move your mission forward. This is why Discover, Act, and Roadmap come first.
           </p>
-          {summit && (
+          {overdrive && (
             <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 18, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
               <div>
                 <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, opacity: 0.7, textTransform: "uppercase", letterSpacing: "0.07em" }}>
-                  {summit.day}{summit.time ? ` · ${summit.time}` : ""} · In-Person
+                  {overdrive.day} · In-Person · Newark, NJ
                 </p>
-                <p style={{ margin: 0, fontSize: 14, opacity: 0.85 }}>Antique Lofts, Hoboken, NJ — same spot as our Midpoint Meetup, 2 min walk from the PATH.</p>
+                <p style={{ margin: 0, fontSize: 14, opacity: 0.85 }}>Venue details and agenda land here as they are confirmed.</p>
               </div>
-              <a href={summit.url || "#"} target="_blank" rel="noopener noreferrer"
-                onClick={() => trackEventClick(summit.name || "Uplift Summit & Graduation", summit.url || "")}
+              <a href={overdrive.url || "#"} target="_blank" rel="noopener noreferrer"
+                onClick={() => trackEventClick(overdrive.name || "OverdriveAI", overdrive.url || "")}
                 style={{
                   background: "#fff", color: "#3d2f8a", borderRadius: 8,
                   padding: "10px 20px", fontSize: 13, fontWeight: 700, textDecoration: "none", flexShrink: 0,
                 }}>
-                Register on Luma →
+                RSVP on Luma →
               </a>
             </div>
           )}
         </div>
 
-        {/* By now checklist */}
-        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "24px 28px", marginBottom: 24 }}>
-          <p style={{ margin: "0 0 14px", fontSize: 15, fontWeight: 600, color: "#3d2f8a" }}>By now you should have:</p>
-          <ul style={{ margin: "0 0 18px", paddingLeft: 22, lineHeight: 2.2 }}>
-            <li style={{ fontSize: 14, color: "#1a1733" }}>Met with your mentor for a minimum of 3 hours</li>
-            <li style={{ fontSize: 14, color: "#1a1733" }}>Attended 3 virtual educational sessions</li>
-            <li style={{ fontSize: 14, color: "#1a1733" }}>Logged all 3 mentor meetings</li>
-            <li style={{ fontSize: 14, color: "#1a1733" }}>Completed your end report</li>
+        <SubmitMeetingButton label="Submit additional meetings" />
+
+        {/* A good kind of uncomfortable — deck wording */}
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", borderLeft: "4px solid #c99a2e", padding: "20px 24px", marginBottom: 24 }}>
+          <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#a37c1f" }}>A Good Kind of Uncomfortable</p>
+          <p style={{ margin: 0, fontSize: 14.5, color: "#333", lineHeight: 1.75 }}>
+            Growth is a pressure test. OverdriveAI is your chance to show up a little uncomfortable, on purpose, and put your work in front of people before it feels ready. <strong>Share the ugly baby. That&apos;s how it grows up.</strong>
+          </p>
+        </div>
+
+        {/* Rocket fuel — deck wording */}
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
+          <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>Your Mission, With Rocket Fuel</p>
+          <p style={{ margin: "0 0 12px", fontSize: 14, color: "#333", lineHeight: 1.75 }}>
+            By Oct 27 you&apos;ll walk in with a mission from your Roadmap. Use OverdriveAI as rocket fuel for it:
+          </p>
+          <ul style={{ margin: "0 0 14px", paddingLeft: 22, lineHeight: 2 }}>
+            <li style={{ fontSize: 14, color: "#1a1733" }}>Meet more people</li>
+            <li style={{ fontSize: 14, color: "#1a1733" }}>Sell more things</li>
+            <li style={{ fontSize: 14, color: "#1a1733" }}>Practice your CTA</li>
+            <li style={{ fontSize: 14, color: "#1a1733" }}>Practice your pitch</li>
           </ul>
           <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf", fontStyle: "italic" }}>
-            If anything above is outstanding, contact <a href="mailto:uplift@techunited.co" style={{ color: "#5c4eb5", fontWeight: 600 }}>uplift@techunited.co</a> before the Summit.
+            Attendance is checked in through the portal on the night. Conflict on October 27? Tell us now: <a href="mailto:uplift@techunited.co" style={{ color: "#5c4eb5", fontWeight: 600 }}>uplift@techunited.co</a>.
           </p>
         </div>
 
-        {/* Bonus session */}
-        {bonusSessions.length > 0 && (
-          <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
-            <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9b8fcf" }}>
-              Bonus Session
-            </p>
-            <p style={{ margin: "0 0 14px", fontSize: 13, color: "#9b8fcf", fontStyle: "italic" }}>
-              If you still need one more virtual educational session to hit your 3, this is your chance.
-            </p>
-            {bonusSessions.map((ev, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0" }}>
-                <div style={{ width: 17, height: 17, border: "1.5px solid #c0b8d8", borderRadius: 3, flexShrink: 0 }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ fontWeight: 600, fontSize: 14, color: "#1a1733" }}>{ev.name}</span>
-                  <span style={{ marginLeft: 6, fontSize: 13, color: "#6b6480" }}>— {ev.day}, {ev.time} · {ev.format}</span>
-                </div>
-                <a href={ev.url || "#"} target="_blank" rel="noopener noreferrer"
-                  onClick={() => trackEventClick(ev.name, ev.url || "")}
-                  style={{ fontSize: 13, color: "#2a7fd4", fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>
-                  Register on Luma →
-                </a>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <ConnectBlock events={week.events} slug={slug} menteeName={menteeName} />
-
-        {/* Quote */}
-        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24, borderLeft: "4px solid #5c4eb5" }}>
-          <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.08em" }}>Reflection</p>
-          <p style={{ margin: "0 0 10px", fontSize: 15, fontWeight: 500, color: "#1a1733", lineHeight: 1.5 }}>
-            If you'd like, we would love to share a quote from you on our <a href="https://techunited.org" target="_blank" rel="noopener noreferrer" style={{ color: "#5c4eb5" }}>webpage</a> — your name will be linked.
-          </p>
-          <AutoTextarea storageKey={`${slug}_w10_quote`} placeholder="Share a quote about your Uplift experience…" slug={slug} weekNum={10} fieldKey="quote" rows={3} question="Share a quote about your Uplift experience" />
-        </div>
-      </div>
-    );
-  }
-
-  // Week 4: separate Midpoint Meetup (in-person, Hoboken) from Industry Q&A
-  if (weekNum === 4) {
-    const midpoint = week.events.find((e) => e.required);
-    const others = week.events.filter((e) => !e.required);
-    return (
-      <div>
-        {/* Action items */}
-        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
-          <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
-            Action Items This Week
-          </p>
-          {[
-            { text: "Register and attend the Midpoint Meetup — it's required and in-person. Details below." },
-            { text: "Join us on Friday for a virtual session." },
-          ].map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 1 ? 12 : 0 }}>
-              <div style={{
-                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-                background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
-                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 11, fontWeight: 700, marginTop: 1,
-              }}>
-                {i + 1}
-              </div>
-              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>{item.text}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Weekly focus */}
-        <WeeklyFocus slug={slug} weekNum={4} />
-
-        {midpoint && (
-          <div style={{ marginBottom: 24 }}>
-            {/* Header card */}
-            <div style={{ background: "#f0faf5", borderRadius: 12, border: "2px solid #b8e8d0", padding: "24px 28px", marginBottom: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                <span style={{ background: "#fff3e0", color: "#b35c00", borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
-                  REQUIRED · IN-PERSON
-                </span>
-              </div>
-              <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 20, color: "#1a1733" }}>
-                Uplift Midpoint Meetup
-              </p>
-              <p style={{ margin: "0 0 10px", fontSize: 15, color: "#1a6e42", fontStyle: "italic", lineHeight: 1.6 }}>
-                You&apos;ve been building. Now let&apos;s connect IRL.
-              </p>
-              <p style={{ margin: "0 0 6px", fontSize: 14, color: "#444", lineHeight: 1.7 }}>
-                {midpoint.day} · {midpoint.time} · Antique Loft at Riverview Historical Plaza, 33 Newark Street, Penthouse Level, Hoboken, NJ 07030
-              </p>
-              <p style={{ margin: "0 0 16px", fontSize: 14, color: "#444", lineHeight: 1.7 }}>
-                The halfway celebration for the Uplift Mentorship Summer Program. All participants and mentors from all five cohorts come together in person to mark the midpoint, connect face to face, and celebrate progress.
-              </p>
-              <a href={midpoint.url || "#"} target="_blank" rel="noopener noreferrer"
-                onClick={() => trackEventClick(midpoint.name || "Midpoint Meetup", midpoint.url || "")}
-                style={{ display: "inline-block", background: "#1a6e42", color: "#fff", borderRadius: 8, padding: "9px 18px", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
-                Register on Luma →
-              </a>
-            </div>
-
-            {/* About the event */}
-            <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 16 }}>
-              <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>About the Event</p>
-              <p style={{ margin: "0 0 14px", fontSize: 14, color: "#333", lineHeight: 1.75 }}>
-                This is your chance to step out of the day-to-day and into the room. Meet founders across all five cohorts, connect with mentors, and gain insights from our fireside chat. Whether you&apos;re in Edison, Hopper, Bardeen, Lawrence, or Morrison, this moment is to celebrate you.
-              </p>
-              <p style={{ margin: "0 0 14px", fontSize: 14, color: "#333", lineHeight: 1.75 }}>
-                You might meet a peer who&apos;s solved the exact problem you&apos;re stuck on. You might have a conversation with a mentor that changes how you think about your next six months. You might get introduced to an investor who&apos;s been watching the program. All of it is possible in this room.
-              </p>
-              <div style={{ borderTop: "1px solid #f0edf9", paddingTop: 14, marginTop: 4 }}>
-                <p style={{ margin: "0 0 10px", fontSize: 13, fontWeight: 700, color: "#5c4eb5" }}>The Five Cohorts</p>
-                {[
-                  { name: "Edison", desc: "The go-to-market cohort. Ship, listen, ship again." },
-                  { name: "Hopper", desc: "The builders' cohort. Enterprise SaaS, B2B, and MVP-stage founders constructing real product infrastructure." },
-                  { name: "Bardeen", desc: "The technical cohort. AI, Data, and ML founders working at the frontier." },
-                  { name: "Lawrence", desc: "The inflection-point cohort. Founders in the middle of fundraising, pivots, and major launches." },
-                  { name: "Morrison", desc: "The clarity-seeking cohort. Founders refining narrative, defining priorities, and finding their voice." },
-                ].map((c) => (
-                  <div key={c.name} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#3d2f8a", minWidth: 72 }}>{c.name}</span>
-                    <span style={{ fontSize: 13, color: "#555", lineHeight: 1.6 }}>{c.desc}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Special guest */}
-            <div style={{ background: "#fdf8ff", borderRadius: 12, border: "1px solid #e0d9f5", padding: "20px 24px", marginBottom: 16 }}>
-              <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>Special Guest</p>
-              <p style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 700, color: "#1a1733" }}>Sheilisa McNeal · Fria Inc.</p>
-              <p style={{ margin: 0, fontSize: 14, color: "#444", lineHeight: 1.75 }}>
-                Sheilisa built Fria around her own lived experience to serve an underrepresented population: menopausal women. She made the leap from full-time employment to full-time founder, navigating challenges the market hadn&apos;t prioritized before. Her persistence has paid off — Fria has secured over $2 million in non-dilutive funding. Sheilisa is building proof that the most important problems to solve are often the ones nobody else thought to fund.
-              </p>
-            </div>
-
-            {/* Agenda */}
-            <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 16 }}>
-              <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>Agenda</p>
-              {[
-                { time: "4:00 – 5:15", label: "Meet your peers, Headshots, Step & Repeat, Snacks & Refreshments" },
-                { time: "5:15 – 6:00", label: "Opening Remarks from Aaron Price, CEO of TechUnited · Remarks from NJEDA · Fireside Chat: Founding on Your Own Terms — From Pain Point to Funded with Sheilisa McNeal, moderated by MJ Durkin, COO of TechUnited" },
-                { time: "6:00 – 7:00", label: "Open Networking" },
-              ].map((a, i) => (
-                <div key={i} style={{ display: "flex", gap: 16, marginBottom: i < 2 ? 14 : 0, paddingBottom: i < 2 ? 14 : 0, borderBottom: i < 2 ? "1px solid #f0edf9" : "none" }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: "#5c4eb5", minWidth: 90, paddingTop: 2 }}>{a.time}</span>
-                  <span style={{ fontSize: 13, color: "#444", lineHeight: 1.6 }}>{a.label}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Mentee spotlight */}
-            <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 16 }}>
-              <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>A Look Into Who&apos;s In the Room</p>
-              <p style={{ margin: "0 0 16px", fontSize: 13, color: "#666", lineHeight: 1.6 }}>
-                76 founders. 5 cohorts. One mission — to build something that matters. From a first-ever laundromat in Princeton to AI-powered legal tech, genomics platforms to CPG beauty discovery, our Uplift cohort represents some of the most diverse and driven early-stage founders in the region. Engineers, clinicians, students, veterans, professors, and career-pivoters — all in the same room, building toward something real.
-              </p>
-              {[
-                "⭐ Gifty Anane · Wash Lodge · Opening the first ever laundromat in Princeton · Born in Ghana",
-                "⭐ Annalyce D'Agostino-Gavin · Focus Posters · Parent tech, ed tech, and health tech",
-                "⭐ Bejan Moers · United Solution · Mixed-use renewable energy development · Currently raising",
-                "⭐ Alisha Sharma · Undecided · Software engineer in fintech building iOS apps on the side",
-                "⭐ Ekaterina Kashkina · Stealth molecular diagnostics startup · Spinout from Rowan, IP secured",
-                "⭐ Elaf Mahmoud · Elune Health · NJIT student building in femtech",
-                "⭐ Emilia Savich · AnatomyQuest · Democratizing anatomy and physiology education",
-                "⭐ Favio Jasso · AnatomyQuest · CTO, software engineer, and enterprise AI student at NJIT",
-                "⭐ Han Nguyen · Ox Group · Roll-up acquisitions in plumbing, electrical, and HVAC · Marine Corps veteran",
-                "⭐ Lianna LaRiccia · EduTrend · Autism data tracking platform, started as a Stevens capstone",
-                "⭐ Justin Savage · STEAM FOR ME · Ed tech with NSF funding · Self-taught engineer",
-                "⭐ Pearl Gabel · TBD · Created the viral Voice of New Jersey social media identity",
-                "⭐ Tosca Marleen · Tend to Belle · CPG discovery for pre-retail emerging beauty brands",
-                "⭐ Shounak Thaker · Arnex Solutions LLC",
-                "⭐ Adeola Adeoye-Davids · Local Window · Hyper-local confirmed-impression advertising",
-                "⭐ Alok Rai · Dumroo.ai · Education intelligence layer working with 3 NJ school districts",
-                "⭐ Angela Aricatt · Get Empathix · Clinical psychologist turned tech founder",
-                "⭐ Debbie Douglas-Henry · 3DHR Consulting · Made her 5-to-9 her 9-to-5 after a 2024 layoff",
-                "⭐ Evan Peneiras · Nooriva · Smart glasses for glaucoma patients · Rutgers med student",
-                "⭐ Neha Chopade · Meta · Researcher with a new idea brewing",
-                "⭐ Paula Machado Jackler · Ozzie · Personal finance platform for Latino immigrants · From Brazil",
-                "⭐ Pierre Girgis · Veriflo LLC · Trusted layer for AI content access and monetization",
-                "⭐ Rachel Hayes · Ravel Genetics · Health intelligence platform built on genomics · PhD",
-                "⭐ Radha Ratnala · Rekogni AI · Agentic platform for software engineering teams · AWS & DoorDash alum",
-                "⭐ Shell Bobev · Disrupt The Gap · Compensation equity platform",
-                "⭐ Stephanie Cwynar · Pinterest",
-                "⭐ Pradeep Kumar Gohil · World Micro Stock Vinimay USA LLC",
-                "⭐ Idongesit Obeya · Altruistic Scribe",
-                "⭐ Jean Guerdy Paul · TETHRRA",
-                "⭐ Abhi Ray · Freelance Software Engineer",
-                "⭐ Shanthi Viswanathan · Infivista Inc",
-                "⭐ Aliya Laliwala · Campus Marketplace · Just graduated NJIT · Black belt in martial arts",
-                "⭐ Andrea Vernengo · TrueSkin · Beauty tech · Tech originated from research in Switzerland",
-                "⭐ Ebunoluwa Adenekan · KLA Corporation · Engineer by day building toward his own hardware/game IP",
-                "⭐ Kevin Navarro · MechSense Labs · Semi-autonomous rover for hazardous sites",
-                "⭐ Mark Kallback · Clear-Sight · News literacy tool · 20+ years in sales and ops",
-                "⭐ Naveen Kumar · Truxt · AI ROI platform for enterprise · 11 years in devops",
-                "⭐ Nina Mladenovski · Zenia Graph · Ethical AI with knowledge graphs · Co-founded with her father",
-                "⭐ Parminder Singh · DeepInspect.ai · AI security and compliance platform",
-                "⭐ Rajesh Ivaturi · SekurAI · Agentic pentesting platform · Ex-Citibank CISO · Meditation trainer",
-                "⭐ Maab Iqbal · TBD",
-                "⭐ Logan Jones · ticker",
-                "⭐ Sharon Joseph · CREWASIS.AI",
-                "⭐ Abhaya Pawar · Ilika LLC",
-                "⭐ Mehul Sompura · Diamond Hedge",
-                "⭐ Harshil Thakkar · Newyorklife",
-                "⭐ Britney Medich · Brooklyn Navy Yard · Workforce dev · Owns a bar and restaurant in Jersey City",
-                "⭐ Daniel Lee · Bruce AI (OnwardJustice Inc.) · AI legal tech · Just wrapped a Brooklyn accelerator",
-                "⭐ Eliana Zebro · Freelance Audio (Pre-LLC) · 11 years in podcasting, film, and video games",
-                "⭐ Stephanie Scott-Bradshaw · First and Last PR · 14-year-old firm focused on how brands show up in AI/GEO",
-                "⭐ Jeremy Ruiz Villavicencio · Menti · Connecting local tutors with an AI layer",
-                "⭐ Kima D'Anjou · The Keenly Group LLC · Strategy consulting · Former software engineer",
-                "⭐ Lina Escobar · Sweet Aurora Soap & Candle · Built during her autoimmune diagnosis in 2020",
-                "⭐ Mohammad Saleh Nikoopayan Tak · TasteTwin AI · Next-gen food discovery · PhD candidate at NJIT",
-                "⭐ Natalie Kitts · The Zigzag Flow · Autism therapy in a neurodiversity-affirming model",
-                "⭐ Priyal Levine · Wisdom & Wonder Wellness · Yoga therapist · Worked for Oprah's Harpo in college",
-                "⭐ Soheil Khosravinejad · DRIFTLANE · Creative and design services",
-                "⭐ Angie Tirado · Fluenci · B2B micro-influencer marketplace · NJIT rising sophomore",
-                "⭐ Elisa Charters · Juegos AI Lab",
-                "⭐ Andrea Ferguson Peterson · Everyday Unstoppable",
-                "⭐ Saurabh Gandhe · Creative Sprouts Inc",
-                "⭐ Jasmin Jones · JP Morgan Chase",
-                "⭐ Chandni Patel · BOA (startup name undecided)",
-                "⭐ Daniel Patton · DreamEngine AI",
-                "⭐ Jordan-River Samuel · tapyoca",
-                "⭐ Chirag Shah · Crestwood Digital",
-                "⭐ Gunjan Aggarwal · Virre",
-              ].map((line, i) => (
-                <p key={i} style={{ margin: "0 0 6px", fontSize: 13, color: "#333", lineHeight: 1.5 }}>{line}</p>
-              ))}
-            </div>
-
-            {/* Getting there */}
-            <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px" }}>
-              <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>Getting There</p>
-              {[
-                { icon: "📍", label: "Address", detail: "Antique Loft at Riverview Historical Plaza · 33 Newark Street, Penthouse Level · Hoboken, NJ 07030" },
-                { icon: "🚇", label: "PATH Train", detail: "Hoboken Terminal is a 2-minute walk. Newark–WTC line and Journal Square–33rd St via Hoboken line both stop here." },
-                { icon: "🚆", label: "NJ Transit Rail", detail: "Bergen County Line, Pascack Valley Line, Main Line, and Hudson-Bergen Light Rail all terminate at Hoboken Terminal." },
-                { icon: "🚌", label: "NJ Transit Bus", detail: "Routes 126, 22, 23, 85, and 89 serve Hoboken Terminal. Check njtransit.com for your route." },
-                { icon: "🚗", label: "Parking", detail: "Municipal garages within walking distance. Tuesday evening rates (enter 6pm–2am): Garage B — 28 2nd Street · Garage D — 215 Hudson Street. Up to 4 hours: $16. Reserve via SpotHero or ParkWhiz." },
-              ].map((item, i) => (
-                <div key={i} style={{ display: "flex", gap: 12, marginBottom: i < 4 ? 12 : 0, paddingBottom: i < 4 ? 12 : 0, borderBottom: i < 4 ? "1px solid #f5f3fc" : "none" }}>
-                  <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{item.icon}</span>
-                  <div>
-                    <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{item.label}</p>
-                    <p style={{ margin: 0, fontSize: 13, color: "#555", lineHeight: 1.6 }}>{item.detail}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        <Tagline text={week.tagline} type={week.taglineType} />
-        {others.length > 0 && (
-          <div>
-            <p style={{ margin: "0 0 10px", fontSize: 15, color: "#3d2f8a", lineHeight: 1.6, fontStyle: "italic" }}>
-              Take the additional opportunity to attend this virtual event:
-            </p>
-            <EventsSection events={others} slug={slug} menteeName={menteeName} />
-          </div>
-        )}
-
-        {/* Midpoint reflection prompts */}
-        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "24px 28px", marginTop: 24, borderLeft: "4px solid #5c4eb5" }}>
+        {/* Intentions ahead of Overdrive */}
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "24px 28px", borderLeft: "4px solid #5c4eb5" }}>
           <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
-            Reflection
+            🧠 Deep Work
           </p>
           <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
-            Ahead of the Midpoint Meetup
+            Ahead of OverdriveAI
           </p>
           <p style={{ margin: "0 0 20px", fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
-            We'd love to hear from you before you arrive. Take a moment to set your intentions.
+            Set your intentions before you walk in. Rooms reward people who know what they came for.
           </p>
 
           <p style={{ margin: "0 0 8px", fontSize: 14, fontWeight: 600, color: "#1a1733" }}>
-            What's the most important thing you want to walk away from the Midpoint Meetup with?
+            What&apos;s the most important thing you want to walk away from OverdriveAI with?
           </p>
           <AutoTextarea
-            storageKey={`${slug}_w4_midpoint_primary`}
-            placeholder="The one thing I most want to gain or accomplish at the meetup is…"
-            slug={slug} weekNum={4} fieldKey="midpoint_primary" rows={3}
-            question="What's the most important thing you want to walk away from the Midpoint Meetup with?"
+            storageKey={`${slug}_w7_overdrive_primary`}
+            placeholder="The one thing I most want to gain or accomplish at OverdriveAI is…"
+            slug={slug} weekNum={7} fieldKey="overdrive_primary" rows={3}
+            question="What's the most important thing you want to walk away from OverdriveAI with?"
           />
 
           <p style={{ margin: "20px 0 8px", fontSize: 14, fontWeight: 600, color: "#1a1733" }}>
-            Beyond that, what's a secondary goal you're bringing to the Midpoint Meetup?
+            Who do you want to meet, and what would you ask them?
           </p>
           <AutoTextarea
-            storageKey={`${slug}_w4_midpoint_secondary`}
-            placeholder="A secondary goal I'm hoping to accomplish is…"
-            slug={slug} weekNum={4} fieldKey="midpoint_secondary" rows={3}
-            question="Beyond that, what's a secondary goal you're bringing to the Midpoint Meetup?"
+            storageKey={`${slug}_w7_overdrive_secondary`}
+            placeholder="A person or kind of person I want to meet, and my opening question…"
+            slug={slug} weekNum={7} fieldKey="overdrive_secondary" rows={3}
+            question="Who do you want to meet at OverdriveAI, and what would you ask them?"
           />
         </div>
       </div>
     );
   }
 
-  // Week 3: tagline + action items + sessions + share a win + reflection
-  if (weekNum === 3) {
-    return (
-      <div>
-        <p style={{
-          background: "#f5f3ff", borderRadius: 10, padding: "14px 18px",
-          fontSize: 15, lineHeight: 1.6, marginBottom: 24, fontStyle: "italic",
-          color: "#3d2f8a",
-        }}>
-          We know everyone's schedules look different —{" "}
-          <span style={{ textDecoration: "underline" }}>by this time you should have met with your mentor for at least an hour</span>
-          . If you have not done so, this is an opportunity to catch up. If you have already done so, we encourage you to continue communication with your mentor and to attend one of this week's virtual sessions.
-        </p>
-
-        {/* Action items */}
-        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
-          <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
-            Action Items This Week
-          </p>
-          {[
-            { text: "Confirm you've had your first meeting with your mentor. If you haven't, make sure it's scheduled." },
-            { text: "If you need extra support, reach out via the Support tab — we're here." },
-            { text: "Take some time to check out this week's sessions below and register for them." },
-          ].map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 2 ? 12 : 0 }}>
-              <div style={{
-                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-                background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
-                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 11, fontWeight: 700, marginTop: 1,
-              }}>
-                {i + 1}
-              </div>
-              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>{item.text}</p>
-            </div>
-          ))}
-        </div>
-        <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
-
-        {/* Weekly focus */}
-        <WeeklyFocus slug={slug} weekNum={3} />
-
-        {/* Share a Win */}
-        <div style={{
-          background: "linear-gradient(135deg, #fef9e7 0%, #fffde7 100%)",
-          borderRadius: 14, border: "2px solid #f9d94a",
-          padding: "24px 28px", marginTop: 24,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-            <span style={{ fontSize: 22 }}>🏆</span>
-            <p style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#5a3e00" }}>
-              Share a Win
-            </p>
-            <span style={{ marginLeft: "auto", background: "#fff3b0", color: "#7a5c00", borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700 }}>
-              Shared with the group
-            </span>
-          </div>
-          <p style={{ margin: "0 0 16px", fontSize: 15, lineHeight: 1.7, color: "#5a3e00" }}>
-            We're pumped about your momentum — and we know you're putting in the work. If you've had a chance to meet with your mentor, made real progress on your company, or experienced a win — big or small — we'd love to celebrate it with you. Wins get shared with your fellow founders and mentors as a group update. Don't hold back. 🚀
-          </p>
-          <AutoTextarea
-            storageKey={`${slug}_w3_win`}
-            placeholder="e.g. I landed my first paying customer this week, closed a partnership, hit a growth milestone, had a breakthrough conversation with my mentor…"
-            slug={slug} weekNum={3} fieldKey="week3_win" rows={3}
-            question="Share a Win — this will be shared with the group"
-          />
-          <p style={{ margin: "10px 0 0", fontSize: 12, color: "#9b7a00", fontStyle: "italic" }}>
-            ✨ Your win will be shared as an Uplift update with your fellow founders and mentors.
-          </p>
-        </div>
-
-        {/* Reflection prompt */}
-        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "24px 28px", marginTop: 24, borderLeft: "4px solid #5c4eb5" }}>
-          <p style={{ margin: "0 0 16px", fontSize: 13, fontWeight: 700, color: "#5c4eb5", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            Reflection
-          </p>
-
-          <div style={{ marginBottom: 24 }}>
-            <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 600, color: "#1a1733", lineHeight: 1.5 }}>
-              Who do you want to build like?
-            </p>
-            <p style={{ margin: "0 0 14px", fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
-              Every founder has a company, a leader, or a story they keep coming back to — someone whose trajectory, decisions, or values feel like a north star. Who's yours, and what is it about them that resonates with where you're trying to go?
-            </p>
-            <AutoTextarea
-              storageKey={`${slug}_w3_role_model`}
-              placeholder="e.g. I think a lot about how Patagonia built a brand around values first — I want to build something with that kind of conviction…"
-              slug={slug} weekNum={3} fieldKey="role_model" rows={4}
-              question="Who do you want to build like?"
-            />
-          </div>
-
-          <div>
-            <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 600, color: "#1a1733", lineHeight: 1.5 }}>
-              What's one thing they're doing that you could deploy this week?
-            </p>
-            <p style={{ margin: "0 0 14px", fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
-              Not eventually — this week. Look at how your north star operates and find one tactic, habit, or move you can steal and test right now.
-            </p>
-            <p style={{ margin: "0 0 14px", fontSize: 12, color: "#b0a8cc", fontStyle: "italic", lineHeight: 1.7 }}>
-              Examples: automated outreach sequences, guerrilla marketing, content-first distribution, community building before launch, radical transparency with customers, partnerships over paid ads, founder-led sales…
-            </p>
-            <AutoTextarea
-              storageKey={`${slug}_w3_deploy_tactic`}
-              placeholder="e.g. They do a weekly founder update email to their community — I'm going to start sending one to my top 20 customers this Friday…"
-              slug={slug} weekNum={3} fieldKey="deploy_tactic" rows={4}
-              question="What's one thing they're doing that you could deploy this week?"
-            />
-          </div>
-
-        </div>
-      </div>
-    );
-  }
-
-  // Locked prompt block shown on weeks 5–7 until midpoint is attended
-  const LockedPrompts = () => (
-    <p style={{ margin: "4px 0 16px", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
-      🔒 Reflection prompts unlock after you&apos;ve attended the Midpoint Meetup on June 23rd.
-    </p>
-  );
-
-  // Week 5: action items, submit button, sessions
-  if (weekNum === 5) {
-    return (
-      <div>
-        {/* Action items */}
-        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
-          <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
-            Action Items This Week
-          </p>
-          {[
-            { text: "Have your second mentorship session with your mentor." },
-            { text: "Remember to submit your mentorship meeting." },
-            { text: "Check out the educational sessions happening this week." },
-          ].map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 2 ? 12 : 0 }}>
-              <div style={{
-                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-                background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
-                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 11, fontWeight: 700, marginTop: 1,
-              }}>
-                {i + 1}
-              </div>
-              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>{item.text}</p>
-            </div>
-          ))}
-          <p style={{ margin: "14px 0 0", fontSize: 11, color: "#9b8fcf", fontStyle: "italic" }}>
-            *All pairs should have met for a total of two hours by the end of this week. We're over halfway through — you must attend a minimum of 3 virtual educational sessions by program end.
-          </p>
-        </div>
-
-        <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{
-            display: "inline-block", padding: "14px 36px",
-            background: "#5c4eb5", color: "#fff", borderRadius: 10,
-            fontSize: 16, fontWeight: 700, textDecoration: "none",
-            boxShadow: "0 4px 14px rgba(92,78,181,0.35)",
-          }}>
-            {week.submitLabel} →
-          </a>
-        </div>
-        <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
-        <WeeklyFocus slug={slug} weekNum={5} />
-        <LockedPrompts />
-      </div>
-    );
-  }
-
-  // Week 7: action items + sessions + submit button
-  if (weekNum === 7) {
-    return (
-      <div>
-        {/* Action items */}
-        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
-          <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
-            Action Items This Week
-          </p>
-          {[
-            { text: "Have your third mentorship session with your mentor. We encourage you to meet more, but this is where you should be at minimum." },
-            { text: "Keep working through your virtual educational sessions — you'll need all 3 before graduation. Sessions are available throughout the next few weeks, with the last one on July 30th." },
-            { text: "Submit your 3rd mentor meeting below." },
-          ].map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 2 ? 12 : 0 }}>
-              <div style={{
-                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-                background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
-                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 11, fontWeight: 700, marginTop: 1,
-              }}>
-                {i + 1}
-              </div>
-              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>{item.text}</p>
-            </div>
-          ))}
-        </div>
-
-        <p style={{
-          textAlign: "center", fontSize: 14, color: "#7a5c00",
-          background: "#fffbeb", border: "1px solid #f5d97a",
-          borderRadius: 8, padding: "10px 16px", marginBottom: 24, fontStyle: "italic",
-        }}>
-          {week.tagline}
-        </p>
-        <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
-        <ConnectBlock events={WEEKS.flatMap((w) => w.events || [])} slug={slug} menteeName={menteeName} />
-        <WeeklyFocus slug={slug} weekNum={7} />
-        <div style={{ textAlign: "center", marginBottom: 12 }}>
-          <a href="https://form.typeform.com/to/e0L62296" target="_blank" rel="noopener noreferrer" style={{
-            display: "inline-block", padding: "14px 36px",
-            background: "#5c4eb5", color: "#fff", borderRadius: 10,
-            fontSize: 16, fontWeight: 700, textDecoration: "none",
-            boxShadow: "0 4px 14px rgba(92,78,181,0.35)",
-          }}>
-            {week.submitLabel} →
-          </a>
-        </div>
-        <LockedPrompts />
-      </div>
-    );
-  }
-
-  // Week 8: action items + tagline + end report button
+  // Week 7 (Final Stretch & Completion)
   if (weekNum === 8) {
     return (
       <div>
-        {/* Action items */}
-        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
-          <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
-            Action Items This Week
-          </p>
-          {[
-            { text: "Wrap up your three sessions (180 minutes total) of mentorship with your mentor." },
-            { text: "Take the opportunity to participate in some of the educational sessions being added to help you reach your three." },
-            { text: "Reach out to ", link: { label: "uplift@techunited.co", href: "mailto:uplift@techunited.co" }, suffix: " if you need further accommodations — if you're behind, we want to see you succeed in this program." },
-          ].map((item, i, arr) => (
-            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < arr.length - 1 ? 12 : 0 }}>
-              <div style={{
-                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-                background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
-                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 11, fontWeight: 700, marginTop: 1,
-              }}>
-                {i + 1}
-              </div>
-              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>
-                {item.text}
-                {item.link && <a href={item.link.href} style={{ color: "#5c4eb5", fontWeight: 600 }}>{item.link.label}</a>}
-                {item.suffix}
-              </p>
-            </div>
-          ))}
-        </div>
+        <Tagline text={week.tagline} type={week.taglineType} />
+        <ActionItems slug={slug} weekNum={weekNum} items={[
+          { text: "Close out all 3 mentor meetings and 3 educational sessions by November 6." },
+          { text: "Submit your End Report below: 5 minutes, tells us what moved for you and your company.", sub: "There's also an exit survey for founders and one for mentors; both unlock November 2nd below." },
+          { text: "Reach out to ", link: { label: "uplift@techunited.co", href: "mailto:uplift@techunited.co" }, suffix: " if you're behind. We want to see you finish." },
+          { text: "Watch your email for forms sent through BreezeDoc: you'll be asked to verify by signature the 3 educational sessions and 3 mentor meetings you attended, and your mentor signs off on them too." },
+          { text: "Do your 10-second pulse check at the top of this page (required)." },
+          { text: "Share a Win of the Week (optional): any win you submit goes out in Tuesday's update." },
+        ]} />
 
-        <Tagline text={week.tagline} />
-        <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
-        <ConnectBlock events={week.events} slug={slug} menteeName={menteeName} />
+        <EventsSection events={week.events} slug={slug} menteeName={menteeName} eduDone={eduDone} />
+
+        <SubmitMeetingButton label="Submit additional meetings" />
+
+        {/* End report */}
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <div style={{
             display: "inline-block", padding: "14px 36px",
@@ -2262,49 +2220,51 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
             🔒 {week.submitLabel}
           </div>
           <p style={{ margin: "10px 0 0", fontSize: 13, color: "#9b8fcf", fontStyle: "italic" }}>
-            This link will be unlocked on <strong style={{ color: "#6b6480" }}>July 18th</strong>.
+            This link unlocks on <strong style={{ color: "#6b6480" }}>November 2nd</strong>.
           </p>
         </div>
-      </div>
-    );
-  }
 
-  // Week 6: tagline + action items + sessions
-  if (weekNum === 6) {
-    return (
-      <div>
-        <Tagline text={week.tagline} />
-
-        {/* Action items */}
+        {/* Exit surveys, attached but locked */}
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 24 }}>
-          <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
-            Action Items This Week
+          <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>
+            Exit Surveys
           </p>
-          {[
-            { text: "Review your milestones — make sure they're up to date and complete any outstanding items." },
-            { text: "Remember to submit your mentorship meeting." },
-            { text: "Check out the educational sessions happening this week." },
-          ].map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: i < 2 ? 12 : 0 }}>
-              <div style={{
-                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-                background: "linear-gradient(135deg, #5c4eb5, #3d2f8a)",
-                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 11, fontWeight: 700, marginTop: 1,
-              }}>
-                {i + 1}
-              </div>
-              <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>{item.text}</p>
+          <p style={{ margin: "0 0 14px", fontSize: 13, color: "#6b6480", lineHeight: 1.6 }}>
+            Same surveys as the summer cohort. They unlock the week of November 2nd.
+          </p>
+          {["Exit Survey · Founders (about 3 minutes, mirrors your application)", "Exit Survey · Mentors (verification sign-off plus feedback)"].map((label, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: i > 0 ? "1px solid #f0edf9" : "none" }}>
+              <span style={{ fontSize: 15 }}>🔒</span>
+              <span style={{ fontSize: 14, color: "#9b8fcf", fontWeight: 600 }}>{label}</span>
             </div>
           ))}
-          <p style={{ margin: "14px 0 0", fontSize: 11, color: "#9b8fcf", fontStyle: "italic" }}>
-            *By this time you should have met with your mentor for a minimum of two sessions. Only 2 weeks until the Summit &amp; Graduation — make sure you're on track with your educational sessions.
+        </div>
+
+        {/* By now checklist */}
+        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "24px 28px", marginBottom: 24 }}>
+          <p style={{ margin: "0 0 14px", fontSize: 15, fontWeight: 600, color: "#3d2f8a" }}>By November 6 you should have:</p>
+          <ul style={{ margin: "0 0 18px", paddingLeft: 22, lineHeight: 2.2 }}>
+            <li style={{ fontSize: 14, color: "#1a1733" }}>Held and logged a minimum of 3 mentor meetings: Discover, Act, Roadmap</li>
+            <li style={{ fontSize: 14, color: "#1a1733" }}>Attended 3 educational sessions</li>
+            <li style={{ fontSize: 14, color: "#1a1733" }}>Attended OverdriveAI on October 27</li>
+            <li style={{ fontSize: 14, color: "#1a1733" }}>Completed your end report</li>
+            <li style={{ fontSize: 14, color: "#1a1733" }}>Be anticipating a BreezeDoc to sign and confirm your program completion</li>
+          </ul>
+          <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf", fontStyle: "italic" }}>
+            If anything above is outstanding, contact <a href="mailto:uplift@techunited.co" style={{ color: "#5c4eb5", fontWeight: 600 }}>uplift@techunited.co</a> before November 6.
           </p>
         </div>
 
-        <EventsSection events={week.events} slug={slug} menteeName={menteeName} />
-        <WeeklyFocus slug={slug} weekNum={6} />
-        <LockedPrompts />
+        {/* Completion window */}
+        <div style={{ background: "#f0faf5", borderRadius: 12, border: "1px solid #b8e8d0", padding: "20px 24px", marginBottom: 24 }}>
+          <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#1a6e42" }}>
+            Completion &amp; Documentation · Nov 7&ndash;20
+          </p>
+          <p style={{ margin: 0, fontSize: 14, color: "#333", lineHeight: 1.75 }}>
+            After programming ends, the paperwork window opens. Forms arrive by email through BreezeDoc: you verify by signature that your logged educational sessions and mentor meetings are accurate, your mentor signs off too, and then your certificate of completion lands in the <strong>🎓 Certificate</strong> tab above. Keep clean logs and it&apos;s a two-minute task.
+          </p>
+        </div>
+
       </div>
     );
   }
@@ -2333,7 +2293,7 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
           padding: "20px 24px", marginBottom: 16,
           borderLeft: `4px solid ${["#5c4eb5", "#2a7fd4", "#e07b39"][i % 3]}`,
         }}>
-          <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.08em" }}>Reflection</p>
+          <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#9b8fcf", textTransform: "uppercase", letterSpacing: "0.08em" }}>🧠 Deep Work</p>
           <p style={{ margin: "0 0 10px", fontSize: 15, fontWeight: 500, color: "#1a1733", lineHeight: 1.5 }}>{item.q}</p>
           <AutoTextarea storageKey={`${slug}_w${weekNum}_${item.key}`} placeholder="Your thoughts…" slug={slug} weekNum={weekNum} fieldKey={item.key} />
         </div>
@@ -2347,6 +2307,208 @@ function WeekReflection({ weekNum, slug, prompts, menteeName }) {
         questions={prompts[0].questions}
         slug={slug} weekNum={weekNum} blockIndex={0} accentColor="#5c4eb5"
       />
+    </div>
+  );
+}
+
+// ─── Meeting structure check (Week 1) ────────────────────────────────────────
+// Founders must open the Discover/Act/Roadmap guide before they can acknowledge it.
+function MeetingStructureCheck({ slug }) {
+  const [show, setShow] = useState(false);
+  const [opened, setOpened] = useState(false);
+  const [acked, setAcked] = useState(false);
+
+  useEffect(() => {
+    setOpened(!!localStorage.getItem(`${slug}_meeting_guide_opened`));
+    setAcked(!!localStorage.getItem(`${slug}_w2_structure_ack`));
+  }, [slug]);
+
+  const openGuide = () => {
+    setShow(true);
+    setOpened(true);
+    localStorage.setItem(`${slug}_meeting_guide_opened`, "1");
+  };
+  const acknowledge = () => {
+    setAcked(true);
+    localStorage.setItem(`${slug}_w2_structure_ack`, "1");
+    persistToSheet(slug, 2, "structure_ack", "I reviewed the structure", "Meeting structure reviewed (Discover / Act / Roadmap)");
+  };
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", borderLeft: "4px solid #5c4eb5", padding: "20px 24px", marginBottom: 24 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1a1733" }}>
+          📋 How should I structure my meetings?
+        </p>
+        <span style={{ background: "#fff3e0", color: "#b35c00", borderRadius: 4, padding: "1px 8px", fontSize: 10.5, fontWeight: 800, letterSpacing: "0.5px", flexShrink: 0 }}>REQUIRED</span>
+      </div>
+      <p style={{ margin: "0 0 14px", fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
+        Your three meetings follow <strong style={{ color: "#3d2f8a" }}>Discover → Act → Roadmap</strong>. Review the one-pager before your first meeting: it tells you what to bring and what to leave with, meeting by meeting.
+      </p>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <button onClick={openGuide} style={{
+          border: "none", borderRadius: 8, padding: "9px 18px",
+          background: "#5c4eb5", color: "#fff", fontSize: 13, fontWeight: 700,
+          cursor: "pointer", fontFamily: "inherit",
+        }}>
+          Open the guide
+        </button>
+        {acked ? (
+          <span style={{ fontSize: 13, fontWeight: 700, color: "#1a7a4a" }}>✓ Structure reviewed and acknowledged</span>
+        ) : (
+          <>
+            <button onClick={acknowledge} disabled={!opened} style={{
+              borderRadius: 8, padding: "9px 18px", fontSize: 13, fontWeight: 700,
+              fontFamily: "inherit",
+              border: opened ? "1.5px solid #5c4eb5" : "1.5px solid #e8e4f5",
+              background: "#fff", color: opened ? "#5c4eb5" : "#c0b8d8",
+              cursor: opened ? "pointer" : "default",
+            }}>
+              I reviewed the structure
+            </button>
+            {!opened && (
+              <span style={{ fontSize: 12, color: "#9b8fcf", fontStyle: "italic" }}>Open the guide first</span>
+            )}
+          </>
+        )}
+      </div>
+      {show && <MeetingGuideModal onClose={() => setShow(false)} />}
+    </div>
+  );
+}
+
+// ─── Company at a glance modal (application snapshot) ────────────────────────
+function CompanySnapshotModal({ mentee, onClose }) {
+  const app = mentee.application || {};
+  const snap = app.snapshot || {};
+  const yn = (v) => v === true ? "Yes" : v === false ? "No" : (v ?? "\u2014");
+  const rows = [
+    ["Stage", mentee.stage],
+    ["Industry", mentee.industry],
+    ["Revenue (last 12 months)", snap.revenueRange],
+    ["Generating revenue", yn(snap.generatingRevenue)],
+    ["Employees", yn(snap.employees)],
+    ["Hiring", snap.hiring],
+    ["Raising capital", snap.raising],
+    ["Previously raised outside capital", yn(snap.priorOutsideCapital)],
+    ["Looking for customers or pilots", yn(snap.lookingForCustomers)],
+    ["Seeking strategic partnerships", yn(snap.seekingPartnerships)],
+    ["Based in", [app.city, mentee.county ? `${mentee.county} County` : null].filter(Boolean).join(", ")],
+    ["Founder journey", app.journeyStage],
+  ].filter(([, v]) => v !== undefined && v !== null && v !== "");
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 10000,
+        background: "rgba(16,9,45,0.62)", backdropFilter: "blur(3px)",
+        display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
+        fontFamily: "'Inter', system-ui, sans-serif",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#fff", borderRadius: 16, width: "min(560px, 96vw)", maxHeight: "90vh",
+          overflowY: "auto", boxShadow: "0 24px 80px rgba(16,9,45,0.45)", padding: "26px 28px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 4 }}>
+          <div>
+            <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
+              🏢 My Company at a Glance
+            </p>
+            <p style={{ margin: 0, fontSize: 19, fontWeight: 800, color: "#1a1733" }}>
+              {mentee.company}{app.title ? ` · ${app.title}` : ""}
+            </p>
+          </div>
+          <button onClick={onClose} style={{
+            border: "none", background: "#f0ecff", color: "#5c4eb5", borderRadius: 8,
+            padding: "6px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
+          }}>
+            ✕ Close
+          </button>
+        </div>
+        {app.bio && (
+          <p style={{ margin: "0 0 16px", fontSize: 14, color: "#6b6480", fontStyle: "italic", lineHeight: 1.6 }}>
+            &ldquo;{app.bio}&rdquo;
+          </p>
+        )}
+        <div style={{ border: "1px solid #e8e4f5", borderRadius: 12, overflow: "hidden" }}>
+          {rows.map(([label, val], i) => (
+            <div key={label} style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16,
+              padding: "10px 16px", borderTop: i > 0 ? "1px solid #f0edf9" : "none",
+              background: i % 2 ? "#fafafa" : "#fff",
+            }}>
+              <span style={{ fontSize: 13, color: "#6b6480", fontWeight: 500 }}>{label}</span>
+              <span style={{
+                fontSize: 13, fontWeight: 700,
+                color: val === "Yes" ? "#1a6e42" : val === "No" ? "#9b8fcf" : "#1a1733",
+                textAlign: "right",
+              }}>{val}</span>
+            </div>
+          ))}
+        </div>
+        {app.hopingToAccomplish && (
+          <div style={{ background: "#f5f3ff", borderRadius: 10, padding: "12px 16px", marginTop: 14 }}>
+            <p style={{ margin: "0 0 2px", fontSize: 10.5, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "#5c4eb5" }}>Hoping to accomplish</p>
+            <p style={{ margin: 0, fontSize: 13, color: "#3d2f8a", lineHeight: 1.6 }}>{app.hopingToAccomplish}</p>
+          </div>
+        )}
+        {app.valueSought && (
+          <div style={{ background: "#fdf6e3", borderRadius: 10, padding: "12px 16px", marginTop: 10 }}>
+            <p style={{ margin: "0 0 2px", fontSize: 10.5, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "#a37c1f" }}>What you want from mentorship</p>
+            <p style={{ margin: 0, fontSize: 13, color: "#5c4a10", lineHeight: 1.6 }}>{app.valueSought}</p>
+          </div>
+        )}
+        <p style={{ margin: "14px 0 0", fontSize: 12, color: "#9b8fcf", fontStyle: "italic", lineHeight: 1.6 }}>
+          From your application{app.submittedAt ? `, submitted ${app.submittedAt}` : ""}. Something changed? Tell us at{" "}
+          <a href="mailto:uplift@techunited.co" style={{ color: "#5c4eb5", fontWeight: 600 }}>uplift@techunited.co</a> and we&apos;ll update it.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Meeting structure guide modal (Discover / Act / Roadmap one-pager) ──────
+function MeetingGuideModal({ onClose }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 10000,
+        background: "rgba(16,9,45,0.62)", backdropFilter: "blur(3px)",
+        display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
+        fontFamily: "'Inter', system-ui, sans-serif",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#fff", borderRadius: 16, width: "min(920px, 96vw)", height: "min(92vh, 1100px)",
+          display: "flex", flexDirection: "column", overflow: "hidden",
+          boxShadow: "0 24px 80px rgba(16,9,45,0.45)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", borderBottom: "1px solid #e8e4f5", flexShrink: 0 }}>
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1a1733" }}>
+            📋 How should I structure my meetings?
+          </p>
+          <button onClick={onClose} style={{
+            border: "none", background: "#f0ecff", color: "#5c4eb5", borderRadius: 8,
+            padding: "6px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+          }}>
+            ✕ Close
+          </button>
+        </div>
+        <iframe
+          src="/uplift-three-meetings-one-pager.html"
+          title="Discover, Act, Roadmap: your three mentor meetings"
+          style={{ border: "none", width: "100%", flex: 1 }}
+        />
+      </div>
     </div>
   );
 }
@@ -2374,7 +2536,9 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
     fetch(`/api/meetings?slug=${slug}`)
       .then(r => r.json())
       .then(async d => {
-        const list = d.meetings || [];
+        // Fall cohort: ignore submissions from before the fall test window opened
+        const FALL_CUTOFF = new Date("2026-08-26");
+        const list = (d.meetings || []).filter(m => !m.submittedAt || new Date(m.submittedAt) >= FALL_CUTOFF);
         setMeetings(list);
 
         // Count qualifying sessions with half-credit for sub-60min sessions
@@ -2415,6 +2579,11 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
 
   return (
     <div>
+      <div style={{ background: "#f5f3ff", borderRadius: 10, padding: "12px 18px", marginBottom: 18 }}>
+        <p style={{ margin: 0, fontSize: 13, color: "#3d2f8a", lineHeight: 1.6 }}>
+          We review every one of these. AI vetted, human verified. Please give us some time to go through them; there are a lot of you. 😉
+        </p>
+      </div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
         <div>
           <p style={{ margin: "0 0 2px", fontSize: 18, fontWeight: 700, color: "#1a1733" }}>
@@ -2506,7 +2675,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
               </p>
             ) : (
               <p style={{ margin: "10px 0 0", fontSize: 12, fontWeight: 600, color: "#34d399", lineHeight: 1.5 }}>
-                You're on track — goal reached!
+                You're on track, goal reached!
               </p>
             )}
             <p style={{ margin: "6px 0 0", fontSize: 11, opacity: 0.55, fontStyle: "italic", lineHeight: 1.5 }}>
@@ -2612,7 +2781,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                     color: half ? "#7a5c00" : m.manuallyVerified ? "#7a5c00" : "#1a6e42",
                     borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700,
                   }}>
-                    {half ? "½ Credit — Action Required" : `✓ ${m.manuallyVerified ? "Manually Verified" : "Verified"}`}
+                    {half ? "½ Credit, Action Required" : `✓ ${m.manuallyVerified ? "Manually Verified" : "Verified"}`}
                   </span>
                 </div>
                 {half && (
@@ -2685,10 +2854,10 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                   padding: "16px 20px", marginBottom: 14,
                 }}>
                   <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 700, color: "#2a3d8f" }}>
-                    ✓ Session received — under review
+                    ✓ Session received, under review
                   </p>
                   <p style={{ margin: "0 0 4px", fontSize: 13, color: "#3d54a8", lineHeight: 1.6 }}>
-                    Don't worry if these aren't getting checked off automatically — sessions without a Granola transcript or that were under 60 minutes are reviewed internally by the program team.
+                    Don't worry if these aren't getting checked off automatically, sessions without a Granola transcript or that were under 60 minutes are reviewed internally by the program team.
                   </p>
                   <p style={{ margin: 0, fontSize: 13, color: "#3d54a8", lineHeight: 1.6 }}>
                     If we need more information we'll contact you directly. If you believe a denied session is an error, contact{" "}
@@ -2732,7 +2901,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                             background: "#f5f5f5", color: "#555",
                             borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 500,
                           }}>
-                            Session under 60 min — requires manual review
+                            Session under 60 min, requires manual review
                           </span>
                         )}
                         {!m.notes?.trim() && (
@@ -2740,7 +2909,7 @@ function MeetingsSection({ slug, milestones, onMilestoneUpdate }) {
                             background: "#f5f5f5", color: "#555",
                             borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 500,
                           }}>
-                            No Granola transcript — requires manual review
+                            No Granola transcript, requires manual review
                           </span>
                         )}
                       </div>
@@ -2870,22 +3039,27 @@ function EduSessionsSection({ milestones, slug }) {
   // All educational events across weeks
   const eduEvents = WEEKS.flatMap(w =>
     (w.events || [])
-      .filter(e => e.name.includes("Expert") || e.name.includes("Industry") || e.name.includes("Peer Development") || e.name.includes("Pitch Without a Deck"))
+      .filter(e => e.name.startsWith("Educational Session"))
       .map(e => ({ ...e, weekNum: w.num, weekLabel: w.label, dateRange: w.dateRange }))
   );
 
   return (
     <div>
+      <div style={{ background: "#f5f3ff", borderRadius: 10, padding: "12px 18px", marginBottom: 18 }}>
+        <p style={{ margin: 0, fontSize: 13, color: "#3d2f8a", lineHeight: 1.6 }}>
+          We review every one of these. AI vetted, human verified. Please give us some time to go through them; there are a lot of you. 😉
+        </p>
+      </div>
       {/* Welcome banner */}
       <div style={{
         background: "#f0faf5", borderRadius: 12, border: "1px solid #b8e8d0",
         padding: "18px 22px", marginBottom: 16,
       }}>
         <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 700, color: "#1a4a32" }}>
-          👋 Hi there — thank you for participating in Uplift!
+          👋 Hi there, thank you for participating in Uplift!
         </p>
         <p style={{ margin: 0, fontSize: 13, color: "#2d6e50", lineHeight: 1.7 }}>
-          Educational session attendance is one of the few things that needs to be manually verified by our team. We appreciate your patience — if your attendance hasn't been updated within a week, please reach out to{" "}
+          Educational session attendance is one of the few things that needs to be manually verified by our team. We appreciate your patience, if your attendance hasn't been updated within a week, please reach out to{" "}
           <a href="mailto:uplift@techunited.co" style={{ color: "#1a6e42", fontWeight: 600, textDecoration: "none" }}>
             uplift@techunited.co
           </a>{" "}
@@ -2906,10 +3080,10 @@ function EduSessionsSection({ milestones, slug }) {
             All sessions are open to everyone
           </p>
           <p style={{ margin: 0, fontSize: 13, color: "#4a4060", lineHeight: 1.75 }}>
-            You'll notice sessions are labeled by cohort — <strong>Edison, Hopper, Bardeen, Lawrence,</strong> and <strong>Morrison</strong> — but these are simply a way to group participants and help you build closer relationships with your peers. You are welcome and encouraged to attend <em>any and all</em> sessions across every cohort.
+            You'll notice sessions are labeled by cohort, <strong>Edison, Hopper, Bardeen, Lawrence,</strong> and <strong>Morrison</strong>, but these are simply a way to group participants and help you build closer relationships with your peers. You are welcome and encouraged to attend <em>any and all</em> sessions across every cohort.
           </p>
           <p style={{ margin: "8px 0 0", fontSize: 13, color: "#4a4060", lineHeight: 1.75 }}>
-            Our speakers bring a wide range of expertise that's relevant to founders at every stage and in every industry. We also know that schedules are unpredictable — Uplift is designed to be accessible and work around your life. If a time works for you, show up. Every session you attend counts toward your 3 required educational sessions.
+            Our speakers bring a wide range of expertise that's relevant to founders at every stage and in every industry. We also know that schedules are unpredictable, Uplift is designed to be accessible and work around your life. If a time works for you, show up. Every session you attend counts toward your 3 required educational sessions.
           </p>
         </div>
       </div>
@@ -2928,19 +3102,19 @@ function EduSessionsSection({ milestones, slug }) {
               label: "Expert Insight",
               color: "#5c4eb5",
               bg: "#f3f0ff",
-              desc: "A structured fireside chat or lecture centered on a specific topic. These sessions feature a guest speaker and are more presentation-driven — you can submit questions live, but the format is curated to maximize what you take away.",
+              desc: "A structured fireside chat or lecture centered on a specific topic. These sessions feature a guest speaker and are more presentation-driven, you can submit questions live, but the format is curated to maximize what you take away.",
             },
             {
               label: "Industry Q&A",
               color: "#2a7fd4",
               bg: "#f0f7ff",
-              desc: "A more open and conversational session with a guest. There's still some light structure, but the emphasis is on real dialogue — you'll have a genuine opportunity to ask questions, share your perspective, and engage directly with the speaker.",
+              desc: "A more open and conversational session with a guest. There's still some light structure, but the emphasis is on real dialogue, you'll have a genuine opportunity to ask questions, share your perspective, and engage directly with the speaker.",
             },
             {
               label: "Peer Development",
               color: "#0f9d6e",
               bg: "#f0faf5",
-              desc: "A hands-on workshop designed to sharpen your professional skills. These sessions may or may not feature a guest, but they always put you and your cohort at the center — expect active participation, discussion, and practical takeaways.",
+              desc: "A hands-on workshop designed to sharpen your professional skills. These sessions may or may not feature a guest, but they always put you and your cohort at the center, expect active participation, discussion, and practical takeaways.",
             },
           ].map(({ label, color, bg, desc }) => (
             <div key={label} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
@@ -2999,7 +3173,7 @@ function EduSessionsSection({ milestones, slug }) {
           <p style={{ margin: 0, fontSize: 11, opacity: 0.6 }}>Session 3</p>
         </div>
         <p style={{ margin: "10px 0 0", fontSize: 11, opacity: 0.55, fontStyle: "italic", lineHeight: 1.5 }}>
-          * Educational session attendance is verified manually by the program team and updated every Tuesday. Sessions pending review are not automatically reflected here — they may take additional time to be updated.
+          * Educational session attendance is verified manually by the program team and updated every Tuesday. Sessions pending review are not automatically reflected here, and may take additional time to be updated.
         </p>
       </div>
 
@@ -3158,7 +3332,7 @@ function GoalsSection({ mentee, slug }) {
           {WEEKS.filter(w => weeklyFocus[w.num]).map((w, i, arr) => (
             <div key={w.num} style={{ marginBottom: i < arr.length - 1 ? 14 : 0 }}>
               <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 600, color: "#6b6480" }}>
-                Week {w.num} — {w.title}
+                Week {w.num}, {w.title}
               </p>
               <p style={{ margin: 0, fontSize: 14, color: "#1a1733", lineHeight: 1.6 }}>
                 {weeklyFocus[w.num]}
@@ -3172,7 +3346,7 @@ function GoalsSection({ mentee, slug }) {
       {responses.primary_refine && (
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "22px 26px", marginBottom: 16 }}>
           <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#5c4eb5" }}>
-            What real progress looks like by August
+            What real progress looks like by November
           </p>
           <p style={{ margin: 0, fontSize: 15, color: "#1a1733", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
             {responses.primary_refine}
@@ -3195,7 +3369,7 @@ function GoalsSection({ mentee, slug }) {
       {(responses.w1_q0 || responses.w1_q1 || responses.w1_q2) && (
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "22px 26px", marginBottom: 16 }}>
           <p style={{ margin: "0 0 16px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
-            Week 1 — Pre-Meeting Reflections
+            Deep Work · Week 1 Pre-Meeting Reflections
           </p>
           {[
             { key: "w1_q0", q: "Who is your ideal first customer, and why?" },
@@ -3214,7 +3388,7 @@ function GoalsSection({ mentee, slug }) {
       {(responses.w2_prep_q1 || responses.w2_prep_q2 || responses.w2_prep_q3) && (
         <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e8e4f5", padding: "22px 26px", marginBottom: 16 }}>
           <p style={{ margin: "0 0 16px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
-            Week 2 — Before Your First Mentor Meeting
+            Week 2, Before Your First Mentor Meeting
           </p>
           {[
             { key: "w2_prep_q1", q: "What's the single most important thing you want your mentor to understand about your company?" },
@@ -3235,7 +3409,7 @@ function GoalsSection({ mentee, slug }) {
           {responses.w3_win && (
             <div style={{ background: "linear-gradient(135deg, #fef9e7 0%, #fffde7 100%)", borderBottom: "1px solid #f9d94a", padding: "16px 22px" }}>
               <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b7a00" }}>
-                🏆 Week 3 — Win Shared with the Group
+                🏆 Week 3, Win Shared with the Group
               </p>
               <p style={{ margin: 0, fontSize: 14, color: "#5a3e00", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{responses.w3_win}</p>
             </div>
@@ -3243,7 +3417,7 @@ function GoalsSection({ mentee, slug }) {
           {(responses.w3_role_model || responses.w3_deploy_tactic) && (
             <div style={{ background: "#fff", padding: "16px 22px" }}>
               <p style={{ margin: "0 0 16px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
-                Week 3 — Building With Intention
+                Week 3, Building With Intention
               </p>
               {[
                 { key: "w3_role_model",    q: "Who do you want to build like?" },
@@ -3269,7 +3443,7 @@ function GoalsSection({ mentee, slug }) {
             No reflections yet
           </p>
           <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf", lineHeight: 1.6 }}>
-            Head to <strong>My Journey</strong> to fill in your weekly focus and reflections — they'll appear here once saved.
+            Head to <strong>My Journey</strong> to fill in your weekly focus and reflections, they'll appear here once saved.
           </p>
         </div>
       )}
@@ -3293,19 +3467,20 @@ function MilestoneSection({ milestones, excused = {}, onNavigate, slug, meetings
   const isHolding = HOLDING_SLUGS.has(slug);
   const isVeryLateMatch = VERY_LATE_MATCH_SLUGS.has(slug);
   const isLateMatch = LATE_MATCH_SLUGS.has(slug);
+  // Sheet keys unchanged from summer; labels and dues re-skinned for fall.
   const items = [
-    { key: "participation",   label: "Confirmed Participation",        auto: true, due: "By Jun 3",  week: 1 },
-    { key: "onboarding",      label: "Onboarding Session Attended",  due: "By Jun 7",  contactMsg: "If you haven't attended an onboarding session yet, please reach out to us directly — we can help get you sorted." },
-    { key: "mentorMatched",   label: "Matched with a Mentor",        due: isHolding ? "By Jun 16" : "By Jun 9",  contactMsg: "If you haven't been matched with a mentor yet, it likely means we don't have you recorded for an onboarding session. Please contact us directly so we can help." },
-    { key: "edu1",            label: "Educational Session 1",                       due: "By Aug 4",  week: 2 },
-    { key: "edu2",            label: "Educational Session 2",                       due: "By Aug 4",  week: 3 },
-    { key: "edu3",            label: "Educational Session 3",                       due: "By Aug 4",  week: 8 },
-    { key: "mentorSession1",  label: "Mentor Session 1",                            due: isVeryLateMatch ? "By Jul 8" : isLateMatch ? "By Jun 30" : isHolding ? "By Jun 23" : "By Jun 13", week: 2 },
-    { key: "mentorSession2",  label: "Mentor Session 2",                            due: isVeryLateMatch ? "By Jul 19" : isLateMatch ? "By Jul 11" : "By Jul 4",  week: 5 },
-    { key: "mentorSession3",  label: "Mentor Session 3",                            due: isVeryLateMatch ? "By Aug 2" : isLateMatch ? "By Jul 25" : "By Jul 18", week: 7 },
-    { key: "midpoint",        label: "Midpoint Meetup Attended",                    due: "Jun 23",    week: 4 },
-    { key: "endSurvey",       label: "End of Program Survey Completed",             due: "By Jul 25", week: 8 },
-    { key: "summit",          label: "Summit & Graduation Attended",                due: "Aug 4",     week: 10 },
+    { key: "participation",   label: "Confirmed Participation",     auto: true, due: "By Sep 9", week: 1 },
+    { key: "onboarding",      label: "Onboarding Session Attended", due: "By Sep 13", contactMsg: "If you haven't attended an onboarding session yet, please reach out to us directly, we can help get you sorted." },
+    { key: "mentorMatched",   label: "Matched with a Mentor",       due: "By Sep 20", contactMsg: "If you haven't been matched with a mentor yet, it likely means we don't have you recorded for an onboarding session. Please contact us directly so we can help." },
+    { key: "mentorSession1",  label: "Discover · Meeting 1",        due: "Within 7 days of your match", week: 2 },
+    { key: "mentorSession2",  label: "Act · Meeting 2",             due: "Within 10 days of Discover",  week: 3 },
+    { key: "mentorSession3",  label: "Roadmap · Meeting 3",         due: "By Oct 23", week: 6 },
+    { key: "edu1",            label: "Educational Session 1",       due: "By Oct 1",  week: 4 },
+    { key: "edu2",            label: "Educational Session 2",       due: "By Nov 6",  week: 5 },
+    { key: "edu3",            label: "Educational Session 3",       due: "By Nov 6",  week: 8 },
+    { key: "midpoint",        label: "OverdriveAI Attended",       due: "Oct 27",    week: 7 },
+    { key: "endSurvey",       label: "End Report & Exit Survey Completed", due: "By Nov 20", week: 8 },
+    { key: "summit",          label: "Signature Verification Signed",      due: "By Nov 20", week: 8 },
     { key: "certificate",     label: "Certificate Received" },
   ];
 
@@ -3352,7 +3527,7 @@ function MilestoneSection({ milestones, excused = {}, onNavigate, slug, meetings
       </div>
 
       <p style={{ margin: "0 0 16px", fontSize: 13, color: "#9b8fcf" }}>
-        Milestones are manually confirmed by a TechUnited team member every Tuesday. No action needed from you — they'll update automatically. If something seems wrong here, please contact{" "}
+        Milestones are manually confirmed by a TechUnited team member every Tuesday. No action needed from you, they'll update automatically. If something seems wrong here, please contact{" "}
         <a href="mailto:uplift@techunited.co" style={{ color: "#9b8fcf", fontWeight: 600 }}>uplift@techunited.co</a>.
       </p>
 
@@ -3410,12 +3585,12 @@ function MilestoneSection({ milestones, excused = {}, onNavigate, slug, meetings
                 )}
                 {isExcused && (
                   <span style={{ marginTop: 4, fontSize: 12, color: "#3a7d5c", lineHeight: 1.6 }}>
-                    Marked as an excused absence — this won't count against you. No action needed.
+                    Marked as an excused absence, this won't count against you. No action needed.
                   </span>
                 )}
                 {overdue && !menteeOwned && hasPendingForThisSession && (
                   <span style={{ marginTop: 4, fontSize: 12, color: "#7a7a9a", lineHeight: 1.6 }}>
-                    Session received — under review. No action needed from you.
+                    Session received, under review. No action needed from you.
                   </span>
                 )}
                 {overdue && !menteeOwned && sessionIndex != null && !hasPendingForThisSession && (
@@ -3428,7 +3603,7 @@ function MilestoneSection({ milestones, excused = {}, onNavigate, slug, meetings
                 )}
                 {registeredForThisEdu && (
                   <span style={{ marginTop: 6, fontSize: 12, color: "#3d54a8", lineHeight: 1.6 }}>
-                    Registered — pending verification:{" "}
+                    Registered, pending verification:{" "}
                     {registeredEduEvents.slice(0, eduIndex - verifiedEduCount).map((e, i, arr) => (
                       <span key={i} style={{ fontWeight: 600 }}>
                         {e.eventName}{i < arr.length - 1 ? ", " : ""}
@@ -3489,17 +3664,16 @@ function CalendarSection({ milestones = {}, excused = {} }) {
   const WEEK_MILESTONE = {
     1: "onboarding",
     2: "mentorSession1",
-    4: "midpoint",
-    5: "mentorSession2",
-    7: "mentorSession3",
+    3: "mentorSession2",
+    6: "mentorSession3",
+    7: "midpoint",
     8: "endSurvey",
-    10: "summit",
   };
 
   return (
     <div>
       <p style={{ margin: "0 0 20px", fontSize: 15, color: "#6b6480" }}>
-        All program sessions and milestones across the 10-week Uplift Summer 2026 schedule.
+        All program sessions and milestones across the 8-week Uplift Fall 2026 schedule.
       </p>
 
       {/* Open attendance notice */}
@@ -3515,10 +3689,10 @@ function CalendarSection({ milestones = {}, excused = {} }) {
             All sessions are open to everyone
           </p>
           <p style={{ margin: 0, fontSize: 13, color: "#4a4060", lineHeight: 1.75 }}>
-            You'll notice sessions are labeled by cohort — <strong>Edison, Hopper, Bardeen, Lawrence,</strong> and <strong>Morrison</strong> — but these are simply a way to group participants and help you build closer relationships with your peers. You are welcome and encouraged to attend <em>any and all</em> sessions across every cohort.
+            You'll notice sessions are labeled by cohort, <strong>Edison, Hopper, Bardeen, Lawrence,</strong> and <strong>Morrison</strong>, but these are simply a way to group participants and help you build closer relationships with your peers. You are welcome and encouraged to attend <em>any and all</em> sessions across every cohort.
           </p>
           <p style={{ margin: "8px 0 0", fontSize: 13, color: "#4a4060", lineHeight: 1.75 }}>
-            Our speakers bring a wide range of expertise that's relevant to founders at every stage and in every industry — no session is off-limits based on your cohort. We also know that schedules are unpredictable. Uplift is designed to be accessible and work around your life, which means you should never have to miss a session just because it's labeled for a different group. If a time works for you, show up.
+            Our speakers bring a wide range of expertise that's relevant to founders at every stage and in every industry, no session is off-limits based on your cohort. We also know that schedules are unpredictable. Uplift is designed to be accessible and work around your life, which means you should never have to miss a session just because it's labeled for a different group. If a time works for you, show up.
           </p>
         </div>
       </div>
@@ -3537,19 +3711,19 @@ function CalendarSection({ milestones = {}, excused = {} }) {
               label: "Expert Insight",
               color: "#5c4eb5",
               bg: "#f3f0ff",
-              desc: "A structured fireside chat or lecture centered on a specific topic. These sessions feature a guest speaker and are more presentation-driven — you can submit questions live, but the format is curated to maximize what you take away.",
+              desc: "A structured fireside chat or lecture centered on a specific topic. These sessions feature a guest speaker and are more presentation-driven, you can submit questions live, but the format is curated to maximize what you take away.",
             },
             {
               label: "Industry Q&A",
               color: "#2a7fd4",
               bg: "#f0f7ff",
-              desc: "A more open and conversational session with a guest. There's still some light structure, but the emphasis is on real dialogue — you'll have a genuine opportunity to ask questions, share your perspective, and engage directly with the speaker.",
+              desc: "A more open and conversational session with a guest. There's still some light structure, but the emphasis is on real dialogue, you'll have a genuine opportunity to ask questions, share your perspective, and engage directly with the speaker.",
             },
             {
               label: "Peer Development",
               color: "#0f9d6e",
               bg: "#f0faf5",
-              desc: "A hands-on workshop designed to sharpen your professional skills. These sessions may or may not feature a guest, but they always put you and your cohort at the center — expect active participation, discussion, and practical takeaways.",
+              desc: "A hands-on workshop designed to sharpen your professional skills. These sessions may or may not feature a guest, but they always put you and your cohort at the center, expect active participation, discussion, and practical takeaways.",
             },
           ].map(({ label, color, bg, desc }) => (
             <div key={label} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
@@ -3755,7 +3929,7 @@ function ResourcesSection({ slug, menteeName }) {
     <div>
       {/* Pro tip */}
       <p style={{ margin: "0 0 20px", fontSize: 12, color: "#b0a8cc", fontStyle: "italic" }}>
-        💡 Pro tip — heart any resource below to instantly pin it to your own Favorites section at the top.
+        💡 Pro tip, heart any resource below to instantly pin it to your own Favorites section at the top.
       </p>
 
       {/* My Favorites */}
@@ -4005,7 +4179,7 @@ function ProfileSection({ mentee, slug, cohortMates, allCohortMembers }) {
           borderRadius: 14, padding: "22px 28px", marginBottom: 24, color: "#fff",
         }}>
           <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", opacity: 0.65 }}>
-            Cohort {myCohort.num} — {myCohort.name}
+            Cohort {myCohort.num}, {myCohort.name}
           </p>
           <p style={{ margin: "0 0 10px", fontSize: 20, fontWeight: 700 }}>{myCohort.namesake}</p>
           <p style={{ margin: "0 0 12px", fontSize: 13, lineHeight: 1.6, opacity: 0.85 }}>{myCohort.bio}</p>
@@ -4049,14 +4223,14 @@ function ProfileSection({ mentee, slug, cohortMates, allCohortMembers }) {
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             <span style={{ background: "#f0ecff", color: "#5c4eb5", borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 500 }}>{mentee.stage}</span>
             <span style={{ background: "#e8f4ff", color: "#2a7fd4", borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 500 }}>{mentee.industry}</span>
-            <span style={{ background: "#f0faf5", color: "#22a366", borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 500 }}>Cohort {mentee.cohort} — {myCohort?.name}</span>
+            <span style={{ background: "#f0faf5", color: "#22a366", borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 500 }}>Cohort {mentee.cohort}, {myCohort?.name}</span>
           </div>
         </div>
       </div>
 
       {/* Cohort directory — own cohort */}
       <p style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: "#1a1733" }}>
-        Cohort {mentee.cohort} — {myCohort?.name} — Your Fellow Founders
+        Cohort {mentee.cohort}, {myCohort?.name}, Your Fellow Founders
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12, marginBottom: 40 }}>
         {cohortMates.map((m) => (
@@ -4100,7 +4274,7 @@ function ProfileSection({ mentee, slug, cohortMates, allCohortMembers }) {
                 padding: "18px 22px", marginBottom: 18,
               }}>
                 <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 700, color: "#5c4eb5" }}>
-                  Cohort {c.num} — {c.namesake}
+                  Cohort {c.num}, {c.namesake}
                 </p>
                 <p style={{ margin: "0 0 10px", fontSize: 13, color: "#3d2f8a", lineHeight: 1.6 }}>{c.bio}</p>
                 <p style={{ margin: 0, fontSize: 12, color: "#6b6480", lineHeight: 1.6, fontStyle: "italic" }}>{c.why}</p>
@@ -4188,7 +4362,7 @@ function LumaAttendanceSection({ slug }) {
     <div style={{ maxWidth: 600 }}>
       <p style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 700, color: "#1a1733" }}>Event Attendance</p>
       <p style={{ margin: "0 0 22px", fontSize: 13, color: "#6b6480", lineHeight: 1.6 }}>
-        A log of every Uplift event you've registered for or attended. Attendance is verified manually by the program team — you'll see the status update here once it's confirmed.
+        A log of every Uplift event you've registered for or attended. Attendance is verified manually by the program team, you'll see the status update here once it's confirmed.
       </p>
 
       {loading ? (
@@ -4283,7 +4457,7 @@ function PitchShowcaseModal({ onClose }) {
         {/* Body */}
         <div style={{ padding: "24px 28px 28px" }}>
           <p style={{ margin: "0 0 18px", fontSize: 14.5, color: "#3a3555", lineHeight: 1.65 }}>
-            We've been blown away by this cohort — and we want to give a few of you the stage to show it off. There are <strong>three showcase slots</strong>. To apply, submit a deck plus a <strong>2–3 minute Loom video pitch</strong> on you and your company. Make it compelling and intriguing — something an audience will genuinely connect with. Our Tech United team reviews every submission and selects the top three.
+            We've been blown away by this cohort, and we want to give a few of you the stage to show it off. There are <strong>three showcase slots</strong>. To apply, submit a deck plus a <strong>2–3 minute Loom video pitch</strong> on you and your company. Make it compelling and intriguing, something an audience will genuinely connect with. Our Tech United team reviews every submission and selects the top three.
           </p>
 
           {/* Key details */}
@@ -4294,7 +4468,7 @@ function PitchShowcaseModal({ onClose }) {
               ["📅", <>Submit anytime, but <strong>all submissions due July 28th</strong>.</>],
               ["🎯", <>Finalists each get <strong>5 minutes to pitch</strong> + <strong>5 minutes of audience Q&amp;A</strong>.</>],
               ["🏆", <>The audience votes for an <strong>Audience Choice winner</strong>.</>],
-              ["✅", <>To be eligible, you must have <strong>3 mentorship meetings completed by July 28th</strong>. Behind? Reach out — we'll help you get there.</>],
+              ["✅", <>To be eligible, you must have <strong>3 mentorship meetings completed by July 28th</strong>. Behind? Reach out, we'll help you get there.</>],
             ].map(([icon, text], i) => (
               <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: i === 3 ? 0 : 11 }}>
                 <span style={{ fontSize: 15, flexShrink: 0, lineHeight: 1.5 }}>{icon}</span>
@@ -4399,14 +4573,14 @@ function CoffeeMeetupModal({ onClose }) {
             Join us in person for coffee
           </h2>
           <p style={{ margin: 0, fontSize: 14, opacity: 0.85, lineHeight: 1.55 }}>
-            Casual Monday meetups with your cohort — and your mentor.
+            Casual Monday meetups with your cohort, and your mentor.
           </p>
         </div>
 
         {/* Body */}
         <div style={{ padding: "24px 28px 28px" }}>
           <p style={{ margin: "0 0 14px", fontSize: 14.5, color: "#3a3555", lineHeight: 1.65 }}>
-            You asked for more ways to connect — with your mentor and with the rest of the cohort. This is exactly that.
+            You asked for more ways to connect, with your mentor and with the rest of the cohort. This is exactly that.
           </p>
           <p style={{ margin: "0 0 14px", fontSize: 14.5, color: "#3a3555", lineHeight: 1.65 }}>
             There's no presentation, no agenda, and no pressure. Just a casual space to grab coffee, meet other founders, and spend time with your mentor in person.
@@ -4418,10 +4592,10 @@ function CoffeeMeetupModal({ onClose }) {
           {/* Key details */}
           <div style={{ background: "#fdf6ec", borderRadius: 14, padding: "16px 18px", marginBottom: 18 }}>
             {[
-              ["📅", <>Any of the next three Mondays — <strong>July 20, July 27, and August 3</strong>.</>],
+              ["📅", <>Any of the next three Mondays, <strong>July 20, July 27, and August 3</strong>.</>],
               ["🕠", <><strong>5:30–7:00 PM</strong> at <strong>Haraz Coffee in Hoboken</strong>.</>],
               ["☕", <>Coffee, tea, and decaf are on us.</>],
-              ["🎲", <>A few optional icebreakers and games to get conversations started — mostly we'll let everyone mingle naturally.</>],
+              ["🎲", <>A few optional icebreakers and games to get conversations started, mostly we'll let everyone mingle naturally.</>],
             ].map(([icon, text], i) => (
               <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: i === 3 ? 0 : 11 }}>
                 <span style={{ fontSize: 15, flexShrink: 0, lineHeight: 1.5 }}>{icon}</span>
@@ -4534,7 +4708,7 @@ function OfficeHoursModal({ onClose }) {
         {/* Body */}
         <div style={{ padding: "24px 28px 28px" }}>
           <p style={{ margin: "0 0 14px", fontSize: 14.5, color: "#3a3555", lineHeight: 1.65 }}>
-            The easy way to get your 1:1 time in — no scheduling back and forth required. We've set aside <strong>six standing office hour sessions</strong> that you and your mentor can use for your required 1:1 meetings. Instead of trying to coordinate calendars, simply choose one of the times below and invite your mentor to join you.
+            The easy way to get your 1:1 time in, no scheduling back and forth required. We've set aside <strong>six standing office hour sessions</strong> that you and your mentor can use for your required 1:1 meetings. Instead of trying to coordinate calendars, simply choose one of the times below and invite your mentor to join you.
           </p>
 
           {/* How it works */}
@@ -4591,7 +4765,7 @@ function OfficeHoursModal({ onClose }) {
               A few reminders
             </p>
             {[
-              <>Please <strong>confirm with your mentor before joining</strong>. These sessions depend on your mentor's availability — they won't automatically be attending.</>,
+              <>Please <strong>confirm with your mentor before joining</strong>. These sessions depend on your mentor's availability, they won't automatically be attending.</>,
               <>You'll still <strong>submit your meeting form</strong> and key takeaways afterward, just as you would for any other mentor meeting.</>,
               <>A 30-minute meeting counts as <strong>½ session</strong>, and a full hour counts as <strong>1 full session</strong> toward your program requirements.</>,
             ].map((text, i) => (
@@ -4625,9 +4799,9 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
   const [activeWeek, setActiveWeek] = useState(() => {
     const today = new Date();
     const starts = [
-      [1, "2026-06-01"], [2, "2026-06-08"], [3, "2026-06-15"],
-      [4, "2026-06-22"], [5, "2026-06-29"], [6, "2026-07-06"],
-      [7, "2026-07-13"], [8, "2026-07-19"], [9, "2026-07-27"], [10, "2026-08-03"],
+      [1, "2026-09-09"], [2, "2026-09-14"], [3, "2026-09-21"],
+      [4, "2026-09-28"], [5, "2026-10-05"], [6, "2026-10-12"],
+      [7, "2026-10-26"], [8, "2026-11-02"],
     ];
     for (let i = starts.length - 1; i >= 0; i--) {
       if (today >= new Date(starts[i][1])) return starts[i][0];
@@ -4685,8 +4859,25 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
 
   const mentee = menteeData;
   const slug = mentee.slug;
-  // Driven by live milestones (Admin tab "Unlock Mentor" checkbox) — falls back to static data
-  const mentorUnlocked = liveMilestones?.mentorMatched ?? mentee.mentorUnlocked;
+  // Week 1 gate: onboarding attended (auto-verified from the Luma tag) + Deep Work
+  // written (five things + primary goal) + quiz passed. Recomputed on a short poll
+  // because Deep Work and the quiz persist to localStorage. Prototype-grade.
+  const [week1Done, setWeek1Done] = useState(false);
+  useEffect(() => {
+    const DEEP_WORK_KEYS = ["five_relationship", "five_clarity", "five_resources", "five_mentor", "five_community", "primary_refine"];
+    const check = () => {
+      const deepWork = DEEP_WORK_KEYS.every(k => (localStorage.getItem(`${slug}_w1_${k}`) || "").trim());
+      const quiz = !!localStorage.getItem(`${slug}_quiz_passed`);
+      const onboarded = !!(liveMilestones?.onboarding);
+      setWeek1Done(deepWork && quiz && onboarded);
+    };
+    check();
+    const t = setInterval(check, 2000);
+    return () => clearInterval(t);
+  }, [slug, liveMilestones]);
+
+  // Driven by live milestones (Admin tab "Unlock Mentor" checkbox) AND the Week 1 gate
+  const mentorUnlocked = (liveMilestones?.mentorMatched ?? mentee.mentorUnlocked) && week1Done;
   // Only dereference mentee.mentor when it actually exists — a match can read as
   // unlocked from the live sheet before the static mentor record is populated.
   const hasMentor = mentorUnlocked && !!mentee.mentor;
@@ -4732,7 +4923,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
   }, [isAuthenticated, slug]);
 
   // Announcement modals — each shows once per mentee (until dismissed), in order.
-  const MODAL_ORDER = ["showcase", "coffee", "officehours"];
+  const MODAL_ORDER = []; // summer modals retired for fall; re-add fall announcements here
   useEffect(() => {
     if (!isAuthenticated || !slug) return;
     const next = MODAL_ORDER.find((k) => {
@@ -4880,87 +5071,6 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
         </div>
       );
     }
-    if (activeWeek === "wrapped") {
-      if (WRAPPED_DATA[slug]) {
-        return <UpliftWrapped mentee={mentee} wrapped={WRAPPED_DATA[slug]} />;
-      }
-      return (
-        <div style={{
-          background: "linear-gradient(160deg, #0d0020 0%, #4a0077 38%, #b8005a 72%, #ff4b8b 100%)",
-          borderRadius: 20, padding: "44px 28px 48px", color: "#fff",
-          position: "relative", overflow: "hidden", textAlign: "center",
-        }}>
-          {/* Decorative orbs */}
-          {[["18%","−5%",100],["82%","25%",60],["5%","65%",70],["88%","78%",45],["50%","88%",55]].map(([left, top, sz], i) => (
-            <div key={i} style={{
-              position: "absolute", left, top, width: sz, height: sz,
-              borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none",
-            }} />
-          ))}
-
-          <div style={{ position: "relative", zIndex: 1 }}>
-            <div style={{ fontSize: 52, marginBottom: 12 }}>✨</div>
-            <h2 style={{ margin: "0 0 6px", fontSize: 34, fontWeight: 900, letterSpacing: "-0.5px", lineHeight: 1 }}>
-              Uplift Wrapped
-            </h2>
-            <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", opacity: 0.55 }}>
-              Summer 2026
-            </p>
-            <p style={{ margin: "0 0 24px", fontSize: 15, opacity: 0.8, lineHeight: 1.5 }}>
-              Your summer, by the numbers.
-            </p>
-
-            {/* Lock badge */}
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              background: "rgba(255,255,255,0.13)", borderRadius: 24,
-              padding: "9px 22px", marginBottom: 36,
-              border: "1px solid rgba(255,255,255,0.2)",
-            }}>
-              <span style={{ fontSize: 15 }}>🔒</span>
-              <span style={{ fontSize: 13, fontWeight: 700 }}>Being assembled · dropping soon</span>
-            </div>
-
-            {/* Blurred preview cards */}
-            <p style={{ margin: "0 0 12px", fontSize: 11, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", opacity: 0.4 }}>
-              A peek at what&apos;s inside
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 28 }}>
-              {[
-                { emoji: "💫", label: "Your Mood Journey",  preview: "Week-by-week pulse: the highs, the grinds, the breakthroughs." },
-                { emoji: "🧠", label: "Your Founder Type",  preview: "We decoded your archetype from your reflections and goals." },
-                { emoji: "🎯", label: "Your Top Themes",    preview: "What your summer was really about, in your own words." },
-                { emoji: "👥", label: "Cohort Vibes",       preview: "How the whole cohort felt week by week. It gets good." },
-              ].map((card, i) => (
-                <div key={i} style={{
-                  background: "rgba(255,255,255,0.08)", borderRadius: 12,
-                  padding: "16px 14px", textAlign: "left",
-                  filter: "blur(3.5px)", userSelect: "none",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                }}>
-                  <div style={{ fontSize: 22, marginBottom: 7 }}>{card.emoji}</div>
-                  <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700 }}>{card.label}</p>
-                  <p style={{ margin: 0, fontSize: 11, opacity: 0.7, lineHeight: 1.4 }}>{card.preview}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Teaser copy */}
-            <div style={{
-              background: "rgba(255,255,255,0.07)", borderRadius: 14,
-              padding: "20px 22px", textAlign: "left",
-              border: "1px solid rgba(255,255,255,0.1)",
-            }}>
-              <p style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 700 }}>What to expect</p>
-              <p style={{ margin: 0, fontSize: 13, opacity: 0.82, lineHeight: 1.8 }}>
-                Some weeks you were moody. Some you were sky high. Some had strong takeaways — others you were deep in the grind. Based on every reflection, prompt response, mood check-in, and connection you made this summer, we&apos;ve built your personalized Uplift Wrapped — complete with your founder character type, the themes that defined your summer, cohort-wide patterns, and all the moments that made this program yours.
-              </p>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
     const week = WEEKS.find((w) => w.num === activeWeek);
     if (!week) return null;
     let weekContent;
@@ -4974,11 +5084,12 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
         weekContent = <Week2 mentee={mentee} slug={slug} mentorUnlocked={mentorUnlocked} holding={HOLDING_SLUGS.has(slug)} />;
         break;
       default:
-        weekContent = <WeekReflection weekNum={week.num} slug={slug} prompts={promptBlocks} menteeName={`${mentee.first} ${mentee.last}`.trim()} />;
+        weekContent = <WeekReflection weekNum={week.num} slug={slug} prompts={promptBlocks} menteeName={`${mentee.first} ${mentee.last}`.trim()} milestones={liveMilestones || mentee.milestones || {}} />;
     }
     return (
       <>
         <WeeklyPulse slug={slug} weekNum={week.num} />
+        {week.num >= 2 && <WinOfTheWeek slug={slug} weekNum={week.num} />}
         {weekContent}
       </>
     );
@@ -5011,7 +5122,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
   return (
     <>
       <Head>
-        <title>{mentee.first} {mentee.last} · Uplift Summer 2026</title>
+        <title>{mentee.first} {mentee.last} · Uplift Fall 2026</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/uplift-logo.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -5022,55 +5133,10 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       {activeModal === "showcase" && <PitchShowcaseModal onClose={dismissModal} />}
       {activeModal === "coffee" && <CoffeeMeetupModal onClose={dismissModal} />}
       {activeModal === "officehours" && <OfficeHoursModal onClose={dismissModal} />}
+      {activeModal === "company" && <CompanySnapshotModal mentee={mentee} onClose={dismissModal} />}
 
-      {/* Persistent re-open buttons — always available so mentees can revisit the announcements */}
-      {!activeModal && (
-        <div style={{
-          position: "fixed", bottom: 20, right: 20, zIndex: 9998,
-          display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10,
-          fontFamily: "'Inter', system-ui, sans-serif",
-        }}>
-          <button
-            onClick={() => setActiveModal("officehours")}
-            style={{
-              display: "flex", alignItems: "center", gap: 8,
-              padding: "10px 16px", borderRadius: 30, border: "none",
-              background: "linear-gradient(135deg, #1a6e50 0%, #2a9d6e 100%)",
-              color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer",
-              fontFamily: "inherit",
-              boxShadow: "0 6px 20px rgba(26,110,80,0.4)",
-            }}
-          >
-            🤝 Meet your mentor
-          </button>
-          <button
-            onClick={() => setActiveModal("coffee")}
-            style={{
-              display: "flex", alignItems: "center", gap: 8,
-              padding: "10px 16px", borderRadius: 30, border: "none",
-              background: "linear-gradient(135deg, #7a3d14 0%, #c97b2d 100%)",
-              color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer",
-              fontFamily: "inherit",
-              boxShadow: "0 6px 20px rgba(122,61,20,0.4)",
-            }}
-          >
-            ☕ Monday coffee meetup
-          </button>
-          <button
-            onClick={() => setActiveModal("showcase")}
-            style={{
-              display: "flex", alignItems: "center", gap: 8,
-              padding: "12px 18px", borderRadius: 30, border: "none",
-              background: "linear-gradient(135deg, #5c4eb5 0%, #c0006e 100%)",
-              color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
-              fontFamily: "inherit",
-              boxShadow: "0 6px 20px rgba(92,78,181,0.4)",
-            }}
-          >
-            🎤 Submit your pitch
-          </button>
-        </div>
-      )}
+      {/* Fall announcement chips get added here as events are booked */}
+      {/* Meeting structure guide lives on Week 1 (MeetingStructureCheck) */}
 
       <div style={{ minHeight: "100vh", background: "#f7f5ff", fontFamily: "'Inter', system-ui, sans-serif" }}>
         {/* Header */}
@@ -5079,10 +5145,10 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
             <img src="/uplift-logo-white.png" alt="Uplift" style={{ height: 36, marginBottom: 18, display: "block" }} />
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                Cohort {mentee.cohort}{myCohortHeader ? ` — ${myCohortHeader.name}` : ""}
+                Cohort {mentee.cohort}{myCohortHeader ? `, ${myCohortHeader.name}` : ""}
               </div>
               <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                Uplift Summer 2026
+                Uplift Fall 2026
               </div>
               <div style={{ marginLeft: "auto" }}>
                 <TabTooltip tip="Share any suggestions via this form" direction="down">
@@ -5129,7 +5195,17 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
               </h1>
             </div>
             <p style={{ margin: "0 0 16px", opacity: 0.8, fontSize: 15 }}>
-              {mentee.company} · {mentee.stage} · {mentee.industry}
+              {mentee.application ? (
+                <TabTooltip tip="Your company at a glance · click" direction="down">
+                  <button onClick={() => setActiveModal("company")} style={{
+                    border: "none", background: "none", padding: 0, cursor: "pointer",
+                    color: "#fff", fontSize: 15, fontFamily: "inherit", fontWeight: 600,
+                    textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3,
+                  }}>
+                    {mentee.company}
+                  </button>
+                </TabTooltip>
+              ) : mentee.company} · {mentee.stage} · {mentee.industry}
             </p>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -5150,7 +5226,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
                   ) : (
                     <>
                       <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Mentor TBD</p>
-                      <p style={{ margin: 0, fontSize: 12, opacity: 0.75 }}>Unlocks after onboarding week</p>
+                      <p style={{ margin: 0, fontSize: 12, opacity: 0.75 }}>Unlocks after your Week 1 action items + program-wide onboarding completion</p>
                     </>
                   )}
                 </div>
@@ -5254,20 +5330,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
               >
                 🎓 Certificate
               </button>
-              <button
-                onClick={() => setActiveWeek("wrapped")}
-                style={{
-                  flex: "0 0 auto", padding: "10px 12px 8px",
-                  border: "none", background: "none",
-                  borderBottom: activeWeek === "wrapped" ? "2px solid #c0006e" : "2px solid transparent",
-                  color: activeWeek === "wrapped" ? "#c0006e" : "#9b8fcf",
-                  fontWeight: activeWeek === "wrapped" ? 700 : 400,
-                  fontSize: 12, cursor: "pointer", whiteSpace: "nowrap",
-                  fontFamily: "inherit", transition: "color 0.15s, border-color 0.15s",
-                }}
-              >
-                <em>✨ Uplift Wrapped</em>
-              </button>
+
             </div>
           </div>
         )}
@@ -5303,7 +5366,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
 
         {/* Footer */}
         <div style={{ background: "#1a0e4f", padding: "20px 24px", textAlign: "center", color: "rgba(255,255,255,0.5)", fontSize: 12 }}>
-          TechUnited:NJ · Uplift Summer 2026 · Your responses sync to Google Sheets
+          TechUnited:NJ · Uplift Fall 2026 · Your responses sync to Google Sheets
         </div>
 
       </div>
