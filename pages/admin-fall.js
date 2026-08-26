@@ -157,6 +157,7 @@ export default function AdminFall() {
   const [matchBusy, setMatchBusy] = useState(false);
   const [appFilter, setAppFilter] = useState("undecided");
   const [profile, setProfile] = useState(null); // { kind, person }
+  const [matchExplain, setMatchExplain] = useState(null); // mentee id with score breakdown expanded
   const [todayState, setTodayState] = useState({});
 
   useEffect(() => {
@@ -636,18 +637,41 @@ export default function AdminFall() {
                 {matchedMentees.map(a => {
                   const better = betterFor(a);
                   const current = people.mentors.find(mt => mt.id === a.matchedMentorId);
-                  const grade = current ? gradeOf(scoreMentor(a, current).score) : null;
+                  const scored = current ? scoreMentor(a, current) : null;
+                  const grade = scored ? gradeOf(scored.score) : null;
                   const roster = (data?.founders || []).find(f => f.name.toLowerCase() === `${a.first} ${a.last}`.toLowerCase());
+                  const isOpen = matchExplain === a.id;
                   return (
-                    <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderTop: "1px solid #f0edf9", flexWrap: "wrap" }}>
-                      <button onClick={() => setProfile({ kind: "mentee", person: a })} style={{ border: "none", background: "none", padding: 0, fontWeight: 700, color: "#1a1733", fontSize: 14, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>{a.first} {a.last}</button>
-                      <span style={{ color: "#9b8fcf" }}>→</span>
-                      <span style={{ fontWeight: 700, color: "#1a6e42" }}>{a.matchedMentorName}</span>
-                      {grade && <span style={{ fontSize: 10.5, fontWeight: 800, borderRadius: 4, padding: "2px 8px", background: grade.bg, color: grade.color }}>{grade.label}</span>}
-                      <span style={{ fontSize: 11.5, color: "#9b8fcf" }}>{a.matchedAt?.slice(0, 10)}</span>
-                      {roster && <span style={{ fontSize: 11, color: "#6b6480" }}>portal: {roster.gateComplete ? "gate done ✓" : "gate incomplete"} · {roster.meetingCount}/3 meetings</span>}
-                      {better && <span style={{ fontSize: 11, fontWeight: 700, background: "#fff3e0", color: "#b35c00", borderRadius: 4, padding: "2px 8px" }}>⬆ Better fit: {better.name} ({better.score} vs {better.currentScore})</span>}
-                      <button disabled={matchBusy} onClick={() => doMatch("unmatch", a, { id: a.matchedMentorId, name: a.matchedMentorName, email: "" })} style={{ marginLeft: "auto", border: "1px solid #e8e4f5", borderRadius: 6, padding: "3px 10px", background: "#fff", color: "#c0392b", fontSize: 11.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Unmatch</button>
+                    <div key={a.id} style={{ borderTop: "1px solid #f0edf9", padding: "10px 0" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                        <button onClick={() => setProfile({ kind: "mentee", person: a })} style={{ border: "none", background: "none", padding: 0, fontWeight: 700, color: "#1a1733", fontSize: 14, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>{a.first} {a.last}</button>
+                        <span style={{ color: "#9b8fcf" }}>→</span>
+                        <span style={{ fontWeight: 700, color: "#1a6e42" }}>{a.matchedMentorName}</span>
+                        {grade && (
+                          <button onClick={() => setMatchExplain(isOpen ? null : a.id)} style={{ border: "none", borderRadius: 4, padding: "2px 8px", background: grade.bg, color: grade.color, fontSize: 10.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>
+                            {grade.label} · {scored.score} pts {isOpen ? "▲" : "▾"}
+                          </button>
+                        )}
+                        <span style={{ fontSize: 11.5, color: "#9b8fcf" }}>{a.matchedAt?.slice(0, 10)}</span>
+                        {roster && <span style={{ fontSize: 11, color: "#6b6480" }}>portal: {roster.gateComplete ? "gate done ✓" : "gate incomplete"} · {roster.meetingCount}/3 meetings</span>}
+                        {better && <span style={{ fontSize: 11, fontWeight: 700, background: "#fff3e0", color: "#b35c00", borderRadius: 4, padding: "2px 8px" }}>⬆ Better fit: {better.name} ({better.score} vs {better.currentScore})</span>}
+                        <button disabled={matchBusy} onClick={() => doMatch("unmatch", a, { id: a.matchedMentorId, name: a.matchedMentorName, email: "" })} style={{ marginLeft: "auto", border: "1px solid #e8e4f5", borderRadius: 6, padding: "3px 10px", background: "#fff", color: "#c0392b", fontSize: 11.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Unmatch</button>
+                      </div>
+                      {isOpen && scored && (
+                        <div style={{ marginTop: 8, marginLeft: 4, padding: "10px 14px", background: "#faf9ff", border: "1px solid #e8e4f5", borderRadius: 8 }}>
+                          <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 800, color: "#6b6480", textTransform: "uppercase", letterSpacing: "0.05em" }}>Why this scored {scored.score} ({grade.label})</p>
+                          {scored.reasons.length === 0 ? (
+                            <p style={{ margin: 0, fontSize: 12.5, color: "#9b8fcf" }}>No scoring factors matched — this pair was likely hand-picked outside the algorithm's suggestions.</p>
+                          ) : (
+                            <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                              {scored.reasons.map((r, i) => (
+                                <li key={i} style={{ fontSize: 12.5, color: r.startsWith("⚠") ? "#b35c00" : "#37324e", padding: "2px 0" }}>{r.startsWith("⚠") ? r : `• ${r}`}</li>
+                              ))}
+                            </ul>
+                          )}
+                          <p style={{ margin: "8px 0 0", fontSize: 11, color: "#9b8fcf", fontStyle: "italic" }}>Scored live from current application data via scoreMentor() — see the Matching Logic doc in Resources for the full point breakdown.</p>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
