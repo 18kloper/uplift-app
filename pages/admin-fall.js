@@ -850,7 +850,7 @@ export default function AdminFall() {
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                   <thead>
                     <tr style={{ textAlign: "left", color: "#9b8fcf", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      {["Applicant", "Company", "Stage · Industry", "NJ", "Disclosure", "Tier", "Oct 27", "Submitted", "Decision"].map(h => (
+                      {["Applicant", "Decision", "Company", "Stage · Industry", "NJ", "Disclosure", "Tier", "Oct 27", "Submitted"].map(h => (
                         <th key={h} style={{ padding: "8px 10px", borderBottom: "1px solid #e8e4f5", whiteSpace: "nowrap" }}>{h}</th>
                       ))}
                     </tr>
@@ -881,6 +881,19 @@ export default function AdminFall() {
                           {a.inRoster && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "1px 6px" }}>IN ROSTER</span>}
                           <div style={{ fontSize: 11.5, color: "#9b8fcf" }}>{a.email}</div>
                         </td>
+                        <td style={{ padding: "10px", whiteSpace: "nowrap" }}>
+                          {a.decision === "approved" && <span style={{ fontSize: 11, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "2px 8px", marginRight: 6 }}>APPROVED</span>}
+                          {a.decision === "rejected" && <span style={{ fontSize: 11, fontWeight: 800, background: "#fef0f0", color: "#c0392b", borderRadius: 4, padding: "2px 8px", marginRight: 6 }}>REJECTED</span>}
+                          {a.summerAlum && <span style={{ fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#6b6480", borderRadius: 4, padding: "2px 6px", marginRight: 6 }}>SUMMER ALUM</span>}
+                          {!a.decision ? (
+                            <>
+                              <button disabled={matchBusy} onClick={() => doDecide("mentee", a, "approved")} style={{ border: "none", borderRadius: 6, padding: "4px 10px", background: "#1a6e42", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginRight: 4 }}>✓ Approve</button>
+                              <button disabled={matchBusy} onClick={() => doDecide("mentee", a, "rejected")} style={{ border: "none", borderRadius: 6, padding: "4px 10px", background: "#fef0f0", color: "#c0392b", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>✗ Reject</button>
+                            </>
+                          ) : (
+                            <button disabled={matchBusy} onClick={() => doDecide("mentee", a, "clear")} style={{ border: "1px solid #e8e4f5", borderRadius: 6, padding: "3px 8px", background: "#fff", color: "#9b8fcf", fontSize: 10.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>undo</button>
+                          )}
+                        </td>
                         <td style={{ padding: "10px", maxWidth: 220 }}>
                           <span style={{ fontWeight: 600 }}>{a.company || "—"}</span>
                           <div style={{ fontSize: 11.5, color: "#6b6480" }}>{(a.bio || "").slice(0, 90)}</div>
@@ -897,19 +910,7 @@ export default function AdminFall() {
                         <td style={{ padding: "10px", fontSize: 11.5 }}>{(a.tier || "—").replace("Minimum program commitment (3 one-hour sessions)", "Minimum · 3")}</td>
                         <td style={{ padding: "10px" }}>{a.oct27 ? "✓" : "✗"}</td>
                         <td style={{ padding: "10px", fontSize: 11.5, color: "#6b6480", whiteSpace: "nowrap" }}>{a.submittedAt?.slice(0, 10)}</td>
-                        <td style={{ padding: "10px", whiteSpace: "nowrap" }}>
-                          {a.decision === "approved" && <span style={{ fontSize: 11, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "2px 8px", marginRight: 6 }}>APPROVED</span>}
-                          {a.decision === "rejected" && <span style={{ fontSize: 11, fontWeight: 800, background: "#fef0f0", color: "#c0392b", borderRadius: 4, padding: "2px 8px", marginRight: 6 }}>REJECTED</span>}
-                          {a.summerAlum && <span style={{ fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#6b6480", borderRadius: 4, padding: "2px 6px", marginRight: 6 }}>SUMMER ALUM</span>}
-                          {!a.decision ? (
-                            <>
-                              <button disabled={matchBusy} onClick={() => doDecide("mentee", a, "approved")} style={{ border: "none", borderRadius: 6, padding: "4px 10px", background: "#1a6e42", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginRight: 4 }}>✓ Approve</button>
-                              <button disabled={matchBusy} onClick={() => doDecide("mentee", a, "rejected")} style={{ border: "none", borderRadius: 6, padding: "4px 10px", background: "#fef0f0", color: "#c0392b", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>✗ Reject</button>
-                            </>
-                          ) : (
-                            <button disabled={matchBusy} onClick={() => doDecide("mentee", a, "clear")} style={{ border: "1px solid #e8e4f5", borderRadius: 6, padding: "3px 8px", background: "#fff", color: "#9b8fcf", fontSize: 10.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>undo</button>
-                          )}
-                        </td>
+                        
                       </tr>
                     ))}
                   </tbody>
@@ -928,7 +929,7 @@ export default function AdminFall() {
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                   <thead>
                     <tr style={{ textAlign: "left", color: "#9b8fcf", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      {["Mentor", "Company · Title", "Focus Areas", "Availability", "Based", "Submitted", "Decision"].map(h => (
+                      {["Mentor", "Decision", "Company · Title", "Focus Areas", "Availability", "Based", "Submitted"].map(h => (
                         <th key={h} style={{ padding: "8px 10px", borderBottom: "1px solid #e8e4f5", whiteSpace: "nowrap" }}>{h}</th>
                       ))}
                     </tr>
@@ -942,11 +943,6 @@ export default function AdminFall() {
                           {m.assignedTo.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "1px 6px" }}>MATCHED</span>}
                           <div style={{ fontSize: 11.5, color: "#9b8fcf" }}>{m.email}</div>
                         </td>
-                        <td style={{ padding: "10px", fontSize: 12, maxWidth: 200 }}>{[m.company, m.title].filter(Boolean).join(" · ") || "—"}</td>
-                        <td style={{ padding: "10px", fontSize: 12 }}>{(Array.isArray(m.focusAreas) ? m.focusAreas : []).join(", ") || "—"}</td>
-                        <td style={{ padding: "10px", fontSize: 12, whiteSpace: "nowrap" }}>{m.tier || "—"}</td>
-                        <td style={{ padding: "10px", fontSize: 12, whiteSpace: "nowrap" }}>{m.based || "—"}</td>
-                        <td style={{ padding: "10px", fontSize: 11.5, color: "#6b6480", whiteSpace: "nowrap" }}>{m.submittedAt?.slice(0, 10)}</td>
                         <td style={{ padding: "10px", whiteSpace: "nowrap" }}>
                           {m.decision === "approved" && <span style={{ fontSize: 11, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "2px 8px", marginRight: 6 }}>APPROVED</span>}
                           {m.decision === "rejected" && <span style={{ fontSize: 11, fontWeight: 800, background: "#fef0f0", color: "#c0392b", borderRadius: 4, padding: "2px 8px", marginRight: 6 }}>REJECTED</span>}
@@ -959,6 +955,12 @@ export default function AdminFall() {
                             <button disabled={matchBusy} onClick={() => doDecide("mentor", m, "clear")} style={{ border: "1px solid #e8e4f5", borderRadius: 6, padding: "3px 8px", background: "#fff", color: "#9b8fcf", fontSize: 10.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>undo</button>
                           )}
                         </td>
+                        <td style={{ padding: "10px", fontSize: 12, maxWidth: 200 }}>{[m.company, m.title].filter(Boolean).join(" · ") || "—"}</td>
+                        <td style={{ padding: "10px", fontSize: 12 }}>{(Array.isArray(m.focusAreas) ? m.focusAreas : []).join(", ") || "—"}</td>
+                        <td style={{ padding: "10px", fontSize: 12, whiteSpace: "nowrap" }}>{m.tier || "—"}</td>
+                        <td style={{ padding: "10px", fontSize: 12, whiteSpace: "nowrap" }}>{m.based || "—"}</td>
+                        <td style={{ padding: "10px", fontSize: 11.5, color: "#6b6480", whiteSpace: "nowrap" }}>{m.submittedAt?.slice(0, 10)}</td>
+                        
                       </tr>
                     ))}
                   </tbody>
