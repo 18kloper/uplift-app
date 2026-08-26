@@ -732,6 +732,7 @@ function PasswordGate({ slug, onAuthenticated }) {
       const data = await r.json();
       if (data.ok) {
         sessionStorage.setItem(`auth_${slug}`, "1");
+        if (data.upliftId) sessionStorage.setItem(`upliftid_${slug}`, data.upliftId);
         onAuthenticated();
       } else {
         fail("Incorrect ID or code. Contact uplift@techunited.co");
@@ -5031,6 +5032,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
   const [lumaAttendance, setLumaAttendance] = useState([]);
   const [meetings, setMeetings] = useState([]);
   const [activeModal, setActiveModal] = useState(null); // "showcase" | "coffee" | "officehours" | null
+  const [upliftId, setUpliftId] = useState(null);
 
   // Fetch live milestone data from Google Sheets on load
   useEffect(() => {
@@ -5077,6 +5079,10 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
 
   const mentee = menteeData;
   const slug = mentee.slug;
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    try { setUpliftId(sessionStorage.getItem(`upliftid_${slug}`) || null); } catch {}
+  }, [isAuthenticated, slug]);
   // Week 1 gate: onboarding attended (auto-verified from the Luma tag) + Deep Work
   // written (five things + primary goal) + quiz passed. Recomputed on a short poll
   // because Deep Work and the quiz persist to localStorage. Prototype-grade.
@@ -5167,6 +5173,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       }).then(r => r.json()).then(d => {
         if (d.ok) {
           sessionStorage.setItem(`auth_${slug}`, "1");
+          if (d.upliftId) sessionStorage.setItem(`upliftid_${slug}`, d.upliftId);
           setIsAuthenticated(true);
         }
       }).catch(() => {});
@@ -5447,6 +5454,13 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
               <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                 Uplift Fall 2026
               </div>
+              {upliftId && (
+                <TabTooltip tip="This is private. This is yours. Please don't share it. Use it to submit your mentor meetings, RSVP for educational sessions, and log into your portal." direction="down">
+                  <div style={{ background: "rgba(255,255,255,0.22)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", fontFamily: "monospace", boxShadow: "0 0 0 1px rgba(255,255,255,0.35)", cursor: "default" }}>
+                    &#128273; {upliftId}
+                  </div>
+                </TabTooltip>
+              )}
               <div style={{ marginLeft: "auto" }}>
                 <TabTooltip tip="Share any suggestions via this form" direction="down">
                   <a

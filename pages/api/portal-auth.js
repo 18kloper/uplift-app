@@ -50,21 +50,21 @@ export default async function handler(req, res) {
 
   const entered = password.trim();
   const isMaster = !!masterPw() && entered === masterPw();
-  if (isMaster) return res.status(200).json({ ok: true, master: true });
 
   // No Sheets configured (local dev): legacy slug code only.
   if (!process.env.GOOGLE_SHEET_ID || !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
-    const ok = entered.toLowerCase() === slug;
+    const ok = isMaster || entered.toLowerCase() === slug;
     return res.status(ok ? 200 : 401).json({ ok, degraded: true });
   }
 
   try {
     const sheets = getSheetsClient();
     const upliftId = await findUpliftId(sheets, process.env.GOOGLE_SHEET_ID, slug);
-    const ok = upliftId
+    const ok = isMaster || (upliftId
       ? entered.toUpperCase() === upliftId.toUpperCase()
-      : entered.toLowerCase() === slug; // no ID issued yet: access code = slug
-    return res.status(ok ? 200 : 401).json({ ok });
+      : entered.toLowerCase() === slug); // no ID issued yet: access code = slug
+    // The founder's own ID rides back on success so the portal can show it.
+    return res.status(ok ? 200 : 401).json(ok ? { ok, master: isMaster || undefined, upliftId: upliftId || null } : { ok });
   } catch (err) {
     console.error("[portal-auth] failed:", err.message);
     return res.status(500).json({ ok: false, error: "Auth unavailable" });
