@@ -683,10 +683,14 @@
 
   /* Print / PDF mode */
   @media print {
-    @page { size: 11in 8.5in; margin: 0; }
+    /* Print at the exact 16:9 canvas the slides were designed and verified at,
+       so nothing reflows or clips. 1440x810 px = 15in x 8.4375in at 96dpi. */
+    @page { size: 1440px 810px; margin: 0; }
+    /* PDF rasterizers turn large blur shadows into solid blocks; drop them in print */
+    * { box-shadow: none !important; text-shadow: none !important; }
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     body { background: white; }
-    .slide { width: 11in; height: 8.5in; min-height: 8.5in; padding: 0.5in 0.7in; }
+    .slide { width: 1440px; height: 810px; min-height: 810px; max-height: 810px; padding: 60px; overflow: hidden; }
     .controls { display: none !important; }
     .slide-number, .footer-logo { font-size: 9pt; }
     .grad-text {
