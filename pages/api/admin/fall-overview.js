@@ -13,7 +13,7 @@
 import { getSheetsClient, MILESTONE_KEYS, MILESTONE_LABELS } from "../../../lib/sheets-helper";
 import { MENTEES } from "../../../lib/mentees";
 import { matchesMentee } from "../meetings";
-import { FALL_SLUGS, FALL_RESPONSES_TAB } from "../../../lib/fall-roster";
+import { FALL_SLUGS, FALL_RESPONSES_TAB, PULSE_WINDOWS as PULSE_WEEKS } from "../../../lib/fall-roster";
 
 const MEETING_FORM_ID = "e0L62296";
 const FALL_CUTOFF = new Date("2026-08-26"); // ignore summer-era submissions
@@ -34,18 +34,8 @@ const D = {
   programEnd: new Date("2026-11-06"),
 };
 
-// Pulse windows (must mirror pages/fall/[mentee].js)
-const PULSE_WEEKS = [
-  // Pulse checks open and close on Fridays: each week's pulse opens the prior
-  // Friday and closes that week's Friday night.
-  { week: 2, start: new Date(2026, 8, 11), end: new Date(2026, 8, 18, 23, 59, 59) },
-  { week: 3, start: new Date(2026, 8, 18), end: new Date(2026, 8, 25, 23, 59, 59) },
-  { week: 4, start: new Date(2026, 8, 25), end: new Date(2026, 9,  2, 23, 59, 59) },
-  { week: 5, start: new Date(2026, 9,  2), end: new Date(2026, 9,  9, 23, 59, 59) },
-  { week: 6, start: new Date(2026, 9,  9), end: new Date(2026, 9, 23, 23, 59, 59) },
-  { week: 7, start: new Date(2026, 9, 23), end: new Date(2026, 9, 30, 23, 59, 59) },
-  { week: 8, start: new Date(2026, 9, 30), end: new Date(2026, 10, 6, 23, 59, 59) },
-];
+// PULSE_WEEKS now imported from lib/fall-roster.js (as PULSE_WINDOWS) —
+// single source of truth shared with the portal, do not redefine it here.
 
 const DEEP_WORK_KEYS = ["five_relationship", "five_clarity", "five_resources", "five_mentor", "five_community", "primary_refine"];
 

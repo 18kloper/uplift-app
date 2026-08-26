@@ -3,6 +3,7 @@ import Head from "next/head";
 import { getMenteeBySlug, MENTEES, PROMPTS, getFocusKey } from "../../lib/mentees";
 import { PROGRAM_EMAILS, RESOURCES_FALL as RESOURCES, COHORTS } from "../../lib/program-data";
 import { CERTIFICATES } from "../../lib/certificates";
+import { PULSE_WINDOWS } from "../../lib/fall-roster";
 
 // Mentees whose match is approved but pending mentor acceptance — show holding notice
 const HOLDING_SLUGS = new Set([
@@ -1546,18 +1547,8 @@ function Week2({ mentee, slug, mentorUnlocked, holding }) {
 }
 
 // ─── Weekly pulse check-in ────────────────────────────────────────────────────
-// Use new Date(y,m,d) (local midnight) — never ISO strings, which parse as UTC and shift the display date
-const PULSE_WINDOWS = [
-  // Pulse checks open and close on Fridays: each week's pulse opens the prior
-  // Friday and closes that week's Friday night.
-  { week: 2, start: new Date(2026, 8, 11), end: new Date(2026, 8, 18, 23, 59, 59) },
-  { week: 3, start: new Date(2026, 8, 18), end: new Date(2026, 8, 25, 23, 59, 59) },
-  { week: 4, start: new Date(2026, 8, 25), end: new Date(2026, 9,  2, 23, 59, 59) },
-  { week: 5, start: new Date(2026, 9,  2), end: new Date(2026, 9,  9, 23, 59, 59) },
-  { week: 6, start: new Date(2026, 9,  9), end: new Date(2026, 9, 23, 23, 59, 59) },
-  { week: 7, start: new Date(2026, 9, 23), end: new Date(2026, 9, 30, 23, 59, 59) },
-  { week: 8, start: new Date(2026, 9, 30), end: new Date(2026, 10, 6, 23, 59, 59) },
-];
+// PULSE_WINDOWS now imported from lib/fall-roster.js — single source of
+// truth shared with the admin dashboard, do not redefine it here.
 
 function fmtPulseDate(d) {
   const month = d.toLocaleDateString("en-US", { month: "long" });
