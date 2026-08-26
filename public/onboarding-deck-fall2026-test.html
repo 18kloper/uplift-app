@@ -41,6 +41,7 @@
     background: var(--dark);
     color: var(--light);
   }
+  .tight-bullets li { padding-bottom: 5px !important; font-size: 14px !important; }
   .slide-number {
     position: absolute;
     bottom: 28px;
@@ -1293,11 +1294,11 @@
     <div style="display: flex; gap: 16px;">
       <div style="flex: 1; background: white; border-radius: 14px; padding: 16px 22px; border-left: 6px solid var(--orange);">
         <div style="font-size: 12px; font-weight: 800; letter-spacing: 1.5px; color: #c07a2e; margin-bottom: 6px;">RSVP ON LUMA</div>
-        <p style="font-size: 13.5px; line-height: 1.5; color: var(--text-muted); margin: 0;">Every session, speaker, and date lives on TechUnited&rsquo;s Luma page and in your portal. Save it, register in advance.</p>
+        <p style="font-size: 13.5px; line-height: 1.5; color: var(--text-muted); margin: 0;">Every session, speaker, and date lives on TechUnited&rsquo;s Luma page and in your portal. Save it, register in advance. <strong>Register on Luma with your Uplift ID</strong> so we can properly map your attendance.</p>
       </div>
       <div style="flex: 1; background: white; border-radius: 14px; padding: 16px 22px; border-left: 6px solid var(--good, #2E9B6F);">
         <div style="font-size: 12px; font-weight: 800; letter-spacing: 1.5px; color: #1F8F63; margin-bottom: 6px;">ATTENDANCE IS TRACKED</div>
-        <p style="font-size: 13.5px; line-height: 1.5; color: var(--text-muted); margin: 0;">Sessions must be attended live, we track your registration and attendance for you. You confirm it at program end. Miss one? Nothing covers it, there&rsquo;s no makeup.</p>
+        <p style="font-size: 13.5px; line-height: 1.5; color: var(--text-muted); margin: 0;">Sessions must be attended live, we track your registration and attendance for you (that&rsquo;s why registrations need your Uplift ID). You confirm it at program end. Miss one? Nothing covers it, there&rsquo;s no makeup.</p>
       </div>
     </div>
     <div class="footer-logo">techunited.co</div>
@@ -1441,6 +1442,7 @@
           <li>Helps confirm your 3 hours of 1:1 mentor time</li>
           <li>Gives your mentor what they need to sign off at program end</li>
           <li>Captures takeaways so progress is easy to see</li>
+          <li><strong>Submit with your Uplift ID</strong>, it&rsquo;s how your meetings map to you</li>
         </ul>
       </div>
       <div class="col">
@@ -1542,20 +1544,38 @@
     <div class="eyebrow">Meet your portal bot</div>
     <h2 class="title" style="font-size: 34px; margin-bottom: 6px;">Say hi to <span class="grad-text">Ulrike.</span></h2>
     <p class="lede" style="max-width: 900px; font-size: 15.5px; margin-bottom: 4px;">&ldquo;I know this program inside and out, and impressively little else.&rdquo; That&rsquo;s Ulrike&rsquo;s own introduction, and it&rsquo;s the whole idea.</p>
-        <div class="two-col" style="align-items: center; margin-top: 6px;">
-      <div class="col" style="flex: 1;">
-        <h3 style="color: var(--magenta); font-size: 16px;">Ask her about</h3>
-        <p style="font-size: 14px; line-height: 1.65; color: var(--text-muted); margin-top: 6px;">Program requirements and deadlines. How to structure your mentor meetings. Where a resource or document lives. What's left between you and your certificate.</p>
-        <h3 style="color: var(--sky); font-size: 16px; margin-top: 16px;">Why use her</h3>
-        <p style="font-size: 14px; line-height: 1.65; color: var(--text-muted); margin-top: 6px;">Faster than digging through Resources or emailing us and waiting. Available right in your portal, anytime. And she knows nothing outside the program, on purpose.</p>
-        <p style="font-size: 13px; color: var(--text-muted); margin-top: 16px;"><strong style="color: var(--ink);">Why &ldquo;Ulrike&rdquo;?</strong> Ask her yourself. &#8594; Anything she can&rsquo;t answer routes straight to uplift@techunited.co.</p>
+        <div class="two-col" style="margin-top: 4px;">
+      <div class="col">
+        <h3 style="color: var(--magenta);">Ask her about</h3>
+        <ul class="bullets tight-bullets" style="margin-top: 10px;">
+          <li>Program requirements and deadlines</li>
+          <li>How to structure your mentor meetings</li>
+          <li>Where to find a resource or document</li>
+          <li>How to sign out: exit survey, signature, certificate</li>
+        </ul>
       </div>
-      <div class="col" style="flex: 1.1;">
+      <div class="col">
+        <h3 style="color: var(--sky);">Why use her</h3>
+        <ul class="bullets tight-bullets" style="margin-top: 10px;">
+          <li>Faster than digging through Resources or emailing us</li>
+          <li>Available right in your portal, anytime</li>
+          <li>Doesn&rsquo;t know anything outside the program, on purpose</li>
+        </ul>
+      </div>
+    </div>
+    <div class="two-col" style="margin-top: 14px; align-items: flex-start;">
+      <div class="col" style="flex: 1.4;">
+        <p style="font-size: 15px; line-height: 1.65; color: var(--text-muted);">
+          <strong style="color: var(--ink);">Why &ldquo;Ulrike&rdquo;?</strong> Ask her yourself; she tells the story better than a slide could. &#8594;
+        </p>
+        <p style="font-size: 14px; color: var(--text-muted); margin-top: 12px;">Anything she can&rsquo;t answer routes straight to uplift@techunited.co.</p>
+      </div>
+      <div class="col">
         <!-- Live exchange from the portal, reproduced verbatim -->
-        <div style="max-width: 470px; border-radius: 16px; overflow: hidden; background: #fff; box-shadow: 0 12px 40px rgba(26,14,79,0.28); border: 1px solid #e6e2f5;">
+        <div style="max-width: 400px; zoom: 0.78; margin-left: auto; border-radius: 16px; overflow: hidden; background: #fff; box-shadow: 0 12px 40px rgba(26,14,79,0.28); border: 1px solid #e6e2f5;">
           <div style="background: linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%); color: #fff; padding: 10px 14px;">
             <div style="display: flex; align-items: center; justify-content: space-between;">
-              <div style="font-weight: 800; font-size: 13.5px;">&#129302; Ulrike &middot; Uplift Chat Box</div>
+              <div style="font-weight: 800; font-size: 13.5px;">&#129302; Ulrike &middot; Uplift Chat Bot</div>
               <div style="background: rgba(255,255,255,0.18); color: #fff; border-radius: 7px; width: 24px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: 800;">&ndash;</div>
             </div>
             <div style="font-size: 10px; opacity: 0.75; margin-top: 2px;">Automated. Knows the program, your progress, and impressively little else.</div>
@@ -1565,7 +1585,7 @@
               Ulrike, who are you?
             </div>
             <div style="align-self: flex-start; max-width: 94%; padding: 7px 11px; border-radius: 12px; border-bottom-left-radius: 4px; background: #fff; color: #37324e; border: 1px solid #e6e2f5; line-height: 1.42; font-size: 11px;">
-              I'm Ulrike, your built-in helper here in the portal, named after a real 102-year-old New Yorker who's sharper and more agile than people half her age. She's spry, direct, no-nonsense warm, and more mighty than she looks, which felt like the right vibe for a chat box. I'm here to answer your questions about the program, your progress, and what comes next, all from what I actually know. Ask away.
+              I'm Ulrike, your built-in helper here in the portal, named after a real 102-year-old New Yorker who's sharper and more agile than people half her age. She's spry, direct, no-nonsense warm, and more mighty than she looks, which felt like the right vibe for a chat bot. I'm here to answer your questions about the program, your progress, and what comes next, all from what I actually know. Ask away.
             </div>
           </div>
           <div style="border-top: 1px solid #ece8f8; background: #fff; padding: 8px 11px;">
@@ -1633,7 +1653,7 @@
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
       <div style="background: white; border-radius: 14px; padding: 16px 22px; border-top: 5px solid var(--magenta);">
         <div style="font-size: 12px; font-weight: 800; letter-spacing: 1.5px; color: var(--magenta); margin-bottom: 6px;">WEEK 1 DEEP WORK &middot; REQUIRED</div>
-        <p style="font-size: 13.5px; line-height: 1.5; color: var(--text-muted); margin: 0;">In your portal: define each of your five things above in a sentence or less, and pass the onboarding quiz, 10 out of 10. Both unlock Week 2.</p>
+        <p style="font-size: 13.5px; line-height: 1.5; color: var(--text-muted); margin: 0;">To unlock your mentor, your Week 1 Deep Work asks you to define each of these five pillars and what they mean to you, beforehand, in a sentence or less. Take a moment in your portal to do so.</p>
       </div>
       <div style="background: white; border-radius: 14px; padding: 16px 22px; border-top: 5px solid var(--sky);">
         <div style="font-size: 12px; font-weight: 800; letter-spacing: 1.5px; color: var(--sky); margin-bottom: 6px;">WEEK 2 ON &middot; OPTIONAL</div>
@@ -1677,7 +1697,8 @@
     <p class="lede">Attending onboarding is step one. Here&rsquo;s what to do next.</p>
     <ul class="bullets">
       <li><strong>Get familiar with your portal.</strong> Poke around. Find your cohort, find the resources.</li>
-      <li><strong>Answer your Week 1 Deep Work reflection questions.</strong> Required, this is how we validate your mentor match. Deep Work becomes optional after Week 1.</li>
+      <li><strong>Pass your onboarding quiz.</strong> 10 questions, 10 out of 10, unlimited retakes. Every answer is in the onboarding deck in Resources.</li>
+      <li><strong>Answer your Week 1 Deep Work questions.</strong> Required, this is how we validate your mentor match. Deep Work becomes optional after Week 1.</li>
       <li><strong>Browse the educational sessions and register for the ones you already know you can make.</strong> Lock those into your calendar now.</li>
       <li><strong>Download your AI note-taker.</strong> Granola (preferred), Fathom, or Otter. Have it ready before your first mentor meeting.</li>
     </ul>

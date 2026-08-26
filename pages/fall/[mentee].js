@@ -2369,7 +2369,7 @@ function FallChipModal({ kicker, title, cta, ctaHref, onClose, children }) {
   );
 }
 
-// ─── Ulrike, the Uplift chat box ──────────────────────────────────────────────────────
+// ─── Ulrike, the Uplift chat bot ──────────────────────────────────────────────────────
 // Closed-book support chat over /api/portal-chat. Knows the program rulebook
 // and this founder's live state, and routes everything else to
 // uplift@techunited.co. Lives in the bottom-right stack with the event chips
@@ -2380,7 +2380,7 @@ function PortalBotWidget({ slug, firstName, children, defaultOpen = false }) {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: `Hi ${firstName}! I'm the Uplift chat box. My name is Ulrike. I know this program inside and out, and impressively little else. Ask me questions from onboarding, about program requirements, resources, or how to structure your mentor meetings.`,
+      content: `Hi ${firstName}! I'm the Uplift chat bot. My name is Ulrike. I know this program inside and out, and impressively little else. Ask me questions from onboarding, about program requirements, resources, or how to structure your mentor meetings.`,
     },
   ]);
   const [draft, setDraft] = useState("");
@@ -2433,7 +2433,7 @@ function PortalBotWidget({ slug, firstName, children, defaultOpen = false }) {
         }}>
           <div style={{ background: "linear-gradient(135deg, #1a0e4f 0%, #3d2f8a 60%, #5c4eb5 100%)", color: "#fff", padding: "14px 16px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ fontWeight: 800, fontSize: 15 }}>🤖 Ulrike · Uplift Chat Box</div>
+              <div style={{ fontWeight: 800, fontSize: 15 }}>🤖 Ulrike · Uplift Chat Bot</div>
               <button onClick={() => setOpen(false)} title="Minimize (your chat is saved)" style={{
                 border: "none", background: "rgba(255,255,255,0.18)", color: "#fff", borderRadius: 8,
                 width: 30, height: 26, cursor: "pointer", fontSize: 16, fontWeight: 800, lineHeight: 1,
@@ -5406,7 +5406,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
           <div style={{ background: "#f5f3ff", border: "1px solid #ddd6f5", borderRadius: 12, padding: "16px 18px", marginBottom: 16 }}>
             <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 700, color: "#3d2f8a" }}>🤖 Start with Ulrike</p>
             <p style={{ margin: 0, fontSize: 13.5, color: "#5a5476", lineHeight: 1.6 }}>
-              The fastest answer is usually the chat box in the bottom-right corner. Ulrike knows program requirements, deadlines, resources, how matching works, and your own progress — and answers instantly.
+              The fastest answer is usually the chat bot in the bottom-right corner. Ulrike knows program requirements, deadlines, resources, how matching works, and your own progress — and answers instantly.
             </p>
           </div>
           <p style={{ margin: "0 0 24px", fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
@@ -5435,7 +5435,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       {activeModal === "coffee" && <CoffeeMeetupModal onClose={dismissModal} />}
       {activeModal === "officehours" && <OfficeHoursModal onClose={dismissModal} />}
       {activeModal === "company" && <CompanySnapshotModal mentee={mentee} onClose={dismissModal} />}
-      {/* Bottom-right stack: Ulrike, the Uplift chat box. The fall-hours/
+      {/* Bottom-right stack: Ulrike, the Uplift chat bot. The fall-hours/
           coffee/demo chips from summer (office hours, coffee meetups, AI
           Demo Night pitch submission) were removed twice now — not relevant
           to this cohort. If they reappear again, check for a stale branch
