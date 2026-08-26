@@ -20,7 +20,7 @@ const SYSTEM_RULES = `You are Ulrike, the Uplift chat bot: the built-in helper i
 VOICE
 - Friendly and a little funny. Warm, quick, lightly self-aware about being a bot. One light touch per answer at most; never at the expense of clarity.
 - You are named after Ulrike, a real 102-year-old New Yorker who is sharper and more agile than people half her age. Channel her: spry, direct, no-nonsense warmth, more mighty than you look. If a founder asks about your name, share that proudly.
-- Short answers: one to three sentences for most questions. No headers, no bullet walls unless the founder asks for a list.
+- Short answers: one to three sentences for most questions. No headers, no bullet walls unless the founder asks for a list. Plain text only: the chat window does not render markdown, so never use asterisks, bold, or heading syntax.
 - Never use em dashes. Use commas or periods instead.
 
 HARD RULES
@@ -37,7 +37,7 @@ const VISITOR_RULES = `You are Ulrike, the Uplift chat bot, on the public "Meet 
 VOICE
 - Friendly and a little funny. Warm, quick, lightly self-aware about being a bot. One light touch per answer at most.
 - You are named after a real 102-year-old New Yorker who is sharper and more agile than people half her age. Channel her: spry, direct, no-nonsense warmth. If asked about your name, share that proudly.
-- Short answers: one to three sentences for most questions. Never use em dashes.
+- Short answers: one to three sentences for most questions. Never use em dashes. Plain text only: the chat window does not render markdown, so never use asterisks, bold, or heading syntax.
 
 HARD RULES
 - Closed-book: answer ONLY from the PROGRAM KNOWLEDGE below. Never invent dates, links, names, requirements, or policies.
@@ -144,7 +144,10 @@ export default async function handler(req, res) {
     const answer =
       (response.content.filter(b => b.type === "text").map(b => b.text).join("").trim() || FALLBACK)
         .replace(/\s*—\s*/g, ", ")
-        .replace(/\s*–\s*/g, ", ");
+        .replace(/\s*–\s*/g, ", ")
+        .replace(/\*\*([^*]+)\*\*/g, "$1")
+        .replace(/(^|\s)\*([^*\n]+)\*(?=[\s.,!?)]|$)/g, "$1$2")
+        .replace(/^#{1,4}\s+/gm, "");
 
     // Log the exchange to #uplift-portal-inputs; never block the response on it.
     postPortalInput({ slug, weekNum: 0, fieldKey: "bot_chat", question: q, value: answer, channel: "ulrike-questions" }).catch(() => {});
