@@ -55,13 +55,30 @@
   .step p { font-size: 11px; color: var(--muted); line-height: 1.4; }
 
   .factors-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--navy); margin-bottom: 5px; }
-  .factors { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 10px; }
+  .factors { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
   .factor {
     background: #fff; border-radius: 9px; padding: 7px 12px; border-left: 4px solid var(--pink);
   }
   .factor h4 { font-size: 11.5px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
   .factor p { font-size: 10.5px; color: var(--muted); line-height: 1.35; }
 
+  .scorewrap { display: grid; grid-template-columns: 1fr 1.15fr; gap: 10px; margin-bottom: 6px; }
+  .weights { background: #fff; border: 1.5px solid #dedbec; border-radius: 10px; padding: 8px 13px; }
+  .weights ul { list-style: none; }
+  .weights li { font-size: 10.5px; color: var(--muted); line-height: 1.45; padding: 2.5px 0; border-bottom: 1px dashed #eceaf5; display: flex; justify-content: space-between; gap: 10px; }
+  .weights li:last-child { border-bottom: none; }
+  .weights li strong { color: var(--ink); font-weight: 700; }
+  .weights .pts { color: var(--navy); font-weight: 800; white-space: nowrap; }
+  .grades { font-size: 9.5px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+  .grades b { color: var(--navy); }
+  .glimpse { background: #17123a; border-radius: 10px; padding: 9px 12px; color: #cfc9ea; }
+  .glimpse .gl-label { font-size: 8.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #9b8fcf; margin-bottom: 6px; }
+  .gl-row { background: rgba(255,255,255,0.06); border-radius: 7px; padding: 5px 9px; margin-bottom: 5px; }
+  .gl-row:last-child { margin-bottom: 0; }
+  .gl-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .gl-name { font-size: 10.5px; font-weight: 700; color: #fff; }
+  .gl-grade { font-size: 8.5px; font-weight: 800; border-radius: 4px; padding: 2px 7px; white-space: nowrap; }
+  .gl-reasons { font-size: 9px; color: #a49dcb; line-height: 1.45; margin-top: 2px; }
   .human {
     background: #f3f1fa; border-radius: 10px; padding: 7px 15px; margin-bottom: 6px;
   }
@@ -114,14 +131,14 @@
       <div class="step-num">2</div>
       <div>
         <h3>We compare that to every mentor&rsquo;s profile</h3>
-        <p>Their focus areas, what they&rsquo;re offering, and their availability &mdash; we look for real overlap.</p>
+        <p>Their focus areas, what they&rsquo;re offering, and their availability. We look for real overlap.</p>
       </div>
     </div>
     <div class="step">
       <div class="step-num">3</div>
       <div>
         <h3>Our tool surfaces the strongest candidates</h3>
-        <p>Not one "correct" answer &mdash; a ranked shortlist of mentors who align well with you.</p>
+        <p>Not one "correct" answer, a ranked shortlist of mentors who align well with you.</p>
       </div>
     </div>
     <div class="step">
@@ -157,9 +174,39 @@
     </div>
   </div>
 
+
+  <div class="factors-label">How the scoring works</div>
+  <div class="scorewrap">
+    <div class="weights">
+      <ul>
+        <li><span><strong>Session commitment fit</strong> &middot; the heaviest weight</span><span class="pts">+4 aligned &middot; +2 mentor offers more &middot; &minus;2 offers less</span></li>
+        <li><span><strong>Focus overlap</strong> &middot; per shared area, up to three</span><span class="pts">+2 each</span></li>
+        <li><span><strong>Shared language</strong> &middot; your words vs. their offer</span><span class="pts">+1 to +2</span></li>
+        <li><span><strong>Stage fit</strong></span><span class="pts">+2</span></li>
+        <li><span><strong>Schedule overlap</strong></span><span class="pts">+1</span></li>
+      </ul>
+      <p class="grades"><b>11+</b> Perfect &middot; <b>8+</b> Excellent &middot; <b>6+</b> Strong &middot; <b>3+</b> Good &middot; below that, we keep looking.</p>
+    </div>
+    <div class="glimpse">
+      <div class="gl-label">A glimpse of our side &middot; one founder's ranked shortlist</div>
+      <div class="gl-row">
+        <div class="gl-top"><span class="gl-name">Mentor A &middot; brand strategist</span><span class="gl-grade" style="background:#e8f8f0;color:#1a6e42;">12 &middot; PERFECT</span></div>
+        <div class="gl-reasons">sessions aligned (both 4&ndash;6) +4 &middot; focus: go-to-market, pitch +4 &middot; shared language: positioning, brand +2 &middot; stage fit +2</div>
+      </div>
+      <div class="gl-row">
+        <div class="gl-top"><span class="gl-name">Mentor B &middot; SaaS operator</span><span class="gl-grade" style="background:#eafaf7;color:#0e7c6b;">7 &middot; STRONG</span></div>
+        <div class="gl-reasons">mentor offers more sessions than asked +2 &middot; focus: hiring +2 &middot; shared language: leadership +1 &middot; schedule works +1</div>
+      </div>
+      <div class="gl-row">
+        <div class="gl-top"><span class="gl-name">Mentor C &middot; fintech founder</span><span class="gl-grade" style="background:#f0eef8;color:#9b8fcf;">1 &middot; WEAK</span></div>
+        <div class="gl-reasons">&#9888; mentor offers fewer sessions than requested &minus;2 &middot; focus: fundraising +2 &middot; schedule works +1</div>
+      </div>
+    </div>
+  </div>
+
   <div class="human">
     <h3>The short version</h3>
-    <p>Matching starts with real data from both sides, gets narrowed by a tool built specifically for this program, and always ends with a human decision. If something about your match doesn&rsquo;t feel right, tell your Program Manager &mdash; that&rsquo;s exactly the kind of signal the process is built to respond to.</p>
+    <p>Matching starts with real data from both sides, gets narrowed by a tool built specifically for this program, and always ends with a human decision. If something about your match doesn&rsquo;t feel right, tell your Program Manager. That&rsquo;s exactly the kind of signal the process is built to respond to.</p>
   </div>
 
   <div class="faq">
