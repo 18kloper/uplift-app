@@ -1081,6 +1081,7 @@ export default function AdminFall() {
                         <td style={{ padding: "10px", whiteSpace: "nowrap" }}>
                           <button onClick={() => setProfile({ kind: "mentor", person: m })} style={{ border: "none", background: "none", padding: 0, fontWeight: 700, color: "#3d2f8a", fontSize: 13, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>{m.name}</button>
                           {isNew(m.submittedAt) && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#f5f3ff", color: "#5c4eb5", borderRadius: 4, padding: "1px 6px" }}>NEW</span>}
+                          {m.inRoster && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#6b6480", borderRadius: 4, padding: "1px 6px" }}>TEST ACCOUNT</span>}
                           {m.assignedTo.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "1px 6px" }}>MATCHED</span>}
                           <div style={{ fontSize: 11.5, color: "#9b8fcf" }}>{m.email}</div>
                         </td>

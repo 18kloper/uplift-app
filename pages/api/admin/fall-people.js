@@ -12,6 +12,18 @@ import { getSheetsClient } from "../../../lib/sheets-helper";
 const MENTEE_FORM = "hAbo7Jdh";
 const MENTOR_FORM = "AayoroO1";
 const FALL_SLUGS = ["kennedy", "hana", "mj"];
+// Both Typeforms are reused from Summer 2026, so old Summer submissions are
+// mixed into the same response stream as real Fall ones and must be
+// excluded, or they inflate Fall funnel numbers and pollute the matching
+// pool with people who aren't actually in this cohort. Cutoffs are set
+// inside each form's real Summer->Fall gap (found by inspecting submission
+// timestamps directly, Aug 25 2026): mentee responses jump from Jul 13 to
+// Aug 4 (22-day gap); mentor responses jump from Jun 27 to Aug 20 (54-day
+// gap). These are NOT the same date, and NOT the fall-overview.js
+// FALL_CUTOFF (that one guards meeting logs, a different question — do not
+// reuse it here without re-checking, and re-verify these if the gap moves).
+const MENTEE_FALL_CUTOFF = new Date("2026-08-01");
+const MENTOR_FALL_CUTOFF = new Date("2026-08-10");
 
 let cache = { at: 0, payload: null };
 const CACHE_MS = 60 * 1000;
@@ -117,10 +129,14 @@ function parseMentor(titles, item) {
   const assignedTo = MENTEES
     .filter(m => FALL_SLUGS.includes(m.slug) && m.mentor?.name === name)
     .map(m => `${m.first} ${m.last}`.trim());
+  // A real mentor whose data is reused as the test-portal match (e.g. Jeanne
+  // McPhillips for kennedy/hana/mj) is not available for real matching while
+  // "assigned" to test accounts — flag it the same way test mentees are.
+  const inRoster = assignedTo.length > 0;
   return {
     id: item.response_id,
     submittedAt: item.submitted_at,
-    first, last, name,
+    first, last, name, inRoster,
     email: (get("email") || "").toLowerCase(),
     company: get("company/organization"),
     title: get("title/role"),
@@ -195,9 +211,10 @@ export default async function handler(req, res) {
       readDecisions("FallMentors"),
     ]);
 
-    const mentees = menteeForm.items.map(i => parseMentee(menteeForm.titles, i))
+    const isFallEra = (cutoff) => (item) => item.submitted_at && new Date(item.submitted_at) >= cutoff;
+    const mentees = menteeForm.items.filter(isFallEra(MENTEE_FALL_CUTOFF)).map(i => parseMentee(menteeForm.titles, i))
       .sort((a, b) => (b.submittedAt || "").localeCompare(a.submittedAt || ""));
-    const mentors = mentorForm.items.map(i => parseMentor(mentorForm.titles, i))
+    const mentors = mentorForm.items.filter(isFallEra(MENTOR_FALL_CUTOFF)).map(i => parseMentor(mentorForm.titles, i))
       .sort((a, b) => (b.submittedAt || "").localeCompare(a.submittedAt || ""));
 
     // Overlay live matches + decisions + eligibility
@@ -220,8 +237,8 @@ export default async function handler(req, res) {
 
     const payload = {
       generatedAt: new Date().toISOString(),
-      menteeCount: mentees.length,
-      mentorCount: mentors.length,
+      menteeCount: mentees.filter(m => !m.inRoster).length,
+      mentorCount: mentors.filter(m => !m.inRoster).length,
       matchedCount: matches.length,
       mentees,
       mentors,
