@@ -166,21 +166,28 @@ export default async function handler(req, res) {
   if (!token) return res.status(200).json({ error: "TYPEFORM_TOKEN not configured", mentees: [], mentors: [] });
 
   try {
-    // Decisions (approved/rejected), latest row per applicant wins
+    // Decisions (approved/rejected) + Uplift ID, latest row per applicant wins.
+    // Uplift ID only ever appears on an "approved" row but is carried forward
+    // by findExistingId() in fall-decide.js even through a later reject/clear,
+    // so once assigned it's permanent regardless of what this map returns for
+    // the current decision.
     const readDecisions = async (tab) => {
       try {
         const sheets = getSheetsClient();
         const r = await sheets.spreadsheets.values.get({
           spreadsheetId: process.env.GOOGLE_SHEET_ID,
-          range: `${tab}!A2:E2000`,
+          range: `${tab}!A2:F2000`,
         });
         const latest = {};
+        const ids = {};
         for (const row of r.data.values || []) {
-          if (row[1]) latest[row[1]] = row[4];
+          if (!row[1]) continue;
+          latest[row[1]] = row[4];
+          if (row[5]) ids[row[1]] = row[5];
         }
-        return latest;
+        return { latest, ids };
       } catch (_) {
-        return {};
+        return { latest: {}, ids: {} };
       }
     };
 
@@ -224,15 +231,17 @@ export default async function handler(req, res) {
       m.matchedMentorId = hit?.mentorId || null;
       m.matchedMentorName = hit?.mentorName || null;
       m.matchedAt = hit?.matchedAt || null;
-      const d = menteeDecisions[m.id];
+      const d = menteeDecisions.latest[m.id];
       m.decision = d === "clear" ? null : d || null;
+      m.upliftId = menteeDecisions.ids[m.id] || null;
       m.meetsRequirements = m.njResident && meetsFocus(m.disclosure) && !m.summerAlum;
     }
     for (const mt of mentors) {
       const live = matches.filter(x => x.mentorId === mt.id).map(x => x.menteeName);
       mt.assignedTo = [...new Set([...(mt.assignedTo || []), ...live])];
-      const d = mentorDecisions[mt.id];
+      const d = mentorDecisions.latest[mt.id];
       mt.decision = d === "clear" ? null : d || null;
+      mt.upliftId = mentorDecisions.ids[mt.id] || null;
     }
 
     const payload = {

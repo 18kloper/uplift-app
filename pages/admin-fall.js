@@ -1048,6 +1048,7 @@ export default function AdminFall() {
                         </td>
                         <td style={{ padding: "10px", whiteSpace: "nowrap" }}>
                           {a.decision === "approved" && <span style={{ fontSize: 11, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "2px 8px", marginRight: 6 }}>APPROVED</span>}
+                          {a.upliftId && <span style={{ fontSize: 10.5, fontWeight: 700, fontFamily: "monospace", background: "#f0eef8", color: "#5c4eb5", borderRadius: 4, padding: "2px 7px", marginRight: 6 }}>{a.upliftId}</span>}
                           {a.decision === "rejected" && <span style={{ fontSize: 11, fontWeight: 800, background: "#fef0f0", color: "#c0392b", borderRadius: 4, padding: "2px 8px", marginRight: 6 }}>REJECTED</span>}
                           {a.summerAlum && <span style={{ fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#6b6480", borderRadius: 4, padding: "2px 6px", marginRight: 6 }}>SUMMER ALUM</span>}
                           {!a.decision ? (
@@ -1111,6 +1112,7 @@ export default function AdminFall() {
                         </td>
                         <td style={{ padding: "10px", whiteSpace: "nowrap" }}>
                           {m.decision === "approved" && <span style={{ fontSize: 11, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "2px 8px", marginRight: 6 }}>APPROVED</span>}
+                          {m.upliftId && <span style={{ fontSize: 10.5, fontWeight: 700, fontFamily: "monospace", background: "#f0eef8", color: "#5c4eb5", borderRadius: 4, padding: "2px 7px", marginRight: 6 }}>{m.upliftId}</span>}
                           {m.decision === "rejected" && <span style={{ fontSize: 11, fontWeight: 800, background: "#fef0f0", color: "#c0392b", borderRadius: 4, padding: "2px 8px", marginRight: 6 }}>REJECTED</span>}
                           {!m.decision ? (
                             <>
