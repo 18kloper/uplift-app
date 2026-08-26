@@ -147,9 +147,9 @@ export default function UlrikePage() {
         <div style={{ maxWidth: 860, margin: "0 auto", padding: "36px 24px 70px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 12, marginBottom: 28 }}>
             {[
-              ["8 weeks", "Sept 9 to Nov 6, 2026. Tight on purpose: momentum beats drift."],
+              ["8 weeks, 1-2 hrs/week", "Sept 9 to Nov 6, 2026. Tight on purpose: momentum beats drift."],
               ["Matched mentorship", "Every founder-mentor pair scored on five factors, confirmed by a human."],
-              ["Completely free", "For New Jersey founders. 22 live educational sessions included."],
+              ["Completely free", "For New Jersey founders, any stage. No equity, no fees. Priority applications close September 3, rolling after."],
             ].map(([t, d]) => (
               <div key={t} style={{ background: "#fff", borderRadius: 14, border: "1px solid #e6e2f5", padding: "18px 20px" }}>
                 <div style={{ fontSize: 17, fontWeight: 800, color: "#1a0e4f", marginBottom: 5 }}>{t}</div>
