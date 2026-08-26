@@ -194,7 +194,7 @@ export default function AdminFall() {
   // Applications + mentor pool load lazily, the first time those tabs open
   useEffect(() => {
     if (!authed || people || peopleLoading) return;
-    if (!["overview", "menteeapps", "mentorapps", "acceptedfounders", "acceptedmentors", "matching", "matched", "today"].includes(tab)) return;
+    if (!["overview", "menteeapps", "mentorapps", "acceptedfounders", "acceptedmentors", "matching", "matched", "today", "deadlines", "reporting"].includes(tab)) return;
     setPeopleLoading(true);
     fetch("/api/admin/fall-people")
       .then(r => r.json())
@@ -366,7 +366,7 @@ export default function AdminFall() {
 
         <div style={{ background: "#fff", borderBottom: "1px solid #e8e4f5" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 28px", display: "flex", gap: 4 }}>
-            {[["today", "📋 Today"], ["overview", "Overview"], ["founders", "Roster"], ["menteeapps", "Mentee Apps"], ["mentorapps", "Mentor Apps"], ["acceptedfounders", "Accepted Founders"], ["acceptedmentors", "Accepted Mentors"], ["matching", "Matching"], ["matched", "Matched"], ["sessions", "Sessions"], ["pulse", "Pulse & Wins"]].map(([id, label]) => (
+            {[["today", "📋 Today"], ["overview", "Overview"], ["founders", "Roster"], ["menteeapps", "Mentee Apps"], ["mentorapps", "Mentor Apps"], ["acceptedfounders", "Accepted Founders"], ["acceptedmentors", "Accepted Mentors"], ["matching", "Matching"], ["matched", "Matched"], ["deadlines", "\u23F1 Deadlines"], ["reporting", "\ud83d\udcca Reporting"], ["sessions", "Sessions"], ["pulse", "Pulse & Wins"]].map(([id, label]) => (
               <button key={id} onClick={() => setTab(id)} style={{
                 border: "none", background: "none", padding: "12px 16px 10px",
                 borderBottom: tab === id ? "3px solid #5c4eb5" : "3px solid transparent",
@@ -653,6 +653,147 @@ export default function AdminFall() {
                 })}
                 <p style={{ margin: "14px 0 0", fontSize: 11.5, color: "#9b8fcf", fontStyle: "italic" }}>
                   Once matched, pairs track here: portal gate progress and meeting counts cross-reference automatically for roster founders. Better-fit flags appear when a stronger mentor enters the pool.
+                </p>
+              </div>
+            );
+          })()}
+
+          {tab === "deadlines" && people && data && (() => {
+            // Rolling per-match meeting clocks. M1 is due 7 days after the
+            // match, M2 is due 10 days after the first submitted meeting, M3 is
+            // the program-wide Oct 23 hard deadline. Same rulebook the portal
+            // and Ulrike quote.
+            const DAY = 86400000;
+            const M3_DUE = new Date("2026-10-23T23:59:59");
+            const fmt = d => d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—";
+            const clock = (due, met) => {
+              if (met) return { label: "✓ done", bg: "#e8f8f0", fg: "#1a6e42" };
+              if (!due) return { label: "—", bg: "#f6f4fc", fg: "#9b8fcf" };
+              const days = Math.ceil((due - Date.now()) / DAY);
+              if (days < 0) return { label: `${-days}d overdue`, bg: "#fdecec", fg: "#c0392b" };
+              if (days <= 3) return { label: `${days}d left`, bg: "#fef7e8", fg: "#9a6200" };
+              return { label: `${days}d left`, bg: "#f6f4fc", fg: "#5c4eb5" };
+            };
+            const rows = data.founders.filter(f => f.status !== "churned").map(f => {
+              const app = people.mentees.find(a => a.inRoster === f.slug);
+              const matchedAt = app?.matchedAt ? new Date(app.matchedAt) : null;
+              const log = f.meetingLog || [];
+              const m1Due = matchedAt ? new Date(matchedAt.getTime() + 7 * DAY) : null;
+              const m2Due = log[0] ? new Date(new Date(log[0].submittedAt).getTime() + 10 * DAY) : null;
+              return {
+                f, matchedAt,
+                m1: { due: m1Due, ...clock(m1Due, f.meetingCount >= 1) },
+                m2: { due: m2Due, ...clock(m2Due, f.meetingCount >= 2) },
+                m3: { due: M3_DUE, ...clock(M3_DUE, f.meetingCount >= 3) },
+              };
+            });
+            const pill = c => (
+              <span style={{ fontSize: 11, fontWeight: 800, borderRadius: 5, padding: "3px 8px", background: c.bg, color: c.fg, whiteSpace: "nowrap" }}>{c.label}</span>
+            );
+            return (
+              <div style={card}>
+                <p style={kicker}>Meeting clocks · M1 within 7 days of match · M2 within 10 days of M1 · M3 by Oct 23 (hard)</p>
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ textAlign: "left", color: "#9b8fcf", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        {["Founder", "Matched", "M1 · Discover", "M2 · Act", "M3 · Roadmap", "Minutes"].map(h => (
+                          <th key={h} style={{ padding: "8px 10px", borderBottom: "1px solid #e8e4f5", whiteSpace: "nowrap" }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map(({ f, matchedAt, m1, m2, m3 }) => (
+                        <tr key={f.slug} style={{ borderBottom: "1px solid #f0edf9" }}>
+                          <td style={{ padding: "10px", fontWeight: 700, color: "#3d2f8a" }}>{f.name}<div style={{ fontSize: 11.5, fontWeight: 400, color: "#9b8fcf" }}>{f.company}</div></td>
+                          <td style={{ padding: "10px", fontSize: 12, whiteSpace: "nowrap" }}>{matchedAt ? `${fmt(matchedAt)} · ${f.mentor || ""}` : "not matched"}</td>
+                          <td style={{ padding: "10px" }}>{pill(m1)}<div style={{ fontSize: 11, color: "#9b8fcf", marginTop: 2 }}>due {fmt(m1.due)}</div></td>
+                          <td style={{ padding: "10px" }}>{pill(m2)}<div style={{ fontSize: 11, color: "#9b8fcf", marginTop: 2 }}>{m2.due ? `due ${fmt(m2.due)}` : "after M1"}</div></td>
+                          <td style={{ padding: "10px" }}>{pill(m3)}<div style={{ fontSize: 11, color: "#9b8fcf", marginTop: 2 }}>due Oct 23</div></td>
+                          <td style={{ padding: "10px", whiteSpace: "nowrap" }}>
+                            <span style={{ fontWeight: 800, color: f.meetingMinutes >= 180 ? "#1a6e42" : "#3d2f8a" }}>{f.meetingMinutes || 0}</span>
+                            <span style={{ color: "#9b8fcf" }}> / 180 min</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p style={{ margin: "12px 0 0", fontSize: 11.5, color: "#9b8fcf", fontStyle: "italic" }}>
+                  Clocks start from the FallMatches timestamp and each founder's submitted meetings. Requirement: 3+ meetings and 180+ minutes.
+                </p>
+              </div>
+            );
+          })()}
+
+          {tab === "reporting" && people && data && (() => {
+            // Grant-ready evidence table: the same numbers the NJEDA reporting
+            // pipeline needs, per founder, exportable as CSV. "midpoint" is the
+            // fall in-person milestone (OverdriveAI) and "summit" is the signed
+            // BreezeDoc verification, both reusing summer sheet columns.
+            const rows = data.founders.filter(f => f.status !== "churned").map(f => {
+              const ms = f.milestones || {};
+              const verifiedSessions = ["mentorSession1", "mentorSession2", "mentorSession3"].filter(k => ms[k]).length;
+              const complete = ms.participation && ms.onboarding && f.gate?.quizPassed && verifiedSessions >= 3 &&
+                f.meetingMinutes >= 180 && f.eduCount >= 3 && ms.midpoint && ms.endSurvey && ms.summit;
+              return { f, ms, verifiedSessions, complete };
+            });
+            const csv = () => {
+              const header = ["Founder", "Company", "Participation", "Onboarding", "Quiz", "Meetings Submitted", "Minutes Submitted", "Sessions Verified", "Edu Sessions", "OverdriveAI", "Exit Survey", "Signature Signed", "Certificate", "Complete"];
+              const lines = rows.map(({ f, ms, verifiedSessions, complete }) => [
+                f.name, f.company, ms.participation, ms.onboarding, !!f.gate?.quizPassed, f.meetingCount,
+                f.meetingMinutes || 0, verifiedSessions, f.eduCount, !!ms.midpoint, !!ms.endSurvey, !!ms.summit, !!ms.certificate, !!complete,
+              ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(","));
+              const blob = new Blob([[header.join(","), ...lines].join("\n")], { type: "text/csv" });
+              const a = document.createElement("a");
+              a.href = URL.createObjectURL(blob);
+              a.download = `uplift-fall2026-reporting-${new Date().toISOString().slice(0, 10)}.csv`;
+              a.click();
+            };
+            const yn = v => (
+              <span style={{ fontSize: 12, fontWeight: 800, color: v ? "#1a6e42" : "#c9c3e0" }}>{v ? "✓" : "—"}</span>
+            );
+            return (
+              <div style={card}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                  <p style={{ ...kicker, margin: 0 }}>Completion evidence · the numbers grant reporting runs on · verified beats submitted</p>
+                  <button onClick={csv} style={{ border: "none", borderRadius: 8, padding: "7px 14px", background: "#5c4eb5", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>⬇ Export CSV</button>
+                </div>
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ textAlign: "left", color: "#9b8fcf", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        {["Founder", "Part.", "Onboard", "Quiz", "Meetings", "Verified", "Edu", "OverdriveAI", "Survey", "Signed", "Cert", "Complete"].map(h => (
+                          <th key={h} style={{ padding: "8px 10px", borderBottom: "1px solid #e8e4f5", whiteSpace: "nowrap" }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map(({ f, ms, verifiedSessions, complete }) => (
+                        <tr key={f.slug} style={{ borderBottom: "1px solid #f0edf9" }}>
+                          <td style={{ padding: "10px", fontWeight: 700, color: "#3d2f8a", whiteSpace: "nowrap" }}>{f.name}<div style={{ fontSize: 11.5, fontWeight: 400, color: "#9b8fcf" }}>{f.company}</div></td>
+                          <td style={{ padding: "10px" }}>{yn(ms.participation)}</td>
+                          <td style={{ padding: "10px" }}>{yn(ms.onboarding)}</td>
+                          <td style={{ padding: "10px" }}>{yn(f.gate?.quizPassed)}</td>
+                          <td style={{ padding: "10px", whiteSpace: "nowrap" }}>{f.meetingCount} · {f.meetingMinutes || 0}m</td>
+                          <td style={{ padding: "10px", fontWeight: 800, color: verifiedSessions >= 3 ? "#1a6e42" : "#3d2f8a" }}>{verifiedSessions}/3</td>
+                          <td style={{ padding: "10px", fontWeight: 800, color: f.eduCount >= 3 ? "#1a6e42" : "#3d2f8a" }}>{f.eduCount}/3</td>
+                          <td style={{ padding: "10px" }}>{yn(ms.midpoint)}</td>
+                          <td style={{ padding: "10px" }}>{yn(ms.endSurvey)}</td>
+                          <td style={{ padding: "10px" }}>{yn(ms.summit)}</td>
+                          <td style={{ padding: "10px" }}>{yn(ms.certificate)}</td>
+                          <td style={{ padding: "10px" }}>
+                            <span style={{ fontSize: 11, fontWeight: 800, borderRadius: 5, padding: "3px 8px", background: complete ? "#e8f8f0" : "#f6f4fc", color: complete ? "#1a6e42" : "#9b8fcf" }}>
+                              {complete ? "COMPLETE" : "IN PROGRESS"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p style={{ margin: "12px 0 0", fontSize: 11.5, color: "#9b8fcf", fontStyle: "italic" }}>
+                  Verified = human-checked milestone columns in the sheet. Meetings/minutes = submitted to the Typeform. Certificates issue Nov 7–20 as founders complete.
                 </p>
               </div>
             );

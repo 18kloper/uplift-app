@@ -128,14 +128,16 @@ async function readMeetings(roster) {
       const last = answers[1]?.text || "";
       // Hidden "slug" field (personalized form link) is an exact match — see
       // pages/api/meetings.js for the same logic and why it's preferred.
+      const minutes = answers.find(a => a.type === "number")?.number ?? 60;
+      const rec = { submittedAt: item.submitted_at, minutes };
       const hiddenSlug = item.hidden?.slug;
       if (hiddenSlug) {
-        if (bySlug[hiddenSlug]) bySlug[hiddenSlug].push({ submittedAt: item.submitted_at });
+        if (bySlug[hiddenSlug]) bySlug[hiddenSlug].push(rec);
         continue;
       }
       for (const m of roster) {
         if (matchesMentee(first, last, m.slug)) {
-          bySlug[m.slug].push({ submittedAt: item.submitted_at });
+          bySlug[m.slug].push(rec);
           break;
         }
       }
@@ -184,6 +186,8 @@ function computeFounder(m, sheetRec, meetings, activity, now) {
   const gateComplete = gate.onboarded && gate.quizPassed && gate.deepWorkDone;
 
   const meetingCount = (meetings || []).length;
+  const meetingLog = (meetings || []).slice().sort((a, b) => a.submittedAt.localeCompare(b.submittedAt));
+  const meetingMinutes = meetingLog.reduce((s, m) => s + (m.minutes || 0), 0);
   const eduCount = ["edu1", "edu2", "edu3"].filter(k => milestones[k]).length;
 
   // Pulse by week + miss streak over closed windows
@@ -236,6 +240,8 @@ function computeFounder(m, sheetRec, meetings, activity, now) {
     gateComplete,
     structureAck,
     meetingCount,
+    meetingMinutes,
+    meetingLog,
     eduCount,
     pulse,
     latestPulse,
