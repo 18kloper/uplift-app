@@ -2457,48 +2457,6 @@ function FallChipModal({ kicker, title, cta, ctaHref, onClose, children }) {
   );
 }
 
-function FallOfficeHoursModal({ onClose }) {
-  return (
-    <FallChipModal kicker="Every Friday, all program" title="🤝 Meet your mentor & the Uplift team" onClose={onClose}>
-      <p style={{ margin: "0 0 10px", fontSize: 14, color: "#37324e", lineHeight: 1.7 }}>
-        <strong>Office hours run every Friday, 9:00&ndash;11:00 AM</strong>, all eight weeks. Questions, ideas, issues, anything Uplift-related: just show up, no agenda needed.
-      </p>
-      <p style={{ margin: 0, fontSize: 14, color: "#37324e", lineHeight: 1.7 }}>
-        They also work for 1:1 time: invite your mentor, join on the same link, and knock out mentor minutes when scheduling is tight. Links land in your Tuesday email and here in the portal.
-      </p>
-    </FallChipModal>
-  );
-}
-
-function FallCoffeeModal({ onClose }) {
-  return (
-    <FallChipModal kicker="In-person · optional" title="☕ Coffee meetups are coming back" onClose={onClose}>
-      <p style={{ margin: "0 0 10px", fontSize: 14, color: "#37324e", lineHeight: 1.7 }}>
-        The summer's coffee meetups were some of the best hours of the program, so they return this fall. Casual, in-person, coffee on us.
-      </p>
-      <p style={{ margin: 0, fontSize: 14, color: "#37324e", lineHeight: 1.7 }}>
-        Dates and locations get announced in the Tuesday email and appear in your weekly sessions list as they&apos;re booked.
-      </p>
-    </FallChipModal>
-  );
-}
-
-function FallDemoNightModal({ onClose }) {
-  return (
-    <FallChipModal kicker="TechUnited AI Demo Night" title="🎤 Submit your pitch" cta="Apply to demo →" ctaHref="https://form.typeform.com/to/voMHQcT0" onClose={onClose}>
-      <p style={{ margin: "0 0 10px", fontSize: 14, color: "#37324e", lineHeight: 1.7 }}>
-        AI Demo Nights run almost monthly, and Uplift founders are invited to apply to demo. Great practice, great exposure, and a real audience for what you&apos;re building.
-      </p>
-      <p style={{ margin: "0 0 10px", fontSize: 14, color: "#37324e", lineHeight: 1.7 }}>
-        The first one is <strong>September 10</strong>, night two of the program. Your ticket is free: use code <strong>UPLIFT</strong>.
-      </p>
-      <p style={{ margin: 0, fontSize: 13, color: "#6b6480", lineHeight: 1.6, fontStyle: "italic" }}>
-        Working on your pitch might be a great reason to grab a mentor session. 😉
-      </p>
-    </FallChipModal>
-  );
-}
-
 // ─── Ulrike, the Uplift chat box ──────────────────────────────────────────────────────
 // Closed-book support chat over /api/portal-chat. Knows the program rulebook
 // and this founder's live state, and routes everything else to
@@ -5512,42 +5470,12 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       {activeModal === "coffee" && <CoffeeMeetupModal onClose={dismissModal} />}
       {activeModal === "officehours" && <OfficeHoursModal onClose={dismissModal} />}
       {activeModal === "company" && <CompanySnapshotModal mentee={mentee} onClose={dismissModal} />}
-      {activeModal === "fallhours" && <FallOfficeHoursModal onClose={dismissModal} />}
-      {activeModal === "fallcoffee" && <FallCoffeeModal onClose={dismissModal} />}
-      {activeModal === "falldemo" && <FallDemoNightModal onClose={dismissModal} />}
-
-      {/* Bottom-right stack: fall announcement chips + Ulrike, the Uplift chat box.
-          New chips get added here as events are booked. */}
-      <PortalBotWidget slug={mentee.slug} firstName={mentee.first}>
-        {!activeModal && (
-          <>
-            <button onClick={() => setActiveModal("fallhours")} style={{
-              display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 30, border: "none",
-              background: "linear-gradient(135deg, #1a6e50 0%, #2a9d6e 100%)", color: "#fff",
-              fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-              boxShadow: "0 6px 20px rgba(26,110,80,0.4)",
-            }}>
-              🤝 Meet your mentor
-            </button>
-            <button onClick={() => setActiveModal("fallcoffee")} style={{
-              display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 30, border: "none",
-              background: "linear-gradient(135deg, #7a3d14 0%, #c97b2d 100%)", color: "#fff",
-              fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-              boxShadow: "0 6px 20px rgba(122,61,20,0.4)",
-            }}>
-              ☕ Coffee meetups
-            </button>
-            <button onClick={() => setActiveModal("falldemo")} style={{
-              display: "flex", alignItems: "center", gap: 8, padding: "12px 18px", borderRadius: 30, border: "none",
-              background: "linear-gradient(135deg, #5c4eb5 0%, #c0006e 100%)", color: "#fff",
-              fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-              boxShadow: "0 6px 20px rgba(92,78,181,0.4)",
-            }}>
-              🎤 Submit your pitch
-            </button>
-          </>
-        )}
-      </PortalBotWidget>
+      {/* Bottom-right stack: Ulrike, the Uplift chat box. The fall-hours/
+          coffee/demo chips from summer (office hours, coffee meetups, AI
+          Demo Night pitch submission) were removed twice now — not relevant
+          to this cohort. If they reappear again, check for a stale branch
+          or worktree reintroducing this block before re-removing by hand. */}
+      <PortalBotWidget slug={mentee.slug} firstName={mentee.first} />
 
       <div style={{ minHeight: "100vh", background: "#f7f5ff", fontFamily: "'Inter', system-ui, sans-serif" }}>
         {/* Header */}
