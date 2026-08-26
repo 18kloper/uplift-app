@@ -2571,7 +2571,7 @@ function PortalBotWidget({ slug, firstName, children }) {
               }}>–</button>
             </div>
             <div style={{ fontSize: 11.5, opacity: 0.75, marginTop: 3 }}>
-              Automated. Knows the program and your progress, nothing else.
+              Automated. Knows the program, your progress, and impressively little else.
             </div>
           </div>
 
