@@ -704,17 +704,14 @@ function MentorCard({ mentee, revealed, holding }) {
 }
 
 // ─── Password gate ────────────────────────────────────────────────────────────
-// Server-checked via /api/portal-auth. First login uses the access code from
-// the welcome email; the founder then sets their own password (8+ characters).
-// The team's master password opens any portal.
+// Server-checked via /api/portal-auth. Your Uplift ID is your login (assigned
+// on approval; private to you). Founders without an ID yet use the access code
+// from their welcome email. The team's master password opens any portal.
 function PasswordGate({ slug, onAuthenticated }) {
   const [input, setInput] = useState("");
   const [error, setError] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [busy, setBusy] = useState(false);
-  const [step, setStep] = useState("enter"); // "enter" | "create"
-  const [newPw, setNewPw] = useState("");
-  const [confirmPw, setConfirmPw] = useState("");
 
   const fail = (msg) => {
     setErrorMsg(msg);
@@ -730,16 +727,14 @@ function PasswordGate({ slug, onAuthenticated }) {
       const r = await fetch("/api/portal-auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, password: input, action: "check" }),
+        body: JSON.stringify({ slug, password: input }),
       });
       const data = await r.json();
-      if (data.ok && data.needsSetup) {
-        setStep("create");
-      } else if (data.ok) {
+      if (data.ok) {
         sessionStorage.setItem(`auth_${slug}`, "1");
         onAuthenticated();
       } else {
-        fail("Incorrect code. Contact uplift@techunited.co");
+        fail("Incorrect ID or code. Contact uplift@techunited.co");
       }
     } catch {
       // Auth API unreachable: fall back to the legacy access code so a blip
@@ -748,34 +743,8 @@ function PasswordGate({ slug, onAuthenticated }) {
         sessionStorage.setItem(`auth_${slug}`, "1");
         onAuthenticated();
       } else {
-        fail("Incorrect code. Contact uplift@techunited.co");
+        fail("Incorrect ID or code. Contact uplift@techunited.co");
       }
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    if (busy) return;
-    if (newPw.length < 8) return fail("Use at least 8 characters.");
-    if (newPw !== confirmPw) return fail("Those don't match. One more try.");
-    setBusy(true);
-    try {
-      const r = await fetch("/api/portal-auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, password: input, action: "set", newPassword: newPw }),
-      });
-      const data = await r.json();
-      if (data.ok) {
-        sessionStorage.setItem(`auth_${slug}`, "1");
-        onAuthenticated();
-      } else {
-        fail(data.error || "Could not save that password. Contact uplift@techunited.co");
-      }
-    } catch {
-      fail("Could not save that password. Contact uplift@techunited.co");
     } finally {
       setBusy(false);
     }
@@ -794,83 +763,34 @@ function PasswordGate({ slug, onAuthenticated }) {
       }}>
         <img src="/uplift-logo.png" alt="Uplift" style={{ height: 44, margin: "0 auto 24px", display: "block" }} />
         <h1 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 700, color: "#1a1733" }}>Uplift Fall 2026</h1>
-        {step === "enter" ? (
-          <>
-            <p style={{ margin: "0 0 28px", fontSize: 14, color: "#9b8fcf" }}>Enter your access code or password to continue</p>
-            <form onSubmit={handleSubmit}>
-              <input
-                type="password"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Access code or password"
-                autoFocus
-                style={{
-                  width: "100%", padding: "13px 14px", borderRadius: 8,
-                  border: error ? "1.5px solid #e05050" : "1.5px solid #d4d0e8",
-                  background: "#fafafa", fontSize: 16, fontFamily: "inherit",
-                  boxSizing: "border-box", outline: "none", marginBottom: 10,
-                  transition: "border-color 0.15s",
-                }}
-              />
-              {error && (
-                <p style={{ margin: "0 0 10px", fontSize: 13, color: "#e05050", fontWeight: 500 }}>
-                  {errorMsg || "Incorrect code. Contact uplift@techunited.co"}
-                </p>
-              )}
-              <button type="submit" disabled={busy} style={{
-                width: "100%", padding: "13px", borderRadius: 8, border: "none",
-                background: busy ? "#a89ede" : "#5c4eb5", color: "#fff", fontWeight: 700, fontSize: 15, cursor: busy ? "default" : "pointer",
-              }}>
-                {busy ? "Checking..." : "Enter"}
-              </button>
-            </form>
-          </>
-        ) : (
-          <>
-            <p style={{ margin: "0 0 8px", fontSize: 14, color: "#3a3555", fontWeight: 600 }}>Welcome! One quick thing.</p>
-            <p style={{ margin: "0 0 24px", fontSize: 13.5, color: "#9b8fcf", lineHeight: 1.5 }}>
-              Create your own password for this portal. You&apos;ll use it from now on instead of the access code.
+        <p style={{ margin: "0 0 28px", fontSize: 14, color: "#9b8fcf" }}>Enter your Uplift ID (or access code) to continue</p>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="password"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Uplift ID or access code"
+            autoFocus
+            style={{
+              width: "100%", padding: "13px 14px", borderRadius: 8,
+              border: error ? "1.5px solid #e05050" : "1.5px solid #d4d0e8",
+              background: "#fafafa", fontSize: 16, fontFamily: "inherit",
+              boxSizing: "border-box", outline: "none", marginBottom: 10,
+              transition: "border-color 0.15s",
+            }}
+          />
+          {error && (
+            <p style={{ margin: "0 0 10px", fontSize: 13, color: "#e05050", fontWeight: 500 }}>
+              {errorMsg || "Incorrect ID or code. Contact uplift@techunited.co"}
             </p>
-            <form onSubmit={handleCreate}>
-              <input
-                type="password"
-                value={newPw}
-                onChange={(e) => setNewPw(e.target.value)}
-                placeholder="New password (8+ characters)"
-                autoFocus
-                style={{
-                  width: "100%", padding: "13px 14px", borderRadius: 8,
-                  border: error ? "1.5px solid #e05050" : "1.5px solid #d4d0e8",
-                  background: "#fafafa", fontSize: 16, fontFamily: "inherit",
-                  boxSizing: "border-box", outline: "none", marginBottom: 10,
-                }}
-              />
-              <input
-                type="password"
-                value={confirmPw}
-                onChange={(e) => setConfirmPw(e.target.value)}
-                placeholder="Confirm password"
-                style={{
-                  width: "100%", padding: "13px 14px", borderRadius: 8,
-                  border: error ? "1.5px solid #e05050" : "1.5px solid #d4d0e8",
-                  background: "#fafafa", fontSize: 16, fontFamily: "inherit",
-                  boxSizing: "border-box", outline: "none", marginBottom: 10,
-                }}
-              />
-              {error && (
-                <p style={{ margin: "0 0 10px", fontSize: 13, color: "#e05050", fontWeight: 500 }}>
-                  {errorMsg}
-                </p>
-              )}
-              <button type="submit" disabled={busy} style={{
-                width: "100%", padding: "13px", borderRadius: 8, border: "none",
-                background: busy ? "#a89ede" : "#5c4eb5", color: "#fff", fontWeight: 700, fontSize: 15, cursor: busy ? "default" : "pointer",
-              }}>
-                {busy ? "Saving..." : "Set password & enter"}
-              </button>
-            </form>
-          </>
-        )}
+          )}
+          <button type="submit" disabled={busy} style={{
+            width: "100%", padding: "13px", borderRadius: 8, border: "none",
+            background: busy ? "#a89ede" : "#5c4eb5", color: "#fff", fontWeight: 700, fontSize: 15, cursor: busy ? "default" : "pointer",
+          }}>
+            {busy ? "Checking..." : "Enter"}
+          </button>
+        </form>
       </div>
     </div>
   );
@@ -2454,8 +2374,8 @@ function FallChipModal({ kicker, title, cta, ctaHref, onClose, children }) {
 // uplift@techunited.co. Lives in the bottom-right stack with the event chips
 // (passed in as children); opening the panel swaps the stack out, minimizing
 // brings it back with the conversation kept.
-function PortalBotWidget({ slug, firstName, children }) {
-  const [open, setOpen] = useState(false);
+function PortalBotWidget({ slug, firstName, children, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen);
   const [messages, setMessages] = useState([
     {
       role: "assistant",
@@ -2660,7 +2580,7 @@ function MeetingStructureCheck({ slug }) {
 }
 
 // ─── Company at a glance modal (application snapshot) ────────────────────────
-function CompanySnapshotModal({ mentee, onClose }) {
+function CompanySnapshotModal({ mentee, onClose, self = true }) {
   const app = mentee.application || {};
   const snap = app.snapshot || {};
   const yn = (v) => v === true ? "Yes" : v === false ? "No" : (v ?? "\u2014");
@@ -2699,7 +2619,7 @@ function CompanySnapshotModal({ mentee, onClose }) {
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 4 }}>
           <div>
             <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9b8fcf" }}>
-              🏢 My Company at a Glance
+              🏢 {self ? "My Company at a Glance" : "Company at a Glance"}
             </p>
             <p style={{ margin: 0, fontSize: 19, fontWeight: 800, color: "#1a1733" }}>
               {mentee.company}{app.title ? ` · ${app.title}` : ""}
@@ -2741,13 +2661,14 @@ function CompanySnapshotModal({ mentee, onClose }) {
         )}
         {app.valueSought && (
           <div style={{ background: "#fdf6e3", borderRadius: 10, padding: "12px 16px", marginTop: 10 }}>
-            <p style={{ margin: "0 0 2px", fontSize: 10.5, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "#a37c1f" }}>What you want from mentorship</p>
+            <p style={{ margin: "0 0 2px", fontSize: 10.5, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "#a37c1f" }}>{self ? "What you want from mentorship" : "What they want from mentorship"}</p>
             <p style={{ margin: 0, fontSize: 13, color: "#5c4a10", lineHeight: 1.6 }}>{app.valueSought}</p>
           </div>
         )}
         <p style={{ margin: "14px 0 0", fontSize: 12, color: "#9b8fcf", fontStyle: "italic", lineHeight: 1.6 }}>
-          From your application{app.submittedAt ? `, submitted ${app.submittedAt}` : ""}. Something changed? Tell us at{" "}
-          <a href="mailto:uplift@techunited.co" style={{ color: "#5c4eb5", fontWeight: 600 }}>uplift@techunited.co</a> and we&apos;ll update it.
+          {self ? <>From your application{app.submittedAt ? `, submitted ${app.submittedAt}` : ""}. Something changed? Tell us at{" "}
+          <a href="mailto:uplift@techunited.co" style={{ color: "#5c4eb5", fontWeight: 600 }}>uplift@techunited.co</a> and we&apos;ll update it.</>
+          : <>From their application{app.submittedAt ? `, submitted ${app.submittedAt}` : ""}.</>}
         </p>
       </div>
     </div>
@@ -4330,6 +4251,7 @@ function FounderCard({ m, isSelf }) {
   const [selfLinkedin, setSelfLinkedin] = useState("");
   const [linkedinInput, setLinkedinInput] = useState("");
   const [linkedinSaved, setLinkedinSaved] = useState(false);
+  const [snapshotOpen, setSnapshotOpen] = useState(false);
 
   useEffect(() => {
     if (!isSelf) return;
@@ -4407,6 +4329,18 @@ function FounderCard({ m, isSelf }) {
       {m.stage && <p style={{ margin: "0 0 1px", fontSize: 10, color: "#b0a8cc" }}>{m.stage}</p>}
       {m.industry && <p style={{ margin: 0, fontSize: 10, color: "#b0a8cc" }}>{m.industry}</p>}
       {isSelf && <p style={{ margin: "4px 0 0", fontSize: 10, color: "#5c4eb5", fontWeight: 700 }}>YOU</p>}
+
+      {/* Company at a glance — shared with the cohort (revenue $ range excluded upstream) */}
+      {m.application && (
+        <button onClick={() => setSnapshotOpen(true)} style={{
+          marginTop: 8, border: "1px solid #d4cff0", background: "#f8f7ff", color: "#5c4eb5",
+          borderRadius: 14, padding: "4px 10px", fontSize: 10.5, fontWeight: 700,
+          cursor: "pointer", fontFamily: "inherit",
+        }}>
+          🏢 Company at a glance
+        </button>
+      )}
+      {snapshotOpen && <CompanySnapshotModal mentee={m} self={isSelf} onClose={() => setSnapshotOpen(false)} />}
 
       {/* LinkedIn self-entry — own card, no LinkedIn on file */}
       {isSelf && !effectiveLinkedin && (
@@ -5216,6 +5150,33 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
     if (next) setActiveModal(next);
   }, [isAuthenticated, slug]);
 
+  // Deep-link params for demos and welcome emails: ?code=<uplift id or access
+  // code> auto-attempts login, ?open=chat|company opens that panel on load.
+  const [openParam, setOpenParam] = useState(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const o = params.get("open");
+    if (o) setOpenParam(o);
+    const code = params.get("code");
+    if (code && !isAuthenticated) {
+      fetch("/api/portal-auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, password: code }),
+      }).then(r => r.json()).then(d => {
+        if (d.ok) {
+          sessionStorage.setItem(`auth_${slug}`, "1");
+          setIsAuthenticated(true);
+        }
+      }).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
+  useEffect(() => {
+    if (isAuthenticated && openParam === "company") setActiveModal("company");
+  }, [isAuthenticated, openParam]);
+
   const dismissModal = () => {
     if (!activeModal) return;
     try { localStorage.setItem(`${activeModal}_seen_${slug}`, "1"); } catch {}
@@ -5435,8 +5396,14 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       case "support": return (
         <div style={{ maxWidth: 520 }}>
           <p style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 700, color: "#1a1733" }}>Need help?</p>
+          <div style={{ background: "#f5f3ff", border: "1px solid #ddd6f5", borderRadius: 12, padding: "16px 18px", marginBottom: 16 }}>
+            <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 700, color: "#3d2f8a" }}>🤖 Start with Ulrike</p>
+            <p style={{ margin: 0, fontSize: 13.5, color: "#5a5476", lineHeight: 1.6 }}>
+              The fastest answer is usually the chat box in the bottom-right corner. Ulrike knows program requirements, deadlines, resources, how matching works, and your own progress — and answers instantly.
+            </p>
+          </div>
           <p style={{ margin: "0 0 24px", fontSize: 14, color: "#6b6480", lineHeight: 1.6 }}>
-            Email <a href="mailto:uplift@techunited.co" style={{ color: "#5c4eb5", fontWeight: 600, textDecoration: "none" }}>uplift@techunited.co</a> with your support question and someone from our team will get back to you within 48 hours.
+            Need more help, or something Ulrike can&apos;t handle (rescheduling, exceptions, your mentor match)? Email <a href="mailto:uplift@techunited.co" style={{ color: "#5c4eb5", fontWeight: 600, textDecoration: "none" }}>uplift@techunited.co</a> and someone from our team will get back to you within 48 hours.
           </p>
         </div>
       );
@@ -5466,7 +5433,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
           Demo Night pitch submission) were removed twice now — not relevant
           to this cohort. If they reappear again, check for a stale branch
           or worktree reintroducing this block before re-removing by hand. */}
-      <PortalBotWidget slug={mentee.slug} firstName={mentee.first} />
+      <PortalBotWidget slug={mentee.slug} firstName={mentee.first} defaultOpen={openParam === "chat"} />
 
       <div style={{ minHeight: "100vh", background: "#f7f5ff", fontFamily: "'Inter', system-ui, sans-serif" }}>
         {/* Header */}
@@ -5727,6 +5694,12 @@ export async function getStaticProps({ params }) {
     county: m.county || null,
     linkedin: m.linkedin || null,
     photo: m.photo || null,
+    // Company-at-a-glance is shared with the cohort, except the revenue dollar
+    // range: that stays between the founder and their mentor. Stripped here so
+    // it never ships in other founders' page payloads at all.
+    application: m.application
+      ? { ...m.application, snapshot: m.application.snapshot ? { ...m.application.snapshot, revenueRange: null } : null }
+      : null,
   });
 
   // The fall test cohort is just the three test founders; summer alumni stay

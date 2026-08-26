@@ -159,6 +159,10 @@ export default function AdminFall() {
   const [profile, setProfile] = useState(null); // { kind, person }
   const [matchExplain, setMatchExplain] = useState(null); // mentee id with score breakdown expanded
   const [todayState, setTodayState] = useState({});
+  const [signals, setSignals] = useState(null);
+  const [signalText, setSignalText] = useState("");
+  const [signalSource, setSignalSource] = useState("");
+  const [signalBusy, setSignalBusy] = useState(false);
 
   useEffect(() => {
     try { setTodayState(JSON.parse(localStorage.getItem("uplift_admin_today_v1") || "{}")); } catch (_) {}
@@ -195,7 +199,7 @@ export default function AdminFall() {
   // Applications + mentor pool load lazily, the first time those tabs open
   useEffect(() => {
     if (!authed || people || peopleLoading) return;
-    if (!["overview", "menteeapps", "mentorapps", "acceptedfounders", "acceptedmentors", "matching", "matched", "today", "deadlines", "reporting"].includes(tab)) return;
+    if (!["overview", "menteeapps", "mentorapps", "acceptedfounders", "acceptedmentors", "matching", "matched", "today", "deadlines", "reporting", "signals"].includes(tab)) return;
     setPeopleLoading(true);
     fetch("/api/admin/fall-people")
       .then(r => r.json())
@@ -203,6 +207,15 @@ export default function AdminFall() {
       .catch(() => setPeople({ mentees: [], mentors: [], error: "load failed" }))
       .finally(() => setPeopleLoading(false));
   }, [authed, tab, people, peopleLoading]);
+
+  // Signals load lazily when the Signals tab opens
+  useEffect(() => {
+    if (!authed || tab !== "signals" || signals) return;
+    fetch("/api/admin/fall-signals")
+      .then(r => r.json())
+      .then(d => setSignals(d.signals || []))
+      .catch(() => setSignals([]));
+  }, [authed, tab, signals]);
 
   // Session logistics (Luma) load lazily when the Sessions tab opens
   useEffect(() => {
@@ -367,7 +380,15 @@ export default function AdminFall() {
 
         <div style={{ background: "#fff", borderBottom: "1px solid #e8e4f5" }}>
           <div style={{ maxWidth: 1560, margin: "0 auto", padding: "0 28px", display: "flex", gap: 4 }}>
-            {[["today", "📋 Today"], ["overview", "Overview"], ["founders", "Roster"], ["menteeapps", "Mentee Apps"], ["mentorapps", "Mentor Apps"], ["acceptedfounders", "Accepted Founders"], ["acceptedmentors", "Accepted Mentors"], ["matching", "Matching"], ["matched", "Matched"], ["deadlines", "\u23F1 Deadlines"], ["reporting", "\ud83d\udcca Reporting"], ["sessions", "Sessions"], ["pulse", "Pulse & Wins"]].map(([id, label]) => (
+            {[["today", "📋 Today"], ["overview", "Overview"], ["founders", "Roster"],
+              ["menteeapps", `Mentee Apps${people ? ` (${people.menteeCount})` : ""}`],
+              ["mentorapps", `Mentor Apps${people ? ` (${people.mentorCount})` : ""}`],
+              ["acceptedfounders", `Accepted Founders${people ? ` (${people.mentees.filter(a => a.decision === "approved" && !a.inRoster).length})` : ""}`],
+              ["acceptedmentors", `Accepted Mentors${people ? ` (${people.mentors.filter(m2 => m2.decision === "approved" && !m2.inRoster).length})` : ""}`],
+              ["matching", `Matching${people ? ` (${people.mentees.filter(a => a.decision === "approved" && !a.inRoster && !a.matchedMentorId).length} waiting)` : ""}`],
+              ["matched", `Matched${people ? ` (${people.matchedCount})` : ""}`],
+              ["signals", "Signals"],
+              ["deadlines", "\u23F1 Deadlines"], ["reporting", "\ud83d\udcca Reporting"], ["sessions", "Sessions"], ["pulse", "Pulse & Wins"]].map(([id, label]) => (
               <button key={id} onClick={() => setTab(id)} style={{
                 border: "none", background: "none", padding: "12px 16px 10px",
                 borderBottom: tab === id ? "3px solid #5c4eb5" : "3px solid transparent",
@@ -375,7 +396,6 @@ export default function AdminFall() {
                 fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
               }}>
                 {label}
-                {id === "menteeapps" && people ? ` (${people.menteeCount})` : ""}
               </button>
             ))}
           </div>
@@ -397,7 +417,7 @@ export default function AdminFall() {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
                 {[
                   ["Mentee applications", people.menteeCount, 100],
-                  ["Mentees meeting requirements", people.mentees.filter(a => a.meetsRequirements).length, 80],
+                  ["Eligible mentee applicants (NJ + focus)", people.mentees.filter(a => a.meetsRequirements).length, 80],
                   ["Mentor applications", people.mentorCount, 100],
                   ["Mentors approved", people.mentors.filter(m2 => m2.decision === "approved").length, 80],
                 ].map(([label, val, goal]) => (
@@ -680,6 +700,88 @@ export default function AdminFall() {
                 </p>
               </div>
             );
+          })()}
+
+          {tab === "signals" && (() => {
+            const derived = [];
+            if (people) {
+              const dupEmails = {};
+              people.mentees.forEach(a => { if (a.email) (dupEmails[a.email] = dupEmails[a.email] || []).push(a); });
+              Object.values(dupEmails).filter(g => g.length > 1).forEach(g => derived.push({
+                text: `${g[0].first} ${g[0].last} (${g[0].email}) submitted the mentee application ${g.length} times`, source: "Duplicate applications",
+              }));
+              people.mentees.filter(a => a.summerAlum && !a.inRoster).forEach(a => derived.push({
+                text: `${a.first} ${a.last} is a Summer 2026 alum applying again — auto-marked ineligible, but worth a personal reply (alumni meetup, mentor pool?)`, source: "Alumni re-applying",
+              }));
+              people.mentees.filter(a => !a.meetsRequirements && !a.summerAlum && !a.inRoster && a.decision !== "rejected").forEach(a => derived.push({
+                text: `${a.first} ${a.last} doesn't meet requirements (${!a.njResident ? "not NJ-resident" : "program focus"}) and hasn't been formally rejected — they're waiting on an answer`, source: "Undecided ineligible",
+              }));
+              people.mentors.filter(m2 => m2.decision === "approved" && !m2.inRoster && (m2.assignedTo || []).length === 0).forEach(m2 => derived.push({
+                text: `Mentor ${m2.name} is approved but has no mentee assigned yet — unused capacity (${m2.tier || "availability unknown"})`, source: "Idle approved mentors",
+              }));
+            }
+            const addSignal = async (e) => {
+              e.preventDefault();
+              if (signalBusy || !signalText.trim()) return;
+              setSignalBusy(true);
+              try {
+                await fetch("/api/admin/fall-signals", {
+                  method: "POST", headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ text: signalText.trim(), source: signalSource.trim() }),
+                });
+                setSignalText(""); setSignalSource(""); setSignals(null); // null -> refetch
+              } finally { setSignalBusy(false); }
+            };
+            const dismiss = async (id) => {
+              setSignals(s => (s || []).filter(x => x.id !== id));
+              await fetch("/api/admin/fall-signals", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id, status: "dismissed" }),
+              });
+            };
+            return (<>
+              <div style={{ ...card, borderLeft: "4px solid #c0006e" }}>
+                <p style={kicker}>Signals · useful, not urgent</p>
+                <p style={{ margin: "0 0 14px", fontSize: 13, color: "#6b6480", lineHeight: 1.5 }}>
+                  Anything discovered that could be useful that we&apos;re not actively acting on. Logged signals persist (FallSignals sheet tab); auto-detected ones below regenerate from live data.
+                </p>
+                <form onSubmit={addSignal} style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+                  <input value={signalText} onChange={e => setSignalText(e.target.value)} placeholder="What did you notice?"
+                    style={{ flex: "2 1 340px", padding: "10px 12px", borderRadius: 8, border: "1px solid #d4d0e8", fontSize: 13.5, fontFamily: "inherit" }} />
+                  <input value={signalSource} onChange={e => setSignalSource(e.target.value)} placeholder="Source (optional: call, email, dashboard…)"
+                    style={{ flex: "1 1 200px", padding: "10px 12px", borderRadius: 8, border: "1px solid #d4d0e8", fontSize: 13.5, fontFamily: "inherit" }} />
+                  <button type="submit" disabled={signalBusy || !signalText.trim()} style={{
+                    padding: "10px 20px", borderRadius: 8, border: "none", background: signalBusy ? "#a89ede" : "#5c4eb5",
+                    color: "#fff", fontWeight: 700, fontSize: 13.5, cursor: "pointer", fontFamily: "inherit",
+                  }}>{signalBusy ? "Logging…" : "Log signal"}</button>
+                </form>
+              </div>
+              <div style={card}>
+                <p style={kicker}>Logged signals</p>
+                {!signals && <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>Loading…</p>}
+                {signals && signals.length === 0 && <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>Nothing logged yet. Anything you notice on a call, in an email, or in the data that isn&apos;t worth acting on today — park it here.</p>}
+                {(signals || []).map(s => (
+                  <div key={s.id} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "10px 0", borderBottom: "1px solid #f0eef8" }}>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ margin: 0, fontSize: 13.5, color: "#37324e", lineHeight: 1.5 }}>{s.text}</p>
+                      <p style={{ margin: "2px 0 0", fontSize: 11.5, color: "#9b8fcf" }}>{s.source ? `${s.source} · ` : ""}{(s.createdAt || "").slice(0, 10)}</p>
+                    </div>
+                    <button onClick={() => dismiss(s.id)} style={{ border: "1px solid #e8e4f5", borderRadius: 6, background: "#fff", color: "#6b6480", fontSize: 11.5, fontWeight: 700, padding: "4px 10px", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>Dismiss</button>
+                  </div>
+                ))}
+              </div>
+              <div style={card}>
+                <p style={kicker}>Auto-detected from live data</p>
+                {!people && <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>Loading application data…</p>}
+                {people && derived.length === 0 && <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>Nothing detected right now.</p>}
+                {derived.map((s, i) => (
+                  <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "10px 0", borderBottom: "1px solid #f0eef8" }}>
+                    <span style={{ fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em", color: "#c0006e", background: "#fdeef6", borderRadius: 5, padding: "3px 8px", flexShrink: 0, marginTop: 1 }}>{s.source}</span>
+                    <p style={{ margin: 0, fontSize: 13.5, color: "#37324e", lineHeight: 1.5, flex: 1 }}>{s.text}</p>
+                  </div>
+                ))}
+              </div>
+            </>);
           })()}
 
           {tab === "deadlines" && people && data && (() => {
