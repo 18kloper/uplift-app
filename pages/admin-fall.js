@@ -199,7 +199,7 @@ export default function AdminFall() {
   // Applications + mentor pool load lazily, the first time those tabs open
   useEffect(() => {
     if (!authed || people || peopleLoading) return;
-    if (!["overview", "menteeapps", "mentorapps", "acceptedfounders", "acceptedmentors", "matching", "matched", "today", "deadlines", "reporting", "signals"].includes(tab)) return;
+    if (!["overview", "founders", "menteeapps", "mentorapps", "acceptedfounders", "acceptedmentors", "matching", "matched", "today", "deadlines", "reporting", "signals"].includes(tab)) return;
     setPeopleLoading(true);
     fetch("/api/admin/fall-people")
       .then(r => r.json())
@@ -440,18 +440,26 @@ export default function AdminFall() {
             <p style={kicker}>Program Health</p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}>
               {p && [
-                ["Founders", p.total, "#5c4eb5"],
-                ["On Track", p.onTrack, "#1a6e42"],
-                ["Needs Attention", p.attention, "#b35c00"],
-                ["At Risk", p.atRisk, "#c0392b"],
-                ["Week 1 Gate Done", p.gateComplete, "#3d2f8a"],
-                ["Avg Meetings", p.avgMeetings, "#5c4eb5"],
-                ["Avg Edu Sessions", p.avgEdu, "#5c4eb5"],
-                ["Churned", data.churned, "#6b6480"],
-              ].map(([label, value, color]) => (
-                <div key={label} style={{ background: "#fafafa", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
+                ["Founders", p.total, "#5c4eb5",
+                  "Everyone in the fall portal roster (currently the test accounts, until the application ingest lands)."],
+                ["On Track", p.onTrack, "#1a6e42",
+                  "No warning flags tripped. Status is computed fresh from the rulebook on every load, never hand-set."],
+                ["Needs Attention", p.attention, "#b35c00",
+                  "At least one soft flag: participation unconfirmed past Sept 9, onboarding/quiz/Deep Work incomplete past onboarding week, Meeting 1 or 2 past its due date, no edu session by Oct 1, 2+ pulse checks missed in a row, or latest pulse is red."],
+                ["At Risk", p.atRisk, "#c0392b",
+                  "A hard threshold crossed: no onboarding a week past onboarding week, no mentor meeting past the Meeting-1 hard deadline, or Meeting 3 missed Oct 23. Triggers the intervention process (flagged email, then a 30-minute call)."],
+                ["Week 1 Gate Done", p.gateComplete, "#3d2f8a",
+                  "Founders who finished all three Week 1 requirements: attended onboarding, passed the quiz, and completed the Deep Work prompts. This gate is what reveals their mentor."],
+                ["Avg Meetings", p.avgMeetings, "#5c4eb5",
+                  "Average submitted mentor meetings per founder. 3 are required (Discover, Act, Roadmap)."],
+                ["Avg Edu Sessions", p.avgEdu, "#5c4eb5",
+                  "Average educational sessions attended per founder. 3 are required, at least 1 by Oct 1."],
+                ["Churned", data.churned, "#6b6480",
+                  "Marked churned in the sheet (a human call, the one hand-set status). Overrides all other flags."],
+              ].map(([label, value, color, tip]) => (
+                <div key={label} title={tip} style={{ background: "#fafafa", borderRadius: 10, padding: "12px 14px", textAlign: "center", cursor: "help" }}>
                   <p style={{ margin: 0, fontSize: 26, fontWeight: 800, color, lineHeight: 1.1 }}>{value}</p>
-                  <p style={{ margin: "2px 0 0", fontSize: 11, fontWeight: 600, color: "#6b6480" }}>{label}</p>
+                  <p style={{ margin: "2px 0 0", fontSize: 11, fontWeight: 600, color: "#6b6480" }}>{label} <span style={{ color: "#b0a8cc" }}>ⓘ</span></p>
                 </div>
               ))}
             </div>
@@ -514,6 +522,12 @@ export default function AdminFall() {
                     <tr key={f.slug} style={{ borderBottom: "1px solid #f0edf9", verticalAlign: "top" }}>
                       <td style={{ padding: "10px" }}>
                         <a href={`/fall/${f.slug}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700, color: "#3d2f8a", textDecoration: "none" }}>{f.name}</a>
+                        {(() => {
+                          const app = people?.mentees?.find(a => `${a.first} ${a.last}`.trim().toLowerCase() === (f.name || "").trim().toLowerCase());
+                          return app?.upliftId ? (
+                            <span title="Uplift ID — assigned on approval; this founder's portal login" style={{ marginLeft: 6, fontFamily: "monospace", fontSize: 11, fontWeight: 700, background: "#f0eef8", color: "#5c4eb5", borderRadius: 5, padding: "2px 6px", cursor: "help" }}>{app.upliftId}</span>
+                          ) : null;
+                        })()}
                         <div style={{ fontSize: 11.5, color: "#9b8fcf" }}>{f.company} · Cohort {f.cohort}{f.mentor ? ` · ${f.mentor}` : ""}</div>
                       </td>
                       <td style={{ padding: "10px" }}><StatusChip status={f.status} /></td>
