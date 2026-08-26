@@ -346,7 +346,7 @@ export default function AdminFall() {
 
         {/* Header + freshness */}
         <div style={{ background: "#0f0729", color: "#fff", padding: "18px 28px", position: "sticky", top: 0, zIndex: 50 }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+          <div style={{ maxWidth: 1560, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
             <div>
               <p style={{ margin: 0, fontSize: 17, fontWeight: 800 }}>Uplift Admin · Fall 2026</p>
               <p style={{ margin: 0, fontSize: 12, opacity: 0.65 }}>One request, computed live from the sources of truth. Nothing here is hand-set.</p>
@@ -365,7 +365,7 @@ export default function AdminFall() {
         </div>
 
         <div style={{ background: "#fff", borderBottom: "1px solid #e8e4f5" }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 28px", display: "flex", gap: 4 }}>
+          <div style={{ maxWidth: 1560, margin: "0 auto", padding: "0 28px", display: "flex", gap: 4 }}>
             {[["today", "📋 Today"], ["overview", "Overview"], ["founders", "Roster"], ["menteeapps", "Mentee Apps"], ["mentorapps", "Mentor Apps"], ["acceptedfounders", "Accepted Founders"], ["acceptedmentors", "Accepted Mentors"], ["matching", "Matching"], ["matched", "Matched"], ["deadlines", "\u23F1 Deadlines"], ["reporting", "\ud83d\udcca Reporting"], ["sessions", "Sessions"], ["pulse", "Pulse & Wins"]].map(([id, label]) => (
               <button key={id} onClick={() => setTab(id)} style={{
                 border: "none", background: "none", padding: "12px 16px 10px",
@@ -380,7 +380,7 @@ export default function AdminFall() {
           </div>
         </div>
 
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 28px 80px" }}>
+        <div style={{ maxWidth: 1560, margin: "0 auto", padding: "24px 28px 80px" }}>
           {err && (
             <div style={{ ...card, borderLeft: "4px solid #e74c3c" }}>
               <p style={{ margin: 0, fontSize: 14, color: "#c0392b", fontWeight: 600 }}>Data load failed: {err}</p>
