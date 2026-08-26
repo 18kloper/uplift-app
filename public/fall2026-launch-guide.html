@@ -176,7 +176,7 @@
       <span class="chip changed">Changed</span>
       <div class="from">"Meet in week 2, 5, and 7"</div>
       <div class="to">Discover → Act → Roadmap</div>
-      <p>The three meetings get names and rolling deadlines: Meeting 1 within 7 days of match, Meeting 2 within 10 days of Meeting 1, Meeting 3 by Oct 23 (hard deadline).</p>
+      <p>The three meetings get names and rolling deadlines: Meeting 1 within 7 days of match, Meeting 2 within 10 days of Meeting 1, Meeting 3 by Oct 23 (hard deadline). The bar: at least 3 meetings and 180 total minutes. Extra short meetings count toward the minutes.</p>
     </div>
     <div class="swap">
       <span class="chip new">New</span>
@@ -188,7 +188,7 @@
       <span class="chip new">New</span>
       <div class="from">Ad-hoc check-ins</div>
       <div class="to">Weekly pulse check</div>
-      <p>One 10-second check-in per week, in the portal. Green: A-okay. Yellow: okay, but a check-in would be nice. Red: things are not going as planned. Catches struggling founders early.</p>
+      <p>One 10-second check-in per week, opening and closing on Fridays. Green: A-okay. Yellow: okay, but a check-in would be nice. Red: things are not going as planned. Catches struggling founders early.</p>
     </div>
     <div class="swap">
       <span class="chip new">New</span>
@@ -408,28 +408,43 @@
   <!-- DECIDE -->
   <div class="section-label">Still to decide</div>
   <div class="decide">
-    <h4>Open before we build for real</h4>
+    <h4>Decided since this guide was first written</h4>
     <ul>
-      <li>Closing moment: does the program end with a small graduation gathering, or does OverdriveAI carry all the ceremony and certificates go digital-only?</li>
-      <li>Onboarding session times per cohort (deck says Sept 9–13, times TBD) and the five Luma links.</li>
-      <li>Final carrot shelf sign-off: anything above we can't deliver for 100% of completers comes off the list.</li>
-      <li>Pulse check windows: which day of the week they open and close.</li>
+      <li>Certificates are digital-only, no closing ceremony, issued Nov 7–20 in completion order. The BreezeDoc signature is the final key.</li>
+      <li>All 7 onboarding sessions are booked and live on Luma (Wed Sept 9 – Fri Sept 11), links in the portal.</li>
+      <li>Pulse windows open and close on Fridays.</li>
+      <li>Meeting verification: allow up to 5 business days. Unresponsive mentor after 72 hours: email uplift@, the team sets a 1:1 call.</li>
+      <li>Educational sessions are live-attendance only; recordings by email request. At least 1 of 3 by Oct 1.</li>
+      <li>Program is free; partner perks by request.</li>
+    </ul>
+    <h4 style="margin-top:16px">Still open</h4>
+    <ul>
+      <li>Uplift at OverdriveAI logistics (venue, timing, agenda): "coming soon" everywhere until locked.</li>
+      <li>Speakers and titles for the 22 educational sessions (22/22 still need content).</li>
+      <li>AI Demo Night ticket link (code UPLIFT exists, nowhere to point yet).</li>
     </ul>
   </div>
 
   <!-- BUILD NOTE -->
   <div class="section-label">How this becomes the real portal</div>
   <div class="buildnote">
-    <h4>Build checklist, once the plan is signed off</h4>
+    <h4>Shipped: the fall portal is live at /fall/&lt;founder&gt;</h4>
     <ul>
-      <li>Swap the <code>WEEKS</code> array in <code>pages/[mentee].js</code> for the 8 fall entries above; re-date <code>PULSE_WINDOWS</code></li>
-      <li>Replace week-locked meeting logic with rolling due dates keyed to match date (kills the late-match slug sets)</li>
-      <li>Retire the Wrapped tab from the default nav; keep the component so surprise Wrappeds still render</li>
-      <li>Point the certificate pipeline at the fall roster with <code>UP26F-###</code> ids; surface the locked certificate milestone from day one</li>
-      <li>Attach the existing exit surveys (<code>uplift-exit-survey-mentee.md</code>, <code>uplift-exit-survey-mentor.md</code>) as portal links, locked until Week 7 opens</li>
-      <li>Add the Discover / Act / Roadmap one-pager to the Resources tab</li>
-      <li>Add OverdriveAI as the required event with portal RSVP + attendance check-in</li>
-      <li>Drop in fall Luma links, speakers, and onboarding times as they're booked</li>
+      <li>✅ Fall <code>WEEKS</code> + Friday <code>PULSE_WINDOWS</code> live in <code>pages/fall/[mentee].js</code>; all onboarding + session Luma links wired</li>
+      <li>✅ Week 1 gate (onboarding + 10/10 quiz + Deep Work) locks the mentor reveal</li>
+      <li>✅ Certificate pipeline gated on the BreezeDoc signature, 4-state Certificate tab</li>
+      <li>✅ Discover / Act / Roadmap one-pager in Resources + in-portal structure check</li>
+      <li>✅ Ulrike, the Uplift chat box: closed-book support bot on every fall portal, knows the rulebook + each founder's live progress, routes everything uncertain to uplift@</li>
+      <li>✅ Uplift ID login (assigned on approval, e.g. UF261); master password opens any portal for the team</li>
+      <li>✅ Fall admin: full application funnel with approve/reject, live match scoring, Today queue, ⏱ Deadlines (per-match meeting clocks + 180-minute meter), 📊 Reporting (grant evidence table with CSV export)</li>
+    </ul>
+    <h4 style="margin-top:16px">Remaining before Sept 9</h4>
+    <ul>
+      <li>Application ingest: auto-provision a portal for every approved founder (replaces the hand-kept test roster)</li>
+      <li>OverdriveAI RSVP + attendance check-in and the 50% in-person meter</li>
+      <li>BreezeDoc send pipeline + Tuesday wins email automation</li>
+      <li>Session speakers, titles, and descriptions as they're booked</li>
+      <li>Exit surveys attached and locked until Week 8 opens</li>
     </ul>
   </div>
 

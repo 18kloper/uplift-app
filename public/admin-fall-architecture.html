@@ -117,6 +117,9 @@
       <li><strong>Session logistics:</strong> 22/22 sessions live on Luma, registration counts synced every 5 minutes, and the current gap: sessions still needing speakers, titles, and descriptions.</li>
       <li><strong>Matching quality:</strong> every suggestion graded (Perfect / Excellent / Strong / Good / Weak) from session-tier alignment (the heaviest weight), focus overlap, shared language between what founders want and mentors offer, stage fit, and scheduling.</li>
       <li><strong>Pulse and wins:</strong> the green/yellow/red grid and the Tuesday-update wins feed with one-click copy.</li>
+      <li><strong>Meeting clocks (⏱ Deadlines):</strong> per matched founder, rolling due dates for Discover / Act / Roadmap and the 180-minute meter, color-coded by days remaining.</li>
+      <li><strong>Grant evidence (📊 Reporting):</strong> per-founder completion table, verified sessions vs submitted meetings and minutes, edu, OverdriveAI, exit survey, BreezeDoc signature, certificate, with one-click CSV export for the NJEDA package.</li>
+      <li><strong>Ulrike, the portal chat box:</strong> every founder question answered from the same computed state this admin reads, uncertain answers routed to uplift@, every exchange logged to #uplift-portal-inputs.</li>
     </ul>
   </div>
 
@@ -125,12 +128,12 @@
     <ul style="list-style: none;">
       <li>1. <strong>Application ingest → roster:</strong> approving a founder should auto-provision their portal (today the roster is the three test slugs in <code>lib/fall-roster.js</code>; approved applicants queue in the sheet but don't get portals yet).</li>
       <li>2. <strong>Matches → portals:</strong> pairings in FallMatches should drive the portal mentor reveal (today the reveal reads the roster file).</li>
-      <li>3. <strong>Per-match rolling clocks:</strong> replace program-level deadlines with clocks keyed to each pair's match date.</li>
-      <li>4. <strong>Onboarding auto-verify:</strong> create the 7 onboarding Luma events and wire the attendance tag to the onboarding milestone.</li>
+      <li>3. <strong>Per-match rolling clocks: ✅ SHIPPED</strong> as the ⏱ Deadlines tab: M1 due 7 days from the FallMatches timestamp, M2 due 10 days from the first submitted meeting, M3 against Oct 23, plus the 180-minute meter. (The at-risk rulebook still uses program-level dates; it inherits these clocks with the ingest.)</li>
+      <li>4. <strong>Onboarding auto-verify:</strong> the 7 onboarding Luma events exist and are linked in the portal; still to do: wire the attendance tag to the onboarding milestone.</li>
       <li>5. <strong>Server-enforced gate:</strong> quiz + Deep Work checks currently read the founder's browser locally; enforce from FallResponses server-side.</li>
       <li>6. <strong>OverdriveAI RSVP + check-in</strong> and the 50% in-person meter.</li>
       <li>7. <strong>BreezeDoc send pipeline</strong> for completion signatures, and the wins → Tuesday email automation.</li>
-      <li>8. <strong>Ops:</strong> create #uplift-portal-inputs in Slack and invite the bot (10 seconds, Kennedy); replace the shared "admin" password; Today check-offs are per-browser until they move to the sheet.</li>
+      <li>8. <strong>Ops:</strong> create #uplift-portal-inputs in Slack and invite the bot (10 seconds, Kennedy); replace the shared "admin" password on the admin page (founder portals now use per-founder Uplift IDs, and PORTAL_MASTER_PASSWORD in Vercel gives the team master access, set it); Today check-offs are per-browser until they move to the sheet.</li>
     </ul>
   </div>
 
