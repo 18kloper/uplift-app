@@ -41,20 +41,11 @@ const drop = (ref, title, description, required) =>
       choices: EDU_SESSIONS.map(s => ({ label: sessionLabel(s) })),
       alphabetical_order: false,
     }, validations: { required } });
-const contact = (ref, title, description) =>
-  ({ ref, title, type: "contact_info", properties: {
+// inline_group takes no button properties, unlike the paginating "group" type.
+const page = (ref, title, description, fields) =>
+  ({ ref, title, type: "inline_group", properties: {
       ...(description ? { description } : {}),
-      fields: [
-        { subfield_key: "first_name", title: "First name", type: "short_text", validations: { required: true } },
-        { subfield_key: "last_name",  title: "Last name",  type: "short_text", validations: { required: true } },
-        { subfield_key: "email",      title: "Email",      type: "email",      validations: { required: true } },
-        { subfield_key: "company",    title: "Company or organization", type: "short_text", validations: { required: true } },
-      ],
-    } });
-const group = (ref, title, description, fields) =>
-  ({ ref, title, type: "group", properties: {
-      ...(description ? { description } : {}),
-      show_button: true, button_text: "Continue", fields,
+      fields,
     } });
 const choice = (ref, title, description, choices, opts = {}) =>
   ({ ref, title, type: "multiple_choice", properties: {
@@ -105,23 +96,27 @@ const form = {
   // Every question lives inside a numbered section, so a respondent sees the
   // whole section on one screen instead of being drip-fed one question at a
   // time with no sense of what is left.
+  // Every section is an inline_group, so a respondent sees all of that
+  // section's questions on one screen. Headshot is standalone because
+  // file_upload is not allowed inside an inline_group.
   fields: [
-    group("you", "1 of 7 · About you", "The basics, then the interesting part.", [
-      contact("contact", "Your details", "Name, email, and company, all on one screen. The email is where your confirmation and run of show go."),
+    page("you", "1 of 7 · About you", "All on one screen.", [
+      text("first_name", "First name", null),
+      text("last_name", "Last name", null),
+      { ref: "email", title: "Email", type: "email", properties: { description: "Where your confirmation and run of show go." }, validations: req },
+      text("company", "Company or organization", null),
       text("role", "Your title or role", null),
       { ref: "linkedin", title: "LinkedIn profile", type: "website", properties: { description: "Optional. We tag you when we promote the session." }, validations: { required: false } },
+      long("bio", "Short speaker bio", "Third person, 75 to 100 words. We use it word for word to introduce you."),
     ]),
-    group("presented", "2 of 7 · How we introduce you", "This is what founders see before you speak, and what we promote you with.", [
-      { ref: "headshot", title: "Headshot", type: "file_upload", properties: { description: "Runs on the event page, the stream, and the clips." }, validations: req },
-      long("bio", "Short speaker bio", "Third person, 75 to 100 words. We use it word for word."),
-    ]),
-    group("session", "3 of 7 · Your session", "The substance. Nothing here needs to be finished work, and we shape the final version together on a call once you are booked.", [
-      choice("format", "Which format are you proposing?", "Pick one, or propose your own and tell us how it works. We confirm the details with you on a call before the day.", [
+    { ref: "headshot", title: "2 of 7 · Your headshot", type: "file_upload", properties: { description: "Runs on the event page, the stream, and the clips. Square or head-and-shoulders works best." }, validations: req },
+    page("session", "3 of 7 · Your session", "Nothing here needs to be finished work. We shape the final version together on a call once you are booked.", [
+      choice("format", "Which format are you proposing?", "Pick one, or propose your own and tell us how it works.", [
         { label: "Presentation. I teach with slides, then take questions." },
         { label: "Fireside chat. You interview me, founders ask questions." },
         { label: "Working session. Founders bring their own work and I coach live." },
       ], { other: true }),
-      text("topic_title", "Proposed session title", "A working title is all we need. We may tighten it for the event page and promotion, and we will always run any change past you first. Repeats of past subjects are welcome, the founders are entirely different this program."),
+      text("topic_title", "Proposed session title", "A working title is all we need. We may tighten it for promotion and will always run any change past you. Repeats of past subjects are welcome, the founders are entirely different this program."),
       long("topic_summary", "What would you cover?", "A paragraph is plenty. No deck required."),
       long("takeaways", "Three things founders will walk away with", "Three lines. Concrete beats inspirational."),
       long("why_now", "Why does this matter to them right now?"),
@@ -135,12 +130,11 @@ const form = {
         { label: "Founders who want to understand how investors think" },
       ], { multi: true }),
     ]),
-    group("share", "4 of 7 · What you would share with founders", "The part that outlives the 30 minutes. All optional.", [
-      long("resources", "Resources or tools you would hand them", "Templates, playbooks, frameworks, tools you swear by, reading, your own offers or discounts. We collect these in the cohort resource library with your name on them, so founders keep using them long after the session.", false),
-      { ref: "deck_link", title: "Link to a deck, or to you speaking somewhere", type: "website", properties: { description: "A recording of you helps us a lot." }, validations: { required: false } },
-      { ref: "deck_file", title: "Or attach a deck", type: "file_upload", properties: { description: "A rough draft is fine." }, validations: { required: false } },
+    page("share", "4 of 7 · What you would share with founders", "The part that outlives the 30 minutes. All optional.", [
+      long("resources", "Resources or tools you would hand them", "Templates, playbooks, frameworks, tools you swear by, reading, your own offers or discounts. We collect these in the cohort resource library with your name on them.", false),
+      { ref: "deck_link", title: "Link to a deck, a past talk, or a file", type: "website", properties: { description: "Optional. A Drive or Dropbox link is fine, and a recording of you speaking helps us a lot." }, validations: { required: false } },
     ]),
-    group("dates_section", "5 of 7 · Your dates, in order of preference", "All sessions are 30 minutes, at 12:30 PM or 5:30 PM Eastern. Everything is virtual, so you can join from any state. Just check the time lands for you. See what is currently open at uplift2026.vercel.app/share-your-expertise", [
+    page("dates_section", "5 of 7 · Your dates, in order of preference", "All sessions are 30 minutes, at 12:30 PM or 5:30 PM Eastern. Everything is virtual, so you can join from any state. Just check the time lands for you. See what is currently open at uplift2026.vercel.app/share-your-expertise", [
       choice("dates", "Which dates could you make?", "Check every slot that works.", dateChoices, { multi: true }),
       drop("date_1", "First choice", "We work down your ranking, so if this one is open, it is the one you get.", true),
       drop("date_2", "Second choice", null, false),
@@ -148,7 +142,7 @@ const form = {
       drop("date_4", "Fourth choice", null, false),
       drop("date_5", "Fifth choice", null, false),
     ]),
-    group("series_group", "6 of 7 · Want to make it a series?", "We can host you up to three times across the program. A returning face builds real familiarity with the cohort.", [
+    page("series_group", "6 of 7 · Want to make it a series?", "We can host you up to three times across the program. A returning face builds real familiarity with the cohort.", [
       choice("series", "Interested in more than one session?", null, [
         { label: "Yes, I would take up to three sessions" },
         { label: "Maybe, I would want to talk it through first" },
@@ -156,7 +150,7 @@ const form = {
       ], { required: false }),
       long("series_ideas", "Rough ideas for the follow-ups", "We book and prioritize your first session either way, then connect separately about the rest.", false),
     ]),
-    group("last", "7 of 7 · Permissions and last bits", null, [
+    page("last", "7 of 7 · Permissions and last bits", null, [
       { ref: "consent", title: "We record the session, share it on LinkedIn, post it to YouTube, and cut clips. Are you good with that?", type: "legal", properties: { description: "Includes using your name, headshot, and company to promote the session. We send you the clips to post yourself." }, validations: req },
       choice("spoken_before", "Have you spoken to a founder audience before?", null, [
         { label: "Often. This is a regular thing for me." },
