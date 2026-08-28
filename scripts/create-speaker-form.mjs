@@ -75,7 +75,7 @@ const form = {
       show_button: true,
       button_text: "Share your expertise",
       description:
-        "22 speaking slots this fall, September 11 to November 4. Each one is a 30 minute virtual session streamed directly to the founders in our program, then shared on LinkedIn, posted to YouTube, and clipped for you to post on your own channels.\n\nThe full brief, including what our last program ran and what happens after you apply: uplift2026.vercel.app/share-your-expertise\n\nYou can be based anywhere, since every session is virtual. The only requirement is that the time slot works for you.\n\nUplift mentors get priority on these slots.\n\nAbout seven minutes. Have a headshot handy. This is an application, we are curating 22 sessions, and we come back to you either way within one business day.",
+        "22 speaking slots this fall, September 11 to November 4. Each one is a 30 minute virtual session streamed directly to the founders in our program, then shared on LinkedIn, posted to YouTube, and clipped for you to post on your own channels.\n\nThe full brief, including what our last program ran and what happens after you apply: uplift2026.vercel.app/share-your-expertise\n\nYou can be based anywhere, since every session is virtual. The only requirement is that the time slot works for you.\n\nAbout seven minutes. Have a headshot handy. Mentors and invited speakers have priority, and we come back to everyone within one business day.",
     },
   }],
   thankyou_screens: [{
@@ -85,7 +85,7 @@ const form = {
       show_button: false,
       share_icons: false,
       description:
-        "This is an application, and we do not book every one. We are curating 22 sessions for this cohort, so we weigh topic fit, what founders have told us they need, and which dates are still open. Uplift mentors get priority on these slots.\n\nEither way you hear from us within one business day: to confirm, to ask a couple of quick questions, or to say it is not the right fit this time. A no is usually about timing or topic overlap rather than about you, and we keep your application for the next cohort.\n\nIf your session is approved:\n1. You get an email confirming it, with your date.\n2. Your slot is reserved and we send a calendar invite with a hold on it.\n3. We do a 15 minute planning call to square away the details.\n4. The event goes live, we promote it to the cohort with your bio and headshot on it, and you get the run of show.\n\nQuestions: uplift@techunited.co",
+        "If you are an Uplift mentor, or we invited you, this is not an audition. You have priority on these slots and we are working out which date, not whether to have you.\n\nWhat happens next once your session is confirmed:\n1. You get an email confirming it, with your date.\n2. Your slot is reserved and we send a calendar invite with a hold on it.\n3. We do a 15 minute planning call to square away the details.\n4. The event goes live, we promote it to the cohort with your bio and headshot on it, and you get the run of show.\n\nEither way you hear from us within one business day. If you came to us cold and we are oversubscribed on your dates, we will say so and keep you for the next cohort.\n\nQuestions: uplift@techunited.co",
     },
   }],
   // Every section is an inline_group, so a respondent sees all of that
