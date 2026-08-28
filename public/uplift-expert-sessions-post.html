@@ -7,15 +7,14 @@
 <style>
   /* Single LinkedIn feed graphic, 1080x1350 (4:5).
      Render: bash scripts/post-graphic-to-png.sh
-     The headline states the ask in one sentence. The subjects are the
-     centrepiece. No speaker-benefit copy. */
+     One message: we are looking for speakers for virtual sessions. Everything
+     else is quiet supporting detail. Link and process live in the post copy. */
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
     --navy: #110465;
     --pink: #d86697;
-    --pink-bright: #f07daa;
-    --paper: #f7f6fb;
+    --pink-bright: #f48ab6;
     --dim: #a79ee0;
     --gold: #e8c46a;
   }
@@ -23,111 +22,70 @@
   html, body { width: 1080px; height: 1350px; }
   body {
     font-family: 'Inter', system-ui, sans-serif;
-    background: var(--navy); color: var(--paper);
+    background: var(--navy); color: #fff;
     overflow: hidden; position: relative;
   }
 
   .bloom {
-    position: absolute; width: 880px; height: 880px; border-radius: 50%;
-    top: -260px; right: -300px;
-    background: radial-gradient(circle, rgba(216,102,151,0.32) 0%, rgba(216,102,151,0.09) 42%, rgba(17,4,101,0) 70%);
+    position: absolute; width: 1000px; height: 1000px; border-radius: 50%;
+    top: -300px; right: -320px;
+    background: radial-gradient(circle, rgba(216,102,151,0.38) 0%, rgba(216,102,151,0.11) 44%, rgba(17,4,101,0) 72%);
   }
   .mark {
-    position: absolute; bottom: -150px; right: -180px; width: 700px; height: 280px;
-    background: url("uplift-logo-white.png") right bottom / contain no-repeat;
-    opacity: 0.03;
+    position: absolute; bottom: -170px; left: -140px; width: 780px; height: 310px;
+    background: url("uplift-logo-white.png") left bottom / contain no-repeat;
+    opacity: 0.04;
   }
 
   .frame {
     position: relative; z-index: 2;
     width: 1080px; height: 1350px;
-    padding: 58px 70px 52px;
+    padding: 68px 76px 60px;
     display: flex; flex-direction: column;
   }
 
   header { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-  .logo { width: 214px; height: 78px; background: url("uplift-logo-white.png") left center / contain no-repeat; }
+  .logo { width: 236px; height: 86px; background: url("uplift-logo-white.png") left center / contain no-repeat; }
   .org {
     font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500;
     letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim);
-    text-align: right; line-height: 1.5;
+    text-align: right; line-height: 1.55;
   }
-
-  .eyebrow {
-    margin-top: 36px;
-    font-family: 'JetBrains Mono', monospace; font-size: 19px; font-weight: 700;
-    letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold);
-  }
-
-  /* The ask, said plainly, in one sentence. */
-  h1 {
-    margin-top: 16px;
-    font-family: 'Archivo', sans-serif; font-weight: 800;
-    font-size: 65px; line-height: 1.0; letter-spacing: -0.025em;
-    font-variation-settings: 'wdth' 108;
-    text-wrap: balance;
-  }
-  h1 em { font-style: normal; color: var(--pink-bright); }
-
-  .terms { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 12px; }
-  .term {
-    font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500;
-    letter-spacing: 0.04em;
-    border: 1px solid rgba(255,255,255,0.22); border-radius: 8px;
-    padding: 9px 14px; color: #ded9ff;
-  }
-  .term b { color: #fff; font-weight: 700; }
-
-  .block { margin-top: 42px; }
-  .blabel {
-    font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700;
-    letter-spacing: 0.16em; text-transform: uppercase; color: var(--pink-bright);
-    margin-bottom: 14px;
-  }
-
-  /* Subjects: the centrepiece, so they take the largest surface here. */
-  .subjects { display: flex; flex-wrap: wrap; gap: 10px; }
-  .subj {
-    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);
-    border-radius: 999px; padding: 14px 22px;
-    font-size: 24px; font-weight: 600; color: #fff;
-  }
-  .subj.open { background: rgba(240,125,170,0.16); border-color: var(--pink-bright); color: #ffdcea; }
-  .subj-note { margin-top: 18px; font-size: 20px; color: var(--dim); }
-
-  .past { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 26px; }
-  .prow {
-    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 9px;
-  }
-  .prow .pt { font-size: 20px; font-weight: 600; color: #fff; line-height: 1.2; }
-  .prow .pw { font-size: 16px; color: #b9b0ec; white-space: nowrap; }
 
   .spacer { flex: 1; }
 
-  .cta {
-    margin-top: 30px;
-    background: var(--pink); border-radius: 18px; padding: 22px 28px;
-    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  h1 {
+    font-family: 'Archivo', sans-serif; font-weight: 800;
+    font-size: 124px; line-height: 0.9; letter-spacing: -0.035em;
+    font-variation-settings: 'wdth' 112;
   }
-  .cta .lead {
-    font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700;
-    letter-spacing: 0.16em; text-transform: uppercase; color: #3d0a22;
+  h1 em { font-style: normal; color: var(--pink-bright); display: block; }
+
+  .rule { height: 7px; width: 150px; background: var(--pink); border-radius: 4px; margin: 40px 0 0; }
+
+  .say { margin-top: 40px; font-size: 38px; line-height: 1.35; max-width: 24ch; color: #ded9ff; }
+  .say b { color: #fff; font-weight: 600; }
+
+  .hint {
+    margin-top: 46px;
+    font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold);
+    margin-bottom: 16px;
   }
-  .cta .url {
-    font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 30px;
-    letter-spacing: -0.02em; color: #23021a; margin-top: 7px;
-    font-variation-settings: 'wdth' 98; white-space: nowrap;
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip {
+    border: 1px solid rgba(255,255,255,0.24); border-radius: 999px;
+    padding: 12px 20px; font-size: 21px; font-weight: 500; color: #e9e5ff;
   }
-  .cta .aside {
-    text-align: right; font-size: 17px; color: #4a0c28; line-height: 1.35;
-    flex: none; max-width: 14ch;
-  }
+  .chip.open { border-color: var(--pink-bright); color: #ffdcea; }
+
   .foot {
-    margin-top: 18px; display: flex; justify-content: space-between; gap: 20px;
-    font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--dim);
+    display: flex; justify-content: space-between; align-items: flex-end; gap: 20px;
+    font-family: 'JetBrains Mono', monospace; font-size: 18px; color: var(--dim);
     letter-spacing: 0.05em;
+    border-top: 1px solid rgba(255,255,255,0.15); padding-top: 22px; margin-top: 46px;
   }
+  .foot b { color: var(--pink-bright); font-weight: 700; }
 </style>
 </head>
 <body>
@@ -140,59 +98,30 @@
     <div class="org">Uplift Mentorship Program<br>TechUnited:NJ · Fall 2026</div>
   </header>
 
-  <p class="eyebrow">A call for experts</p>
+  <div class="spacer"></div>
 
-  <h1>Teach one <em>30 minute insight session</em> to a closed room of New Jersey founders.</h1>
+  <h1>Looking for<em>speakers.</em></h1>
+  <div class="rule"></div>
 
-  <div class="terms">
-    <span class="term"><b>22</b> sessions this fall</span>
-    <span class="term">Sept 11 to Nov 4</span>
-    <span class="term">Virtual</span>
-    <span class="term">By application</span>
-    <span class="term">~70 founders, idea stage to seed</span>
-  </div>
+  <p class="say"><b>30 minute virtual sessions</b> for New Jersey founders,
+    three times a week from <b>September 11 to November 4</b>.</p>
 
-  <div class="block">
-    <p class="blabel">Subjects we are looking for</p>
-    <div class="subjects">
-      <span class="subj">Automating with AI</span>
-      <span class="subj">Defining your ICP</span>
-      <span class="subj">Go-to-market</span>
-      <span class="subj">Pitch and narrative</span>
-      <span class="subj">Fundraising strategy</span>
-      <span class="subj">Hiring and leadership</span>
-      <span class="subj">Pricing</span>
-      <span class="subj">Operational scaling</span>
-      <span class="subj">Public speaking</span>
-      <span class="subj">Founder decision-making</span>
-      <span class="subj">The mistakes you made</span>
-      <span class="subj open">Your own subject</span>
-    </div>
-    <p class="subj-note">If a founder can use it on Monday, it fits.</p>
-  </div>
-
-  <div class="block">
-    <p class="blabel">What our last program ran</p>
-    <div class="past">
-      <div class="prow"><span class="pt">How to Pitch an Angel</span><span class="pw">Joanne Wilson</span></div>
-      <div class="prow"><span class="pt">Beyond the Logo</span><span class="pw">Debra Rizzi</span></div>
-      <div class="prow"><span class="pt">Service as Strategy</span><span class="pw">Christina Perla</span></div>
-      <div class="prow"><span class="pt">Inside Angel Investing</span><span class="pw">Gina Tedesco</span></div>
-    </div>
+  <p class="hint">Anything a founder can use</p>
+  <div class="chips">
+    <span class="chip">AI in your workflow</span>
+    <span class="chip">Finding your ICP</span>
+    <span class="chip">Go-to-market</span>
+    <span class="chip">Pitching</span>
+    <span class="chip">Fundraising</span>
+    <span class="chip">Hiring</span>
+    <span class="chip">Pricing</span>
+    <span class="chip open">Your own subject</span>
   </div>
 
   <div class="spacer"></div>
 
-  <div class="cta">
-    <div>
-      <div class="lead">Apply, seven minutes</div>
-      <div class="url">uplift2026.vercel.app/share-your-expertise</div>
-    </div>
-    <div class="aside">We reply within one business day.</div>
-  </div>
-
   <div class="foot">
-    <span>Send the elevator back down.</span>
+    <span><b>Details in the comments.</b></span>
     <span>uplift@techunited.co</span>
   </div>
 </div>
