@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speak at Uplift</title>
+<meta name="description" content="Uplift is TechUnited:NJ's founder mentorship program. 22 speaking slots this fall, 30 minutes each, streamed live and clipped for you.">
+<meta property="og:title" content="Speak at Uplift">
+<meta property="og:description" content="30 minutes with New Jersey founders. Streamed live on LinkedIn, posted to YouTube, and clipped for you to post. 22 slots between Sept 11 and Nov 4.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+  :root {
+    /* Uplift brand: navy, pink, paper. Same palette as the internal runbook so
+       a speaker who sees both reads one program, not two. */
+    --navy: #110465;
+    --ink: #1a1140;
+    --body: #43405e;
+    --muted: #736e91;
+    --faint: #9b96b4;
+    --paper: #f7f6fb;
+    --surface: #ffffff;
+    --line: #e4e1ef;
+    --line-soft: #eeecf6;
+    --pink: #d86697;
+    --pink-wash: #fdf1f6;
+    --purple: #5c4eb5;
+    --purple-wash: #f2f0fc;
+    --gold: #c99a2e;
+    --good: #1a6e42;
+    --good-wash: #e9f7f0;
+    --shadow: 0 1px 2px rgba(17, 4, 101, 0.04), 0 8px 24px -12px rgba(17, 4, 101, 0.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --navy: #c9c2ff; --ink: #eceaff; --body: #c2bde0; --muted: #9b95c2; --faint: #736d9c;
+      --paper: #0c0726; --surface: #161034; --line: #2b2356; --line-soft: #241d4a;
+      --pink: #f08ab5; --pink-wash: #2a1130; --purple: #9c8cf5; --purple-wash: #1e1949;
+      --gold: #e0b458; --good: #5cc98f; --good-wash: #102c22;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 30px -14px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --navy: #c9c2ff; --ink: #eceaff; --body: #c2bde0; --muted: #9b95c2; --faint: #736d9c;
+    --paper: #0c0726; --surface: #161034; --line: #2b2356; --line-soft: #241d4a;
+    --pink: #f08ab5; --pink-wash: #2a1130; --purple: #9c8cf5; --purple-wash: #1e1949;
+    --gold: #e0b458; --good: #5cc98f; --good-wash: #102c22;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 30px -14px rgba(0,0,0,0.6);
+  }
+
+  body {
+    margin: 0; background: var(--paper); color: var(--body);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 16px; line-height: 1.62; -webkit-font-smoothing: antialiased;
+  }
+  img, svg { max-width: 100%; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px 0; }
+
+  h1, h2, h3 { font-family: 'Archivo', 'Inter', system-ui, sans-serif; color: var(--ink); text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(2.2rem, 6vw, 3.7rem); font-variation-settings: 'wdth' 116; font-weight: 800; line-height: 1.0; letter-spacing: -0.022em; }
+  h2 { font-size: clamp(1.4rem, 2.8vw, 1.9rem); font-variation-settings: 'wdth' 108; font-weight: 700; line-height: 1.12; }
+  h3 { font-size: 1.03rem; font-variation-settings: 'wdth' 104; font-weight: 700; line-height: 1.3; }
+  p { margin: 0; }
+  a { color: var(--purple); }
+  a:focus-visible, .cta:focus-visible { outline: 2px solid var(--pink); outline-offset: 3px; border-radius: 6px; }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.66rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--pink);
+  }
+  .cta {
+    display: inline-flex; align-items: center; gap: 10px; text-decoration: none;
+    background: var(--navy); color: var(--paper); border-radius: 10px;
+    padding: 14px 26px; font-weight: 700; font-size: 1rem;
+    font-family: 'Archivo', 'Inter', sans-serif; font-variation-settings: 'wdth' 104;
+    box-shadow: var(--shadow);
+  }
+  .cta:hover { background: var(--purple); }
+  .cta-note { font-size: 0.85rem; color: var(--muted); }
+  .cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px; }
+
+  /* ── Hero ─────────────────────────────────────────────── */
+  header.hero { padding: 68px 0 44px; display: flex; flex-direction: column; gap: 24px; }
+  header.hero .lede { font-size: 1.16rem; max-width: 58ch; }
+  header.hero .lede strong { color: var(--ink); font-weight: 600; }
+  .facts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .fact {
+    font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.7rem; font-weight: 500;
+    border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px;
+    color: var(--muted); background: var(--surface);
+  }
+  .fact b { color: var(--ink); font-weight: 700; }
+
+  section { padding: 52px 0 0; border-top: 1px solid var(--line); margin-top: 52px; }
+  section:first-of-type { border-top: none; margin-top: 0; }
+  .sec-head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; max-width: 64ch; }
+  .sec-head p { color: var(--muted); font-size: 0.98rem; }
+
+  .trio { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; box-shadow: var(--shadow); }
+  .panel h3 { margin-bottom: 8px; }
+  .panel p { font-size: 0.94rem; }
+  .panel.get { border-top: 3px solid var(--pink); }
+
+  ul.plain { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 11px; }
+  ul.plain li { display: flex; gap: 10px; font-size: 0.95rem; }
+  ul.plain li .mk { color: var(--pink); font-weight: 700; flex: none; line-height: 1.55; }
+
+  .group-label {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.66rem; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
+    color: var(--muted); margin: 28px 0 12px; display: flex; align-items: center; gap: 12px;
+  }
+  .group-label:first-of-type { margin-top: 0; }
+  .group-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .group-label em { font-style: normal; color: var(--faint); letter-spacing: 0.03em; text-transform: none; font-weight: 500; }
+
+  .board { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 8px; }
+  .tile { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--surface); display: flex; flex-direction: column; gap: 1px; }
+  .tile .n { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; color: var(--faint); }
+  .tile .t { font-size: 0.85rem; font-weight: 600; color: var(--ink); }
+  .tile .s { font-size: 0.76rem; color: var(--muted); }
+  .tile .who { font-size: 0.74rem; color: var(--pink); font-weight: 600; }
+  .tile.taken { opacity: 0.5; }
+  .tile.taken .s { color: var(--faint); }
+  .tile.free .s { color: var(--good); font-weight: 600; }
+  .caption { margin-top: 14px; font-size: 0.83rem; color: var(--faint); font-style: italic; }
+
+  .repeat-note {
+    margin-top: 18px; background: var(--pink-wash); border: 1px solid var(--line);
+    border-radius: 12px; padding: 16px 20px; font-size: 0.95rem;
+  }
+  .repeat-note strong { color: var(--ink); }
+
+  ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: st; display: flex; flex-direction: column; gap: 12px; }
+  ol.steps li {
+    counter-increment: st; display: flex; gap: 15px; align-items: flex-start;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 20px; box-shadow: var(--shadow);
+  }
+  ol.steps li::before {
+    content: counter(st); flex: none;
+    font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.72rem; font-weight: 700;
+    width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+  }
+  ol.steps li h3 { font-size: 0.98rem; margin-bottom: 3px; }
+  ol.steps li p { font-size: 0.92rem; }
+  .step-text { display: flex; flex-direction: column; }
+
+  .asks { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+  .ask { border: 1px solid var(--line); border-left: 2px solid var(--purple); border-radius: 10px; padding: 15px 17px; background: var(--surface); }
+  .ask h3 { font-size: 0.94rem; margin-bottom: 4px; }
+  .ask p { font-size: 0.89rem; }
+
+  .closer { margin: 56px 0 0; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 34px 30px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 18px; }
+  .closer h2 { font-size: clamp(1.5rem, 3vw, 2.1rem); }
+  .closer p { max-width: 58ch; }
+
+  footer { margin-top: 40px; padding: 22px 0 60px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-size: 0.83rem; color: var(--faint); }
+
+  @media (max-width: 640px) {
+    h1 { font-variation-settings: 'wdth' 104; }
+    header.hero { padding-top: 44px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">Uplift Mentorship Program · TechUnited:NJ · Fall 2026</p>
+    <h1>Speak at Uplift. 30 minutes, a room of New Jersey founders.</h1>
+    <p class="lede">
+      We have <strong>22 speaking slots</strong> between September 11 and November 4. Each one is a
+      30 minute virtual session, as a presentation or a fireside chat, streamed live on LinkedIn and
+      posted to YouTube. We clip it and send you the clips to post on your own channels.
+    </p>
+    <div class="cta-row">
+      <a class="cta" href="https://form.typeform.com/to/uUjnsoDm">Apply to speak &nbsp;→</a>
+      <span class="cta-note">About seven minutes. We reply within one business day.</span>
+    </div>
+    <div class="facts">
+      <span class="fact"><b>~70</b> founders in the program</span>
+      <span class="fact"><b>~30</b> attend live</span>
+      <span class="fact"><b>3</b> sessions a week</span>
+      <span class="fact">virtual, <b>12:30</b> or <b>5:30</b> ET</span>
+      <span class="fact">up to <b>3</b> sessions if you want a series</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-head">
+      <p class="eyebrow">The context</p>
+      <h2>What Uplift is, and what a session is</h2>
+    </div>
+    <div class="trio">
+      <div class="panel">
+        <h3>The program</h3>
+        <p>Uplift is TechUnited:NJ's founder mentorship program. Eight weeks, September 9 to November 6.
+          Every founder in it is matched with a mentor for a series of one-on-one meetings. This fall the
+          cohort is around 70 vetted New Jersey founders.</p>
+      </div>
+      <div class="panel">
+        <h3>The sessions</h3>
+        <p>Three times a week the cohort comes together for a 30 minute virtual session. 22 of them
+          across the program, at 12:30 or 5:30 ET. Outside speakers carry them, which is where you
+          come in.</p>
+      </div>
+      <div class="panel">
+        <h3>The room</h3>
+        <p>Every founder is welcome at every session, and attendance runs around 30 live depending on
+          the topic. Founders need three sessions to complete the program, so the people in front of
+          you chose to be there.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <p class="eyebrow">The brief</p>
+      <h2>If a founder can use it on Monday, it fits</h2>
+      <p>That is the whole test. Sessions run as a presentation, a fireside chat where we interview you,
+        or a working session where founders bring their own work. You pick what suits your material,
+        and we settle the shape of it together on a call before the day.</p>
+    </div>
+
+    <p class="group-label">Ideas to start from <em>none of these are required</em></p>
+    <div class="board">
+      <div class="tile"><span class="n">IDEA</span><span class="t">Automating something with AI</span><span class="s">a real workflow, start to finish</span></div>
+      <div class="tile"><span class="n">IDEA</span><span class="t">Defining your ICP</span><span class="s">who to sell to, and who to stop</span></div>
+      <div class="tile"><span class="n">IDEA</span><span class="t">Pitching yourself</span><span class="s">the tricks that actually land</span></div>
+      <div class="tile"><span class="n">IDEA</span><span class="t">Public speaking</span><span class="s">for founders who dread it</span></div>
+      <div class="tile"><span class="n">IDEA</span><span class="t">The mistakes you made</span><span class="s">your story, told honestly</span></div>
+      <div class="tile"><span class="n">IDEA</span><span class="t">How you built it</span><span class="s">the unglamorous middle years</span></div>
+      <div class="tile"><span class="n">IDEA</span><span class="t">What your business does daily</span><span class="s">that theirs should be doing too</span></div>
+      <div class="tile"><span class="n">IDEA</span><span class="t">Your own subject</span><span class="s">if founders can use it, it fits</span></div>
+    </div>
+
+    <p class="group-label">What our last two cohorts ran <em>the bar, and fair game to repeat</em></p>
+    <div class="board">
+      <div class="tile"><span class="n">JUN 2026</span><span class="t">How to Pitch an Angel</span><span class="s">What investors actually look for</span><span class="who">Joanne Wilson</span></div>
+      <div class="tile"><span class="n">JUL 2026</span><span class="t">Beyond the Logo</span><span class="s">Building a brand customers trust and investors understand</span><span class="who">Debra Rizzi, two parts</span></div>
+      <div class="tile"><span class="n">JUL 2026</span><span class="t">Service as Strategy</span><span class="s">Customer experience as competitive edge</span><span class="who">Christina Perla, Makelab</span></div>
+      <div class="tile"><span class="n">JUL 2026</span><span class="t">Inside Angel Investing</span><span class="s">Building relationships before you raise</span><span class="who">Gina Tedesco</span></div>
+      <div class="tile"><span class="n">JUL 2026</span><span class="t">Earning the Room</span><span class="s">Visibility, credibility, and access</span><span class="who">Chrissy Buteas</span></div>
+      <div class="tile"><span class="n">JUN 2026</span><span class="t">Pitch Without a Deck</span><span class="s">Peer workshop, founders on the spot</span><span class="who">Cohort-run</span></div>
+      <div class="tile"><span class="n">MAR 2026</span><span class="t">Fundable vs. Fashionable</span><span class="s">The pre-seed investor lens</span><span class="who">Mike Obolonskyi</span></div>
+      <div class="tile"><span class="n">MAR 2026</span><span class="t">The Gap Between an Idea and a Customer</span><span class="s">Getting from one to the other</span><span class="who">Tom Sauer, Mile Square Labs</span></div>
+      <div class="tile"><span class="n">MAR 2026</span><span class="t">Pattern Recognition = Pivot Fuel</span><span class="s">Reading your own signals</span><span class="who">Mark Nelson, Foodie Box Love</span></div>
+    </div>
+
+    <div class="repeat-note">
+      <strong>Repeats are welcome.</strong> This is an entirely new group of founders, so a subject a past
+      speaker covered is not taken. Same topic, new room, people who have never heard it. If your
+      strongest material overlaps something above, that is a reason to propose it rather than a reason
+      to avoid it.
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <p class="eyebrow">The trade</p>
+      <h2>What you get out of it</h2>
+      <p>No cost, and no pitch expected. You share what you know, and the work of promoting it is ours.</p>
+    </div>
+    <div class="trio">
+      <div class="panel get">
+        <h3>The room</h3>
+        <ul class="plain">
+          <li><span class="mk">→</span><span>30 minutes with active New Jersey founders who chose your session</span></li>
+          <li><span class="mk">→</span><span>Real questions from people building right now</span></li>
+          <li><span class="mk">→</span><span>Up to three sessions if you want to make it a series</span></li>
+        </ul>
+      </div>
+      <div class="panel get">
+        <h3>The reach after it</h3>
+        <ul class="plain">
+          <li><span class="mk">→</span><span>Streamed live on LinkedIn, so it plays to your network as it happens</span></li>
+          <li><span class="mk">→</span><span>Posted to YouTube, so it keeps working after the session ends</span></li>
+          <li><span class="mk">→</span><span>Clipped by us, and the clips handed back for you to post yourself</span></li>
+          <li><span class="mk">→</span><span>Your name, headshot, company, and links on the event page and every clip</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <p class="eyebrow">The dates</p>
+      <h2>What is still open</h2>
+      <p>Pick every date you could make, then rank up to five in order. We work through your ranking,
+        so if your first choice is still open, that is the one you get.</p>
+    </div>
+    <div class="board" id="slots">
+      <p class="caption" id="slots-status">Loading the current slots…</p>
+    </div>
+    <p class="caption" id="slots-note"></p>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <p class="eyebrow">The process</p>
+      <h2>What happens after you apply</h2>
+    </div>
+    <ol class="steps">
+      <li><div class="step-text"><h3>We review within one business day</h3><p>You hear back either way, to confirm or to ask a couple of quick questions first.</p></div></li>
+      <li><div class="step-text"><h3>You get your highest available date</h3><p>We work down your ranking against what is still open.</p></div></li>
+      <li><div class="step-text"><h3>A calendar hold lands for that date</h3><p>So the slot is protected on both sides while the details come together.</p></div></li>
+      <li><div class="step-text"><h3>We get on a short sync call</h3><p>We map out the shape of the session, whether that is a fireside, a straight presentation, or a working session, and what the conversation should actually cover.</p></div></li>
+      <li><div class="step-text"><h3>We build and promote the event</h3><p>Your bio and headshot go on the Luma page, we promote it to the cohort, and you get the run of show and the stream details before the day.</p></div></li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <p class="eyebrow">Before you start</p>
+      <h2>What the form asks for</h2>
+      <p>About seven minutes. Nothing here needs to be finished work.</p>
+    </div>
+    <div class="asks">
+      <div class="ask">
+        <h3>A headshot and a short bio</h3>
+        <p>This is how you get introduced. It goes on the Luma page and LinkedIn, and the headshot runs
+          across the comms and the clips. Your existing bio is fine.</p>
+      </div>
+      <div class="ask">
+        <h3>Your topic and three takeaways</h3>
+        <p>No deck required. A general idea is enough for us to write the blurb. The three things
+          founders walk away with matter more than the polish.</p>
+      </div>
+      <div class="ask">
+        <h3>Who you are aiming at</h3>
+        <p>The cohort runs from idea stage through seed. Every session stays open to everyone, this just
+          tells us who to point the invitation at.</p>
+      </div>
+      <div class="ask">
+        <h3>Your dates, ranked</h3>
+        <p>Every date that works, then your top five in order. Plus whether you would want to do a short
+          series of up to three sessions.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="closer">
+    <p class="eyebrow">One link, seven minutes</p>
+    <h2>Send the elevator back down</h2>
+    <p>The founders in this cohort get the most out of hearing from people who have actually done the
+      thing. If that is you, take a slot.</p>
+    <div class="cta-row">
+      <a class="cta" href="https://form.typeform.com/to/uUjnsoDm">Apply to speak &nbsp;→</a>
+      <span class="cta-note">Questions first? <a href="mailto:uplift@techunited.co">uplift@techunited.co</a></span>
+    </div>
+  </div>
+
+  <footer>
+    <span>Uplift Mentorship Program · TechUnited:NJ</span>
+    <span>Fall 2026 · September 9 to November 6</span>
+  </footer>
+
+</div>
+
+<script>
+  // Live slot availability, so nobody ranks a date that is already booked.
+  // Fails quiet and useful: on any error the section states the date range and
+  // sends people to the form anyway, rather than showing a broken board.
+  (function () {
+    var board = document.getElementById("slots");
+    var status = document.getElementById("slots-status");
+    var note = document.getElementById("slots-note");
+    fetch("/api/speaker-slots")
+      .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
+      .then(function (d) {
+        if (!d.slots || !d.slots.length) throw new Error("no slots");
+        board.innerHTML = d.slots.map(function (s) {
+          return '<div class="tile ' + (s.open ? "free" : "taken") + '">' +
+            '<span class="n">SESSION ' + s.n + '</span>' +
+            '<span class="t">' + s.day + '</span>' +
+            '<span class="s">' + s.time + " ET" + '</span>' +
+            '<span class="s">' + (s.open ? "open" : "booked") + '</span>' +
+            '</div>';
+        }).join("");
+        note.textContent = d.openCount + " of " + d.totalCount +
+          " slots still open. Updated every few minutes, so a date can go while you are filling the form. Rank five and you are covered.";
+      })
+      .catch(function () {
+        status.textContent = "22 sessions run between September 11 and November 4, at 12:30 or 5:30 ET. " +
+          "The form lists every date with the ones still open.";
+        note.textContent = "";
+      });
+  })();
+</script>
+</body>
+</html>
