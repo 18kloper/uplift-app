@@ -5,35 +5,10 @@
 // the onboarding slots and Uplift at OverdriveAI. One calendar listing + one
 // get-event per matched session, cached 5 minutes; ?fresh=1 bypasses.
 
+import { EDU_SESSIONS } from "../../../lib/edu-sessions";
+
 const LUMA_BASE = "https://api.lu.ma/public/v1";
 const CALENDAR_ID = "cal-wVdcBds3K0Ylw3n";
-
-// Mirror of the fall schedule in pages/fall/[mentee].js (source of truth for
-// founders). Update both together.
-const EDU_SESSIONS = [
-  { n: 1, day: "Fri Sept 11", time: "12:30 PM", slug: "techun-lfmg" },
-  { n: 2, day: "Mon Sept 14", time: "12:30 PM", slug: "3qg5eegx" },
-  { n: 3, day: "Tue Sept 15", time: "5:30 PM", slug: "vxh6h310" },
-  { n: 4, day: "Fri Sept 18", time: "12:30 PM", slug: "smzvhwxk" },
-  { n: 5, day: "Mon Sept 21", time: "12:30 PM", slug: "zkb2rc8p" },
-  { n: 6, day: "Tue Sept 22", time: "5:30 PM", slug: "de3y5zeu" },
-  { n: 7, day: "Fri Sept 25", time: "12:30 PM", slug: "k1mvgwvs" },
-  { n: 8, day: "Mon Sept 28", time: "12:30 PM", slug: "pidrg7sw" },
-  { n: 9, day: "Tue Sept 29", time: "5:30 PM", slug: "bruqh9hf" },
-  { n: 10, day: "Fri Oct 2", time: "12:30 PM", slug: "rjxdyml0" },
-  { n: 11, day: "Mon Oct 5", time: "12:30 PM", slug: "7ajm07pv" },
-  { n: 12, day: "Tue Oct 6", time: "5:30 PM", slug: "6fqmptfu" },
-  { n: 13, day: "Fri Oct 9", time: "12:30 PM", slug: "872810d3" },
-  { n: 14, day: "Mon Oct 12", time: "12:30 PM", slug: "g2j1tlk4" },
-  { n: 15, day: "Fri Oct 16", time: "12:30 PM", slug: "mbjuraiq" },
-  { n: 16, day: "Mon Oct 19", time: "12:30 PM", slug: "6droguib" },
-  { n: 17, day: "Tue Oct 20", time: "5:30 PM", slug: "krpytz6i" },
-  { n: 18, day: "Tue Oct 20", time: "5:30 PM", slug: "hbm2pxfg" },
-  { n: 19, day: "Wed Oct 21", time: "12:30 PM", slug: "widxhy78" },
-  { n: 20, day: "Fri Oct 23", time: "5:30 PM", slug: "s012hqvf" },
-  { n: 21, day: "Tue Nov 3", time: "5:30 PM", slug: "c5o9r8zg" },
-  { n: 22, day: "Wed Nov 4", time: "12:30 PM", slug: "b7bf0c6h" },
-];
 
 // Luma links pending for these; counted so the admin can see what's unbooked.
 const ONBOARDING_SLOTS = 7;

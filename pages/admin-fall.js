@@ -153,6 +153,11 @@ export default function AdminFall() {
   const [peopleLoading, setPeopleLoading] = useState(false);
   const [sessions, setSessions] = useState(null);
   const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [speakers, setSpeakers] = useState(null);
+  const [speakersLoading, setSpeakersLoading] = useState(false);
+  const [speakerFilter, setSpeakerFilter] = useState("undecided");
+  const [slotPick, setSlotPick] = useState({}); // applicant id -> session slot chosen in the dropdown
+  const [slotFocus, setSlotFocus] = useState(null); // session number the list is filtered to
   const [selectedMentee, setSelectedMentee] = useState(null);
   const [matchBusy, setMatchBusy] = useState(false);
   const [actionErr, setActionErr] = useState(null);
@@ -230,6 +235,18 @@ export default function AdminFall() {
       .finally(() => setSessionsLoading(false));
   }, [authed, tab, sessions, sessionsLoading]);
 
+  // Speaker applications load lazily when the Speakers tab opens
+  useEffect(() => {
+    // Today needs the counts too, for the "waiting on a yes or no" nudge.
+    if (!authed || !["speakers", "today"].includes(tab) || speakers || speakersLoading) return;
+    setSpeakersLoading(true);
+    fetch("/api/admin/speaker-applications")
+      .then(r => r.json())
+      .then(d => setSpeakers(d))
+      .catch(() => setSpeakers({ speakers: [], slots: [], error: "load failed" }))
+      .finally(() => setSpeakersLoading(false));
+  }, [authed, tab, speakers, speakersLoading]);
+
   // Refresh after a save; the save already succeeded, so a failed refresh is
   // only a stale view — keep the old data rather than surfacing a scary error.
   const refreshPeople = async () => {
@@ -261,6 +278,42 @@ export default function AdminFall() {
       return;
     }
     await refreshPeople();
+    setMatchBusy(false);
+  };
+
+  const refreshSpeakers = async () => {
+    try {
+      const d = await fetch("/api/admin/speaker-applications?fresh=1").then(r => r.json());
+      if (d && !d.error) setSpeakers(d);
+    } catch (_) {}
+  };
+
+  // Approving a speaker books them into a specific 30-minute slot, so the
+  // session number travels with the decision. Same failure contract as
+  // doDecide: if the write didn't land, say so loudly instead of showing a
+  // decision that isn't saved.
+  const doSpeakerDecide = async (applicant, decision, session) => {
+    setMatchBusy(true);
+    setActionErr(null);
+    const who = applicant.name || applicant.email || "speaker";
+    try {
+      const r = await fetch("/api/admin/speaker-decide", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          applicant: { id: applicant.id, name: applicant.name, email: applicant.email },
+          decision,
+          session: decision === "approved" ? session : null,
+        }),
+      });
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok || body.error) throw new Error(body.error || `HTTP ${r.status}`);
+    } catch (e) {
+      setActionErr(`"${decision}" for ${who} was NOT saved (${e.message}). Nothing was recorded.`);
+      setMatchBusy(false);
+      return;
+    }
+    await refreshSpeakers();
     setMatchBusy(false);
   };
 
@@ -411,7 +464,9 @@ export default function AdminFall() {
               ["matching", `Matching${people ? ` (${people.mentees.filter(a => a.decision === "approved" && !a.inRoster && !a.matchedMentorId).length} waiting)` : ""}`],
               ["matched", `Matched${people ? ` (${people.matchedCount})` : ""}`],
               ["signals", "Signals"],
-              ["deadlines", "\u23F1 Deadlines"], ["reporting", "\ud83d\udcca Reporting"], ["sessions", "Sessions"], ["pulse", "Pulse & Wins"]].map(([id, label]) => (
+              ["deadlines", "\u23F1 Deadlines"], ["reporting", "\ud83d\udcca Reporting"], ["sessions", "Sessions"],
+              ["speakers", `\ud83c\udfa4 Speakers${speakers?.counts ? ` (${speakers.counts.undecided})` : ""}`],
+              ["pulse", "Pulse & Wins"]].map(([id, label]) => (
               <button key={id} onClick={() => setTab(id)} style={{
                 border: "none", background: "none", padding: "12px 16px 10px",
                 borderBottom: tab === id ? "3px solid #5c4eb5" : "3px solid transparent",
@@ -1034,6 +1089,282 @@ export default function AdminFall() {
             </div>
           )}
 
+          {tab === "speakers" && (() => {
+            const list = speakers?.speakers || [];
+            const slots = speakers?.slots || [];
+            const openSlots = slots.filter(sl => !sl.speaker);
+            const taken = new Set(slots.filter(sl => sl.speaker).map(sl => sl.n));
+            const shown = list.filter(sp => {
+              if (slotFocus && !sp.requestedSessions.includes(slotFocus)) return false;
+              if (speakerFilter === "undecided") return !sp.decision;
+              if (speakerFilter === "approved") return sp.decision === "approved";
+              if (speakerFilter === "rejected") return sp.decision === "rejected";
+              return true;
+            });
+            // Default dropdown choice: their highest-ranked slot that is still
+            // open, falling back to anything else they said they could make, so
+            // the common case is one click and it honours their order.
+            const defaultSlot = (sp) => sp.assignedSession
+              || (sp.rankedSessions || []).find(n => !taken.has(n))
+              || sp.requestedSessions.find(n => !taken.has(n))
+              || openSlots[0]?.n || "";
+            const fmt = (sp) => (sp.format || "").split(".")[0];
+            return (
+              <>
+                <div style={card}>
+                  <p style={kicker}>Speaker Applications · live from the Speak at Uplift Typeform</p>
+                  {speakersLoading && <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>Loading applications…</p>}
+                  {speakers?.error && <p style={{ margin: 0, fontSize: 13, color: "#c0392b" }}>{speakers.error}</p>}
+                  {speakers?.sheetReadError && (
+                    <p style={{ margin: "0 0 12px", fontSize: 13, color: "#b9770e", fontWeight: 600 }}>
+                      ⚠️ Google Sheets didn&apos;t answer just now, so bookings below may temporarily show as Undecided. Every decision already made IS saved. Refresh in a minute rather than re-deciding anyone.
+                    </p>
+                  )}
+                  {speakers?.counts && (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 14 }}>
+                      {[
+                        ["Applications", speakers.counts.total, "#5c4eb5"],
+                        ["Waiting on you", speakers.counts.undecided, speakers.counts.undecided ? "#c0392b" : "#1a6e42"],
+                        ["Slots booked", `${speakers.counts.slotsFilled}/${speakers.counts.slotsTotal}`, "#1a6e42"],
+                        ["Slots still open", speakers.counts.slotsTotal - speakers.counts.slotsFilled, "#b35c00"],
+                      ].map(([label, value, color]) => (
+                        <div key={label} style={{ background: "#fafafa", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
+                          <p style={{ margin: 0, fontSize: 24, fontWeight: 800, color }}>{value}</p>
+                          <p style={{ margin: "2px 0 0", fontSize: 11, fontWeight: 600, color: "#6b6480" }}>{label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {speakers?.formUrl && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", fontSize: 12.5, color: "#6b6480" }}>
+                      <span style={{ fontWeight: 700, color: "#3d2f8a" }}>Application link:</span>
+                      <a href={speakers.formUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#5c4eb5", fontWeight: 600 }}>{speakers.formUrl}</a>
+                      <button onClick={() => navigator.clipboard?.writeText(speakers.formUrl)} style={{ border: "1px solid #e8e4f5", borderRadius: 6, padding: "3px 9px", background: "#fff", color: "#5c4eb5", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>copy</button>
+                      <span style={{ color: "#9b8fcf" }}>Share this with anyone who wants to speak. Approving here books the slot; the Luma event title and the invite are still yours to send.</span>
+                    </div>
+                  )}
+                </div>
+
+                {slots.length > 0 && (
+                  <div style={card}>
+                    <p style={kicker}>Slot board · 22 sessions</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(215px, 1fr))", gap: 8 }}>
+                      {slots.map(sl => {
+                        const active = slotFocus === sl.n;
+                        return (
+                          <button key={sl.n} onClick={() => setSlotFocus(active ? null : sl.n)} style={{
+                            textAlign: "left", cursor: "pointer", fontFamily: "inherit",
+                            border: active ? "2px solid #5c4eb5" : "1px solid #e8e4f5",
+                            borderRadius: 10, padding: "9px 11px",
+                            background: sl.speaker ? "#f4fbf7" : "#fff",
+                          }}>
+                            <span style={{ fontSize: 11, fontWeight: 800, color: "#9b8fcf" }}>SESSION {sl.n}</span>
+                            <div style={{ fontSize: 12.5, fontWeight: 700, color: "#3d2f8a" }}>{sl.day} · {sl.time}</div>
+                            {sl.speaker ? (
+                              <div style={{ fontSize: 11.5, color: "#1a6e42", fontWeight: 700, marginTop: 2 }}>
+                                ✓ {sl.speaker.name}
+                                <div style={{ fontWeight: 500, color: "#6b6480" }}>{sl.speaker.topicTitle || sl.speaker.company || ""}</div>
+                              </div>
+                            ) : (
+                              <div style={{ fontSize: 11.5, color: sl.interestedCount ? "#b35c00" : "#c8bfef", fontWeight: 700, marginTop: 2 }}>
+                                {sl.interestedCount ? `open · ${sl.interestedCount} interested` : "open · nobody yet"}
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {slotFocus && (
+                      <p style={{ margin: "10px 0 0", fontSize: 12, color: "#5c4eb5", fontWeight: 600 }}>
+                        Showing applicants available for Session {slotFocus}.{" "}
+                        <button onClick={() => setSlotFocus(null)} style={{ border: "none", background: "none", color: "#9b8fcf", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>show everyone</button>
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div style={card}>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+                    {[["undecided", "Undecided"], ["approved", "Booked"], ["rejected", "Declined"], ["all", "All"]].map(([id, label]) => (
+                      <button key={id} onClick={() => setSpeakerFilter(id)} style={{
+                        border: "1px solid #e8e4f5", borderRadius: 20, padding: "4px 12px",
+                        background: speakerFilter === id ? "#5c4eb5" : "#fff",
+                        color: speakerFilter === id ? "#fff" : "#6b6480",
+                        fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                      }}>{label}</button>
+                    ))}
+                  </div>
+
+                  {shown.length === 0 && !speakersLoading && (
+                    <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>
+                      Nothing here yet. Applications appear within a minute of someone submitting the form.
+                    </p>
+                  )}
+
+                  {shown.map(sp => {
+                    const pick = slotPick[sp.id] ?? defaultSlot(sp);
+                    const notRequested = pick && !sp.requestedSessions.includes(Number(pick));
+                    return (
+                      <div key={sp.id} style={{ border: "1px solid #e8e4f5", borderRadius: 12, padding: "16px 18px", marginBottom: 12, background: sp.decision === "rejected" ? "#fcfbff" : "#fff" }}>
+                        <div style={{ display: "flex", gap: 14, alignItems: "flex-start", flexWrap: "wrap" }}>
+                          {sp.headshotUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={`/api/admin/tf-file?u=${encodeURIComponent(sp.headshotUrl)}`} alt="" style={{ width: 64, height: 64, borderRadius: 12, objectFit: "cover", background: "#f0eef8", flexShrink: 0 }} />
+                          ) : (
+                            <span style={{ width: 64, height: 64, borderRadius: 12, background: "#f0eef8", color: "#9b8fcf", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, flexShrink: 0 }}>{(sp.first || "?")[0]}{(sp.last || "")[0] || ""}</span>
+                          )}
+                          <div style={{ flex: "1 1 320px", minWidth: 260 }}>
+                            <p style={{ margin: 0, fontSize: 16.5, fontWeight: 800, color: "#1a1733" }}>
+                              {sp.name || "(no name)"}
+                              {isNew(sp.submittedAt) && <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 800, background: "#f5f3ff", color: "#5c4eb5", borderRadius: 4, padding: "1px 6px", verticalAlign: "middle" }}>NEW</span>}
+                              {sp.decision === "approved" && <span style={{ marginLeft: 8, fontSize: 10.5, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "2px 7px", verticalAlign: "middle" }}>BOOKED · SESSION {sp.assignedSession}</span>}
+                              {sp.decision === "rejected" && <span style={{ marginLeft: 8, fontSize: 10.5, fontWeight: 800, background: "#fef0f0", color: "#c0392b", borderRadius: 4, padding: "2px 7px", verticalAlign: "middle" }}>DECLINED</span>}
+                            </p>
+                            <p style={{ margin: "3px 0 0", fontSize: 13, color: "#6b6480" }}>
+                              {[sp.role, sp.company].filter(Boolean).join(" · ") || "—"}
+                            </p>
+                            <p style={{ margin: "3px 0 0", fontSize: 12, color: "#9b8fcf" }}>
+                              {sp.email}
+                              {sp.linkedin && <> · <a href={sp.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: "#5c4eb5", fontWeight: 600 }}>LinkedIn</a></>}
+                              {sp.submittedAt && <> · applied {sp.submittedAt.slice(0, 10)}</>}
+                            </p>
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 7 }}>
+                              {sp.format && <span style={{ fontSize: 11, fontWeight: 700, background: "#f0eef8", color: "#5c4eb5", borderRadius: 4, padding: "2px 8px" }}>{fmt(sp)}</span>}
+                              {sp.spokenBefore && <span style={{ fontSize: 11, fontWeight: 700, background: "#fafafa", color: "#6b6480", borderRadius: 4, padding: "2px 8px" }}>{sp.spokenBefore}</span>}
+                              {sp.anyDate && <span style={{ fontSize: 11, fontWeight: 700, background: "#eafaf7", color: "#0e7c6b", borderRadius: 4, padding: "2px 8px" }}>flexible on dates</span>}
+                              {/^yes/i.test(sp.series || "") && <span style={{ fontSize: 11, fontWeight: 700, background: "#fff8e6", color: "#8a6300", borderRadius: 4, padding: "2px 8px" }}>★ open to a series</span>}
+                              {/^maybe/i.test(sp.series || "") && <span style={{ fontSize: 11, fontWeight: 700, background: "#fafafa", color: "#6b6480", borderRadius: 4, padding: "2px 8px" }}>series: wants to talk</span>}
+                              {!sp.consent && <span style={{ fontSize: 11, fontWeight: 800, background: "#fef0f0", color: "#c0392b", borderRadius: 4, padding: "2px 8px" }}>⚠ no recording consent</span>}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "12px 22px" }}>
+                          {[
+                            ["Session title", sp.topicTitle],
+                            ["What they would cover", sp.topicSummary],
+                            ["Three takeaways", sp.takeaways],
+                            ["Why it matters now", sp.whyNow],
+                            ["Bio", sp.bio],
+                            ["Follow-up session ideas", sp.seriesIdeas],
+                            ["Resources they would share", sp.resources],
+                            ["Anything else", sp.anythingElse],
+                          ].filter(([, v]) => v).map(([label, value]) => (
+                            <div key={label}>
+                              <p style={{ margin: 0, fontSize: 10.5, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9b8fcf" }}>{label}</p>
+                              <p style={{ margin: "3px 0 0", fontSize: 13, lineHeight: 1.5, color: "#3a3453", whiteSpace: "pre-wrap" }}>{value}</p>
+                            </div>
+                          ))}
+                        </div>
+
+                        {(sp.deckLink || sp.deckFileUrl) && (
+                          <p style={{ margin: "12px 0 0", fontSize: 12.5 }}>
+                            {sp.deckLink && <a href={sp.deckLink} target="_blank" rel="noopener noreferrer" style={{ color: "#5c4eb5", fontWeight: 700, marginRight: 12 }}>Their link →</a>}
+                            {sp.deckFileUrl && <a href={`/api/admin/tf-file?u=${encodeURIComponent(sp.deckFileUrl)}`} target="_blank" rel="noopener noreferrer" style={{ color: "#5c4eb5", fontWeight: 700 }}>Attached deck →</a>}
+                          </p>
+                        )}
+
+                        {(sp.rankedSessions?.length > 0 || sp.audience?.length > 0) && (
+                          <div style={{ marginTop: 12, display: "flex", gap: 22, flexWrap: "wrap" }}>
+                            {sp.rankedSessions?.length > 0 && (
+                              <div>
+                                <p style={{ margin: 0, fontSize: 10.5, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9b8fcf" }}>Ranked choices</p>
+                                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 5 }}>
+                                  {sp.rankedSessions.map((n, i) => {
+                                    const sl = slots.find(x => x.n === n);
+                                    const isTaken = taken.has(n) && sp.assignedSession !== n;
+                                    return (
+                                      <span key={n} style={{
+                                        fontSize: 11.5, fontWeight: 700, borderRadius: 5, padding: "3px 8px",
+                                        border: "1px solid #e8e4f5",
+                                        background: sp.assignedSession === n ? "#e8f8f0" : isTaken ? "#f4f2fa" : "#f5f3ff",
+                                        color: sp.assignedSession === n ? "#1a6e42" : isTaken ? "#b3aacd" : "#3d2f8a",
+                                        textDecoration: isTaken ? "line-through" : "none",
+                                      }}>
+                                        <b>{i + 1}.</b> #{n} {sl ? sl.day : ""}{isTaken ? " (taken)" : ""}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                            {sp.audience?.length > 0 && (
+                              <div>
+                                <p style={{ margin: 0, fontSize: 10.5, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9b8fcf" }}>Aimed at</p>
+                                <p style={{ margin: "5px 0 0", fontSize: 12.5, color: "#3a3453", maxWidth: 420 }}>{sp.audience.join(" · ")}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div style={{ marginTop: 12 }}>
+                          <p style={{ margin: 0, fontSize: 10.5, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9b8fcf" }}>
+                            Every date they can do {sp.anyDate ? "(any)" : `(${sp.pickedSpecificDates.length})`}
+                          </p>
+                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 5 }}>
+                            {(sp.anyDate ? [] : sp.pickedSpecificDates).map(n => {
+                              const sl = slots.find(x => x.n === n);
+                              const isTaken = taken.has(n) && sp.assignedSession !== n;
+                              return (
+                                <span key={n} style={{
+                                  fontSize: 11.5, fontWeight: 700, borderRadius: 5, padding: "3px 8px",
+                                  background: sp.assignedSession === n ? "#e8f8f0" : isTaken ? "#f4f2fa" : "#fff",
+                                  color: sp.assignedSession === n ? "#1a6e42" : isTaken ? "#b3aacd" : "#5c4eb5",
+                                  border: "1px solid #e8e4f5",
+                                  textDecoration: isTaken ? "line-through" : "none",
+                                }}>
+                                  #{n} {sl ? `${sl.day}` : ""}{isTaken ? " (taken)" : ""}
+                                </span>
+                              );
+                            })}
+                            {sp.anyDate && <span style={{ fontSize: 12, color: "#0e7c6b", fontWeight: 700 }}>Said any open slot works</span>}
+                          </div>
+                        </div>
+
+                        <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid #f0edf9", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                          {!sp.decision ? (
+                            <>
+                              <select value={pick} onChange={e => setSlotPick({ ...slotPick, [sp.id]: e.target.value })} style={{ border: "1px solid #e8e4f5", borderRadius: 8, padding: "6px 10px", fontSize: 12.5, fontFamily: "inherit", color: "#3d2f8a", fontWeight: 600, background: "#fff" }}>
+                                <option value="">Pick a slot…</option>
+                                {openSlots.map(sl => (
+                                  <option key={sl.n} value={sl.n}>
+                                    {sp.requestedSessions.includes(sl.n) ? "★ " : ""}Session {sl.n} · {sl.day} · {sl.time}
+                                  </option>
+                                ))}
+                              </select>
+                              <button disabled={matchBusy || !pick} onClick={() => doSpeakerDecide(sp, "approved", Number(pick))} style={{ border: "none", borderRadius: 8, padding: "7px 14px", background: pick ? "#1a6e42" : "#cfd8d2", color: "#fff", fontSize: 12.5, fontWeight: 700, cursor: pick ? "pointer" : "not-allowed", fontFamily: "inherit" }}>
+                                ✓ Approve &amp; book
+                              </button>
+                              <button disabled={matchBusy} onClick={() => doSpeakerDecide(sp, "rejected")} style={{ border: "none", borderRadius: 8, padding: "7px 14px", background: "#fef0f0", color: "#c0392b", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                                ✗ Decline
+                              </button>
+                              {notRequested && <span style={{ fontSize: 11.5, color: "#b35c00", fontWeight: 700 }}>Heads up: they didn&apos;t pick that date, so confirm it with them.</span>}
+                              {openSlots.length === 0 && <span style={{ fontSize: 11.5, color: "#c0392b", fontWeight: 700 }}>All 22 slots are booked.</span>}
+                            </>
+                          ) : (
+                            <>
+                              <a href={`mailto:${sp.email}?subject=${encodeURIComponent(sp.decision === "approved" ? `You're speaking at Uplift, Session ${sp.assignedSession}` : "Your Uplift speaker application")}`} style={{ border: "1px solid #e8e4f5", borderRadius: 8, padding: "6px 12px", background: "#fff", color: "#5c4eb5", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>
+                                ✉ Email {sp.first || "them"}
+                              </a>
+                              {sp.decision === "approved" && slots.find(sl => sl.n === sp.assignedSession) && (
+                                <a href={slots.find(sl => sl.n === sp.assignedSession).url} target="_blank" rel="noopener noreferrer" style={{ border: "1px solid #e8e4f5", borderRadius: 8, padding: "6px 12px", background: "#fff", color: "#5c4eb5", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>
+                                  Luma event →
+                                </a>
+                              )}
+                              <button disabled={matchBusy} onClick={() => doSpeakerDecide(sp, "clear")} style={{ border: "1px solid #e8e4f5", borderRadius: 8, padding: "6px 12px", background: "#fff", color: "#9b8fcf", fontSize: 11.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>undo</button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <p style={{ margin: "6px 0 0", fontSize: 11.5, color: "#9b8fcf", fontStyle: "italic" }}>
+                    Decisions save to the FallSpeakers sheet tab. Approving books that speaker into the slot and takes it off the board for everyone else.
+                  </p>
+                </div>
+              </>
+            );
+          })()}
+
           {tab === "today" && (() => {
             const todo = [];
             const fs = data?.founders || [];
@@ -1064,7 +1395,10 @@ export default function AdminFall() {
             }
             if (sessions?.sessions) {
               const noInfo = sessions.sessions.filter(needsSessionInfo).length;
-              if (noInfo > 0) todo.push({ icon: "🎙", level: "warn", text: `${noInfo} of ${sessions.sessions.length} educational sessions need a speaker, title, and description`, sub: "Luma events exist but are unnamed shells", go: "sessions" });
+              if (noInfo > 0) todo.push({ icon: "🎙", level: "warn", text: `${noInfo} of ${sessions.sessions.length} educational sessions need a speaker, title, and description`, sub: "Book them from the Speakers tab, then name the Luma events", go: "speakers" });
+            }
+            if (speakers?.counts?.undecided > 0) {
+              todo.push({ icon: "🎤", level: "warn", text: `${speakers.counts.undecided} speaker application${speakers.counts.undecided === 1 ? "" : "s"} waiting on a yes or no`, sub: `${speakers.counts.slotsFilled}/${speakers.counts.slotsTotal} session slots booked · applicants were promised an answer within one business day`, go: "speakers" });
             }
             if (sessions?.totals) {
               const missing = sessions.totals.eduTotal - sessions.totals.eduBooked;
