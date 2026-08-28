@@ -49,11 +49,11 @@ function parseSpeaker(refs, item) {
   const get = makeGetter(refs, item);
   const first = get("first_name") || "";
   const last = get("last_name") || "";
-  // Up to five dates in the applicant's own order of preference, plus whether
+  // Up to three dates in the applicant's own order of preference, plus whether
   // they would take a slot outside that list. Typeform cannot enforce that the
   // five dropdowns hold five different dates, so duplicates are collapsed here
-  // rather than showing a fake five-deep ranking.
-  const ranked = ["date_1", "date_2", "date_3", "date_4", "date_5"]
+  // rather than showing a fake three-deep ranking.
+  const ranked = ["date_1", "date_2", "date_3"]
     .map(ref => sessionNumberFromLabel(get(ref)))
     .filter((n, i, arr) => n !== null && arr.indexOf(n) === i);
   const anyDate = /^yes/i.test(get("flexible") || "");

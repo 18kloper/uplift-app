@@ -99,12 +99,12 @@ const form = {
       text("first_name", "First name", null),
       text("last_name", "Last name", null),
       { ref: "email", title: "Email", type: "email", properties: { description: "Where your confirmation and run of show go." }, validations: req },
-      text("company", "Company or organization", null),
-      text("role", "Your title or role", null),
-      { ref: "linkedin", title: "LinkedIn profile", type: "website", properties: { description: "Optional. We tag you when we promote the session." }, validations: { required: false } },
-      long("bio", "Short speaker bio", "Third person, 75 to 100 words. We use it word for word to introduce you."),
+      text("company", "Company or organization", "Exactly as you want it listed on the event page."),
+      text("role", "Your title or role", "Exactly as you want it read out when we introduce you."),
+      { ref: "linkedin", title: "LinkedIn profile", type: "website", properties: { description: "Optional. This is the account we tag when we promote the session and post the clips." }, validations: { required: false } },
+      long("bio", "Short speaker bio", "Write it exactly as you want it published, because we use it word for word. Third person, 75 to 100 words. It goes on the event page, into the promo posts, and gets read aloud when we introduce you."),
     ]),
-    { ref: "headshot", title: "2 of 7 · Your headshot", type: "file_upload", properties: { description: "Runs on the event page, the stream, and the clips. Square or head-and-shoulders works best." }, validations: req },
+    { ref: "headshot", title: "2 of 7 · Your headshot", type: "file_upload", properties: { description: "Send the one you want the world to see, because this runs exactly as you upload it: on the event page, in the promo posts, on the stream, and on every clip. Square or head-and-shoulders is best. Please not a group photo or a screenshot." }, validations: req },
     page("session", "3 of 7 · Your session", "Nothing here needs to be finished work. We shape the final version together on a call once you are booked.", [
       choice("format", "Which format are you proposing?", "Pick one, or propose your own and tell us how it works.", [
         { label: "Presentation. I teach with slides, then take questions." },
@@ -112,8 +112,8 @@ const form = {
         { label: "Working session. Founders bring their own work and I coach live." },
       ], { other: true }),
       text("topic_title", "Proposed session title", "A working title is all we need. We may tighten it for promotion and will always run any change past you. Repeats of past subjects are welcome, the founders are entirely different this program."),
-      long("topic_summary", "What would you cover?", "A paragraph is plenty. No deck required."),
-      long("takeaways", "Three things founders will walk away with", "Three lines. Concrete beats inspirational."),
+      long("topic_summary", "What would you cover?", "A paragraph is plenty and no deck is required. This is what we draw the event description from, so write it for a founder deciding whether to show up."),
+      long("takeaways", "Three things founders will walk away with", "Three lines. Concrete beats inspirational, and we often quote these in the promo copy, so write them the way you would want them read."),
       long("why_now", "Why does this matter to them right now?"),
       choice("audience", "Who are you aiming it at?", "Every session stays open to the whole cohort. This only tells us who to point the invitation at.", [
         { label: "Any founder in the cohort" },
@@ -129,13 +129,11 @@ const form = {
       long("resources", "Resources or tools you would hand them", "Templates, playbooks, frameworks, tools you swear by, reading, your own offers or discounts. We collect these in the cohort resource library with your name on them.", false),
       { ref: "deck_link", title: "Link to a deck, a past talk, or a file", type: "website", properties: { description: "Optional. A Drive or Dropbox link is fine, and a recording of you speaking helps us a lot." }, validations: { required: false } },
     ]),
-    page("dates_section", "5 of 7 · Your dates, ranked", "Pick up to five different dates and put them in order, no repeats. All sessions are 30 minutes, at 12:30 PM or 5:30 PM Eastern. Everything is virtual, so you can join from any state. Just check the time lands for you. See what is currently open at uplift2026.vercel.app/share-your-expertise", [
-      drop("date_1", "1. First choice", "We work down your list in order, so if this one is open, it is the one you get. Use a different date on each line below.", true),
-      drop("date_2", "2. Second choice", null, false),
-      drop("date_3", "3. Third choice", null, false),
-      drop("date_4", "4. Fourth choice", null, false),
-      drop("date_5", "5. Fifth choice", null, false),
-      choice("flexible", "If none of those five work out, are you open to other dates?", null, [
+    page("dates_section", "5 of 7 · Your dates, ranked", "Pick up to three different dates and put them in order, no repeats. All sessions are 30 minutes, at 12:30 PM or 5:30 PM Eastern. Everything is virtual, so you can join from any state. Just check the time lands for you. See what is currently open at uplift2026.vercel.app/share-your-expertise", [
+      drop("date_1", "1. First choice", "We work down your list in order, so if this one is open, it is the one you get. Use a different date on each line.", true),
+      drop("date_2", "2. Second choice", "Optional, and it speeds things up when two speakers want the same day.", false),
+      drop("date_3", "3. Third choice", "Optional.", false),
+      choice("flexible", "If none of those work out, are you open to other dates?", null, [
         { label: "Yes, any open slot works for me" },
         { label: "No, only the ones I listed" },
       ], { required: false }),
