@@ -89,7 +89,7 @@ const form = {
       show_button: true,
       button_text: "Share your expertise",
       description:
-        "22 speaking slots this fall, September 11 to November 4. Each one is a 30 minute virtual session streamed directly to the founders in our program, then shared on LinkedIn, posted to YouTube, and clipped for you to post on your own channels.\n\nThe full brief, including what our last program ran and what happens after you apply: uplift2026.vercel.app/expert\n\nYou can be based anywhere, since every session is virtual. The only requirement is that the time slot works for you.\n\nAbout seven minutes. Have a headshot handy. We reply within one business day.",
+        "22 speaking slots this fall, September 11 to November 4. Each one is a 30 minute virtual session streamed directly to the founders in our program, then shared on LinkedIn, posted to YouTube, and clipped for you to post on your own channels.\n\nThe full brief, including what our last program ran and what happens after you apply: uplift2026.vercel.app/share-your-expertise\n\nYou can be based anywhere, since every session is virtual. The only requirement is that the time slot works for you.\n\nAbout seven minutes. Have a headshot handy. We reply within one business day.",
     },
   }],
   thankyou_screens: [{
@@ -140,7 +140,7 @@ const form = {
       { ref: "deck_link", title: "Link to a deck, or to you speaking somewhere", type: "website", properties: { description: "A recording of you helps us a lot." }, validations: { required: false } },
       { ref: "deck_file", title: "Or attach a deck", type: "file_upload", properties: { description: "A rough draft is fine." }, validations: { required: false } },
     ]),
-    group("dates_section", "5 of 7 · Your dates, in order of preference", "All sessions are 30 minutes, at 12:30 PM or 5:30 PM Eastern. Everything is virtual, so you can join from any state. Just check the time lands for you. See what is currently open at uplift2026.vercel.app/expert", [
+    group("dates_section", "5 of 7 · Your dates, in order of preference", "All sessions are 30 minutes, at 12:30 PM or 5:30 PM Eastern. Everything is virtual, so you can join from any state. Just check the time lands for you. See what is currently open at uplift2026.vercel.app/share-your-expertise", [
       choice("dates", "Which dates could you make?", "Check every slot that works.", dateChoices, { multi: true }),
       drop("date_1", "First choice", "We work down your ranking, so if this one is open, it is the one you get.", true),
       drop("date_2", "Second choice", null, false),

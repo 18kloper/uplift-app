@@ -3,9 +3,10 @@ const nextConfig = {
   async rewrites() {
     return [
       { source: "/uplift-legacy", destination: "/founder-cards.html" },
-      // Speaker-facing invitation. /expert is the link that goes out ("Uplift
-      // Expert Sessions", matching what past sessions were called); /speak is
-      // kept as an alias so links already shared keep working.
+      // Speaker-facing invitation. /share-your-expertise is the link that goes
+      // out; /expert and /speak stay as aliases so anything already shared
+      // keeps working.
+      { source: "/share-your-expertise", destination: "/uplift-speak.html" },
       { source: "/expert", destination: "/uplift-speak.html" },
       { source: "/speak", destination: "/uplift-speak.html" },
     ];
