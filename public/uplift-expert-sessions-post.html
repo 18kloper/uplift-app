@@ -89,29 +89,44 @@
 
   h1 {
     font-family: 'Archivo', sans-serif; font-weight: 800;
-    font-size: 55px; line-height: 1.02; letter-spacing: -0.02em;
+    font-size: 50px; line-height: 1.03; letter-spacing: -0.02em;
     font-variation-settings: 'wdth' 110;
-    margin-top: 30px; text-wrap: balance;
+    margin-top: 26px; text-wrap: balance;
   }
   h1 em { font-style: normal; color: var(--pink-bright); }
 
-  .facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 34px; }
-  .fact {
-    background: rgba(255,255,255,0.065);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 14px; padding: 16px 20px;
-    display: flex; flex-direction: column; gap: 5px;
+  .meta {
+    margin-top: 22px; font-size: 21px; line-height: 1.45; color: #cfc8f2;
   }
-  .fact .k {
-    font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700;
-    letter-spacing: 0.14em; text-transform: uppercase; color: var(--pink-bright);
-  }
-  .fact .v { font-size: 23px; font-weight: 600; color: #fff; line-height: 1.24; }
+  .meta b { color: #fff; font-weight: 600; }
 
-  .gets { margin-top: 32px; display: flex; flex-direction: column; gap: 12px; }
-  .get { display: flex; gap: 14px; align-items: baseline; font-size: 23px; line-height: 1.3; color: #e6e2fa; }
-  .get b { color: #fff; font-weight: 600; }
-  .get .tick { color: var(--pink-bright); font-weight: 800; flex: none; }
+  .block { margin-top: 26px; }
+  .blabel {
+    font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--pink-bright);
+    margin-bottom: 12px;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 9px; }
+  .chip {
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 999px; padding: 10px 18px; font-size: 20px; font-weight: 500; color: #fff;
+  }
+  .chip.open { border-color: rgba(240,125,170,0.75); color: #ffd7e7; }
+
+  .past { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 22px; }
+  .prow {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.13); padding-bottom: 7px;
+  }
+  .prow .pt { font-size: 19px; font-weight: 600; color: #fff; line-height: 1.2; }
+  .prow .pw { font-size: 16px; color: #b9b0ec; white-space: nowrap; }
+
+  .need { display: flex; flex-wrap: wrap; gap: 10px 14px; font-size: 20px; color: #e6e2fa; }
+  .need span { display: flex; align-items: baseline; gap: 8px; }
+  .need .n {
+    font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700;
+    color: var(--pink-bright);
+  }
 
   .spacer { flex: 1; }
 
@@ -168,17 +183,41 @@
 
   <h1>A closed room of founders,<br>pre-idea through seed.<br><em>22 seats, by application.</em></h1>
 
-  <div class="facts">
-    <div class="fact"><span class="k">The room</span><span class="v">~70 NJ founders, pre-idea to seed raising</span></div>
-    <div class="fact"><span class="k">The access</span><span class="v">Cohort only. Not a public webinar.</span></div>
-    <div class="fact"><span class="k">The format</span><span class="v">30 minutes, virtual, talk or fireside</span></div>
-    <div class="fact"><span class="k">The topic</span><span class="v">Yours. Usable on Monday.</span></div>
+  <p class="meta"><b>~70 New Jersey founders</b> in the program, roughly 30 live in the room.
+    30 minutes, virtual, as a talk or a fireside. <b>Cohort only, not a public webinar.</b></p>
+
+  <div class="block">
+    <p class="blabel">Talk about</p>
+    <div class="chips">
+      <span class="chip">Automating with AI</span>
+      <span class="chip">Defining your ICP</span>
+      <span class="chip">Pitching yourself</span>
+      <span class="chip">Public speaking</span>
+      <span class="chip">Mistakes you made</span>
+      <span class="chip">How you built it</span>
+      <span class="chip open">Your own subject</span>
+    </div>
   </div>
 
-  <div class="gets">
-    <div class="get"><span class="tick">→</span><span>Streamed <b>directly to the founders</b>, then shared on LinkedIn and posted to YouTube</span></div>
-    <div class="get"><span class="tick">→</span><span>We <b>clip it and send you the clips</b> to post on your own channels</span></div>
-    <div class="get"><span class="tick">→</span><span>Speak from <b>anywhere</b>, free, no pitch expected, up to three sessions</span></div>
+  <div class="block">
+    <p class="blabel">What our last program ran</p>
+    <div class="past">
+      <div class="prow"><span class="pt">How to Pitch an Angel</span><span class="pw">Joanne Wilson</span></div>
+      <div class="prow"><span class="pt">Beyond the Logo</span><span class="pw">Debra Rizzi</span></div>
+      <div class="prow"><span class="pt">Service as Strategy</span><span class="pw">Christina Perla</span></div>
+      <div class="prow"><span class="pt">Inside Angel Investing</span><span class="pw">Gina Tedesco</span></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <p class="blabel">What we need from you</p>
+    <div class="need">
+      <span><span class="n">01</span> Headshot</span>
+      <span><span class="n">02</span> Short bio</span>
+      <span><span class="n">03</span> Your topic</span>
+      <span><span class="n">04</span> Three takeaways founders leave with</span>
+      <span><span class="n">05</span> Three dates, ranked</span>
+    </div>
   </div>
 
   <div class="spacer"></div>
