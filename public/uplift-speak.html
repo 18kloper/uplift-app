@@ -229,6 +229,39 @@
     h1 { font-variation-settings: 'wdth' 104; }
     header.hero { padding-top: 44px; }
   }
+  .print-only { display: none; }
+  .urlbox-print {
+    margin-top: 22px; border: 3px solid var(--navy); border-radius: 14px;
+    padding: 22px 26px; background: var(--surface);
+  }
+  .print-label {
+    font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.68rem; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--pink); margin-bottom: 10px;
+  }
+  .print-url {
+    font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 1.35rem; font-weight: 700;
+    color: var(--navy); word-break: break-all; line-height: 1.25;
+  }
+  .print-note { font-size: 0.92rem; color: var(--muted); margin-top: 10px; }
+
+  /* ── Print / PDF, one page ─────────────────────────────── */
+  /* The screen page is untouched. A LinkedIn document is not clickable, so the
+     buttons and floating CTA are dropped and the URL prints as plain text. The
+     page height is set tall enough to keep everything on ONE page; re-measure
+     with scripts/expert-page-to-pdf.sh if the content grows. */
+  @media print {
+    @page { size: 1080px 3760px; margin: 0; }
+    html, body { background: #fff; }
+    .wrap { max-width: none; padding: 46px 60px 40px; }
+    .float, .review, .cta, .cta-note { display: none !important; }
+    .print-only { display: block; }
+    header.hero { padding: 0 0 30px; }
+    section { padding: 32px 0 0; margin-top: 32px; break-inside: avoid; }
+    .closer { margin-top: 38px; }
+    a { color: var(--ink); text-decoration: none; }
+    .tile.taken { opacity: 1; }
+  }
+
 </style>
 </head>
 <body>
@@ -257,6 +290,11 @@
       </ol>
       <p class="review-note">The apply button follows you down the page. Click it the moment this
         feels like you.</p>
+    </div>
+    <div class="print-only urlbox-print">
+      <p class="print-label">Apply here</p>
+      <p class="print-url">uplift2026.vercel.app/share-your-expertise</p>
+      <p class="print-note">About seven minutes. Questions: uplift@techunited.co</p>
     </div>
     <div class="facts">
       <span class="fact"><b>~70</b> founders in the program</span>
@@ -402,6 +440,11 @@
     <div class="cta-row">
       <a class="cta" href="https://form.typeform.com/to/uUjnsoDm" data-tf-popup="uUjnsoDm" data-tf-size="100" data-tf-medium="expert-page" data-tf-iframe-props="title=Uplift Expert Session application">Propose a session &nbsp;→</a>
       <span class="cta-note">Questions first? <a href="mailto:uplift@techunited.co">uplift@techunited.co</a></span>
+    </div>
+    <div class="print-only urlbox-print">
+      <p class="print-label">Apply here</p>
+      <p class="print-url">uplift2026.vercel.app/share-your-expertise</p>
+      <p class="print-note">About seven minutes. Questions: uplift@techunited.co</p>
     </div>
   </div>
 
