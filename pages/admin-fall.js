@@ -447,7 +447,7 @@ export default function AdminFall() {
                   Data as of {new Date(data.generatedAt).toLocaleTimeString()} ({freshness}s ago{data.cached ? ", cached" : ""})
                 </span>
               )}
-              <button onClick={() => load(true)} disabled={loading} style={{ border: "none", borderRadius: 8, padding: "8px 16px", background: "#5c4eb5", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: loading ? 0.6 : 1 }}>
+              <button onClick={() => { load(true); if (["speakers", "today"].includes(tab)) refreshSpeakers(); }} disabled={loading} style={{ border: "none", borderRadius: 8, padding: "8px 16px", background: "#5c4eb5", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: loading ? 0.6 : 1 }}>
                 {loading ? "Refreshing…" : "↻ Refresh now"}
               </button>
             </div>
