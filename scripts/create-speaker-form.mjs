@@ -11,6 +11,7 @@
 import fs from "fs";
 import path from "path";
 import { EDU_SESSIONS, sessionLabel, ANY_DATE_CHOICE } from "../lib/edu-sessions.js";
+import { PAST_SESSIONS } from "../lib/past-sessions.js";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 for (const f of [".env.local", ".env"]) {
@@ -65,7 +66,7 @@ const form = {
       show_button: true,
       button_text: "Apply to speak",
       description:
-        "Uplift is TechUnited:NJ's founder mentorship program. Every founder in it gets matched with a mentor, and three times a week the cohort comes together for a 30 minute virtual session. This fall that is around 70 New Jersey founders in the program and 22 speaking slots between September 11 and November 4.\n\nEvery founder is welcome at every session, and attendance runs around 30 live, depending on the topic and what people are working on that week.\n\nThe topic is open. Automating something with AI. Defining your ICP. Tricks for pitching yourself. Public speaking. The mistakes you made building your company. What your business does every day that theirs should be doing too. If a founder can use it on Monday, it belongs here.\n\nWhat you get:\n• 30 minutes with active, screened founders who chose to be in the room, as a presentation or a fireside chat.\n• Streamed live on LinkedIn and posted to YouTube, so the talk outlives the room.\n• We record it, clip it, and hand you the clips to post on your own channels.\n• Your name, headshot, company, and links on the event page, the stream, and every clip.\n• A clean way to send the elevator back down and share what you know.\n\nWhat we need: a headshot, a short bio, your topic, the takeaways founders leave with, who you are aiming it at, your dates in order of preference, and whether you would want to do a short series.\n\nSet aside about seven minutes. We review every application and reply within one business day.",
+        "Uplift is TechUnited:NJ's founder mentorship program. Every founder in it gets matched with a mentor, and three times a week the cohort comes together for a 30 minute virtual session. This fall that is around 70 New Jersey founders in the program and 22 speaking slots between September 11 and November 4.\n\nEvery founder is welcome at every session, and attendance runs around 30 live, depending on the topic and what people are working on that week.\n\nThe topic is wide open. Here is what past cohorts actually got:\n\u2022 How to Pitch an Angel: What Investors Actually Look For, with Joanne Wilson.\n\u2022 Beyond the Logo: Building a Brand Customers Trust and Investors Understand, with Debra Rizzi.\n\u2022 Service as Strategy: How Customer Experience Becomes Your Competitive Edge, with Christina Perla of Makelab.\n\u2022 The Gap Between an Idea and a Customer, with Tom Sauer of Mile Square Labs.\n\nAutomating a workflow with AI, defining your ICP, pitching yourself, public speaking, the mistakes you made building your company, what your business does every day that theirs should be doing too. If a founder can use it on Monday, it belongs here.\n\nWhat you get:\n• 30 minutes with active, screened founders who chose to be in the room, as a presentation or a fireside chat.\n• Streamed live on LinkedIn and posted to YouTube, so the talk outlives the room.\n• We record it, clip it, and hand you the clips to post on your own channels.\n• Your name, headshot, company, and links on the event page, the stream, and every clip.\n• A clean way to send the elevator back down and share what you know.\n\nWhat we need: a headshot, a short bio, your topic, the takeaways founders leave with, who you are aiming it at, your dates in order of preference, and whether you would want to do a short series.\n\nSet aside about seven minutes. We review every application and reply within one business day.",
     },
   }],
   thankyou_screens: [{
@@ -93,7 +94,7 @@ const form = {
       { label: "Working session. Founders bring their own work and I coach live." },
       { label: "Not sure yet. Help me pick." },
     ]),
-    text("topic_title", "Session title", "How it will appear on the Luma event page and in promotion. Plain and specific beats clever. Anything a founder can act on works here: automating a workflow with AI, defining your ICP, pitching yourself, public speaking, the mistakes you made building your company, or what your business does that theirs should be doing."),
+    text("topic_title", "Session title", `How it will appear on the Luma event page and in promotion. Plain and specific beats clever. For the bar, here is what past sessions were called: ${PAST_SESSIONS.slice(0, 3).map(x => `"${x.topic}"`).join(", ")}.`),
     long("topic_summary", "What you would cover", "A paragraph on the substance of the 30 minutes. If you already have a deck, describe it here and attach or link it below."),
     long("takeaways", "Three things founders will walk away with", "Write them as three lines. Concrete and usable beats inspirational."),
     long("why_now", "Why this matters to founders right now", "What makes this the right topic for early stage New Jersey founders in the next few weeks?"),
