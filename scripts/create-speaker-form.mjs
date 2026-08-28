@@ -41,6 +41,16 @@ const drop = (ref, title, description, required) =>
       choices: EDU_SESSIONS.map(s => ({ label: sessionLabel(s) })),
       alphabetical_order: false,
     }, validations: { required } });
+const contact = (ref, title, description) =>
+  ({ ref, title, type: "contact_info", properties: {
+      ...(description ? { description } : {}),
+      fields: [
+        { subfield_key: "first_name", title: "First name", type: "short_text", validations: { required: true } },
+        { subfield_key: "last_name",  title: "Last name",  type: "short_text", validations: { required: true } },
+        { subfield_key: "email",      title: "Email",      type: "email",      validations: { required: true } },
+        { subfield_key: "company",    title: "Company or organization", type: "short_text", validations: { required: true } },
+      ],
+    } });
 const group = (ref, title, description, fields) =>
   ({ ref, title, type: "group", properties: {
       ...(description ? { description } : {}),
@@ -79,7 +89,7 @@ const form = {
       show_button: true,
       button_text: "Share your expertise",
       description:
-        "22 speaking slots this fall, September 11 to November 4. Each one is a 30 minute virtual session with New Jersey founders, streamed live on LinkedIn, posted to YouTube, and clipped for you to post on your own channels.\n\nThe full brief, including what our last program ran and what happens after you apply: uplift2026.vercel.app/expert\n\nYou can be based anywhere, since every session is virtual. The only requirement is that the time slot works for you.\n\nAbout seven minutes. Have a headshot handy. We reply within one business day.",
+        "22 speaking slots this fall, September 11 to November 4. Each one is a 30 minute virtual session streamed directly to the founders in our program, then shared on LinkedIn, posted to YouTube, and clipped for you to post on your own channels.\n\nThe full brief, including what our last program ran and what happens after you apply: uplift2026.vercel.app/expert\n\nYou can be based anywhere, since every session is virtual. The only requirement is that the time slot works for you.\n\nAbout seven minutes. Have a headshot handy. We reply within one business day.",
     },
   }],
   thankyou_screens: [{
@@ -97,10 +107,7 @@ const form = {
   // time with no sense of what is left.
   fields: [
     group("you", "1 of 7 · About you", "The basics, then the interesting part.", [
-      text("first_name", "First name", null),
-      text("last_name", "Last name", null),
-      { ref: "email", title: "Email", type: "email", properties: { description: "Where your confirmation and run of show go." }, validations: req },
-      text("company", "Company or organization", null),
+      contact("contact", "Your details", "Name, email, and company, all on one screen. The email is where your confirmation and run of show go."),
       text("role", "Your title or role", null),
       { ref: "linkedin", title: "LinkedIn profile", type: "website", properties: { description: "Optional. We tag you when we promote the session." }, validations: { required: false } },
     ]),
@@ -150,7 +157,7 @@ const form = {
       long("series_ideas", "Rough ideas for the follow-ups", "We book and prioritize your first session either way, then connect separately about the rest.", false),
     ]),
     group("last", "7 of 7 · Permissions and last bits", null, [
-      { ref: "consent", title: "We stream live on LinkedIn, post to YouTube, and cut clips. Are you good with that?", type: "legal", properties: { description: "Includes using your name, headshot, and company to promote the session. We send you the clips too." }, validations: req },
+      { ref: "consent", title: "We record the session, share it on LinkedIn, post it to YouTube, and cut clips. Are you good with that?", type: "legal", properties: { description: "Includes using your name, headshot, and company to promote the session. We send you the clips to post yourself." }, validations: req },
       choice("spoken_before", "Have you spoken to a founder audience before?", null, [
         { label: "Often. This is a regular thing for me." },
         { label: "A few times." },

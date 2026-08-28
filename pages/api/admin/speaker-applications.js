@@ -25,7 +25,10 @@ async function fetchForm(formId, token) {
   // named at creation time, which are far more stable than title matching.
   const refs = {};
   (def.fields || []).forEach(function walk(f) {
-    refs[f.id] = f.ref || "";
+    // contact_info subfields (first name, last name, email, company) get refs
+    // Typeform generates itself, so they are keyed by their subfield_key. Those
+    // keys match the ref names the rest of this file already reads.
+    refs[f.id] = f.subfield_key || f.ref || "";
     (f.properties?.fields || []).forEach(walk);
   });
   return { refs, items: resp.items || [] };
