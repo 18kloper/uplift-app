@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Speak at Uplift</title>
+<title>Uplift Expert Sessions</title>
 <meta name="description" content="Uplift is TechUnited:NJ's founder mentorship program. 22 speaking slots this fall, 30 minutes each, streamed live and clipped for you.">
-<meta property="og:title" content="Speak at Uplift">
+<meta property="og:title" content="Uplift Expert Sessions">
 <meta property="og:description" content="30 minutes with New Jersey founders. Streamed live on LinkedIn, posted to YouTube, and clipped for you to post. 22 slots between Sept 11 and Nov 4.">
 <meta property="og:type" content="website">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
@@ -82,6 +82,20 @@
   .cta-note { font-size: 0.85rem; color: var(--muted); }
   .cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px; }
 
+  .logo {
+    width: 172px; height: 62px; margin-bottom: 4px;
+    background: url("/uplift-logo.png") left center / contain no-repeat;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .logo { background-image: url("/uplift-logo-white.png"); }
+  }
+  :root[data-theme="dark"] .logo { background-image: url("/uplift-logo-white.png"); }
+  .logo-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .logo-row .by {
+    font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.68rem;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint);
+    border-left: 1px solid var(--line); padding-left: 18px;
+  }
   /* ── Hero ─────────────────────────────────────────────── */
   header.hero { padding: 68px 0 44px; display: flex; flex-direction: column; gap: 24px; }
   header.hero .lede { font-size: 1.16rem; max-width: 58ch; }
@@ -172,7 +186,11 @@
 <div class="wrap">
 
   <header class="hero">
-    <p class="eyebrow">Uplift Mentorship Program · TechUnited:NJ · Fall 2026</p>
+    <div class="logo-row">
+      <div class="logo" role="img" aria-label="Uplift"></div>
+      <span class="by">TechUnited:NJ · Fall 2026</span>
+    </div>
+    <p class="eyebrow">Uplift Expert Sessions</p>
     <h1>Speak at Uplift. 30 minutes, a room of New Jersey founders.</h1>
     <p class="lede">
       We have <strong>22 speaking slots</strong> between September 11 and November 4. Each one is a
@@ -180,7 +198,7 @@
       posted to YouTube. We clip it and send you the clips to post on your own channels.
     </p>
     <div class="cta-row">
-      <a class="cta" href="https://form.typeform.com/to/uUjnsoDm">Apply to speak &nbsp;→</a>
+      <a class="cta" href="https://form.typeform.com/to/uUjnsoDm">Apply to lead a session &nbsp;→</a>
       <span class="cta-note">About seven minutes. We reply within one business day.</span>
     </div>
     <div class="facts">
@@ -351,7 +369,7 @@
     <p>The founders in this cohort get the most out of hearing from people who have actually done the
       thing. If that is you, take a slot.</p>
     <div class="cta-row">
-      <a class="cta" href="https://form.typeform.com/to/uUjnsoDm">Apply to speak &nbsp;→</a>
+      <a class="cta" href="https://form.typeform.com/to/uUjnsoDm">Apply to lead a session &nbsp;→</a>
       <span class="cta-note">Questions first? <a href="mailto:uplift@techunited.co">uplift@techunited.co</a></span>
     </div>
   </div>

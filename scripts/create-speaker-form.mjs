@@ -79,7 +79,7 @@ const form = {
       show_button: true,
       button_text: "Apply to speak",
       description:
-        "22 speaking slots this fall, September 11 to November 4. Each one is a 30 minute virtual session with New Jersey founders, streamed live on LinkedIn, posted to YouTube, and clipped for you to post on your own channels.\n\nThe full brief, including what past cohorts ran and what happens after you apply: uplift2026.vercel.app/speak\n\nAbout seven minutes. Have a headshot handy. We reply within one business day.",
+        "22 speaking slots this fall, September 11 to November 4. Each one is a 30 minute virtual session with New Jersey founders, streamed live on LinkedIn, posted to YouTube, and clipped for you to post on your own channels.\n\nThe full brief, including what past cohorts ran and what happens after you apply: uplift2026.vercel.app/expert\n\nAbout seven minutes. Have a headshot handy. We reply within one business day.",
     },
   }],
   thankyou_screens: [{
@@ -92,8 +92,11 @@ const form = {
         "1. We review everything and come back to you within one business day, to confirm or to ask a couple of quick questions.\n2. You get your highest available date preference.\n3. We send a calendar hold for that date.\n4. We get on a short sync call to shape the session.\n\nThen we build the Luma event with your bio and headshot on it, promote it to the cohort, and send you the run of show.\n\nQuestions: uplift@techunited.co",
     },
   }],
+  // Every question lives inside a numbered section, so a respondent sees the
+  // whole section on one screen instead of being drip-fed one question at a
+  // time with no sense of what is left.
   fields: [
-    group("you", "First, the basics", "Six quick ones, then the interesting part.", [
+    group("you", "1 of 7 · About you", "The basics, then the interesting part.", [
       text("first_name", "First name", null),
       text("last_name", "Last name", null),
       { ref: "email", title: "Email", type: "email", properties: { description: "Where your confirmation and run of show go." }, validations: req },
@@ -101,43 +104,45 @@ const form = {
       text("role", "Your title or role", null),
       { ref: "linkedin", title: "LinkedIn profile", type: "website", properties: { description: "Optional. We tag you when we promote the session." }, validations: { required: false } },
     ]),
-    group("presented", "How you get introduced", "This is what founders see before you speak, so it is worth a minute.", [
+    group("presented", "2 of 7 · How we introduce you", "This is what founders see before you speak, and what we promote you with.", [
       { ref: "headshot", title: "Headshot", type: "file_upload", properties: { description: "Runs on the event page, the stream, and the clips." }, validations: req },
       long("bio", "Short speaker bio", "Third person, 75 to 100 words. We use it word for word."),
     ]),
-    choice("format", "Which format fits your material?", "Not binding. Once you are booked we get on a short call and settle the shape properly.", [
-      { label: "Presentation. I teach with slides, then take questions." },
-      { label: "Fireside chat. You interview me, founders ask questions." },
-      { label: "Working session. Founders bring their own work and I coach live." },
-      { label: "Not sure yet. Help me pick." },
+    group("session", "3 of 7 · Your session", "The substance. Nothing here needs to be finished work, and we shape the final version together on a call once you are booked.", [
+      choice("format", "Which format fits your material?", "Not binding, and we can talk it through.", [
+        { label: "Presentation. I teach with slides, then take questions." },
+        { label: "Fireside chat. You interview me, founders ask questions." },
+        { label: "Working session. Founders bring their own work and I coach live." },
+        { label: "Not sure yet. Help me pick." },
+      ]),
+      text("topic_title", "Proposed session title", "A working title is all we need. We may tighten it for the event page and promotion, and we will always run any change past you first. Repeats of past subjects are welcome, this is a brand new cohort."),
+      long("topic_summary", "What would you cover?", "A paragraph is plenty. No deck required."),
+      long("takeaways", "Three things founders will walk away with", "Three lines. Concrete beats inspirational."),
+      long("why_now", "Why does this matter to them right now?"),
+      choice("audience", "Who are you aiming it at?", "Every session stays open to the whole cohort. This only tells us who to point the invitation at.", [
+        { label: "Any founder in the cohort" },
+        { label: "Idea stage, still shaping it" },
+        { label: "MVP or early build" },
+        { label: "Pre-revenue, testing the market" },
+        { label: "Already generating revenue" },
+        { label: "Raising, or about to" },
+        { label: "Founders who want to understand how investors think" },
+      ], { multi: true }),
     ]),
-    text("topic_title", "Proposed session title", "A working title is all we need. We may tighten it for the event page and promotion, and we will always run any change past you first. Plain and specific beats clever. Repeats of past subjects are welcome, this is a brand new cohort."),
-    long("topic_summary", "What would you cover?", "A paragraph is plenty. No deck required."),
-    long("takeaways", "Three things founders will walk away with", "Three lines. Concrete beats inspirational."),
-    long("why_now", "Why does this matter to them right now?"),
-    choice("audience", "Who are you aiming it at?", "Every session stays open to the whole cohort. This only tells us who to point the invitation at.", [
-      { label: "Any founder in the cohort" },
-      { label: "Idea stage, still shaping it" },
-      { label: "MVP or early build" },
-      { label: "Pre-revenue, testing the market" },
-      { label: "Already generating revenue" },
-      { label: "Raising, or about to" },
-      { label: "Founders who want to understand how investors think" },
-    ], { multi: true }),
-    group("materials", "Anything to show us?", "All optional. Skip the lot if you would rather.", [
+    group("share", "4 of 7 · What you would share with founders", "The part that outlives the 30 minutes. All optional.", [
+      long("resources", "Resources or tools you would hand them", "Templates, playbooks, frameworks, tools you swear by, reading, your own offers or discounts. We collect these in the cohort resource library with your name on them, so founders keep using them long after the session.", false),
       { ref: "deck_link", title: "Link to a deck, or to you speaking somewhere", type: "website", properties: { description: "A recording of you helps us a lot." }, validations: { required: false } },
       { ref: "deck_file", title: "Or attach a deck", type: "file_upload", properties: { description: "A rough draft is fine." }, validations: { required: false } },
-      long("resources", "Resources you would share with founders", "Templates, tools, reading, your own offers. They go in the cohort library with your name on them.", false),
     ]),
-    choice("dates", "Which dates could you make?", "Check every slot that works. All 30 minutes, at 12:30 PM or 5:30 PM ET. You rank your favorites next.", dateChoices, { multi: true }),
-    group("ranking", "Now rank your top five", "We work through them in your order. If your first choice is still open, that is the one you get. See what is currently open at uplift2026.vercel.app/speak", [
-      drop("date_1", "First choice", null, true),
+    group("dates_section", "5 of 7 · Your dates, in order of preference", "All sessions are 30 minutes, at 12:30 PM or 5:30 PM ET. See what is currently open at uplift2026.vercel.app/expert", [
+      choice("dates", "Which dates could you make?", "Check every slot that works.", dateChoices, { multi: true }),
+      drop("date_1", "First choice", "We work down your ranking, so if this one is open, it is the one you get.", true),
       drop("date_2", "Second choice", null, false),
       drop("date_3", "Third choice", null, false),
       drop("date_4", "Fourth choice", null, false),
       drop("date_5", "Fifth choice", null, false),
     ]),
-    group("series_group", "Want to make it a series?", "We can host you up to three times across the program. A returning face builds real familiarity with the cohort.", [
+    group("series_group", "6 of 7 · Want to make it a series?", "We can host you up to three times across the program. A returning face builds real familiarity with the cohort.", [
       choice("series", "Interested in more than one session?", null, [
         { label: "Yes, I would take up to three sessions" },
         { label: "Maybe, I would want to talk it through first" },
@@ -145,8 +150,8 @@ const form = {
       ], { required: false }),
       long("series_ideas", "Rough ideas for the follow-ups", "We book and prioritize your first session either way, then connect separately about the rest.", false),
     ]),
-    { ref: "consent", title: "We stream live on LinkedIn, post to YouTube, and cut clips. Are you good with that?", type: "legal", properties: { description: "Includes using your name, headshot, and company to promote the session. We send you the clips too." }, validations: req },
-    group("last", "Last few", null, [
+    group("last", "7 of 7 · Permissions and last bits", null, [
+      { ref: "consent", title: "We stream live on LinkedIn, post to YouTube, and cut clips. Are you good with that?", type: "legal", properties: { description: "Includes using your name, headshot, and company to promote the session. We send you the clips too." }, validations: req },
       choice("spoken_before", "Have you spoken to a founder audience before?", null, [
         { label: "Often. This is a regular thing for me." },
         { label: "A few times." },
