@@ -171,43 +171,54 @@ export default async function handler(req, res) {
     // by findExistingId() in fall-decide.js even through a later reject/clear,
     // so once assigned it's permanent regardless of what this map returns for
     // the current decision.
-    const readDecisions = async (tab) => {
-      try {
-        const sheets = getSheetsClient();
-        const r = await sheets.spreadsheets.values.get({
-          spreadsheetId: process.env.GOOGLE_SHEET_ID,
-          range: `${tab}!A2:F2000`,
-        });
-        const latest = {};
-        const ids = {};
-        for (const row of r.data.values || []) {
-          if (!row[1]) continue;
-          latest[row[1]] = row[4];
-          if (row[5]) ids[row[1]] = row[5];
+    // A failed sheet read must never be served as "no decisions": that renders
+    // every approved applicant back as Undecided and looks exactly like lost
+    // work. Retry (rapid batch approvals can trip the per-minute quota), and
+    // if it still fails, say so via the failed flag instead of faking empty.
+    const readSheet = async (range) => {
+      let lastErr;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const sheets = getSheetsClient();
+          const r = await sheets.spreadsheets.values.get({
+            spreadsheetId: process.env.GOOGLE_SHEET_ID,
+            range,
+          });
+          return { rows: r.data.values || [], failed: false };
+        } catch (e) {
+          const code = e?.code || e?.response?.status;
+          if (code === 400) return { rows: [], failed: false }; // tab doesn't exist yet
+          lastErr = e;
+          if (attempt < 2) await new Promise(r2 => setTimeout(r2, 700 * (attempt + 1)));
         }
-        return { latest, ids };
-      } catch (_) {
-        return { latest: {}, ids: {} };
       }
+      console.error(`[fall-people] sheet read failed for ${range}:`, lastErr?.message);
+      return { rows: [], failed: true };
+    };
+
+    const readDecisions = async (tab) => {
+      const { rows, failed } = await readSheet(`${tab}!A2:F2000`);
+      const latest = {};
+      const ids = {};
+      for (const row of rows) {
+        if (!row[1]) continue;
+        latest[row[1]] = row[4];
+        if (row[5]) ids[row[1]] = row[5];
+      }
+      return { latest, ids, failed };
     };
 
     // Live matches from the FallMatches sheet tab (empty until first match)
     const readMatches = async () => {
-      try {
-        const sheets = getSheetsClient();
-        const r = await sheets.spreadsheets.values.get({
-          spreadsheetId: process.env.GOOGLE_SHEET_ID,
-          range: "FallMatches!A2:I1000",
-        });
-        return (r.data.values || [])
-          .filter(row => row[7] === "matched")
-          .map(row => ({
-            matchedAt: row[0], menteeId: row[1], menteeName: row[2], menteeEmail: row[3],
-            mentorId: row[4], mentorName: row[5], mentorEmail: row[6], note: row[8] || "",
-          }));
-      } catch (_) {
-        return []; // tab doesn't exist yet
-      }
+      const { rows, failed } = await readSheet("FallMatches!A2:I1000");
+      const matches = rows
+        .filter(row => row[7] === "matched")
+        .map(row => ({
+          matchedAt: row[0], menteeId: row[1], menteeName: row[2], menteeEmail: row[3],
+          mentorId: row[4], mentorName: row[5], mentorEmail: row[6], note: row[8] || "",
+        }));
+      matches.failed = failed;
+      return matches;
     };
 
     const [menteeForm, mentorForm, matches, menteeDecisions, mentorDecisions] = await Promise.all([
@@ -220,6 +231,11 @@ export default async function handler(req, res) {
 
     const isFallEra = (cutoff) => (item) => item.submitted_at && new Date(item.submitted_at) >= cutoff;
     const mentees = menteeForm.items.filter(isFallEra(MENTEE_FALL_CUTOFF)).map(i => parseMentee(menteeForm.titles, i))
+      // The "participated in Uplift before?" gate (added 2026-08-26) bounces
+      // returning mentees to an ending screen after one answer; Typeform still
+      // records that as a response, which lands here as a nameless, emailless
+      // row nobody should be approving.
+      .filter(m => m.email || m.first || m.last)
       .sort((a, b) => (b.submittedAt || "").localeCompare(a.submittedAt || ""));
     const mentors = mentorForm.items.filter(isFallEra(MENTOR_FALL_CUTOFF)).map(i => parseMentor(mentorForm.titles, i))
       .sort((a, b) => (b.submittedAt || "").localeCompare(a.submittedAt || ""));
@@ -244,16 +260,20 @@ export default async function handler(req, res) {
       mt.upliftId = mentorDecisions.ids[mt.id] || null;
     }
 
+    const sheetReadError = !!(menteeDecisions.failed || mentorDecisions.failed || matches.failed);
     const payload = {
       generatedAt: new Date().toISOString(),
       menteeCount: mentees.filter(m => !m.inRoster).length,
       mentorCount: mentors.filter(m => !m.inRoster).length,
       matchedCount: matches.length,
+      sheetReadError,
       mentees,
       mentors,
-      matches,
+      matches: [...matches],
     };
-    cache = { at: now, payload };
+    // Never cache a payload with missing decisions — the next request should
+    // retry the sheet rather than keep showing everyone as Undecided for 60s.
+    if (!sheetReadError) cache = { at: now, payload };
     return res.status(200).json({ ...payload, cached: false });
   } catch (err) {
     console.error("[fall-people] failed:", err);

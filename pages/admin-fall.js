@@ -155,6 +155,7 @@ export default function AdminFall() {
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [selectedMentee, setSelectedMentee] = useState(null);
   const [matchBusy, setMatchBusy] = useState(false);
+  const [actionErr, setActionErr] = useState(null);
   const [appFilter, setAppFilter] = useState("undecided");
   const [profile, setProfile] = useState(null); // { kind, person }
   const [matchExplain, setMatchExplain] = useState(null); // mentee id with score breakdown expanded
@@ -229,10 +230,21 @@ export default function AdminFall() {
       .finally(() => setSessionsLoading(false));
   }, [authed, tab, sessions, sessionsLoading]);
 
+  // Refresh after a save; the save already succeeded, so a failed refresh is
+  // only a stale view — keep the old data rather than surfacing a scary error.
+  const refreshPeople = async () => {
+    try {
+      const d = await fetch("/api/admin/fall-people?fresh=1").then(r => r.json());
+      if (d && !d.error) setPeople(d);
+    } catch (_) {}
+  };
+
   const doDecide = async (kind, applicant, decision) => {
     setMatchBusy(true);
+    setActionErr(null);
+    const who = applicant.name || `${applicant.first || ""} ${applicant.last || ""}`.trim() || applicant.email || "applicant";
     try {
-      await fetch("/api/admin/fall-decide", {
+      const r = await fetch("/api/admin/fall-decide", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -241,16 +253,22 @@ export default function AdminFall() {
           decision,
         }),
       });
-      const d = await fetch("/api/admin/fall-people?fresh=1").then(r => r.json());
-      setPeople(d);
-    } catch (_) {}
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok || body.error) throw new Error(body.error || `HTTP ${r.status}`);
+    } catch (e) {
+      setActionErr(`"${decision}" for ${who} was NOT saved (${e.message}). Nothing was recorded — click it again.`);
+      setMatchBusy(false);
+      return;
+    }
+    await refreshPeople();
     setMatchBusy(false);
   };
 
   const doMatch = async (action, mentee, mentor) => {
     setMatchBusy(true);
+    setActionErr(null);
     try {
-      await fetch("/api/admin/fall-match", {
+      const r = await fetch("/api/admin/fall-match", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -259,9 +277,14 @@ export default function AdminFall() {
           mentor: { id: mentor.id, name: mentor.name, email: mentor.email },
         }),
       });
-      const d = await fetch("/api/admin/fall-people?fresh=1").then(r => r.json());
-      setPeople(d);
-    } catch (_) {}
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok || body.error) throw new Error(body.error || `HTTP ${r.status}`);
+    } catch (e) {
+      setActionErr(`Match action "${action}" (${`${mentee.first || ""} ${mentee.last || ""}`.trim()} ↔ ${mentor.name}) was NOT saved (${e.message}). Nothing was recorded — try again.`);
+      setMatchBusy(false);
+      return;
+    }
+    await refreshPeople();
     setMatchBusy(false);
   };
 
@@ -405,6 +428,20 @@ export default function AdminFall() {
           {err && (
             <div style={{ ...card, borderLeft: "4px solid #e74c3c" }}>
               <p style={{ margin: 0, fontSize: 14, color: "#c0392b", fontWeight: 600 }}>Data load failed: {err}</p>
+            </div>
+          )}
+          {actionErr && (
+            <div style={{ ...card, borderLeft: "4px solid #e74c3c", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+              <p style={{ margin: 0, fontSize: 14, color: "#c0392b", fontWeight: 600 }}>⚠️ {actionErr}</p>
+              <button onClick={() => setActionErr(null)} style={{ border: "none", background: "none", color: "#c0392b", fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>×</button>
+            </div>
+          )}
+          {people?.sheetReadError && (
+            <div style={{ ...card, borderLeft: "4px solid #e67e22" }}>
+              <p style={{ margin: 0, fontSize: 14, color: "#b9770e", fontWeight: 600 }}>
+                ⚠️ Google Sheets didn&apos;t answer just now, so approvals/matches below may temporarily show as Undecided.
+                Every decision already made IS saved in the sheet — refresh in a minute and it will reappear. Don&apos;t re-decide anyone off this view.
+              </p>
             </div>
           )}
 
