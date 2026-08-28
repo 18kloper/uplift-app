@@ -69,7 +69,7 @@ const form = {
     meta: { allow_indexing: false },
   },
   // Short on purpose. The full brief (what Uplift is, what a session is, the
-  // topic ideas, what past cohorts ran, the trade, what happens next) lives on
+  // topic ideas, what the last program ran, the trade, what happens next) lives on
   // /speak, which is the link that actually gets distributed. Repeating all of
   // it here made an unreadable wall of text.
   welcome_screens: [{
@@ -79,7 +79,7 @@ const form = {
       show_button: true,
       button_text: "Apply to speak",
       description:
-        "22 speaking slots this fall, September 11 to November 4. Each one is a 30 minute virtual session with New Jersey founders, streamed live on LinkedIn, posted to YouTube, and clipped for you to post on your own channels.\n\nThe full brief, including what past cohorts ran and what happens after you apply: uplift2026.vercel.app/expert\n\nAbout seven minutes. Have a headshot handy. We reply within one business day.",
+        "22 speaking slots this fall, September 11 to November 4. Each one is a 30 minute virtual session with New Jersey founders, streamed live on LinkedIn, posted to YouTube, and clipped for you to post on your own channels.\n\nThe full brief, including what our last program ran and what happens after you apply: uplift2026.vercel.app/expert\n\nAbout seven minutes. Have a headshot handy. We reply within one business day.",
     },
   }],
   thankyou_screens: [{
@@ -115,7 +115,7 @@ const form = {
         { label: "Working session. Founders bring their own work and I coach live." },
         { label: "Not sure yet. Help me pick." },
       ]),
-      text("topic_title", "Proposed session title", "A working title is all we need. We may tighten it for the event page and promotion, and we will always run any change past you first. Repeats of past subjects are welcome, this is a brand new cohort."),
+      text("topic_title", "Proposed session title", "A working title is all we need. We may tighten it for the event page and promotion, and we will always run any change past you first. Repeats of past subjects are welcome, the founders are entirely different this program."),
       long("topic_summary", "What would you cover?", "A paragraph is plenty. No deck required."),
       long("takeaways", "Three things founders will walk away with", "Three lines. Concrete beats inspirational."),
       long("why_now", "Why does this matter to them right now?"),

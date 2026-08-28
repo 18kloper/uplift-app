@@ -8,6 +8,7 @@
 <meta property="og:title" content="Uplift Expert Sessions">
 <meta property="og:description" content="30 minutes with New Jersey founders. Streamed live on LinkedIn, posted to YouTube, and clipped for you to post. 22 slots between Sept 11 and Nov 4.">
 <meta property="og:type" content="website">
+<script src="https://embed.typeform.com/next/embed.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
@@ -96,6 +97,43 @@
     letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint);
     border-left: 1px solid var(--line); padding-left: 18px;
   }
+  .review {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--pink);
+    border-radius: 12px; padding: 20px 24px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 12px; max-width: 62ch;
+  }
+  .review-head {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.66rem; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--pink);
+  }
+  .review-list { margin: 0; padding: 0; list-style: none; counter-reset: rv; display: grid; gap: 7px; }
+  .review-list li { counter-increment: rv; display: flex; gap: 11px; font-size: 0.97rem; align-items: baseline; }
+  .review-list li::before {
+    content: counter(rv); flex: none;
+    font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.68rem; font-weight: 700;
+    color: var(--faint); min-width: 12px;
+  }
+  .review-list a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--line); font-weight: 500; }
+  .review-list a:hover { color: var(--purple); border-bottom-color: var(--purple); }
+  .review-note { font-size: 0.89rem; color: var(--muted); }
+
+  /* Floating apply button: appears once they are past the hero, steps aside when
+     the closing call to action is already on screen. */
+  .float {
+    position: fixed; right: 24px; bottom: 24px; z-index: 50;
+    opacity: 0; transform: translateY(10px); pointer-events: none;
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+  .float.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .float .cta { box-shadow: 0 6px 24px -6px rgba(17, 4, 101, 0.45); }
+  @media (prefers-reduced-motion: reduce) {
+    .float { transition: none; transform: none; }
+    .float.show { transform: none; }
+  }
+  @media (max-width: 640px) {
+    .float { right: 16px; left: 16px; bottom: 16px; }
+    .float .cta { width: 100%; justify-content: center; }
+  }
   /* ── Hero ─────────────────────────────────────────────── */
   header.hero { padding: 68px 0 44px; display: flex; flex-direction: column; gap: 24px; }
   header.hero .lede { font-size: 1.16rem; max-width: 58ch; }
@@ -135,7 +173,7 @@
   .board { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 8px; }
   .tile { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--surface); display: flex; flex-direction: column; gap: 1px; }
   .tile .n { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; color: var(--faint); }
-  .tile .t { font-size: 0.85rem; font-weight: 600; color: var(--ink); }
+  .tile .t { font-size: 0.86rem; font-weight: 600; color: var(--ink); line-height: 1.35; }
   .tile .s { font-size: 0.76rem; color: var(--muted); }
   .tile .who { font-size: 0.74rem; color: var(--pink); font-weight: 600; }
   .tile.taken { opacity: 0.5; }
@@ -191,26 +229,34 @@
       <span class="by">TechUnited:NJ · Fall 2026</span>
     </div>
     <p class="eyebrow">Uplift Expert Sessions</p>
-    <h1>Speak at Uplift. 30 minutes, a room of New Jersey founders.</h1>
+    <h1>30 minutes. A room of New Jersey founders.</h1>
     <p class="lede">
-      We have <strong>22 speaking slots</strong> between September 11 and November 4. Each one is a
-      30 minute virtual session, as a presentation or a fireside chat, streamed live on LinkedIn and
-      posted to YouTube. We clip it and send you the clips to post on your own channels.
+      <strong>22 slots this fall</strong>, September 11 to November 4. Virtual, streamed live on
+      LinkedIn, posted to YouTube, and clipped for you to post.
     </p>
-    <div class="cta-row">
-      <a class="cta" href="https://form.typeform.com/to/uUjnsoDm">Apply to lead a session &nbsp;→</a>
-      <span class="cta-note">About seven minutes. We reply within one business day.</span>
+    <div class="review">
+      <p class="review-head">Worth a scroll before you decide</p>
+      <ol class="review-list">
+        <li><a href="#context">What Uplift is, and what a session is</a></li>
+        <li><a href="#brief">What our last two cohorts ran</a></li>
+        <li><a href="#trade">What you get out of it</a></li>
+        <li><a href="#dates">Which dates are open</a></li>
+        <li><a href="#process">What happens after you apply</a></li>
+        <li><a href="#asks">What the form asks for</a></li>
+      </ol>
+      <p class="review-note">The apply button follows you down the page. Click it the moment this
+        feels like you.</p>
     </div>
     <div class="facts">
       <span class="fact"><b>~70</b> founders in the program</span>
       <span class="fact"><b>~30</b> attend live</span>
       <span class="fact"><b>3</b> sessions a week</span>
-      <span class="fact">virtual, <b>12:30</b> or <b>5:30</b> ET</span>
-      <span class="fact">up to <b>3</b> sessions if you want a series</span>
+      <span class="fact"><b>12:30</b> or <b>5:30</b> ET</span>
+      <span class="fact">up to <b>3</b> sessions each</span>
     </div>
   </header>
 
-  <section>
+  <section id="context">
     <div class="sec-head">
       <p class="eyebrow">The context</p>
       <h2>What Uplift is, and what a session is</h2>
@@ -218,100 +264,95 @@
     <div class="trio">
       <div class="panel">
         <h3>The program</h3>
-        <p>Uplift is TechUnited:NJ's founder mentorship program. Eight weeks, September 9 to November 6.
-          Every founder in it is matched with a mentor for a series of one-on-one meetings. This fall the
-          cohort is around 70 vetted New Jersey founders.</p>
+        <p>TechUnited:NJ's founder mentorship program. Eight weeks, around 70 vetted New Jersey
+          founders, each matched with a mentor.</p>
       </div>
       <div class="panel">
         <h3>The sessions</h3>
-        <p>Three times a week the cohort comes together for a 30 minute virtual session. 22 of them
-          across the program, at 12:30 or 5:30 ET. Outside speakers carry them, which is where you
-          come in.</p>
+        <p>Three a week, 30 minutes, virtual. 22 of them between September 11 and November 4, at
+          12:30 or 5:30 ET.</p>
       </div>
       <div class="panel">
         <h3>The room</h3>
-        <p>Every founder is welcome at every session, and attendance runs around 30 live depending on
-          the topic. Founders need three sessions to complete the program, so the people in front of
-          you chose to be there.</p>
+        <p>Everyone is welcome at every session and about 30 come live. Founders need three to
+          complete the program.</p>
       </div>
     </div>
   </section>
 
-  <section>
+  <section id="brief">
     <div class="sec-head">
       <p class="eyebrow">The brief</p>
-      <h2>If a founder can use it on Monday, it fits</h2>
-      <p>That is the whole test. Sessions run as a presentation, a fireside chat where we interview you,
-        or a working session where founders bring their own work. You pick what suits your material,
-        and we settle the shape of it together on a call before the day.</p>
+      <h2>What would you talk about?</h2>
+      <p>Almost anything a founder can act on. Automating a workflow with AI. Defining your ICP.
+        Pitching yourself. Public speaking. The mistakes you made building your company. What your
+        business does every day that theirs should be doing too. If a founder can use it on Monday,
+        it fits. Run it as a presentation, a fireside chat, or a working session, and we shape the
+        final format with you on a call.</p>
     </div>
 
-    <p class="group-label">Ideas to start from <em>none of these are required</em></p>
+    <p class="group-label">Ideas to start from <em>none required</em></p>
     <div class="board">
-      <div class="tile"><span class="n">IDEA</span><span class="t">Automating something with AI</span><span class="s">a real workflow, start to finish</span></div>
-      <div class="tile"><span class="n">IDEA</span><span class="t">Defining your ICP</span><span class="s">who to sell to, and who to stop</span></div>
-      <div class="tile"><span class="n">IDEA</span><span class="t">Pitching yourself</span><span class="s">the tricks that actually land</span></div>
-      <div class="tile"><span class="n">IDEA</span><span class="t">Public speaking</span><span class="s">for founders who dread it</span></div>
-      <div class="tile"><span class="n">IDEA</span><span class="t">The mistakes you made</span><span class="s">your story, told honestly</span></div>
-      <div class="tile"><span class="n">IDEA</span><span class="t">How you built it</span><span class="s">the unglamorous middle years</span></div>
-      <div class="tile"><span class="n">IDEA</span><span class="t">What your business does daily</span><span class="s">that theirs should be doing too</span></div>
-      <div class="tile"><span class="n">IDEA</span><span class="t">Your own subject</span><span class="s">if founders can use it, it fits</span></div>
+      <div class="tile"><span class="t">Automating something with AI</span><span class="s">one real workflow</span></div>
+      <div class="tile"><span class="t">Defining your ICP</span><span class="s">who to sell to, and who to stop</span></div>
+      <div class="tile"><span class="t">Pitching yourself</span><span class="s">what actually lands</span></div>
+      <div class="tile"><span class="t">Public speaking</span><span class="s">for founders who dread it</span></div>
+      <div class="tile"><span class="t">The mistakes you made</span><span class="s">told honestly</span></div>
+      <div class="tile"><span class="t">How you built it</span><span class="s">the unglamorous years</span></div>
+      <div class="tile"><span class="t">What you do daily</span><span class="s">that they should too</span></div>
+      <div class="tile"><span class="t">Your own subject</span><span class="s">if they can use it, it fits</span></div>
     </div>
 
-    <p class="group-label">What our last two cohorts ran <em>the bar, and fair game to repeat</em></p>
+    <p class="group-label">What our last program ran <em>fair game to repeat</em></p>
     <div class="board">
-      <div class="tile"><span class="n">JUN 2026</span><span class="t">How to Pitch an Angel</span><span class="s">What investors actually look for</span><span class="who">Joanne Wilson</span></div>
-      <div class="tile"><span class="n">JUL 2026</span><span class="t">Beyond the Logo</span><span class="s">Building a brand customers trust and investors understand</span><span class="who">Debra Rizzi, two parts</span></div>
-      <div class="tile"><span class="n">JUL 2026</span><span class="t">Service as Strategy</span><span class="s">Customer experience as competitive edge</span><span class="who">Christina Perla, Makelab</span></div>
-      <div class="tile"><span class="n">JUL 2026</span><span class="t">Inside Angel Investing</span><span class="s">Building relationships before you raise</span><span class="who">Gina Tedesco</span></div>
-      <div class="tile"><span class="n">JUL 2026</span><span class="t">Earning the Room</span><span class="s">Visibility, credibility, and access</span><span class="who">Chrissy Buteas</span></div>
-      <div class="tile"><span class="n">JUN 2026</span><span class="t">Pitch Without a Deck</span><span class="s">Peer workshop, founders on the spot</span><span class="who">Cohort-run</span></div>
-      <div class="tile"><span class="n">MAR 2026</span><span class="t">Fundable vs. Fashionable</span><span class="s">The pre-seed investor lens</span><span class="who">Mike Obolonskyi</span></div>
-      <div class="tile"><span class="n">MAR 2026</span><span class="t">The Gap Between an Idea and a Customer</span><span class="s">Getting from one to the other</span><span class="who">Tom Sauer, Mile Square Labs</span></div>
-      <div class="tile"><span class="n">MAR 2026</span><span class="t">Pattern Recognition = Pivot Fuel</span><span class="s">Reading your own signals</span><span class="who">Mark Nelson, Foodie Box Love</span></div>
+      <div class="tile"><span class="t">How to Pitch an Angel</span><span class="who">Joanne Wilson</span><span class="s">Gotham Gal Ventures</span></div>
+      <div class="tile"><span class="t">Inside Angel Investing</span><span class="who">Gina Tedesco</span><span class="s">Golden Seed Ventures</span></div>
+      <div class="tile"><span class="t">Service as Strategy</span><span class="who">Christina Perla</span><span class="s">Makelab</span></div>
+      <div class="tile"><span class="t">Beyond the Logo</span><span class="who">Debra Rizzi</span></div>
+      <div class="tile"><span class="t">Earning the Room</span><span class="who">Chrissy Buteas</span></div>
+      <div class="tile"><span class="t">The Gap Between an Idea and a Customer</span><span class="who">Tom Sauer</span><span class="s">Mile Square Labs</span></div>
+      <div class="tile"><span class="t">Pattern Recognition = Pivot Fuel</span><span class="who">Mark Nelson</span><span class="s">CEO, Foodie Box Love</span></div>
+      <div class="tile"><span class="t">Fundable vs. Fashionable</span><span class="who">Mike Obolonskyi</span></div>
+      <div class="tile"><span class="t">Pitch Without a Deck</span><span class="who">Peer workshop</span></div>
     </div>
 
     <div class="repeat-note">
-      <strong>Repeats are welcome.</strong> This is an entirely new group of founders, so a subject a past
-      speaker covered is not taken. Same topic, new room, people who have never heard it. If your
-      strongest material overlaps something above, that is a reason to propose it rather than a reason
-      to avoid it.
+      <strong>Repeats are welcome.</strong> New program, new room, entirely different founders. If your strongest material overlaps
+      something above, that is a reason to propose it.
     </div>
   </section>
 
-  <section>
+  <section id="trade">
     <div class="sec-head">
       <p class="eyebrow">The trade</p>
-      <h2>What you get out of it</h2>
-      <p>No cost, and no pitch expected. You share what you know, and the work of promoting it is ours.</p>
+      <h2>What you get</h2>
     </div>
     <div class="trio">
       <div class="panel get">
         <h3>The room</h3>
         <ul class="plain">
-          <li><span class="mk">→</span><span>30 minutes with active New Jersey founders who chose your session</span></li>
-          <li><span class="mk">→</span><span>Real questions from people building right now</span></li>
-          <li><span class="mk">→</span><span>Up to three sessions if you want to make it a series</span></li>
+          <li><span class="mk">→</span><span>30 minutes with founders who chose your session</span></li>
+          <li><span class="mk">→</span><span>Live questions from people building right now</span></li>
+          <li><span class="mk">→</span><span>Up to three sessions if you want a series</span></li>
         </ul>
       </div>
       <div class="panel get">
         <h3>The reach after it</h3>
         <ul class="plain">
-          <li><span class="mk">→</span><span>Streamed live on LinkedIn, so it plays to your network as it happens</span></li>
-          <li><span class="mk">→</span><span>Posted to YouTube, so it keeps working after the session ends</span></li>
-          <li><span class="mk">→</span><span>Clipped by us, and the clips handed back for you to post yourself</span></li>
-          <li><span class="mk">→</span><span>Your name, headshot, company, and links on the event page and every clip</span></li>
+          <li><span class="mk">→</span><span>Streamed live on LinkedIn, posted to YouTube</span></li>
+          <li><span class="mk">→</span><span>We clip it and send you the clips to post</span></li>
+          <li><span class="mk">→</span><span>Your name, headshot, company, and links on all of it</span></li>
         </ul>
       </div>
     </div>
+    <p class="caption">Free, and no pitch expected.</p>
   </section>
 
-  <section>
+  <section id="dates">
     <div class="sec-head">
       <p class="eyebrow">The dates</p>
       <h2>What is still open</h2>
-      <p>Pick every date you could make, then rank up to five in order. We work through your ranking,
-        so if your first choice is still open, that is the one you get.</p>
+      <p>Pick every date that works, then rank five. Your first choice wins if it is open.</p>
     </div>
     <div class="board" id="slots">
       <p class="caption" id="slots-status">Loading the current slots…</p>
@@ -319,57 +360,44 @@
     <p class="caption" id="slots-note"></p>
   </section>
 
-  <section>
+  <section id="process">
     <div class="sec-head">
       <p class="eyebrow">The process</p>
-      <h2>What happens after you apply</h2>
+      <h2>After you apply</h2>
     </div>
     <ol class="steps">
-      <li><div class="step-text"><h3>We review within one business day</h3><p>You hear back either way, to confirm or to ask a couple of quick questions first.</p></div></li>
-      <li><div class="step-text"><h3>You get your highest available date</h3><p>We work down your ranking against what is still open.</p></div></li>
-      <li><div class="step-text"><h3>A calendar hold lands for that date</h3><p>So the slot is protected on both sides while the details come together.</p></div></li>
-      <li><div class="step-text"><h3>We get on a short sync call</h3><p>We map out the shape of the session, whether that is a fireside, a straight presentation, or a working session, and what the conversation should actually cover.</p></div></li>
-      <li><div class="step-text"><h3>We build and promote the event</h3><p>Your bio and headshot go on the Luma page, we promote it to the cohort, and you get the run of show and the stream details before the day.</p></div></li>
+      <li><div class="step-text"><h3>We reply within one business day</h3></div></li>
+      <li><div class="step-text"><h3>You get your highest available date</h3></div></li>
+      <li><div class="step-text"><h3>A calendar hold lands for it</h3></div></li>
+      <li><div class="step-text"><h3>Short sync call to shape the session</h3></div></li>
+      <li><div class="step-text"><h3>We build the event, promote it, and send you the run of show</h3></div></li>
     </ol>
   </section>
 
-  <section>
+  <section id="asks">
     <div class="sec-head">
       <p class="eyebrow">Before you start</p>
       <h2>What the form asks for</h2>
-      <p>About seven minutes. Nothing here needs to be finished work.</p>
+      <p>About seven minutes. No deck required, and your existing bio is fine.</p>
     </div>
-    <div class="asks">
-      <div class="ask">
-        <h3>A headshot and a short bio</h3>
-        <p>This is how you get introduced. It goes on the Luma page and LinkedIn, and the headshot runs
-          across the comms and the clips. Your existing bio is fine.</p>
-      </div>
-      <div class="ask">
-        <h3>A proposed title and three takeaways</h3>
-        <p>No deck required. A working title is enough, and we may tighten it for promotion with your
-          sign-off. The three things founders walk away with matter more than the polish.</p>
-      </div>
-      <div class="ask">
-        <h3>Who you are aiming at</h3>
-        <p>The cohort runs from idea stage through seed. Every session stays open to everyone, this just
-          tells us who to point the invitation at.</p>
-      </div>
-      <div class="ask">
-        <h3>Your dates, ranked</h3>
-        <p>Every date that works, then your top five in order. Plus whether you would want to do a short
-          series of up to three sessions.</p>
-      </div>
+    <div class="facts">
+      <span class="fact">headshot</span>
+      <span class="fact">short bio</span>
+      <span class="fact">proposed title</span>
+      <span class="fact">what you would cover</span>
+      <span class="fact">three takeaways</span>
+      <span class="fact">who it is for</span>
+      <span class="fact">resources or tools you would share</span>
+      <span class="fact">five dates, ranked</span>
     </div>
   </section>
 
   <div class="closer">
     <p class="eyebrow">One link, seven minutes</p>
     <h2>Send the elevator back down</h2>
-    <p>The founders in this cohort get the most out of hearing from people who have actually done the
-      thing. If that is you, take a slot.</p>
+    <p>If you have done the thing, take a slot.</p>
     <div class="cta-row">
-      <a class="cta" href="https://form.typeform.com/to/uUjnsoDm">Apply to lead a session &nbsp;→</a>
+      <a class="cta" href="https://form.typeform.com/to/uUjnsoDm" data-tf-popup="uUjnsoDm" data-tf-size="100" data-tf-medium="expert-page" data-tf-iframe-props="title=Uplift Expert Session application">Apply to lead a session &nbsp;→</a>
       <span class="cta-note">Questions first? <a href="mailto:uplift@techunited.co">uplift@techunited.co</a></span>
     </div>
   </div>
@@ -379,6 +407,10 @@
     <span>Fall 2026 · September 9 to November 6</span>
   </footer>
 
+</div>
+
+<div class="float" id="float">
+  <a class="cta" href="https://form.typeform.com/to/uUjnsoDm" data-tf-popup="uUjnsoDm" data-tf-size="100" data-tf-medium="expert-page" data-tf-iframe-props="title=Uplift Expert Session application">Apply to lead a session &nbsp;→</a>
 </div>
 
 <script>
@@ -409,6 +441,28 @@
           "The form lists every date with the ones still open.";
         note.textContent = "";
       });
+  })();
+
+  // Floating apply button. Shown once the hero has scrolled away, hidden again
+  // while the closing call to action is on screen so the two never stack up.
+  (function () {
+    var float = document.getElementById("float");
+    var hero = document.querySelector("header.hero");
+    var closer = document.querySelector(".closer");
+    if (!float || !hero) return;
+    var pastHero = false, atCloser = false;
+    function apply() { float.classList.toggle("show", pastHero && !atCloser); }
+    if (!("IntersectionObserver" in window)) { float.classList.add("show"); return; }
+    new IntersectionObserver(function (entries) {
+      pastHero = !entries[0].isIntersecting;
+      apply();
+    }, { threshold: 0 }).observe(hero);
+    if (closer) {
+      new IntersectionObserver(function (entries) {
+        atCloser = entries[0].isIntersecting;
+        apply();
+      }, { threshold: 0.25 }).observe(closer);
+    }
   })();
 </script>
 </body>
