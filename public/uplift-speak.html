@@ -229,7 +229,7 @@
     h1 { font-variation-settings: 'wdth' 104; }
     header.hero { padding-top: 44px; }
   }
-  .print-only { display: none; }
+  .print-only, .print-footer { display: none; }
   .urlbox-print {
     margin-top: 22px; border: 3px solid var(--navy); border-radius: 14px;
     padding: 22px 26px; background: var(--surface);
@@ -250,14 +250,37 @@
      page height is set tall enough to keep everything on ONE page; re-measure
      with scripts/expert-page-to-pdf.sh if the content grows. */
   @media print {
-    @page { size: 1080px 3760px; margin: 0; }
+    /* 4:5 pages so it posts as a LinkedIn document: hero, then one page per
+       section, then the close. One tall page was unreadable on a phone. */
+    @page { size: 1080px 1350px; margin: 0; }
     html, body { background: #fff; }
-    .wrap { max-width: none; padding: 46px 60px 40px; }
+    .wrap { max-width: none; padding: 56px 64px; }
     .float, .review, .cta, .cta-note { display: none !important; }
     .print-only { display: block; }
-    header.hero { padding: 0 0 30px; }
-    section { padding: 32px 0 0; margin-top: 32px; break-inside: avoid; }
-    .closer { margin-top: 38px; }
+    header.hero { padding: 0; break-after: page; }
+    section {
+      padding: 0; margin-top: 0; border-top: none;
+      break-before: page; break-inside: avoid;
+    }
+    .closer { break-before: page; margin-top: 0; }
+    /* Every page is a slide, so its content sits centred rather than jammed
+       against the top with dead space underneath. Measured: the tallest block
+       is 901px against 1238px of printable height, so nothing clips. */
+    header.hero, section, .closer {
+      /* 1350 page, 56px padding top and bottom, and room for the fixed footer.
+         Going right up to 1238px spilled a near-empty extra page. */
+      min-height: 1140px; display: flex; flex-direction: column; justify-content: center;
+    }
+    .panel, .tile, .fmt, .repeat-note, ol.steps li { break-inside: avoid; }
+    /* position: fixed repeats on every printed page in Chrome, which is how
+       each slide carries the URL for anyone screenshotting a single one. */
+    .print-footer {
+      display: flex !important; position: fixed; bottom: 24px; left: 64px; right: 64px;
+      justify-content: space-between; gap: 20px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px;
+      letter-spacing: 0.04em; color: var(--muted);
+      border-top: 1px solid var(--line); padding-top: 12px;
+    }
     a { color: var(--ink); text-decoration: none; }
     .tile.taken { opacity: 1; }
   }
@@ -453,6 +476,11 @@
     <span>Fall 2026 · September 9 to November 6</span>
   </footer>
 
+</div>
+
+<div class="print-footer">
+  <span>Uplift Expert Sessions · TechUnited:NJ · Fall 2026</span>
+  <span>uplift2026.vercel.app/share-your-expertise</span>
 </div>
 
 <div class="float" id="float">
