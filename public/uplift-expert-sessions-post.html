@@ -60,8 +60,18 @@
     line-height: 1.5;
   }
 
+  .gate {
+    margin-top: 30px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold);
+    border-top: 1px solid rgba(232,196,106,0.32);
+    border-bottom: 1px solid rgba(232,196,106,0.32);
+    padding: 13px 0;
+  }
+  .gate .dot { color: rgba(232,196,106,0.5); }
+
   /* The number is the hero: it states the opportunity before any sentence. */
-  .hero { margin-top: 40px; display: flex; align-items: flex-start; gap: 34px; }
+  .hero { margin-top: 30px; display: flex; align-items: flex-start; gap: 34px; }
   .count {
     font-family: 'Archivo', sans-serif; font-weight: 800;
     font-size: 208px; line-height: 0.8; letter-spacing: -0.04em;
@@ -74,14 +84,14 @@
     font-variation-settings: 'wdth' 108; color: var(--pink-bright);
   }
   .count-side .t2 {
-    font-size: 22px; color: var(--dim); margin-top: 14px; line-height: 1.4; max-width: 15ch;
+    font-size: 21px; color: var(--dim); margin-top: 13px; line-height: 1.4; max-width: 24ch;
   }
 
   h1 {
     font-family: 'Archivo', sans-serif; font-weight: 800;
-    font-size: 62px; line-height: 1.0; letter-spacing: -0.022em;
+    font-size: 55px; line-height: 1.02; letter-spacing: -0.02em;
     font-variation-settings: 'wdth' 110;
-    margin-top: 40px; text-wrap: balance;
+    margin-top: 30px; text-wrap: balance;
   }
   h1 em { font-style: normal; color: var(--pink-bright); }
 
@@ -140,27 +150,35 @@
     <div class="org">Uplift Mentorship Program<br>TechUnited:NJ · Fall 2026</div>
   </header>
 
+  <div class="gate">
+    <span>A call for experts</span>
+    <span class="dot">·</span>
+    <span>By application</span>
+    <span class="dot">·</span>
+    <span>22 seats, then it closes</span>
+  </div>
+
   <div class="hero">
     <div class="count">22</div>
     <div class="count-side">
-      <div class="t1">speaking<br>slots open</div>
+      <div class="t1">slots for the<br>whole program</div>
       <div class="t2">September 11 to November 4</div>
     </div>
   </div>
 
-  <h1>Give 30 minutes.<br>Reach a room of founders <em>actively building</em>.</h1>
+  <h1>A closed room of founders,<br>pre-idea through seed.<br><em>22 seats, by application.</em></h1>
 
   <div class="facts">
-    <div class="fact"><span class="k">The room</span><span class="v">~70 NJ founders in the program, ~30 live</span></div>
+    <div class="fact"><span class="k">The room</span><span class="v">~70 NJ founders, pre-idea to seed raising</span></div>
+    <div class="fact"><span class="k">The access</span><span class="v">Cohort only. Not a public webinar.</span></div>
     <div class="fact"><span class="k">The format</span><span class="v">30 minutes, virtual, talk or fireside</span></div>
-    <div class="fact"><span class="k">Where you are</span><span class="v">Anywhere. Times are Eastern.</span></div>
     <div class="fact"><span class="k">The topic</span><span class="v">Yours. Usable on Monday.</span></div>
   </div>
 
   <div class="gets">
     <div class="get"><span class="tick">→</span><span>Streamed <b>directly to the founders</b>, then shared on LinkedIn and posted to YouTube</span></div>
     <div class="get"><span class="tick">→</span><span>We <b>clip it and send you the clips</b> to post on your own channels</span></div>
-    <div class="get"><span class="tick">→</span><span>Free, no pitch expected, and <b>up to three sessions</b> if you want a series</span></div>
+    <div class="get"><span class="tick">→</span><span>Speak from <b>anywhere</b>, free, no pitch expected, up to three sessions</span></div>
   </div>
 
   <div class="spacer"></div>
