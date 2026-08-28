@@ -41,6 +41,11 @@ const drop = (ref, title, description, required) =>
       choices: EDU_SESSIONS.map(s => ({ label: sessionLabel(s) })),
       alphabetical_order: false,
     }, validations: { required } });
+const group = (ref, title, description, fields) =>
+  ({ ref, title, type: "group", properties: {
+      ...(description ? { description } : {}),
+      show_button: true, button_text: "Continue", fields,
+    } });
 const choice = (ref, title, description, choices, opts = {}) =>
   ({ ref, title, type: "multiple_choice", properties: {
       ...(description ? { description } : {}),
@@ -51,6 +56,10 @@ const choice = (ref, title, description, choices, opts = {}) =>
 const form = {
   title: "Speak at Uplift · Fall 2026",
   type: "form",
+  // Uplift Speaker theme: navy on paper, Avenir Next (the brand print face),
+  // left-aligned, roomier type. Created via POST /themes; recreate and swap
+  // this href if the palette changes.
+  theme: { href: "https://api.typeform.com/themes/H3aJUxM2" },
   settings: {
     is_public: true,
     language: "en",
@@ -59,6 +68,10 @@ const form = {
     show_typeform_branding: true,
     meta: { allow_indexing: false },
   },
+  // Short on purpose. The full brief (what Uplift is, what a session is, the
+  // topic ideas, what past cohorts ran, the trade, what happens next) lives on
+  // /speak, which is the link that actually gets distributed. Repeating all of
+  // it here made an unreadable wall of text.
   welcome_screens: [{
     ref: "welcome",
     title: "Speak at Uplift. 30 minutes, a room of New Jersey founders.",
@@ -66,7 +79,7 @@ const form = {
       show_button: true,
       button_text: "Apply to speak",
       description:
-        "Uplift is TechUnited:NJ's founder mentorship program. Every founder in it gets matched with a mentor, and three times a week the cohort comes together for a 30 minute virtual session. This fall that is around 70 New Jersey founders in the program and 22 speaking slots between September 11 and November 4.\n\nEvery founder is welcome at every session, and attendance runs around 30 live, depending on the topic and what people are working on that week.\n\nThe topic is wide open, and every session has to be educational. It could be automating a workflow with AI. Defining your ICP. Tricks for pitching yourself. Public speaking, for founders who dread it. The mistakes you made building your company. How you actually built it, including the unglamorous middle years. What your business does every day that theirs should be doing too. If it teaches a founder something they can use on Monday, it belongs here.\n\nFor the bar, here is what our last two cohorts ran:\n\u2022 How to Pitch an Angel: What Investors Actually Look For, with Joanne Wilson.\n\u2022 Beyond the Logo: Building a Brand Customers Trust and Investors Understand, with Debra Rizzi.\n\u2022 Service as Strategy: How Customer Experience Becomes Your Competitive Edge, with Christina Perla of Makelab.\n\u2022 The Gap Between an Idea and a Customer, with Tom Sauer of Mile Square Labs.\n\u2022 Pitch Without a Deck, run as a peer workshop.\n\nRepeats are welcome. This is an entirely new group of founders, so any of those subjects is still fair game. Same topic, new room.\n\nWhat you get:\n• 30 minutes with active, screened founders who chose to be in the room, as a presentation or a fireside chat.\n• Streamed live on LinkedIn and posted to YouTube, so the talk outlives the room.\n• We record it, clip it, and hand you the clips to post on your own channels.\n• Your name, headshot, company, and links on the event page, the stream, and every clip.\n• A clean way to send the elevator back down and share what you know.\n\nWhat we need: a headshot, a short bio, your topic, the takeaways founders leave with, who you are aiming it at, your dates in order of preference, and whether you would want to do a short series.\n\nSet aside about seven minutes. We review every application and reply within one business day.",
+        "22 speaking slots this fall, September 11 to November 4. Each one is a 30 minute virtual session with New Jersey founders, streamed live on LinkedIn, posted to YouTube, and clipped for you to post on your own channels.\n\nThe full brief, including what past cohorts ran and what happens after you apply: uplift2026.vercel.app/speak\n\nAbout seven minutes. Have a headshot handy. We reply within one business day.",
     },
   }],
   thankyou_screens: [{
@@ -76,29 +89,33 @@ const form = {
       show_button: false,
       share_icons: false,
       description:
-        "Here is exactly what happens next.\n\n1. Within one business day we review everything and come back to you, either to confirm or with a couple of quick questions.\n2. Based on what is still open, you get your highest available date preference.\n3. We send you a calendar hold for that date.\n4. We set up a short sync call to map out the shape of the session, whether that is a fireside, a straight presentation, or a working session, and what the conversation should actually cover.\n\nAfter that we build the Luma event with your bio and headshot on it, promote it to the cohort, and send you the run of show and the stream details.\n\nQuestions in the meantime: uplift@techunited.co",
+        "1. We review everything and come back to you within one business day, to confirm or to ask a couple of quick questions.\n2. You get your highest available date preference.\n3. We send a calendar hold for that date.\n4. We get on a short sync call to shape the session.\n\nThen we build the Luma event with your bio and headshot on it, promote it to the cohort, and send you the run of show.\n\nQuestions: uplift@techunited.co",
     },
   }],
   fields: [
-    text("first_name", "First name", null),
-    text("last_name", "Last name", null),
-    { ref: "email", title: "Email", type: "email", properties: { description: "Where we send the confirmation and the run of show." }, validations: req },
-    text("company", "Company or organization", null),
-    text("role", "Your title or role", null),
-    { ref: "linkedin", title: "LinkedIn profile", type: "website", properties: { description: "We tag you when we promote the session and post the clips." }, validations: { required: false } },
-    { ref: "headshot", title: "Headshot", type: "file_upload", properties: { description: "Used on the Luma event page, the live stream, and the clips. Square or head-and-shoulders works best." }, validations: req },
-    long("bio", "Short speaker bio", "Third person, about 75 to 100 words. We use this word for word on the event page and to introduce you on the stream."),
-    choice("format", "Which format do you want?", "Every session runs 30 minutes on Zoom with time for founder questions. Pick the one that fits your material for now. Once you are booked we get on a short call together and settle the shape of it properly, so this is not binding.", [
+    group("you", "First, the basics", "Six quick ones, then the interesting part.", [
+      text("first_name", "First name", null),
+      text("last_name", "Last name", null),
+      { ref: "email", title: "Email", type: "email", properties: { description: "Where your confirmation and run of show go." }, validations: req },
+      text("company", "Company or organization", null),
+      text("role", "Your title or role", null),
+      { ref: "linkedin", title: "LinkedIn profile", type: "website", properties: { description: "Optional. We tag you when we promote the session." }, validations: { required: false } },
+    ]),
+    group("presented", "How you get introduced", "This is what founders see before you speak, so it is worth a minute.", [
+      { ref: "headshot", title: "Headshot", type: "file_upload", properties: { description: "Runs on the event page, the stream, and the clips." }, validations: req },
+      long("bio", "Short speaker bio", "Third person, 75 to 100 words. We use it word for word."),
+    ]),
+    choice("format", "Which format fits your material?", "Not binding. Once you are booked we get on a short call and settle the shape properly.", [
       { label: "Presentation. I teach with slides, then take questions." },
       { label: "Fireside chat. You interview me, founders ask questions." },
       { label: "Working session. Founders bring their own work and I coach live." },
       { label: "Not sure yet. Help me pick." },
     ]),
-    text("topic_title", "Session title", `How it will appear on the Luma event page and in promotion. Plain and specific beats clever. For the bar, here is what past sessions were called: ${PAST_SESSIONS.slice(0, 3).map(x => `"${x.topic}"`).join(", ")}. A repeat of any past subject is welcome, this is a brand new cohort of founders.`),
-    long("topic_summary", "What you would cover", "A paragraph on the substance of the 30 minutes. If you already have a deck, describe it here and attach or link it below."),
-    long("takeaways", "Three things founders will walk away with", "Write them as three lines. Concrete and usable beats inspirational."),
-    long("why_now", "Why this matters to founders right now", "What makes this the right topic for early stage New Jersey founders in the next few weeks?"),
-    choice("audience", "Who is this session aimed at?", "Every session is open to the whole cohort, so nobody gets excluded by your answer. This just tells us who to point the blurb at. The fall group runs from idea stage through seed, pre-revenue through profitable.", [
+    text("topic_title", "Session title", "How it appears on the event page. Plain and specific beats clever. Repeats of past subjects are welcome, this is a brand new cohort."),
+    long("topic_summary", "What would you cover?", "A paragraph is plenty. No deck required."),
+    long("takeaways", "Three things founders will walk away with", "Three lines. Concrete beats inspirational."),
+    long("why_now", "Why does this matter to them right now?"),
+    choice("audience", "Who are you aiming it at?", "Every session stays open to the whole cohort. This only tells us who to point the invitation at.", [
       { label: "Any founder in the cohort" },
       { label: "Idea stage, still shaping it" },
       { label: "MVP or early build" },
@@ -107,29 +124,37 @@ const form = {
       { label: "Raising, or about to" },
       { label: "Founders who want to understand how investors think" },
     ], { multi: true }),
-    { ref: "deck_link", title: "Link to your deck, or to a past talk", type: "website", properties: { description: "Optional. A recording of you speaking helps us a lot." }, validations: { required: false } },
-    { ref: "deck_file", title: "Attach your deck", type: "file_upload", properties: { description: "Optional, and a rough draft is fine. PDF or slides." }, validations: { required: false } },
-    long("resources", "Resources you would share with founders", "Optional. Templates, tools, reading, your own offers. We collect these in the cohort resource library with your name on them.", false),
-    choice("dates", "Which dates could you make?", "Check every slot that works. Sessions are 30 minutes at 12:30 PM or 5:30 PM ET, on Zoom and streamed live. You will rank your favorites next.", dateChoices, { multi: true }),
-    drop("date_1", "Your first choice date", "Rank your dates from here down, up to five. We work through them in your order, so if your first choice is still open, that is the one you get.", true),
-    drop("date_2", "Your second choice", "Rank as many as you can. The more you give us, the faster we can lock you in when two speakers want the same Friday.", false),
-    drop("date_3", "Your third choice", "Optional.", false),
-    drop("date_4", "Your fourth choice", "Optional.", false),
-    drop("date_5", "Your fifth choice", "Optional.", false),
-    choice("series", "Interested in making this a series?", "We can have you host up to three sessions across the program. Plenty of speakers have more than one talk in them, and a returning face builds real familiarity with the cohort.", [
-      { label: "Yes, I would take up to three sessions" },
-      { label: "Maybe, I would want to talk it through first" },
-      { label: "No, one session is right for me" },
-    ], { required: false }),
-    long("series_ideas", "If yes, what would the follow-up sessions be?", "Rough ideas are plenty. We book and prioritize your first session either way, then connect separately about the rest.", false),
-    choice("spoken_before", "Have you spoken to a founder audience before?", null, [
-      { label: "Often. This is a regular thing for me." },
-      { label: "A few times." },
-      { label: "This would be my first." },
-    ], { required: false }),
-    { ref: "consent", title: "We stream sessions live on LinkedIn, post the recording to YouTube, and cut short clips for social. Are you good with being recorded, streamed, and clipped, and with us using your name, headshot, and company to promote the session?", type: "legal", properties: { description: "We share the clips with you to post as well." }, validations: req },
-    long("anything_else", "Anything else we should know, or anything you want to ask?", null, false),
-    text("referral", "Who invited you, or how did you find Uplift?", null, false),
+    group("materials", "Anything to show us?", "All optional. Skip the lot if you would rather.", [
+      { ref: "deck_link", title: "Link to a deck, or to you speaking somewhere", type: "website", properties: { description: "A recording of you helps us a lot." }, validations: { required: false } },
+      { ref: "deck_file", title: "Or attach a deck", type: "file_upload", properties: { description: "A rough draft is fine." }, validations: { required: false } },
+      long("resources", "Resources you would share with founders", "Templates, tools, reading, your own offers. They go in the cohort library with your name on them.", false),
+    ]),
+    choice("dates", "Which dates could you make?", "Check every slot that works. All 30 minutes, at 12:30 PM or 5:30 PM ET. You rank your favorites next.", dateChoices, { multi: true }),
+    group("ranking", "Now rank your top five", "We work through them in your order. If your first choice is still open, that is the one you get. See what is currently open at uplift2026.vercel.app/speak", [
+      drop("date_1", "First choice", null, true),
+      drop("date_2", "Second choice", null, false),
+      drop("date_3", "Third choice", null, false),
+      drop("date_4", "Fourth choice", null, false),
+      drop("date_5", "Fifth choice", null, false),
+    ]),
+    group("series_group", "Want to make it a series?", "We can host you up to three times across the program. A returning face builds real familiarity with the cohort.", [
+      choice("series", "Interested in more than one session?", null, [
+        { label: "Yes, I would take up to three sessions" },
+        { label: "Maybe, I would want to talk it through first" },
+        { label: "No, one session is right for me" },
+      ], { required: false }),
+      long("series_ideas", "Rough ideas for the follow-ups", "We book and prioritize your first session either way, then connect separately about the rest.", false),
+    ]),
+    { ref: "consent", title: "We stream live on LinkedIn, post to YouTube, and cut clips. Are you good with that?", type: "legal", properties: { description: "Includes using your name, headshot, and company to promote the session. We send you the clips too." }, validations: req },
+    group("last", "Last few", null, [
+      choice("spoken_before", "Have you spoken to a founder audience before?", null, [
+        { label: "Often. This is a regular thing for me." },
+        { label: "A few times." },
+        { label: "This would be my first." },
+      ], { required: false }),
+      long("anything_else", "Anything else we should know, or want to ask us?", null, false),
+      text("referral", "Who invited you, or how did you find Uplift?", null, false),
+    ]),
   ],
 };
 
