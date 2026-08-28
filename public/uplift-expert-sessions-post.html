@@ -5,15 +5,14 @@
 <title>Uplift Expert Sessions · LinkedIn post graphic</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
 <style>
-  /* Single LinkedIn feed graphic, 1080x1350 (4:5). Rendered to PNG with
-     headless Chrome: scripts/post-graphic-to-png.sh
-     Design is standalone, not a render of the site: one number carries the
-     opportunity, one bar carries the call to action. */
+  /* Single LinkedIn feed graphic, 1080x1350 (4:5).
+     Render: bash scripts/post-graphic-to-png.sh
+     The headline states the ask in one sentence. The subjects are the
+     centrepiece. No speaker-benefit copy. */
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
     --navy: #110465;
-    --navy-deep: #0a0240;
     --pink: #d86697;
     --pink-bright: #f07daa;
     --paper: #f7f6fb;
@@ -24,133 +23,109 @@
   html, body { width: 1080px; height: 1350px; }
   body {
     font-family: 'Inter', system-ui, sans-serif;
-    background: var(--navy);
-    color: var(--paper);
-    overflow: hidden;
-    position: relative;
+    background: var(--navy); color: var(--paper);
+    overflow: hidden; position: relative;
   }
 
-  /* Depth: a pink bloom behind the number, and the brand mountain as a faint
-     watermark rather than a decorative sticker. */
   .bloom {
-    position: absolute; width: 900px; height: 900px; border-radius: 50%;
-    top: -230px; right: -280px;
-    background: radial-gradient(circle, rgba(216,102,151,0.34) 0%, rgba(216,102,151,0.10) 42%, rgba(17,4,101,0) 70%);
+    position: absolute; width: 880px; height: 880px; border-radius: 50%;
+    top: -260px; right: -300px;
+    background: radial-gradient(circle, rgba(216,102,151,0.32) 0%, rgba(216,102,151,0.09) 42%, rgba(17,4,101,0) 70%);
   }
   .mark {
     position: absolute; bottom: -150px; right: -180px; width: 700px; height: 280px;
     background: url("uplift-logo-white.png") right bottom / contain no-repeat;
-    opacity: 0.032;
+    opacity: 0.03;
   }
 
   .frame {
     position: relative; z-index: 2;
     width: 1080px; height: 1350px;
-    padding: 62px 70px 56px;
+    padding: 58px 70px 52px;
     display: flex; flex-direction: column;
   }
 
-  header {
-    display: flex; align-items: center; justify-content: space-between; gap: 24px;
-  }
-  .logo { width: 232px; height: 84px; background: url("uplift-logo-white.png") left center / contain no-repeat; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .logo { width: 214px; height: 78px; background: url("uplift-logo-white.png") left center / contain no-repeat; }
   .org {
-    font-family: 'JetBrains Mono', monospace; font-size: 19px; font-weight: 500;
-    letter-spacing: 0.13em; text-transform: uppercase; color: var(--dim); text-align: right;
-    line-height: 1.5;
+    font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim);
+    text-align: right; line-height: 1.5;
   }
 
-  .gate {
-    margin-top: 30px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-    font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 700;
-    letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold);
-    border-top: 1px solid rgba(232,196,106,0.32);
-    border-bottom: 1px solid rgba(232,196,106,0.32);
-    padding: 13px 0;
-  }
-  .gate .dot { color: rgba(232,196,106,0.5); }
-
-  /* The number is the hero: it states the opportunity before any sentence. */
-  .hero { margin-top: 30px; display: flex; align-items: flex-start; gap: 34px; }
-  .count {
-    font-family: 'Archivo', sans-serif; font-weight: 800;
-    font-size: 208px; line-height: 0.8; letter-spacing: -0.04em;
-    font-variation-settings: 'wdth' 118;
-    color: #fff;
-  }
-  .count-side { padding-top: 16px; }
-  .count-side .t1 {
-    font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 47px; line-height: 1.04;
-    font-variation-settings: 'wdth' 108; color: var(--pink-bright);
-  }
-  .count-side .t2 {
-    font-size: 21px; color: var(--dim); margin-top: 13px; line-height: 1.4; max-width: 24ch;
+  .eyebrow {
+    margin-top: 36px;
+    font-family: 'JetBrains Mono', monospace; font-size: 19px; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold);
   }
 
+  /* The ask, said plainly, in one sentence. */
   h1 {
+    margin-top: 16px;
     font-family: 'Archivo', sans-serif; font-weight: 800;
-    font-size: 50px; line-height: 1.03; letter-spacing: -0.02em;
-    font-variation-settings: 'wdth' 110;
-    margin-top: 26px; text-wrap: balance;
+    font-size: 65px; line-height: 1.0; letter-spacing: -0.025em;
+    font-variation-settings: 'wdth' 108;
+    text-wrap: balance;
   }
   h1 em { font-style: normal; color: var(--pink-bright); }
 
-  .meta {
-    margin-top: 22px; font-size: 21px; line-height: 1.45; color: #cfc8f2;
+  .terms { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 12px; }
+  .term {
+    font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500;
+    letter-spacing: 0.04em;
+    border: 1px solid rgba(255,255,255,0.22); border-radius: 8px;
+    padding: 9px 14px; color: #ded9ff;
   }
-  .meta b { color: #fff; font-weight: 600; }
+  .term b { color: #fff; font-weight: 700; }
 
-  .block { margin-top: 26px; }
+  .block { margin-top: 42px; }
   .blabel {
-    font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700;
     letter-spacing: 0.16em; text-transform: uppercase; color: var(--pink-bright);
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
-  .chips { display: flex; flex-wrap: wrap; gap: 9px; }
-  .chip {
-    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.16);
-    border-radius: 999px; padding: 10px 18px; font-size: 20px; font-weight: 500; color: #fff;
-  }
-  .chip.open { border-color: rgba(240,125,170,0.75); color: #ffd7e7; }
 
-  .past { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 22px; }
+  /* Subjects: the centrepiece, so they take the largest surface here. */
+  .subjects { display: flex; flex-wrap: wrap; gap: 10px; }
+  .subj {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 999px; padding: 14px 22px;
+    font-size: 24px; font-weight: 600; color: #fff;
+  }
+  .subj.open { background: rgba(240,125,170,0.16); border-color: var(--pink-bright); color: #ffdcea; }
+  .subj-note { margin-top: 18px; font-size: 20px; color: var(--dim); }
+
+  .past { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 26px; }
   .prow {
     display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.13); padding-bottom: 7px;
+    border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 9px;
   }
-  .prow .pt { font-size: 19px; font-weight: 600; color: #fff; line-height: 1.2; }
+  .prow .pt { font-size: 20px; font-weight: 600; color: #fff; line-height: 1.2; }
   .prow .pw { font-size: 16px; color: #b9b0ec; white-space: nowrap; }
-
-  .need { display: flex; flex-wrap: wrap; gap: 10px 14px; font-size: 20px; color: #e6e2fa; }
-  .need span { display: flex; align-items: baseline; gap: 8px; }
-  .need .n {
-    font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700;
-    color: var(--pink-bright);
-  }
 
   .spacer { flex: 1; }
 
-  /* The call to action reads as a button even though nothing here is clickable. */
   .cta {
-    background: var(--pink); border-radius: 18px; padding: 24px 28px;
-    display: flex; align-items: center; justify-content: space-between; gap: 26px;
+    margin-top: 30px;
+    background: var(--pink); border-radius: 18px; padding: 22px 28px;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
   }
   .cta .lead {
-    font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700;
     letter-spacing: 0.16em; text-transform: uppercase; color: #3d0a22;
   }
   .cta .url {
     font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 30px;
-    letter-spacing: -0.02em; color: #23021a; margin-top: 8px;
-    font-variation-settings: 'wdth' 98;
-    white-space: nowrap;
+    letter-spacing: -0.02em; color: #23021a; margin-top: 7px;
+    font-variation-settings: 'wdth' 98; white-space: nowrap;
   }
   .cta .aside {
-    text-align: right; font-size: 17px; color: #4a0c28; line-height: 1.35; flex: none; max-width: 13ch;
+    text-align: right; font-size: 17px; color: #4a0c28; line-height: 1.35;
+    flex: none; max-width: 14ch;
   }
   .foot {
-    margin-top: 22px; display: flex; justify-content: space-between; gap: 20px;
-    font-family: 'JetBrains Mono', monospace; font-size: 17px; color: var(--dim);
+    margin-top: 18px; display: flex; justify-content: space-between; gap: 20px;
+    font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--dim);
     letter-spacing: 0.05em;
   }
 </style>
@@ -165,38 +140,35 @@
     <div class="org">Uplift Mentorship Program<br>TechUnited:NJ · Fall 2026</div>
   </header>
 
-  <div class="gate">
-    <span>A call for experts</span>
-    <span class="dot">·</span>
-    <span>By application</span>
-    <span class="dot">·</span>
-    <span>22 seats, then it closes</span>
+  <p class="eyebrow">A call for experts</p>
+
+  <h1>Teach one <em>30 minute insight session</em> to a closed room of New Jersey founders.</h1>
+
+  <div class="terms">
+    <span class="term"><b>22</b> sessions this fall</span>
+    <span class="term">Sept 11 to Nov 4</span>
+    <span class="term">Virtual</span>
+    <span class="term">By application</span>
+    <span class="term">~70 founders, idea stage to seed</span>
   </div>
-
-  <div class="hero">
-    <div class="count">22</div>
-    <div class="count-side">
-      <div class="t1">slots for the<br>whole program</div>
-      <div class="t2">September 11 to November 4</div>
-    </div>
-  </div>
-
-  <h1>A closed room of founders,<br>pre-idea through seed.<br><em>22 seats, by application.</em></h1>
-
-  <p class="meta"><b>~70 New Jersey founders</b> in the program, roughly 30 live in the room.
-    30 minutes, virtual, as a talk or a fireside. <b>Cohort only, not a public webinar.</b></p>
 
   <div class="block">
-    <p class="blabel">Talk about</p>
-    <div class="chips">
-      <span class="chip">Automating with AI</span>
-      <span class="chip">Defining your ICP</span>
-      <span class="chip">Pitching yourself</span>
-      <span class="chip">Public speaking</span>
-      <span class="chip">Mistakes you made</span>
-      <span class="chip">How you built it</span>
-      <span class="chip open">Your own subject</span>
+    <p class="blabel">Subjects we are looking for</p>
+    <div class="subjects">
+      <span class="subj">Automating with AI</span>
+      <span class="subj">Defining your ICP</span>
+      <span class="subj">Go-to-market</span>
+      <span class="subj">Pitch and narrative</span>
+      <span class="subj">Fundraising strategy</span>
+      <span class="subj">Hiring and leadership</span>
+      <span class="subj">Pricing</span>
+      <span class="subj">Operational scaling</span>
+      <span class="subj">Public speaking</span>
+      <span class="subj">Founder decision-making</span>
+      <span class="subj">The mistakes you made</span>
+      <span class="subj open">Your own subject</span>
     </div>
+    <p class="subj-note">If a founder can use it on Monday, it fits.</p>
   </div>
 
   <div class="block">
@@ -209,25 +181,14 @@
     </div>
   </div>
 
-  <div class="block">
-    <p class="blabel">What we need from you</p>
-    <div class="need">
-      <span><span class="n">01</span> Headshot</span>
-      <span><span class="n">02</span> Short bio</span>
-      <span><span class="n">03</span> Your topic</span>
-      <span><span class="n">04</span> Three takeaways founders leave with</span>
-      <span><span class="n">05</span> Three dates, ranked</span>
-    </div>
-  </div>
-
   <div class="spacer"></div>
 
   <div class="cta">
     <div>
-      <div class="lead">Everything, including the form</div>
+      <div class="lead">Apply, seven minutes</div>
       <div class="url">uplift2026.vercel.app/share-your-expertise</div>
     </div>
-    <div class="aside">Seven minutes.<br>We reply within one business day.</div>
+    <div class="aside">We reply within one business day.</div>
   </div>
 
   <div class="foot">
