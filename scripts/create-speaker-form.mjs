@@ -77,7 +77,7 @@ const form = {
     title: "Speak at Uplift. 30 minutes, a room of New Jersey founders.",
     properties: {
       show_button: true,
-      button_text: "Apply to speak",
+      button_text: "Share your expertise",
       description:
         "22 speaking slots this fall, September 11 to November 4. Each one is a 30 minute virtual session with New Jersey founders, streamed live on LinkedIn, posted to YouTube, and clipped for you to post on your own channels.\n\nThe full brief, including what our last program ran and what happens after you apply: uplift2026.vercel.app/expert\n\nAbout seven minutes. Have a headshot handy. We reply within one business day.",
     },
@@ -109,12 +109,11 @@ const form = {
       long("bio", "Short speaker bio", "Third person, 75 to 100 words. We use it word for word."),
     ]),
     group("session", "3 of 7 · Your session", "The substance. Nothing here needs to be finished work, and we shape the final version together on a call once you are booked.", [
-      choice("format", "Which format fits your material?", "Not binding, and we can talk it through.", [
+      choice("format", "Which format are you proposing?", "Pick one, or propose your own and tell us how it works. We confirm the details with you on a call before the day.", [
         { label: "Presentation. I teach with slides, then take questions." },
         { label: "Fireside chat. You interview me, founders ask questions." },
         { label: "Working session. Founders bring their own work and I coach live." },
-        { label: "Not sure yet. Help me pick." },
-      ]),
+      ], { other: true }),
       text("topic_title", "Proposed session title", "A working title is all we need. We may tighten it for the event page and promotion, and we will always run any change past you first. Repeats of past subjects are welcome, the founders are entirely different this program."),
       long("topic_summary", "What would you cover?", "A paragraph is plenty. No deck required."),
       long("takeaways", "Three things founders will walk away with", "Three lines. Concrete beats inspirational."),

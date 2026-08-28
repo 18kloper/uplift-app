@@ -118,9 +118,9 @@
   .review-note { font-size: 0.89rem; color: var(--muted); }
 
   /* Single-line rows: denser than the stacked tiles, one idea or session per line. */
-  .rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 6px 22px; }
+  .rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(345px, 1fr)); gap: 6px 26px; }
   /* Session rows carry a title and a speaker, so they need the room to stay on one line. */
-  .rows.wide { grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); }
+  .rows.wide { grid-template-columns: 1fr; }
   .row {
     display: flex; align-items: baseline; gap: 9px; padding: 7px 0;
     border-bottom: 1px solid var(--line-soft); font-size: 0.93rem;
@@ -258,7 +258,6 @@
         <li><a href="#asks">What the form asks for</a></li>
         <li><a href="#trade">What you get out of it</a></li>
         <li><a href="#dates">Which dates are available</a></li>
-        <li><a href="#process">What happens after you apply</a></li>
       </ol>
       <p class="review-note">The apply button follows you down the page. Click it the moment this
         feels like you.</p>
@@ -305,36 +304,36 @@
         founders are entirely different this program.</p>
     </div>
 
-    <p class="group-label">Pick a format <em>we finalize it with you on a call</em></p>
+    <p class="group-label">Propose a format <em>we confirm the details with you on a call</em></p>
     <div class="fmts">
       <div class="fmt"><h3>Presentation</h3><p>You teach with slides, then take questions.</p></div>
       <div class="fmt"><h3>Fireside chat</h3><p>We interview you, founders ask questions.</p></div>
       <div class="fmt"><h3>Working session</h3><p>Founders bring their own work, you coach live.</p></div>
-      <div class="fmt"><h3>Not sure yet</h3><p>Say so on the form and we help you pick.</p></div>
+      <div class="fmt"><h3>Something else</h3><p>Propose your own, and tell us how it runs.</p></div>
     </div>
 
     <p class="group-label">Ideas to start from <em>none required</em></p>
     <div class="rows">
-      <div class="row"><span class="t">Automating with AI</span></div>
-      <div class="row"><span class="t">Defining your ICP</span></div>
-      <div class="row"><span class="t">Pitching yourself</span></div>
-      <div class="row"><span class="t">Public speaking</span></div>
-      <div class="row"><span class="t">Mistakes you made</span></div>
-      <div class="row"><span class="t">How you built it</span></div>
-      <div class="row"><span class="t">Your daily playbook</span></div>
-      <div class="row"><span class="t">Your own subject</span></div>
+      <div class="row"><span class="t">Automating with AI</span><span class="s">one real workflow</span></div>
+      <div class="row"><span class="t">Defining your ICP</span><span class="s">who to sell to, and who to stop</span></div>
+      <div class="row"><span class="t">Pitching yourself</span><span class="s">what actually lands</span></div>
+      <div class="row"><span class="t">Public speaking</span><span class="s">for founders who dread it</span></div>
+      <div class="row"><span class="t">Mistakes you made</span><span class="s">told honestly</span></div>
+      <div class="row"><span class="t">How you built it</span><span class="s">the unglamorous years</span></div>
+      <div class="row"><span class="t">Your daily playbook</span><span class="s">what they should copy</span></div>
+      <div class="row"><span class="t">Your own subject</span><span class="s">if they can use it, it fits</span></div>
     </div>
 
     <p class="group-label">What our last program ran <em>fair game to repeat</em></p>
     <div class="rows wide">
-      <div class="row"><span class="t">How to Pitch an Angel</span><span class="who">Joanne Wilson, Gotham Gal Ventures</span></div>
-      <div class="row"><span class="t">Inside Angel Investing</span><span class="who">Gina Tedesco, Golden Seed Ventures</span></div>
-      <div class="row"><span class="t">Service as Strategy</span><span class="who">Christina Perla, Makelab</span></div>
-      <div class="row"><span class="t">Beyond the Logo</span><span class="who">Debra Rizzi</span></div>
-      <div class="row"><span class="t">Earning the Room</span><span class="who">Chrissy Buteas</span></div>
-      <div class="row"><span class="t">The Gap Between an Idea and a Customer</span><span class="who">Tom Sauer, Mile Square Labs</span></div>
-      <div class="row"><span class="t">Pattern Recognition = Pivot Fuel</span><span class="who">Mark Nelson, Foodie Box Love</span></div>
-      <div class="row"><span class="t">Pitch Without a Deck</span><span class="who">Peer workshop</span></div>
+      <div class="row"><span class="t">How to Pitch an Angel</span><span class="s">What investors actually look for</span><span class="who">Joanne Wilson, Gotham Gal Ventures</span></div>
+      <div class="row"><span class="t">Inside Angel Investing</span><span class="s">Building relationships before you raise</span><span class="who">Gina Tedesco, Golden Seed Ventures</span></div>
+      <div class="row"><span class="t">Service as Strategy</span><span class="s">Customer experience as competitive edge</span><span class="who">Christina Perla, Makelab</span></div>
+      <div class="row"><span class="t">Beyond the Logo</span><span class="s">A brand customers trust and investors understand</span><span class="who">Debra Rizzi</span></div>
+      <div class="row"><span class="t">Earning the Room</span><span class="s">Visibility, credibility, and access</span><span class="who">Chrissy Buteas</span></div>
+      <div class="row"><span class="t">The Gap Between an Idea and a Customer</span><span class="s">Getting from one to the other</span><span class="who">Tom Sauer, Mile Square Labs</span></div>
+      <div class="row"><span class="t">Pattern Recognition = Pivot Fuel</span><span class="s">Reading your own signals</span><span class="who">Mark Nelson, Foodie Box Love</span></div>
+      <div class="row"><span class="t">Pitch Without a Deck</span><span class="s">Founders on the spot</span><span class="who">Peer workshop</span></div>
     </div>
   </section>
 
@@ -394,26 +393,12 @@
     <p class="caption" id="slots-note"></p>
   </section>
 
-  <section id="process">
-    <div class="sec-head">
-      <p class="eyebrow">The process</p>
-      <h2>After you apply</h2>
-    </div>
-    <ol class="steps">
-      <li><div class="step-text"><h3>We reply within one business day</h3></div></li>
-      <li><div class="step-text"><h3>You get your highest available date</h3></div></li>
-      <li><div class="step-text"><h3>A calendar hold lands for it</h3></div></li>
-      <li><div class="step-text"><h3>Short sync call to shape the session</h3></div></li>
-      <li><div class="step-text"><h3>We build the event, promote it, and send you the run of show</h3></div></li>
-    </ol>
-  </section>
-
   <div class="closer">
     <p class="eyebrow">One link, seven minutes</p>
     <h2>Send the elevator back down</h2>
     <p>If you have done the thing, take a slot.</p>
     <div class="cta-row">
-      <a class="cta" href="https://form.typeform.com/to/uUjnsoDm" data-tf-popup="uUjnsoDm" data-tf-size="100" data-tf-medium="expert-page" data-tf-iframe-props="title=Uplift Expert Session application">Apply to lead a session &nbsp;→</a>
+      <a class="cta" href="https://form.typeform.com/to/uUjnsoDm" data-tf-popup="uUjnsoDm" data-tf-size="100" data-tf-medium="expert-page" data-tf-iframe-props="title=Uplift Expert Session application">Apply to share your expertise &nbsp;→</a>
       <span class="cta-note">Questions first? <a href="mailto:uplift@techunited.co">uplift@techunited.co</a></span>
     </div>
   </div>
@@ -426,7 +411,7 @@
 </div>
 
 <div class="float" id="float">
-  <a class="cta" href="https://form.typeform.com/to/uUjnsoDm" data-tf-popup="uUjnsoDm" data-tf-size="100" data-tf-medium="expert-page" data-tf-iframe-props="title=Uplift Expert Session application">Apply to lead a session &nbsp;→</a>
+  <a class="cta" href="https://form.typeform.com/to/uUjnsoDm" data-tf-popup="uUjnsoDm" data-tf-size="100" data-tf-medium="expert-page" data-tf-iframe-props="title=Uplift Expert Session application">Apply to share your expertise &nbsp;→</a>
 </div>
 
 <script>
