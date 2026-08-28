@@ -230,14 +230,22 @@ export default async function handler(req, res) {
     ]);
 
     const isFallEra = (cutoff) => (item) => item.submitted_at && new Date(item.submitted_at) >= cutoff;
-    const mentees = menteeForm.items.filter(isFallEra(MENTEE_FALL_CUTOFF)).map(i => parseMentee(menteeForm.titles, i))
+    // A decided applicant must never be hidden by the era cutoff: Kennedy
+    // approved four pre-cutoff applicants on Aug 26 (before the cutoff dates
+    // were corrected) and the corrected filter made those approvals vanish
+    // from the board — which reads as lost work. An explicit approve/reject
+    // outranks the submitted-at heuristic; "clear" undoes that and lets the
+    // cutoff hide them again.
+    const isDecided = (decisions) => (item) => ["approved", "rejected"].includes(decisions.latest[item.response_id]);
+    const keep = (cutoff, decisions) => (item) => isFallEra(cutoff)(item) || isDecided(decisions)(item);
+    const mentees = menteeForm.items.filter(keep(MENTEE_FALL_CUTOFF, menteeDecisions)).map(i => parseMentee(menteeForm.titles, i))
       // The "participated in Uplift before?" gate (added 2026-08-26) bounces
       // returning mentees to an ending screen after one answer; Typeform still
       // records that as a response, which lands here as a nameless, emailless
       // row nobody should be approving.
       .filter(m => m.email || m.first || m.last)
       .sort((a, b) => (b.submittedAt || "").localeCompare(a.submittedAt || ""));
-    const mentors = mentorForm.items.filter(isFallEra(MENTOR_FALL_CUTOFF)).map(i => parseMentor(mentorForm.titles, i))
+    const mentors = mentorForm.items.filter(keep(MENTOR_FALL_CUTOFF, mentorDecisions)).map(i => parseMentor(mentorForm.titles, i))
       .sort((a, b) => (b.submittedAt || "").localeCompare(a.submittedAt || ""));
 
     // Overlay live matches + decisions + eligibility
