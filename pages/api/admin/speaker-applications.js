@@ -7,7 +7,7 @@
 // ?fresh=1 bypasses.
 
 import { getSheetsClient } from "../../../lib/sheets-helper";
-import { EDU_SESSIONS, sessionNumberFromLabel, ANY_DATE_CHOICE } from "../../../lib/edu-sessions";
+import { EDU_SESSIONS, sessionNumberFromLabel } from "../../../lib/edu-sessions";
 
 const SPEAKER_FORM = "uUjnsoDm";
 
@@ -49,17 +49,15 @@ function parseSpeaker(refs, item) {
   const get = makeGetter(refs, item);
   const first = get("first_name") || "";
   const last = get("last_name") || "";
-  const dateLabels = get("dates") || [];
-  const labels = Array.isArray(dateLabels) ? dateLabels : [dateLabels];
-  const anyDate = labels.includes(ANY_DATE_CHOICE);
-  // Ranked picks, in the applicant's own order of preference. Someone can rank
-  // a date they forgot to check in the multi-select, so the two are unioned
-  // before anything downstream reads availability.
+  // Up to five dates in the applicant's own order of preference, plus whether
+  // they would take a slot outside that list. Typeform cannot enforce that the
+  // five dropdowns hold five different dates, so duplicates are collapsed here
+  // rather than showing a fake five-deep ranking.
   const ranked = ["date_1", "date_2", "date_3", "date_4", "date_5"]
     .map(ref => sessionNumberFromLabel(get(ref)))
     .filter((n, i, arr) => n !== null && arr.indexOf(n) === i);
-  const checked = labels.map(sessionNumberFromLabel).filter(n => n !== null);
-  const requested = [...ranked, ...checked.filter(n => !ranked.includes(n))];
+  const anyDate = /^yes/i.test(get("flexible") || "");
+  const requested = ranked;
   return {
     id: item.response_id,
     submittedAt: item.submitted_at,

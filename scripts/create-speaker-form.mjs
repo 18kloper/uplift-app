@@ -10,7 +10,7 @@
 
 import fs from "fs";
 import path from "path";
-import { EDU_SESSIONS, sessionLabel, ANY_DATE_CHOICE } from "../lib/edu-sessions.js";
+import { EDU_SESSIONS, sessionLabel } from "../lib/edu-sessions.js";
 import { PAST_SESSIONS } from "../lib/past-sessions.js";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
@@ -24,11 +24,6 @@ for (const f of [".env.local", ".env"]) {
 }
 const TOKEN = process.env.TYPEFORM_TOKEN;
 if (!TOKEN) { console.error("TYPEFORM_TOKEN not found in .env.local"); process.exit(1); }
-
-const dateChoices = [
-  { label: ANY_DATE_CHOICE },
-  ...EDU_SESSIONS.map(s => ({ label: sessionLabel(s) })),
-];
 
 const req = { required: true };
 const text = (ref, title, description, required = true) =>
@@ -134,13 +129,16 @@ const form = {
       long("resources", "Resources or tools you would hand them", "Templates, playbooks, frameworks, tools you swear by, reading, your own offers or discounts. We collect these in the cohort resource library with your name on them.", false),
       { ref: "deck_link", title: "Link to a deck, a past talk, or a file", type: "website", properties: { description: "Optional. A Drive or Dropbox link is fine, and a recording of you speaking helps us a lot." }, validations: { required: false } },
     ]),
-    page("dates_section", "5 of 7 · Your dates, in order of preference", "All sessions are 30 minutes, at 12:30 PM or 5:30 PM Eastern. Everything is virtual, so you can join from any state. Just check the time lands for you. See what is currently open at uplift2026.vercel.app/share-your-expertise", [
-      choice("dates", "Which dates could you make?", "Check every slot that works.", dateChoices, { multi: true }),
-      drop("date_1", "First choice", "We work down your ranking, so if this one is open, it is the one you get.", true),
-      drop("date_2", "Second choice", null, false),
-      drop("date_3", "Third choice", null, false),
-      drop("date_4", "Fourth choice", null, false),
-      drop("date_5", "Fifth choice", null, false),
+    page("dates_section", "5 of 7 · Your dates, ranked", "Pick up to five different dates and put them in order, no repeats. All sessions are 30 minutes, at 12:30 PM or 5:30 PM Eastern. Everything is virtual, so you can join from any state. Just check the time lands for you. See what is currently open at uplift2026.vercel.app/share-your-expertise", [
+      drop("date_1", "1. First choice", "We work down your list in order, so if this one is open, it is the one you get. Use a different date on each line below.", true),
+      drop("date_2", "2. Second choice", null, false),
+      drop("date_3", "3. Third choice", null, false),
+      drop("date_4", "4. Fourth choice", null, false),
+      drop("date_5", "5. Fifth choice", null, false),
+      choice("flexible", "If none of those five work out, are you open to other dates?", null, [
+        { label: "Yes, any open slot works for me" },
+        { label: "No, only the ones I listed" },
+      ], { required: false }),
     ]),
     page("series_group", "6 of 7 · Want to make it a series?", "We can host you up to three times across the program. A returning face builds real familiarity with the cohort.", [
       choice("series", "Interested in more than one session?", null, [
