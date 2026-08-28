@@ -111,7 +111,7 @@ const form = {
       { label: "Working session. Founders bring their own work and I coach live." },
       { label: "Not sure yet. Help me pick." },
     ]),
-    text("topic_title", "Session title", "How it appears on the event page. Plain and specific beats clever. Repeats of past subjects are welcome, this is a brand new cohort."),
+    text("topic_title", "Proposed session title", "A working title is all we need. We may tighten it for the event page and promotion, and we will always run any change past you first. Plain and specific beats clever. Repeats of past subjects are welcome, this is a brand new cohort."),
     long("topic_summary", "What would you cover?", "A paragraph is plenty. No deck required."),
     long("takeaways", "Three things founders will walk away with", "Three lines. Concrete beats inspirational."),
     long("why_now", "Why does this matter to them right now?"),
