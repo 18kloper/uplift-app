@@ -1,9 +1,9 @@
 # public/uplift-speaker-onepagers.html: one Letter page per booked speaker.
 #
-# Built to be skimmed in seconds, so it stays deliberately plain: a header line,
-# the title, the three blocks Kennedy liked (about the session, what you leave
-# with, about the speaker), what we need, and what the sync call settles.
-# No zone labels, no panel grid, no recommendation: this is shared externally.
+# Built to be skimmed in seconds: name and contact, a when / format / length
+# strip, their title beside our suggestion, a confirmation gate, the default
+# event copy, what they said in their application, and what we need from them.
+# No recommendation and no internal judgement: this is shared externally.
 
 SPEAKERS = [
   dict(
@@ -19,9 +19,7 @@ SPEAKERS = [
     email="steve@solentstrategies.com",
     title="Marketing that Maps the Customer Journey",
     suggestion="Yours is good. We would publish it exactly as written.",
-    about=("Every founder is told to do marketing, and everyone they ask has a different opinion. Steve Cummins, a "
-           "fractional CMO with more than 20 years in B2B marketing, walks the customer journey stage by stage, shows "
-           "which tactics belong where, and closes on the one or two things worth doing well."),
+    about="Every founder is told to do marketing, and everyone they ask has a different opinion. Steve Cummins, a fractional CMO with more than 20 years in B2B marketing, starts from the classic marketing funnel and shows which tactics belong at which stage, then makes the case that the customer journey is no longer linear and needs a more nuanced read. It is built for founders who are pre-revenue and testing the market, already generating revenue, or raising, and for anyone who knows they should be marketing but has no spare time and a small budget. The session closes on the one or two things worth doing well rather than covering every base. Steve is also sharing a one-pager built for this session and an 8-page eBook, Building a Realistic Marketing Strategy.",
     aways=["Define the goal of your marketing, then match tactics to each stage",
            "What has to be in place before you spend: a clear message, a defined reachable audience",
            "Do one or two things well rather than covering every base"],
@@ -30,9 +28,9 @@ SPEAKERS = [
          "reaching a broader audience, and executing a marketing plan tailored for their business. Steve has an "
          "engineering background and more than 20 years experience in global B2B marketing with name-brand companies "
          "and feisty start-ups. He also coaches and mentors marketers and teams of one."),
-    need=[("Your 30 minutes", "Roughly 20 minutes of content, then questions. We hold the clock."),
-          ("Sync call", "15 minutes with us the week before. We send the invite."),
-          ("Calendar hold", "For the session itself. Lands in your inbox as soon as you confirm the date.")],
+    need=[("Calendar hold", "For the educational session only. Lands as soon as you confirm the date."),
+          ("Sync call", "15 minutes the week before. We will coordinate a time with you."),
+          ("Your 30 minutes", "Roughly 20 minutes of content, then questions. We hold the clock.")],
     settle=["Which one or two tactics we close on, so the room leaves with a decision",
             "How much of the 30 minutes you want to keep for questions",
             "Whether your one-pager and eBook go into the cohort resource library under your name"],
@@ -45,14 +43,12 @@ SPEAKERS = [
     brings="Workbench Ventures GTM Weekly newsletter.",
     deck_state="None. Fireside format.",
     date_line="Session 2<br>Mon, Sept 14 · 12:30 PM ET", fmt_line="Fireside chat<br>we interview, founders ask", slides_note=False,
-    aim="Any founder in the cohort. The worries overlap whatever the stage: fundraising, team building, go-to-market, managing investors.",
+    aim="Any founder in the cohort. Whatever stage you are at, the same problems show up: raising money, building a team, getting to market, and managing investors.",
     linkedin="linkedin.com/in/ericschmalzbauer", applied="Aug 31", role="Former co-founder &amp; CEO, Prospective",
     email="eric.schmalzbauer@gmail.com",
     title="B2B: from idea &gt; funding &gt; failure",
     suggestion="Yours is good. We would publish it exactly as written.",
-    about=("Founders hear success stories constantly and almost never a first-hand account of the other outcome. "
-           "Eric Schmalzbauer walks the whole arc of his venture-backed B2B startup: idea, fundraising, team "
-           "building, and the decision to wind it down. Candid conversation, not a polished talk."),
+    about="Founders hear success stories constantly and almost never a first-hand account of the other outcome. Eric Schmalzbauer walks the whole arc of his venture-backed B2B startup as a first-time founder: the idea, the fundraising, building the team, and when and why to close up shop, then what he will change for his next business and what he will do more of. Whatever stage you are at the same problems show up, raising money, building a team, getting to market, managing investors, so this one is for any founder in the cohort. Expect a candid conversation rather than a polished talk. Eric is also sharing the Workbench Ventures GTM Weekly newsletter.",
     aways=["Tangible examples of what worked and what did not inside a venture-backed startup",
            "As a founder you always have to be selling, in some form",
            "Honest acknowledgement that the job is very lonely"],
@@ -62,16 +58,16 @@ SPEAKERS = [
          "analytics. Eric previously held senior leadership roles across financial market infrastructure and "
          "enterprise technology. As a Venture Partner at REFASHIOND Ventures, he advises early-stage founders on "
          "product-market fit, fundraising, and scaling."),
-    need=[("Your 30 minutes", "A 30 minute conversation, questions from founders throughout. We hold the clock."),
-          ("Sync call", "15 minutes with us the week before. We send the invite."),
-          ("Calendar hold", "For the session itself. Lands in your inbox as soon as you confirm the date.")],
+    need=[("Calendar hold", "For the educational session only. Lands as soon as you confirm the date."),
+          ("Sync call", "15 minutes the week before. We will coordinate a time with you."),
+          ("Your 30 minutes", "A 30 minute conversation, questions from founders throughout. We hold the clock.")],
     settle=["What you are comfortable naming out loud: numbers, timelines, the decision to close",
             "The three questions you wish someone had asked you at the start, which become the run of show",
             "Who conducts the fireside with you, and how much time we leave for founder questions"],
   ),
   dict(
     name="Julia Kahky",
-    audience="Every option selected: any founder in the cohort, idea stage, MVP or early build, pre-revenue, generating revenue, raising, and founders who want to understand investors",
+    audience="Every option selected, idea stage through raising, including founders who want to understand investors",
     their_cover="Everything learned trying to sell software to enterprise customers and highly regulated markets. What works and what does not.",
     their_why="Everything online talks about how companies succeed, when people learn far more from avoiding the mistakes of companies that failed.",
     brings="Her community, The Atrium. The post-mortem deck. A list of AI tools, tips and tricks.",
@@ -82,17 +78,15 @@ SPEAKERS = [
     email="julia.m.kahky@gmail.com",
     title="From startup to dissolution: a post-mortem",
     suggestion="Yours is good. One option: add the subtitle <b>Selling into enterprise and regulated markets</b>, so it reads distinctly beside another founder post-mortem in the same series. Entirely your call.",
-    about=("Everything online is about how companies succeed. Julia Kahky walks the post-mortem of a startup that "
-           "closed, specifically what she learned selling software to enterprise and highly regulated customers: "
-           "the problems worth avoiding early, product-market fit, and how long sales cycles really take."),
+    about="Everything online talks about how companies succeed, when founders learn far more from avoiding the mistakes of companies that failed. Julia Kahky walks the post-mortem of a startup that closed, specifically what she learned trying to sell software to enterprise customers and into highly regulated markets: what worked, what did not, the problems worth avoiding early, and how long sales cycles really take. Useful at any stage from idea through raising, and especially if you are selling to enterprise or regulated buyers where cycles run long and requirements arrive late. Julia is also sharing her community, The Atrium, and a list of AI tools, tips and tricks.",
     aways=["Problems to avoid early on", "Product-market fit", "Sales cycles"],
     bio=("Julia Kahky is VP of Operations at a software company in the aviation industry, with prior experience as a "
          "chief of staff and in financial technology and operations in sports media. She started her career in "
          "finance and has worked across Fortune 15 companies, 500-person companies, and startups, with experience "
          "spanning finance, operations, marketing, revenue operations, and HR."),
-    need=[("Your 30 minutes", "Roughly 20 minutes of content, then questions. We hold the clock."),
-          ("Sync call", "15 minutes with us the week before. We send the invite."),
-          ("Calendar hold", "For the session itself. Lands in your inbox as soon as you confirm the date.")],
+    need=[("Calendar hold", "For the educational session only. Lands as soon as you confirm the date."),
+          ("Sync call", "15 minutes the week before. We will coordinate a time with you."),
+          ("Your 30 minutes", "Roughly 20 minutes of content, then questions. We hold the clock.")],
     settle=["How each takeaway becomes something a founder can act on the following Monday",
             "How much of the 30 minutes you want to keep for questions",
             "Where The Atrium and your AI tools list fit in the resource library"],
@@ -104,7 +98,7 @@ CSS = """
   @page { size: 8.5in 11in; margin: 0; }
   :root { --ink: #110465; --body: #35324f; --soft: #6f6a8c; --pink: #cf5b8d; --rule: #d7d2e3; --wash: #f7f6f2; }
   body { background: #fff; color: var(--body); font-family: 'Archivo', system-ui, sans-serif;
-    font-size: 8.5pt; line-height: 1.34; }
+    font-size: 9.3pt; line-height: 1.42; }
   .page { width: 8.5in; height: 10.96in; overflow: hidden; padding: 0.4in 0.66in 0.26in;
     display: flex; flex-direction: column; break-after: page; page-break-after: always; }
   .page:last-child { break-after: auto; page-break-after: auto; }
@@ -115,8 +109,8 @@ CSS = """
   .mast .r { font-family: 'JetBrains Mono', monospace; font-size: 8pt; font-weight: 700;
     letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft); }
 
-  h1 { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 19pt;
-    text-transform: uppercase; color: var(--ink); line-height: 1.0; margin-top: 13px; }
+  h1 { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 22pt;
+    text-transform: uppercase; color: var(--ink); line-height: 1.0; margin-top: 18px; }
   .role { margin-top: 4px; font-size: 10.5pt; color: var(--body); }
   .contact { margin-top: 5px; font-family: 'JetBrains Mono', monospace; font-size: 8pt;
     letter-spacing: 0.04em; color: var(--soft); }
@@ -128,31 +122,36 @@ CSS = """
   .strip div:nth-child(2) { padding-left: 14px; }
   .strip .lab { font-family: 'JetBrains Mono', monospace; font-size: 7pt; font-weight: 700;
     letter-spacing: 0.16em; text-transform: uppercase; color: var(--soft); }
-  .strip .val { margin-top: 2px; font-family: 'Archivo Narrow', sans-serif; font-weight: 700;
-    font-size: 11.5pt; color: var(--ink); text-transform: uppercase; line-height: 1.12; }
+  .strip .val { margin-top: 3px; font-family: 'Archivo Narrow', sans-serif; font-weight: 700;
+    font-size: 12.5pt; color: var(--ink); text-transform: uppercase; line-height: 1.12; }
 
   h2 { font-family: 'JetBrains Mono', monospace; font-size: 8pt; font-weight: 700;
-    letter-spacing: 0.18em; text-transform: uppercase; color: var(--pink); margin-top: 10px; }
-  .titles { margin-top: 10px; display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px; }
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--pink); margin-top: 13px; }
+  .gate { margin-top: 11px; background: var(--ink); color: #fff; padding: 10px 14px;
+    display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+  .gate .big { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 15pt;
+    text-transform: uppercase; letter-spacing: 0.01em; }
+  .gate .sm { font-size: 8.4pt; color: #d9d4f2; text-align: right; }
+  .titles { margin-top: 13px; display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px; }
   .tcell { border-top: 2px solid var(--ink); padding-top: 7px; }
   .tcell.sug { border-top-color: var(--pink); }
   .tcell .lab { font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; font-weight: 700;
     letter-spacing: 0.16em; text-transform: uppercase; color: var(--soft); }
   .tcell.sug .lab { color: var(--pink); }
-  .tcell .val { margin-top: 3px; font-family: 'Archivo Narrow', sans-serif; font-weight: 700;
-    font-size: 13.5pt; color: var(--ink); line-height: 1.14; }
+  .tcell .val { margin-top: 4px; font-family: 'Archivo Narrow', sans-serif; font-weight: 700;
+    font-size: 15pt; color: var(--ink); line-height: 1.14; }
   .tcell.sug .val { font-family: 'Archivo', sans-serif; font-weight: 500; font-size: 10pt;
     line-height: 1.4; color: var(--body); }
-  p.txt { margin-top: 6px; }
+  p.txt { margin-top: 8px; }
   ul.aways { margin: 9px 0 0 0; list-style: none; }
-  ul.aways li { position: relative; padding-left: 16px; margin-bottom: 2px; }
+  ul.aways li { position: relative; padding-left: 18px; margin-bottom: 4px; }
   ul.aways li:before { content: "\\2014"; position: absolute; left: 0; color: var(--pink); font-weight: 700; }
 
   .need { margin-top: 8px; }
-  .need .row { display: flex; gap: 14px; padding: 5px 0; border-bottom: 1px solid var(--rule); }
+  .need .row { display: flex; gap: 14px; padding: 7px 0; border-bottom: 1px solid var(--rule); }
   .need .row:first-child { border-top: 1px solid var(--rule); }
   .need .lab { flex: 0 0 1.7in; font-weight: 600; color: var(--ink); }
-  .copyband { margin-top: 11px; border-top: 3px solid var(--ink); padding-top: 9px;
+  .copyband { margin-top: 13px; border-top: 3px solid var(--ink); padding-top: 9px;
     display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
   .copyband .l { font-family: 'JetBrains Mono', monospace; font-size: 8.5pt; font-weight: 700;
     letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink); }
@@ -161,18 +160,18 @@ CSS = """
   .copyblock h2:first-child { margin-top: 9px; }
   /* Straight from the application, so a reviewer can see the source and the
      speaker can see what we captured. */
-  .appl { margin-top: 7px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; font-size: 8pt; line-height: 1.3; }
+  .appl { margin-top: 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px 18px; font-size: 7.9pt; line-height: 1.28; }
   .appl .lab { font-family: 'JetBrains Mono', monospace; font-size: 6.8pt; font-weight: 700;
     letter-spacing: 0.13em; text-transform: uppercase; color: var(--pink); }
   .appl .v { margin-top: 2px; }
   .appl .wide { grid-column: 1 / -1; }
-  .fn { margin-top: 5px; font-size: 8pt; color: var(--soft); font-style: italic; }
+  .fn { margin-top: 4px; font-size: 7.8pt; color: var(--soft); font-style: italic; }
   .settle { margin-top: 6px; background: var(--wash); padding: 8px 12px; }
   .settle ul { margin: 0 0 0 16px; }
   .settle li { margin-bottom: 2px; }
 
   .spacer { flex: 1; }
-  .foot { border-top: 1px solid var(--rule); margin-top: 8px; padding-top: 6px;
+  .foot { border-top: 1px solid var(--rule); margin-top: 7px; padding-top: 5px;
     font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; letter-spacing: 0.08em;
     color: var(--soft); display: flex; justify-content: space-between; }
 """
@@ -200,6 +199,11 @@ def page(s, i, total):
     <div><p class="lab">Length</p><p class="val">30 minutes<br>Virtual</p></div>
   </div>
 
+  <div class="gate">
+    <span class="big">Not confirmed until you reply to our email</span>
+    <span class="sm">The date below is held for you,<br>not booked.</span>
+  </div>
+
   <div class="titles">
     <div class="tcell">
       <p class="lab">Your title</p>
@@ -224,22 +228,11 @@ def page(s, i, total):
 {aways}
     </ul>
 
-    <h2>Who it is for</h2>
-    <p class="txt">{s['aim']}</p>
-
     <h2>About {first}</h2>
     <p class="txt">{s['bio']}</p>
   </div>
 
-  <h2>From their application</h2>
-  <div class="appl">
-    <div class="wide"><p class="lab">Who they said it speaks to</p><p class="v">{s['audience']}</p></div>
-    <div><p class="lab">What they said they would cover</p><p class="v">{s['their_cover']}</p></div>
-    <div><p class="lab">Why they think it matters now</p><p class="v">{s['their_why']}</p></div>
-    <div><p class="lab">Brings for the resource library</p><p class="v">{s['brings']}</p></div>
-  </div>
-
-  <h2>What we need from you</h2>
+  <h2>What's next</h2>
   <div class="need">
 {need}
   </div>
