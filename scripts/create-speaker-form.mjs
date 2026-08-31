@@ -85,7 +85,7 @@ const form = {
       show_button: false,
       share_icons: false,
       description:
-        "If you are an Uplift mentor, or we invited you, this is not an audition. You have priority on these slots and we are working out which date, not whether to have you.\n\nWhat happens next once your session is confirmed:\n1. You get an email confirming it, with your date.\n2. Your slot is reserved and we send a calendar invite with a hold on it.\n3. We do a 15 minute planning call to square away the details.\n4. The event goes live, we promote it to the cohort with your bio and headshot on it, and you get the run of show.\n\nEither way you hear from us within one business day. If you came to us cold and we are oversubscribed on your dates, we will say so and keep you for the next cohort.\n\nQuestions: uplift@techunited.co",
+        "If you are an Uplift mentor, or we invited you, this is not an audition. You have priority on these slots and we are working out which date, not whether to have you.\n\nWhat happens next:\n1. We email you the date we can give you, along with the title and takeaways we have from this form. Nothing is locked until you reply and confirm it.\n2. Once you confirm, a calendar invite for that date lands in your inbox.\n3. The week before your session we do a 15 minute sync call to square away the details.\n4. The event goes live, we promote it to the cohort with your bio and headshot on it, and you get the run of show.\n\nEither way you hear from us within one business day. If you came to us cold and we are oversubscribed on your dates, we will say so and keep you for the next cohort.\n\nQuestions: uplift@techunited.co",
     },
   }],
   // Every section is an inline_group, so a respondent sees all of that
