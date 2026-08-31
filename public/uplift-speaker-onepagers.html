@@ -34,9 +34,11 @@
   }
   .page:last-child { break-after: auto; page-break-after: auto; }
 
-  .top { display: flex; justify-content: space-between; align-items: baseline;
-    border-bottom: 3px solid var(--ink); padding-bottom: 8px;
-    font-family: 'JetBrains Mono', monospace; font-size: 8pt; font-weight: 700;
+  .top { display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 3px solid var(--ink); padding-bottom: 9px; }
+  .top .logo { width: 1.5in; height: 0.5in; background: url("uplift-logo.png") left bottom / contain no-repeat; }
+  .top .meta-right { text-align: right;
+    font-family: 'JetBrains Mono', monospace; font-size: 8pt; font-weight: 700; line-height: 1.6;
     letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft); }
   .top b { color: var(--pink); }
 
@@ -79,21 +81,28 @@
   .flags li { margin-bottom: 4px; }
 
   .spacer { flex: 1; }
-  .verdict { border-top: 3px solid var(--ink); padding-top: 10px; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; }
-  .verdict .rec { font-size: 9.2pt; max-width: 4.6in; }
+  .verdict { border-top: 3px solid var(--ink); padding-top: 11px; }
+  .verdict .lab { font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--pink); }
+  .verdict .call { margin-top: 5px; font-family: 'Archivo Narrow', sans-serif; font-weight: 700;
+    font-size: 15pt; text-transform: uppercase; color: var(--good); letter-spacing: 0.01em; }
+  .verdict .call.cond { color: var(--pink); }
+  .verdict .rec { margin-top: 4px; font-size: 9.2pt; }
   .verdict .rec b { color: var(--ink); }
-  .boxes { display: flex; gap: 10px; flex: none; }
-  .box { border: 2px solid var(--ink); padding: 7px 12px; font-family: 'JetBrains Mono', monospace; font-size: 8.5pt; font-weight: 700; letter-spacing: 0.1em; }
-  .box.go { color: var(--good); border-color: var(--good); }
-  .box.hold { color: var(--pink); border-color: var(--pink); }
-  .box.no { color: var(--soft); }
+
+  /* Takeaways sit directly under the title, since that is what a session is
+     judged on. */
+  .aways { margin-top: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .away { border-top: 2px solid var(--ink); padding-top: 7px; font-size: 9.2pt; line-height: 1.35; }
+  .away .n { font-family: 'JetBrains Mono', monospace; font-size: 7pt; font-weight: 700; color: var(--pink); letter-spacing: 0.1em; }
+  .away .t { margin-top: 3px; color: var(--body); }
 </style>
 </head>
 <body>
 
 <!-- ─────────────────────────── 1 · Steve Cummins ─────────────────────────── -->
 <div class="page">
-  <div class="top"><span>Uplift Expert Sessions · Fall 2026</span><span>Speaker review <b>01 / 04</b></span></div>
+  <div class="top"><div class="logo"></div><div class="meta-right">Expert Sessions · Fall 2026<br>Speaker review <b>01 / 04</b></div></div>
   <h1>Steve Cummins</h1>
   <p class="who"><b>Principal / Chief Marketer, Solent Strategies</b> · Fractional CMO, 20+ years B2B marketing</p>
   <p class="meta">steve@solentstrategies.com · linkedin.com/in/stevecummins · applied Aug 28 · mentored two prior Uplift cohorts · found the LinkedIn post</p>
@@ -106,18 +115,18 @@
   <h2>Title</h2>
   <div class="titles">
     <div class="titlebox"><p class="lab">His</p><p class="val">Marketing that Maps the Customer Journey</p></div>
-    <div class="titlebox ours"><p class="lab">Ours, if you want it punchier</p><p class="val">No Time, No Budget: Where Marketing Actually Pays</p></div>
+    <div class="titlebox ours"><p class="lab">Ours, plain and descriptive</p><p class="val">Marketing for Early-Stage Founders: Which Tactics Belong at Which Stage</p></div>
   </div>
 
+  <h2>What founders leave with, in their words</h2>
+  <div class="aways">
+    <div class="away"><p class="n">TAKEAWAY 1</p><p class="t">Define the goal of your marketing, then match tactics to each stage</p></div>
+    <div class="away"><p class="n">TAKEAWAY 2</p><p class="t">What has to be in place before you spend: a clear message, a defined reachable audience</p></div>
+    <div class="away"><p class="n">TAKEAWAY 3</p><p class="t">Do one or two things well rather than covering every base</p></div>
+  </div>
   <h2>The 30 minutes</h2>
   <p class="body">Takes the classic marketing funnel and shows which tactics belong at which stage, then argues the customer journey is no longer linear so the old funnel needs a more nuanced read. Presentation with slides, questions at the end.</p>
 
-  <h2>Three takeaways</h2>
-  <ol class="body">
-    <li>Define the goal of your marketing, then match tactics to each stage</li>
-    <li>What has to be in place before you spend anything: a clear message, a defined and reachable audience</li>
-    <li>Do one or two things well rather than covering every base</li>
-  </ol>
 
   <h2>Why it matters now, in his words</h2>
   <p class="body">Every founder is told to do marketing and everyone they ask has an opinion, AEO, Google ads, social posting. Founders have no spare time and a small budget, so it matters where those go.</p>
@@ -139,14 +148,16 @@
 
   <div class="spacer"></div>
   <div class="verdict">
-    <p class="rec"><b>Recommend: go.</b> Strongest of the four. Concrete, has a real deck, brings usable resources, and marketing is a top-requested subject. Prior mentor, so he knows the room.</p>
-    <div class="boxes"><span class="box go">GO</span><span class="box hold">HOLD</span><span class="box no">NO</span></div>
+    <p class="lab">Recommendation</p>
+    <p class="call">GO</p>
+    <p class="rec">Recommend booking. Strongest of the four: concrete, has a real deck, brings usable resources, and marketing is a top-requested subject. Prior mentor, so he knows the room.</p>
+  </div>
   </div>
 </div>
 
 <!-- ─────────────────────────── 2 · Eric Schmalzbauer ─────────────────────── -->
 <div class="page">
-  <div class="top"><span>Uplift Expert Sessions · Fall 2026</span><span>Speaker review <b>02 / 04</b></span></div>
+  <div class="top"><div class="logo"></div><div class="meta-right">Expert Sessions · Fall 2026<br>Speaker review <b>02 / 04</b></div></div>
   <h1>Eric Schmalzbauer</h1>
   <p class="who"><b>Co-founder &amp; CEO (now former), Prospective</b> · the team behind the open-source Perspective project</p>
   <p class="meta">eric.schmalzbauer@gmail.com · linkedin.com/in/ericschmalzbauer · applied Aug 31 · referred by you · also on the mentor list</p>
@@ -159,18 +170,18 @@
   <h2>Title</h2>
   <div class="titles">
     <div class="titlebox"><p class="lab">His</p><p class="val">B2B: from idea &gt; funding &gt; failure</p></div>
-    <div class="titlebox ours"><p class="lab">Ours, if you want it punchier</p><p class="val">Idea, Funding, Failure: What I Would Do Differently</p></div>
+    <div class="titlebox ours"><p class="lab">Ours, plain and descriptive</p><p class="val">Lessons From Winding Down a Venture-Backed B2B Startup</p></div>
   </div>
 
+  <h2>What founders leave with, in their words</h2>
+  <div class="aways">
+    <div class="away"><p class="n">TAKEAWAY 1</p><p class="t">Tangible examples of what worked and what did not inside a venture-backed startup</p></div>
+    <div class="away"><p class="n">TAKEAWAY 2</p><p class="t">As a founder you always have to be selling, in some form</p></div>
+    <div class="away"><p class="n">TAKEAWAY 3</p><p class="t">Honest acknowledgement that the job is very lonely</p></div>
+  </div>
   <h2>The 30 minutes</h2>
   <p class="body">A first-time founder winding down a venture-backed company, in his own words: the arc from idea through fundraising and team building to deciding when and why to close; what he will change next time; what he will do more of. Fireside, so we interview him and founders ask questions. No deck needed.</p>
 
-  <h2>Three takeaways</h2>
-  <ol class="body">
-    <li>Tangible examples of what worked and what did not inside a venture-backed startup</li>
-    <li>As a founder you always have to be selling, in some form</li>
-    <li>Honest acknowledgement that the job is very lonely</li>
-  </ol>
 
   <h2>Why it matters now, in his words</h2>
   <p class="body">Whatever stage a founder is at, the worries overlap: fundraising, team building, go-to-market, managing investors.</p>
@@ -193,14 +204,16 @@
 
   <div class="spacer"></div>
   <div class="verdict">
-    <p class="rec"><b>Recommend: go.</b> Rare and valuable. Founders hear success stories constantly and almost never a first-hand account of winding down. Fireside is the right format and needs no prep from him.</p>
-    <div class="boxes"><span class="box go">GO</span><span class="box hold">HOLD</span><span class="box no">NO</span></div>
+    <p class="lab">Recommendation</p>
+    <p class="call">GO</p>
+    <p class="rec">Recommend booking. Founders hear success stories constantly and almost never a first-hand account of winding down. Fireside is the right format and needs no prep from him.</p>
+  </div>
   </div>
 </div>
 
 <!-- ─────────────────────────── 3 · Julia Kahky ───────────────────────────── -->
 <div class="page">
-  <div class="top"><span>Uplift Expert Sessions · Fall 2026</span><span>Speaker review <b>03 / 04</b></span></div>
+  <div class="top"><div class="logo"></div><div class="meta-right">Expert Sessions · Fall 2026<br>Speaker review <b>03 / 04</b></div></div>
   <h1>Julia Kahky</h1>
   <p class="who"><b>VP Operations, Tailsight</b> · aviation software; formerly chief of staff, fintech and sports media operations</p>
   <p class="meta">julia.m.kahky@gmail.com · linkedin.com/in/juliamkahky · applied Aug 28 · speaks to audiences regularly</p>
@@ -213,18 +226,18 @@
   <h2>Title</h2>
   <div class="titles">
     <div class="titlebox"><p class="lab">Hers</p><p class="val">From startup to dissolution: a post-mortem</p></div>
-    <div class="titlebox ours"><p class="lab">Ours, and this one matters</p><p class="val">Selling Into Enterprise and Regulated Markets: What Worked, What Did Not</p></div>
+    <div class="titlebox ours"><p class="lab">Ours, and the rename matters</p><p class="val">Selling Software to Enterprise and Regulated Customers: Lessons From a Startup That Closed</p></div>
   </div>
 
+  <h2>What founders leave with, in their words</h2>
+  <div class="aways">
+    <div class="away"><p class="n">TAKEAWAY 1</p><p class="t">Problems to avoid early on</p></div>
+    <div class="away"><p class="n">TAKEAWAY 2</p><p class="t">Product-market fit</p></div>
+    <div class="away"><p class="n">TAKEAWAY 3</p><p class="t">Sales cycles</p></div>
+  </div>
   <h2>The 30 minutes</h2>
   <p class="body">Everything she learned trying to sell software to enterprise customers and into highly regulated markets, framed as a post-mortem of a company that did not make it. What worked, what did not. Presentation with slides.</p>
 
-  <h2>Three takeaways</h2>
-  <ol class="body">
-    <li>Problems to avoid early on</li>
-    <li>Product-market fit</li>
-    <li>Sales cycles</li>
-  </ol>
 
   <h2>Why it matters now, in her words</h2>
   <p class="body">Everything online is about how companies succeed, and people learn more from the mistakes of companies that failed.</p>
@@ -248,14 +261,16 @@
 
   <div class="spacer"></div>
   <div class="verdict">
-    <p class="rec"><b>Recommend: go, conditional on the reframe.</b> Experienced speaker with real scar tissue in a lane nobody else has offered. It only works if it is billed as enterprise and regulated sales rather than a second failure story.</p>
-    <div class="boxes"><span class="box go">GO</span><span class="box hold">HOLD</span><span class="box no">NO</span></div>
+    <p class="lab">Recommendation</p>
+    <p class="call cond">GO, IF SHE TAKES THE RENAME</p>
+    <p class="rec">Experienced speaker with real scar tissue in a lane nobody else offered. It only works billed as enterprise and regulated sales rather than a second failure story.</p>
+  </div>
   </div>
 </div>
 
 <!-- ─────────────────────────── 4 · Jeffrey Hang ──────────────────────────── -->
 <div class="page">
-  <div class="top"><span>Uplift Expert Sessions · Fall 2026</span><span>Speaker review <b>04 / 04</b></span></div>
+  <div class="top"><div class="logo"></div><div class="meta-right">Expert Sessions · Fall 2026<br>Speaker review <b>04 / 04</b></div></div>
   <h1>Jeffrey Hang</h1>
   <p class="who"><b>Senior Associate, Lair East Labs</b> · and Head of Program, Pioneering Minds AI</p>
   <p class="meta">jeffrey@pioneeringminds.ai · linkedin.com/in/jeffrey-ze-chong-hang · applied Aug 28 · found your LinkedIn post · speaks regularly</p>
@@ -268,18 +283,18 @@
   <h2>Title</h2>
   <div class="titles">
     <div class="titlebox"><p class="lab">His, which is two sessions</p><p class="val">What do VCs look for / GTM in the Age of AI</p></div>
-    <div class="titlebox ours"><p class="lab">Ours, pick one</p><p class="val">A. What VCs Actually Look For: A Live Teardown<br>B. GTM in the Age of AI: A Working Session</p></div>
+    <div class="titlebox ours"><p class="lab">Ours, pick one</p><p class="val">A. How Investors Evaluate Early-Stage Startups<br>B. Building a Go-to-Market Plan When AI Changes the Playbook</p></div>
   </div>
 
+  <h2>What founders leave with, in their words</h2>
+  <div class="aways">
+    <div class="away"><p class="n">TAKEAWAY 1</p><p class="t">GTM strategies in the age of AI</p></div>
+    <div class="away"><p class="n">TAKEAWAY 2</p><p class="t">Executive storytelling</p></div>
+    <div class="away"><p class="n">TAKEAWAY 3</p><p class="t">Product design methodologies</p></div>
+  </div>
   <h2>The 30 minutes</h2>
   <p class="body">A working session where founders bring their own material and he coaches live. Stated scope: business model analysis, product design, pitch, go-to-market. He is a venture-side operator at a New York accelerator who works with early-stage founders on go-to-market, fundraising, positioning and growth.</p>
 
-  <h2>Three takeaways, as submitted</h2>
-  <ul class="body">
-    <li>GTM strategies in the age of AI</li>
-    <li>Executive storytelling</li>
-    <li>Product design methodologies</li>
-  </ul>
 
   <h2>Why it matters now, in his words</h2>
   <p class="body">The old playbook is not working as well in the age of AI, so founders need a framework to stand out.</p>
@@ -303,8 +318,10 @@
 
   <div class="spacer"></div>
   <div class="verdict">
-    <p class="rec"><b>Recommend: go, conditional on scoping the call first.</b> Credentials and format are genuinely useful, and the series upside is real. But nothing in the application says what actually happens in the room, so scope it before the event page goes live.</p>
-    <div class="boxes"><span class="box go">GO</span><span class="box hold">HOLD</span><span class="box no">NO</span></div>
+    <p class="lab">Recommendation</p>
+    <p class="call cond">GO, ONCE SCOPED</p>
+    <p class="rec">Credentials and format are useful and the series upside is real, but nothing in the application says what actually happens in the room. Scope it on the call before the event page goes live.</p>
+  </div>
   </div>
 </div>
 
