@@ -19,10 +19,11 @@ SPEAKERS = [
     email="steve@solentstrategies.com",
     title="Marketing that Maps the Customer Journey",
     suggestion="Yours is good. We would publish it exactly as written.",
-    about="Every founder is told to do marketing, and everyone they ask has a different opinion. Steve Cummins, a fractional CMO with more than 20 years in B2B marketing, starts from the classic marketing funnel and shows which tactics belong at which stage, then makes the case that the customer journey is no longer linear and needs a more nuanced read. It is built for founders who are pre-revenue and testing the market, already generating revenue, or raising, and for anyone who knows they should be marketing but has no spare time and a small budget. The session closes on the one or two things worth doing well rather than covering every base. Steve is also sharing a one-pager built for this session and an 8-page eBook, Building a Realistic Marketing Strategy.",
+    about="Every founder is told to do marketing, and everyone they ask has a different opinion. Steve Cummins, a fractional CMO with more than 20 years in B2B marketing, starts from the classic marketing funnel and shows which tactics belong at which stage, then makes the case that the customer journey is no longer linear and needs a more nuanced read. The session closes on the one or two things worth doing well rather than covering every base.",
     aways=["Define the goal of your marketing, then match tactics to each stage",
            "What has to be in place before you spend: a clear message, a defined reachable audience",
-           "Do one or two things well rather than covering every base"],
+           "Do one or two things well rather than covering every base",
+           "<b>To take away:</b> a one-pager built for this session, and an 8-page eBook, Building a Realistic Marketing Strategy"],
     bio=("Steve helps growing businesses punch above their weight, working with companies who are ready to take "
          "marketing seriously but are not ready for a full time CMO. That means developing the right message, "
          "reaching a broader audience, and executing a marketing plan tailored for their business. Steve has an "
@@ -48,10 +49,11 @@ SPEAKERS = [
     email="eric.schmalzbauer@gmail.com",
     title="B2B: from idea &gt; funding &gt; failure",
     suggestion="Yours is good. We would publish it exactly as written.",
-    about="Founders hear success stories constantly and almost never a first-hand account of the other outcome. Eric Schmalzbauer walks the whole arc of his venture-backed B2B startup as a first-time founder: the idea, the fundraising, building the team, and when and why to close up shop, then what he will change for his next business and what he will do more of. Whatever stage you are at the same problems show up, raising money, building a team, getting to market, managing investors, so this one is for any founder in the cohort. Expect a candid conversation rather than a polished talk. Eric is also sharing the Workbench Ventures GTM Weekly newsletter.",
+    about="Founders hear success stories constantly and almost never a first-hand account of the other outcome. Eric Schmalzbauer walks the whole arc of his venture-backed B2B startup as a first-time founder: the idea, the fundraising, building the team, and when and why to close up shop, then what he will change for his next business and what he will do more of. Whatever stage you are at the same problems show up, raising money, building a team, getting to market, managing investors. Expect a candid conversation rather than a polished talk.",
     aways=["Tangible examples of what worked and what did not inside a venture-backed startup",
            "As a founder you always have to be selling, in some form",
-           "Honest acknowledgement that the job is very lonely"],
+           "Honest acknowledgement that the job is very lonely",
+           "<b>To take away:</b> the Workbench Ventures GTM Weekly newsletter"],
     bio=("Eric Schmalzbauer is a technology executive, founder, and venture partner across product strategy, data "
          "platforms, and go-to-market execution. He is the now former co-Founder and CEO of Prospective, the team "
          "behind the open-source Perspective project, building high-performance tools for interactive data "
@@ -78,8 +80,9 @@ SPEAKERS = [
     email="julia.m.kahky@gmail.com",
     title="From startup to dissolution: a post-mortem",
     suggestion="Yours is good. One option: add the subtitle <b>Selling into enterprise and regulated markets</b>, so it reads distinctly beside another founder post-mortem in the same series. Entirely your call.",
-    about="Everything online talks about how companies succeed, when founders learn far more from avoiding the mistakes of companies that failed. Julia Kahky walks the post-mortem of a startup that closed, specifically what she learned trying to sell software to enterprise customers and into highly regulated markets: what worked, what did not, the problems worth avoiding early, and how long sales cycles really take. Useful at any stage from idea through raising, and especially if you are selling to enterprise or regulated buyers where cycles run long and requirements arrive late. Julia is also sharing her community, The Atrium, and a list of AI tools, tips and tricks.",
-    aways=["Problems to avoid early on", "Product-market fit", "Sales cycles"],
+    about="Everything online talks about how companies succeed, when founders learn far more from avoiding the mistakes of companies that failed. Julia Kahky walks the post-mortem of a startup that closed, specifically what she learned trying to sell software to enterprise customers and into highly regulated markets: what worked, what did not, the problems worth avoiding early, and how long sales cycles really take.",
+    aways=["Problems to avoid early on", "Product-market fit", "Sales cycles",
+           "<b>To take away:</b> her community, The Atrium, and a list of AI tools, tips and tricks"],
     bio=("Julia Kahky is VP of Operations at a software company in the aviation industry, with prior experience as a "
          "chief of staff and in financial technology and operations in sports media. She started her career in "
          "finance and has worked across Fortune 15 companies, 500-person companies, and startups, with experience "
@@ -98,7 +101,7 @@ CSS = """
   @page { size: 8.5in 11in; margin: 0; }
   :root { --ink: #110465; --body: #35324f; --soft: #6f6a8c; --pink: #cf5b8d; --rule: #d7d2e3; --wash: #f7f6f2; }
   body { background: #fff; color: var(--body); font-family: 'Archivo', system-ui, sans-serif;
-    font-size: 9.3pt; line-height: 1.42; }
+    font-size: 8.9pt; line-height: 1.38; }
   .page { width: 8.5in; height: 10.96in; overflow: hidden; padding: 0.4in 0.66in 0.26in;
     display: flex; flex-direction: column; break-after: page; page-break-after: always; }
   .page:last-child { break-after: auto; page-break-after: auto; }
@@ -109,8 +112,8 @@ CSS = """
   .mast .r { font-family: 'JetBrains Mono', monospace; font-size: 8pt; font-weight: 700;
     letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft); }
 
-  h1 { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 22pt;
-    text-transform: uppercase; color: var(--ink); line-height: 1.0; margin-top: 18px; }
+  h1 { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 20pt;
+    text-transform: uppercase; color: var(--ink); line-height: 1.0; margin-top: 15px; }
   .role { margin-top: 4px; font-size: 10.5pt; color: var(--body); }
   .contact { margin-top: 5px; font-family: 'JetBrains Mono', monospace; font-size: 8pt;
     letter-spacing: 0.04em; color: var(--soft); }
@@ -126,13 +129,11 @@ CSS = """
     font-size: 12.5pt; color: var(--ink); text-transform: uppercase; line-height: 1.12; }
 
   h2 { font-family: 'JetBrains Mono', monospace; font-size: 8pt; font-weight: 700;
-    letter-spacing: 0.18em; text-transform: uppercase; color: var(--pink); margin-top: 13px; }
-  .gate { margin-top: 11px; background: var(--ink); color: #fff; padding: 10px 14px;
-    display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
-  .gate .big { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 15pt;
-    text-transform: uppercase; letter-spacing: 0.01em; }
-  .gate .sm { font-size: 8.4pt; color: #d9d4f2; text-align: right; }
-  .titles { margin-top: 13px; display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px; }
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--pink); margin-top: 11px; }
+  .mast .gate { background: var(--ink); color: #fff; padding: 4px 9px;
+    font-family: 'JetBrains Mono', monospace; font-size: 7.6pt; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; display: inline-block; margin-bottom: 4px; }
+  .titles { margin-top: 11px; display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px; }
   .tcell { border-top: 2px solid var(--ink); padding-top: 7px; }
   .tcell.sug { border-top-color: var(--pink); }
   .tcell .lab { font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; font-weight: 700;
@@ -142,16 +143,16 @@ CSS = """
     font-size: 15pt; color: var(--ink); line-height: 1.14; }
   .tcell.sug .val { font-family: 'Archivo', sans-serif; font-weight: 500; font-size: 10pt;
     line-height: 1.4; color: var(--body); }
-  p.txt { margin-top: 8px; }
+  p.txt { margin-top: 6px; }
   ul.aways { margin: 9px 0 0 0; list-style: none; }
-  ul.aways li { position: relative; padding-left: 18px; margin-bottom: 4px; }
+  ul.aways li { position: relative; padding-left: 17px; margin-bottom: 3px; }
   ul.aways li:before { content: "\\2014"; position: absolute; left: 0; color: var(--pink); font-weight: 700; }
 
   .need { margin-top: 8px; }
-  .need .row { display: flex; gap: 14px; padding: 7px 0; border-bottom: 1px solid var(--rule); }
+  .need .row { display: flex; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--rule); }
   .need .row:first-child { border-top: 1px solid var(--rule); }
   .need .lab { flex: 0 0 1.7in; font-weight: 600; color: var(--ink); }
-  .copyband { margin-top: 13px; border-top: 3px solid var(--ink); padding-top: 9px;
+  .copyband { margin-top: 11px; border-top: 3px solid var(--ink); padding-top: 9px;
     display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
   .copyband .l { font-family: 'JetBrains Mono', monospace; font-size: 8.5pt; font-weight: 700;
     letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink); }
@@ -187,21 +188,16 @@ def page(s, i, total):
 <div class="page">
   <div class="mast">
     <div class="logo"></div>
-    <div class="r">Expert Session · Fall 2026 · {i} of {total}</div>
+    <div class="r"><span class="gate">Not confirmed until you reply to our email</span><br>Expert Session · Fall 2026 · {i} of {total}</div>
   </div>
 
   <h1>{s['name']}</h1>
   <p class="role">{s['role']}</p>
   <p class="contact">{s['email']} &nbsp;·&nbsp; {s['linkedin']}</p>
   <div class="strip">
-    <div><p class="lab">When</p><p class="val">{s['date_line']}</p></div>
+    <div><p class="lab">When · held, not booked</p><p class="val">{s['date_line']}</p></div>
     <div><p class="lab">Format</p><p class="val">{s['fmt_line']}</p></div>
     <div><p class="lab">Length</p><p class="val">30 minutes<br>Virtual</p></div>
-  </div>
-
-  <div class="gate">
-    <span class="big">Not confirmed until you reply to our email</span>
-    <span class="sm">The date below is held for you,<br>not booked.</span>
   </div>
 
   <div class="titles">
@@ -227,6 +223,9 @@ def page(s, i, total):
     <ul class="aways">
 {aways}
     </ul>
+
+    <h2>Who it is for</h2>
+    <p class="txt">{s['aim']}</p>
 
     <h2>About {first}</h2>
     <p class="txt">{s['bio']}</p>
