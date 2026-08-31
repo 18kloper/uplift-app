@@ -8,6 +8,7 @@
 SPEAKERS = [
   dict(
     name="Steve Cummins",
+    resource="A one-pager built for this session, plus an 8-page eBook, Building a Realistic Marketing Strategy.",
     audience="Pre-revenue and testing the market · Already generating revenue · Raising, or about to",
     their_cover="Takes the original marketing funnel approach and shows how different tactics are used at different stages, and how that now needs a more nuanced approach as the customer journey has become less linear.",
     their_why="Everyone knows they should be doing marketing and everyone they talk to has an opinion on what it looks like. Every founder has no spare time and a small budget, so it matters where those go.",
@@ -22,8 +23,7 @@ SPEAKERS = [
     about="Every founder is told to do marketing, and everyone they ask has a different opinion. Steve Cummins, a fractional CMO with more than 20 years in B2B marketing, starts from the classic marketing funnel and shows which tactics belong at which stage, then makes the case that the customer journey is no longer linear and needs a more nuanced read. The session closes on the one or two things worth doing well rather than covering every base.",
     aways=["Define the goal of your marketing, then match tactics to each stage",
            "What has to be in place before you spend: a clear message, a defined reachable audience",
-           "Do one or two things well rather than covering every base",
-           "<b>To take away:</b> a one-pager built for this session, and an 8-page eBook, Building a Realistic Marketing Strategy"],
+           "Do one or two things well rather than covering every base"],
     bio=("Steve helps growing businesses punch above their weight, working with companies who are ready to take "
          "marketing seriously but are not ready for a full time CMO. That means developing the right message, "
          "reaching a broader audience, and executing a marketing plan tailored for their business. Steve has an "
@@ -38,6 +38,7 @@ SPEAKERS = [
   ),
   dict(
     name="Eric Schmalzbauer",
+    resource="The Workbench Ventures GTM Weekly newsletter, workbench.substack.com/s/gtm-weekly",
     audience="Any founder in the cohort",
     their_cover="His experience as a first-time founder: idea, fundraising, team building, and when and why to close up shop. Then what he will change for his next business, and what he will do more of.",
     their_why="Whatever the stage or maturity of the company, the cross-section of worries is the same: fundraising, team building, go-to-market, investor management.",
@@ -51,9 +52,8 @@ SPEAKERS = [
     suggestion="Yours is good. We would publish it exactly as written.",
     about="Founders hear success stories constantly and almost never a first-hand account of the other outcome. Eric Schmalzbauer walks the whole arc of his venture-backed B2B startup as a first-time founder: the idea, the fundraising, building the team, and when and why to close up shop, then what he will change for his next business and what he will do more of. Whatever stage you are at the same problems show up, raising money, building a team, getting to market, managing investors. Expect a candid conversation rather than a polished talk.",
     aways=["Tangible examples of what worked and what did not inside a venture-backed startup",
-           "As a founder you always have to be selling, in some form",
-           "Honest acknowledgement that the job is very lonely",
-           "<b>To take away:</b> the Workbench Ventures GTM Weekly newsletter"],
+           "As a founder, you always have to be selling, in some form",
+           "Honest acknowledgement that the job is very lonely"],
     bio=("Eric Schmalzbauer is a technology executive, founder, and venture partner across product strategy, data "
          "platforms, and go-to-market execution. He is the now former co-Founder and CEO of Prospective, the team "
          "behind the open-source Perspective project, building high-performance tools for interactive data "
@@ -69,6 +69,7 @@ SPEAKERS = [
   ),
   dict(
     name="Julia Kahky",
+    resource="The Atrium, a founder community, plus a working list of AI tools, tips and tricks.",
     audience="Every option selected, idea stage through raising, including founders who want to understand investors",
     their_cover="Everything learned trying to sell software to enterprise customers and highly regulated markets. What works and what does not.",
     their_why="Everything online talks about how companies succeed, when people learn far more from avoiding the mistakes of companies that failed.",
@@ -81,8 +82,7 @@ SPEAKERS = [
     title="From startup to dissolution: a post-mortem",
     suggestion="Yours is good. One option: add the subtitle <b>Selling into enterprise and regulated markets</b>, so it reads distinctly beside another founder post-mortem in the same series. Entirely your call.",
     about="Everything online talks about how companies succeed, when founders learn far more from avoiding the mistakes of companies that failed. Julia Kahky walks the post-mortem of a startup that closed, specifically what she learned trying to sell software to enterprise customers and into highly regulated markets: what worked, what did not, the problems worth avoiding early, and how long sales cycles really take.",
-    aways=["Problems to avoid early on", "Product-market fit", "Sales cycles",
-           "<b>To take away:</b> her community, The Atrium, and a list of AI tools, tips and tricks"],
+    aways=["Problems to avoid early on", "Product-market fit", "Sales cycles"],
     bio=("Julia Kahky is VP of Operations at a software company in the aviation industry, with prior experience as a "
          "chief of staff and in financial technology and operations in sports media. She started her career in "
          "finance and has worked across Fortune 15 companies, 500-person companies, and startups, with experience "
@@ -177,7 +177,7 @@ CSS = """
     color: var(--soft); display: flex; justify-content: space-between; }
 """
 
-def page(s, i, total):
+def page(s):
     aways = "\n".join(f'    <li>{a}</li>' for a in s["aways"])
     need = "\n".join(f'    <div class="row"><span class="lab">{k}</span><span>{v}</span></div>'
                      for k, v in s["need"])
@@ -188,7 +188,7 @@ def page(s, i, total):
 <div class="page">
   <div class="mast">
     <div class="logo"></div>
-    <div class="r"><span class="gate">Not confirmed until you reply to our email</span><br>Expert Session · Fall 2026 · {i} of {total}</div>
+    <div class="r"><span class="gate">Not confirmed until you reply to our email</span><br>Expert Session · Fall 2026</div>
   </div>
 
   <h1>{s['name']}</h1>
@@ -219,7 +219,7 @@ def page(s, i, total):
     <h2>About this session</h2>
     <p class="txt">{s['about']}</p>
 
-    <h2>What you will leave with</h2>
+    <h2>Takeaways</h2>
     <ul class="aways">
 {aways}
     </ul>
@@ -229,6 +229,9 @@ def page(s, i, total):
 
     <h2>About {first}</h2>
     <p class="txt">{s['bio']}</p>
+
+    <h2>A resource {first} recommends</h2>
+    <p class="txt">{s['resource']}</p>
   </div>
 
   <h2>What's next</h2>
@@ -252,7 +255,7 @@ html_out = f"""<!doctype html>
 <style>{CSS}</style>
 </head>
 <body>
-{''.join(page(s, i, len(SPEAKERS)) for i, s in enumerate(SPEAKERS, 1))}
+{''.join(page(s) for s in SPEAKERS)}
 </body>
 </html>
 """
