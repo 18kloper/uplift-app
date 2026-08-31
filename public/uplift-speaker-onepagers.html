@@ -2,326 +2,338 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Uplift Expert Sessions · Speaker one-pagers</title>
+<title>Uplift Expert Sessions · Session briefs</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Archivo+Narrow:wght@600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
 <style>
-  /* One page per applicant, Letter, for a fast go / no-go read.
-     Render: bash scripts/onepagers-to-pdf.sh
-     Same print-editorial system as the call graphic: paper, navy ink, hairline
-     rules, no decoration. Everything here comes from the application; the
-     Proposed title and the Settle on the call block are ours. */
   * { box-sizing: border-box; margin: 0; padding: 0; }
   @page { size: 8.5in 11in; margin: 0; }
-
   :root {
-    --paper: #ffffff;
-    --ink: #110465;
-    --body: #33304d;
-    --soft: #6b6689;
-    --pink: #cf5b8d;
-    --rule: #d7d2e3;
-    --wash: #f7f6f2;
-    --good: #1a6e42;
+    --ink: #110465; --body: #33304d; --soft: #6b6689; --pink: #cf5b8d;
+    --rule: #d7d2e3; --wash: #f7f6f2; --code: #f2f0f7;
   }
-
-  body { background: var(--paper); color: var(--body); font-family: 'Archivo', system-ui, sans-serif; font-size: 9.6pt; line-height: 1.36; }
-
-  .page {
-    width: 8.5in; height: 10.96in; overflow: hidden; padding: 0.55in 0.65in 0.45in;
-    display: flex; flex-direction: column;
-    break-after: page; page-break-after: always;
-    position: relative;
-  }
+  body { background: #fff; color: var(--body); font-family: 'Archivo', system-ui, sans-serif;
+    font-size: 8.7pt; line-height: 1.32; }
+  .page { width: 8.5in; height: 10.96in; overflow: hidden; padding: 0.4in 0.55in 0.3in;
+    display: flex; flex-direction: column; break-after: page; page-break-after: always; }
   .page:last-child { break-after: auto; page-break-after: auto; }
 
-  .top { display: flex; justify-content: space-between; align-items: flex-end;
-    border-bottom: 3px solid var(--ink); padding-bottom: 9px; }
-  .top .logo { width: 1.5in; height: 0.5in; background: url("uplift-logo.png") left bottom / contain no-repeat; }
-  .top .meta-right { text-align: right;
-    font-family: 'JetBrains Mono', monospace; font-size: 8pt; font-weight: 700; line-height: 1.6;
+  .mast { display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 3px solid var(--ink); padding-bottom: 7px; }
+  .mast .logo { width: 1.35in; height: 0.44in; background: url("uplift-logo.png") left bottom / contain no-repeat; }
+  .mast .r { text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 7.5pt;
+    font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--soft); line-height: 1.6; }
+  .mast .r b { color: var(--pink); }
+
+  .zone { font-family: 'JetBrains Mono', monospace; font-size: 7pt; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase; color: #fff; background: var(--ink);
+    padding: 3px 7px; display: inline-block; margin-top: 11px; }
+  .zone.two { background: var(--pink); }
+  .zone.three { background: var(--soft); }
+  .zone-note { font-family: 'JetBrains Mono', monospace; font-size: 7pt; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--soft); margin-left: 8px; }
+  .k { font-family: 'JetBrains Mono', monospace; font-size: 6.8pt; font-weight: 700;
     letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft); }
-  .top b { color: var(--pink); }
 
-  h1 { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 25pt;
-    line-height: 1.0; text-transform: uppercase; color: var(--ink); margin-top: 18px; letter-spacing: -0.01em; }
-  .who { margin-top: 6px; font-size: 10pt; color: var(--body); }
-  .who b { color: var(--ink); }
-  .meta { margin-top: 4px; font-family: 'JetBrains Mono', monospace; font-size: 8pt; color: var(--soft); letter-spacing: 0.04em; }
+  .head { border: 2px solid var(--ink); margin-top: 7px; display: flex; }
+  .head .who { flex: 1.45; padding: 9px 12px; border-right: 1px solid var(--rule); }
+  .head .who h1 { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 19pt;
+    text-transform: uppercase; color: var(--ink); line-height: 1.0; }
+  .head .who p { margin-top: 4px; font-size: 8.8pt; }
+  .head .slot { flex: 1; padding: 9px 12px; border-right: 1px solid var(--rule); }
+  .head .fmt { flex: 1; padding: 9px 12px; background: var(--wash); }
+  .head .v { margin-top: 3px; font-family: 'Archivo Narrow', sans-serif; font-weight: 700;
+    font-size: 12.5pt; color: var(--ink); text-transform: uppercase; line-height: 1.1; }
+  .head .sub { margin-top: 4px; font-size: 8pt; color: var(--soft); }
 
-  .slot {
-    margin-top: 13px; border: 2px solid var(--ink); padding: 9px 13px;
-    display: flex; justify-content: space-between; align-items: center; gap: 16px;
-  }
-  .slot .k { font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; font-weight: 700;
-    letter-spacing: 0.16em; text-transform: uppercase; color: var(--pink); }
-  .slot .v { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 14pt; color: var(--ink); text-transform: uppercase; }
-  .slot .alt { font-size: 9pt; color: var(--soft); text-align: right; }
+  .titlebox { margin-top: 8px; background: #fdf1f6; padding: 8px 12px; border-left: 3px solid var(--pink); }
+  .titlebox .val { margin-top: 2px; font-size: 12.5pt; font-weight: 600; color: var(--ink); line-height: 1.18;
+    font-family: 'Archivo Narrow', sans-serif; }
+  .covers { margin-top: 8px; font-size: 9.4pt; }
 
-  h2 { font-family: 'JetBrains Mono', monospace; font-size: 8pt; font-weight: 700;
-    letter-spacing: 0.16em; text-transform: uppercase; color: var(--pink);
-    margin-top: 13px; padding-bottom: 4px; border-bottom: 1px solid var(--rule); }
-  .titles { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .titlebox { background: var(--wash); padding: 9px 11px; }
-  .titlebox .lab { font-family: 'JetBrains Mono', monospace; font-size: 7pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft); }
-  .titlebox .val { margin-top: 4px; font-size: 10.5pt; font-weight: 600; color: var(--ink); line-height: 1.25; }
-  .titlebox.ours { background: #fdf1f6; }
-  .titlebox.ours .val { color: var(--pink); }
+  .aways { margin-top: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .away { border-top: 2px solid var(--ink); padding-top: 5px; font-size: 8.6pt; line-height: 1.3; }
+  .away .n { font-family: 'JetBrains Mono', monospace; font-size: 6.4pt; font-weight: 700;
+    color: var(--pink); letter-spacing: 0.1em; }
 
-  p.body, ol.body, ul.body { margin-top: 7px; }
-  ol.body, ul.body { padding-left: 18px; }
-  ol.body li, ul.body li { margin-bottom: 3px; }
+  ul.build { list-style: none; margin-top: 6px; }
+  ul.build li { position: relative; padding-left: 14px; margin-bottom: 3px; }
+  ul.build li:before { content: "\2192"; position: absolute; left: 0; color: var(--pink); font-weight: 700; }
+  ul.build li b { color: var(--ink); }
 
-  .cols { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
-  .kv { font-size: 9pt; }
-  .kv .k { font-family: 'JetBrains Mono', monospace; font-size: 7pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--soft); }
-  .kv .v { color: var(--body); }
-  .kv .v a { color: var(--ink); }
+  .steps { margin-top: 7px; display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--ink); }
+  .step { padding: 7px 10px; border-right: 1px solid var(--rule); }
+  .step:last-child { border-right: none; }
+  .step .n { font-family: 'JetBrains Mono', monospace; font-size: 6.6pt; font-weight: 700;
+    letter-spacing: 0.12em; color: var(--pink); }
+  .step .t { margin-top: 2px; font-size: 8pt; line-height: 1.26; }
+  .step .t b { color: var(--ink); }
 
-  .flags { margin-top: 9px; background: var(--wash); border-left: 3px solid var(--pink); padding: 9px 12px; font-size: 8.9pt; }
-  .flags li { margin-bottom: 4px; }
+  .call { margin-top: 7px; background: var(--wash); border-left: 3px solid var(--ink); padding: 7px 11px; }
+  .call ul { margin: 3px 0 0 13px; font-size: 8.1pt; }
+  .call li { margin-bottom: 2px; }
+
+  .facts { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px 16px; font-size: 8.2pt; }
+
+  /* Zone 3 renders as the event page will read, so the speaker can approve the
+     words and an agent can copy them straight into Luma. */
+  .luma { margin-top: 6px; border: 1px solid var(--rule); background: var(--code); padding: 9px 12px; }
+  .luma .etitle { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 11.5pt;
+    color: var(--ink); line-height: 1.15; }
+  .luma .emeta { margin-top: 3px; font-family: 'JetBrains Mono', monospace; font-size: 7pt;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); }
+  .luma .h { margin-top: 6px; font-family: 'JetBrains Mono', monospace; font-size: 6.6pt; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--pink); }
+  .luma .txt { margin-top: 3px; font-size: 8pt; line-height: 1.36; }
+  .luma ul { margin: 3px 0 0 13px; font-size: 8pt; line-height: 1.32; }
 
   .spacer { flex: 1; }
-  .verdict { border-top: 3px solid var(--ink); padding-top: 11px; }
-  .verdict .lab { font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; font-weight: 700;
-    letter-spacing: 0.16em; text-transform: uppercase; color: var(--pink); }
-  .verdict .call { margin-top: 5px; font-family: 'Archivo Narrow', sans-serif; font-weight: 700;
-    font-size: 15pt; text-transform: uppercase; color: var(--good); letter-spacing: 0.01em; }
-  .verdict .call.cond { color: var(--pink); }
-  .verdict .rec { margin-top: 4px; font-size: 9.2pt; }
-  .verdict .rec b { color: var(--ink); }
-
-  /* Takeaways sit directly under the title, since that is what a session is
-     judged on. */
-  .aways { margin-top: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .away { border-top: 2px solid var(--ink); padding-top: 7px; font-size: 9.2pt; line-height: 1.35; }
-  .away .n { font-family: 'JetBrains Mono', monospace; font-size: 7pt; font-weight: 700; color: var(--pink); letter-spacing: 0.1em; }
-  .away .t { margin-top: 3px; color: var(--body); }
+  .foot { border-top: 1px solid var(--rule); margin-top: 8px; padding-top: 6px;
+    font-family: 'JetBrains Mono', monospace; font-size: 6.8pt; letter-spacing: 0.06em;
+    color: var(--soft); display: flex; justify-content: space-between; gap: 14px; }
 </style>
 </head>
 <body>
 
-<!-- ─────────────────────────── 1 · Steve Cummins ─────────────────────────── -->
 <div class="page">
-  <div class="top"><div class="logo"></div><div class="meta-right">Expert Sessions · Fall 2026<br>Speaker review <b>01 / 04</b></div></div>
-  <h1>Steve Cummins</h1>
-  <p class="who"><b>Principal / Chief Marketer, Solent Strategies</b> · Fractional CMO, 20+ years B2B marketing</p>
-  <p class="meta">steve@solentstrategies.com · linkedin.com/in/stevecummins · applied Aug 28 · mentored two prior Uplift cohorts · found the LinkedIn post</p>
-
-  <div class="slot">
-    <div><p class="k">Proposed slot</p><p class="v">Session 7 · Fri Sept 25 · 12:30 PM ET</p></div>
-    <p class="alt">His ranking: 7, then 8, then 3<br>Open to other dates: yes</p>
+  <div class="mast">
+    <div class="logo"></div>
+    <div class="r">Expert Sessions · Fall 2026<br>Session brief <b>01 / 03</b></div>
   </div>
 
-  <h2>Title</h2>
-  <div class="titles">
-    <div class="titlebox"><p class="lab">His</p><p class="val">Marketing that Maps the Customer Journey</p></div>
-    <div class="titlebox ours"><p class="lab">Ours, plain and descriptive</p><p class="val">Marketing for Early-Stage Founders: Which Tactics Belong at Which Stage</p></div>
+  <span class="zone">1 · The session</span><span class="zone-note">at a glance</span>
+  <div class="head">
+    <div class="who">
+      <h1>Steve Cummins</h1>
+      <p>Principal / Chief Marketer, Solent Strategies</p>
+    </div>
+    <div class="slot">
+      <p class="k">Date</p>
+      <p class="v">Session 7<br>Fri Sept 25 · 12:30 PM ET</p>
+      <p class="sub">30 minutes · virtual</p>
+    </div>
+    <div class="fmt">
+      <p class="k">Format</p>
+      <p class="v" style="font-size: 11pt;">Presentation, then Q&amp;A</p>
+      <p class="sub">Aimed at: Pre-revenue and testing the market · generating revenue · raising</p>
+    </div>
   </div>
 
-  <h2>What founders leave with, in their words</h2>
-  <div class="aways">
-    <div class="away"><p class="n">TAKEAWAY 1</p><p class="t">Define the goal of your marketing, then match tactics to each stage</p></div>
-    <div class="away"><p class="n">TAKEAWAY 2</p><p class="t">What has to be in place before you spend: a clear message, a defined reachable audience</p></div>
-    <div class="away"><p class="n">TAKEAWAY 3</p><p class="t">Do one or two things well rather than covering every base</p></div>
-  </div>
-  <h2>The 30 minutes</h2>
-  <p class="body">Takes the classic marketing funnel and shows which tactics belong at which stage, then argues the customer journey is no longer linear so the old funnel needs a more nuanced read. Presentation with slides, questions at the end.</p>
-
-
-  <h2>Why it matters now, in his words</h2>
-  <p class="body">Every founder is told to do marketing and everyone they ask has an opinion, AEO, Google ads, social posting. Founders have no spare time and a small budget, so it matters where those go.</p>
-
-  <div class="cols">
-    <div class="kv"><p class="k">Format</p><p class="v">Presentation, then Q&amp;A</p></div>
-    <div class="kv"><p class="k">Aimed at</p><p class="v">Pre-revenue testing the market, generating revenue, raising</p></div>
-    <div class="kv"><p class="k">Brings</p><p class="v">A one-pager built for the session, plus an 8-page eBook, Building a Realistic Marketing Strategy</p></div>
-    <div class="kv"><p class="k">Deck</p><p class="v">Yes, in Drive. Series: wants to talk it through.</p></div>
+  <div class="titlebox">
+    <p class="k">Session title, as they submitted it</p>
+    <p class="val">Marketing that Maps the Customer Journey</p>
   </div>
 
-  <div class="flags">
-    <p class="k" style="font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; font-weight: 700; letter-spacing: 0.14em; color: #cf5b8d;">SETTLE ON THE CALL</p>
-    <ul style="padding-left: 16px; margin-top: 6px;">
-      <li>Nothing blocking. Confirm the eBook can go in the cohort resource library with his name on it.</li>
-      <li>Ask him to name the one or two tactics he would tell this cohort to pick, so the session ends on a decision.</li>
+  <div class="facts">
+    <p><span class="k">Open to other dates</span><br>Yes</p>
+    <p><span class="k">Open to a series, up to three sessions</span><br>Maybe, wants to discuss</p>
+    <p><span class="k">Brings for the resource library</span><br>A one-pager built for the session, plus an 8-page eBook, Building a Realistic Marketing Strategy. Both go in the cohort resource library under his name.</p>
+    <p><span class="k">Deck</span><br>Deck exists, in Drive. Final version due 72 hours before.</p>
+  </div>
+
+  <span class="zone two">2 · The ask</span><span class="zone-note">what to build, and by when</span>
+  <ul class="build">
+      <li><b>20 minutes of slides</b> walking the journey stage by stage, with the tactics that belong at each</li>
+      <li>Close on <b>the one or two tactics this cohort should pick</b>, so the room leaves with a decision</li>
+      <li><b>10 minutes of questions</b> at the end</li>
+  </ul>
+
+  <div class="steps">
+    <div class="step"><p class="n">STEP 1 · IMMEDIATELY</p><p class="t"><b>Calendar hold</b> for this slot goes out as soon as the date is confirmed.</p></div>
+    <div class="step"><p class="n">STEP 2 · WEEK PRIOR</p><p class="t"><b>15 minute sync call.</b> Lock the title and intro, walk the shape of the 30 minutes, confirm recording and promotion, tech check.</p></div>
+    <div class="step"><p class="n">STEP 3 · 72 HOURS OUT</p><p class="t"><b>Deck due</b>, if a deck is being used, so we can prep and promote.</p></div>
+  </div>
+
+  <div class="call">
+    <p class="k" style="color: #110465;">Settle on the sync call</p>
+    <ul>
+      <li>Which one or two tactics we close on, so the room leaves with a decision</li>
+      <li>Who moderates and how questions reach you, live in chat or read out</li>
+      <li>Whether the one-pager and the eBook go into the cohort resource library under your name</li>
     </ul>
   </div>
 
-  <div class="spacer"></div>
-  <div class="verdict">
-    <p class="lab">Recommendation</p>
-    <p class="call">GO</p>
-    <p class="rec">Recommend booking. Strongest of the four: concrete, has a real deck, brings usable resources, and marketing is a top-requested subject. Prior mentor, so he knows the room.</p>
+  <span class="zone three">3 · Luma event page</span><span class="zone-note">draft copy, for your approval</span>
+  <div class="luma">
+    <p class="etitle">Marketing that Maps the Customer Journey</p>
+    <p class="emeta">Uplift Expert Session · Fri Sept 25 · 12:30 PM ET · Virtual · 30 minutes</p>
+    <p class="h">About this session</p>
+    <p class="txt">Every founder is told to do marketing, and everyone they ask has a different opinion. Steve Cummins, a fractional CMO with more than 20 years in B2B marketing, walks the customer journey stage by stage and shows which tactics actually belong at each one. You will leave able to define the goal of your marketing, name what has to be in place before you spend anything, and pick the one or two things to do well instead of covering every base.</p>
+    <p class="h">What you will leave with</p>
+    <ul>
+      <li>Define the goal of your marketing, then match tactics to each stage</li>
+      <li>What has to be in place before you spend: a clear message, a defined reachable audience</li>
+      <li>Do one or two things well rather than covering every base</li>
+    </ul>
+    <p class="h">About Steve</p>
+    <p class="txt">Steve helps growing businesses punch above their weight, working with companies who are ready to take marketing seriously but are not ready for a full time CMO. That means developing the right message, reaching a broader audience, and executing a marketing plan tailored for their business. Steve has an engineering background and more than 20 years experience in global B2B marketing with name-brand companies and feisty start-ups. He also coaches and mentors marketers and teams of one.</p>
   </div>
+
+  <div class="spacer"></div>
+  <div class="foot">
+    <span>steve@solentstrategies.com</span>
+    <span>Uplift Mentorship Program · TechUnited:NJ</span>
   </div>
 </div>
 
-<!-- ─────────────────────────── 2 · Eric Schmalzbauer ─────────────────────── -->
 <div class="page">
-  <div class="top"><div class="logo"></div><div class="meta-right">Expert Sessions · Fall 2026<br>Speaker review <b>02 / 04</b></div></div>
-  <h1>Eric Schmalzbauer</h1>
-  <p class="who"><b>Co-founder &amp; CEO (now former), Prospective</b> · the team behind the open-source Perspective project</p>
-  <p class="meta">eric.schmalzbauer@gmail.com · linkedin.com/in/ericschmalzbauer · applied Aug 31 · referred by you · also on the mentor list</p>
-
-  <div class="slot">
-    <div><p class="k">Proposed slot</p><p class="v">Session 2 · Mon Sept 14 · 12:30 PM ET</p></div>
-    <p class="alt">His ranking: 2, then 5, then 8<br>Open to other dates: yes</p>
+  <div class="mast">
+    <div class="logo"></div>
+    <div class="r">Expert Sessions · Fall 2026<br>Session brief <b>02 / 03</b></div>
   </div>
 
-  <h2>Title</h2>
-  <div class="titles">
-    <div class="titlebox"><p class="lab">His</p><p class="val">B2B: from idea &gt; funding &gt; failure</p></div>
-    <div class="titlebox ours"><p class="lab">Ours, plain and descriptive</p><p class="val">Lessons From Winding Down a Venture-Backed B2B Startup</p></div>
+  <span class="zone">1 · The session</span><span class="zone-note">at a glance</span>
+  <div class="head">
+    <div class="who">
+      <h1>Eric Schmalzbauer</h1>
+      <p>Former co-founder &amp; CEO, Prospective</p>
+    </div>
+    <div class="slot">
+      <p class="k">Date</p>
+      <p class="v">Session 2<br>Mon Sept 14 · 12:30 PM ET</p>
+      <p class="sub">30 minutes · virtual</p>
+    </div>
+    <div class="fmt">
+      <p class="k">Format</p>
+      <p class="v" style="font-size: 11pt;">Fireside chat</p>
+      <p class="sub">Aimed at: Any founder in the cohort</p>
+    </div>
   </div>
 
-  <h2>What founders leave with, in their words</h2>
-  <div class="aways">
-    <div class="away"><p class="n">TAKEAWAY 1</p><p class="t">Tangible examples of what worked and what did not inside a venture-backed startup</p></div>
-    <div class="away"><p class="n">TAKEAWAY 2</p><p class="t">As a founder you always have to be selling, in some form</p></div>
-    <div class="away"><p class="n">TAKEAWAY 3</p><p class="t">Honest acknowledgement that the job is very lonely</p></div>
-  </div>
-  <h2>The 30 minutes</h2>
-  <p class="body">A first-time founder winding down a venture-backed company, in his own words: the arc from idea through fundraising and team building to deciding when and why to close; what he will change next time; what he will do more of. Fireside, so we interview him and founders ask questions. No deck needed.</p>
-
-
-  <h2>Why it matters now, in his words</h2>
-  <p class="body">Whatever stage a founder is at, the worries overlap: fundraising, team building, go-to-market, managing investors.</p>
-
-  <div class="cols">
-    <div class="kv"><p class="k">Format</p><p class="v">Fireside chat</p></div>
-    <div class="kv"><p class="k">Aimed at</p><p class="v">Any founder in the cohort</p></div>
-    <div class="kv"><p class="k">Brings</p><p class="v">Workbench Ventures GTM Weekly newsletter</p></div>
-    <div class="kv"><p class="k">Series</p><p class="v">Maybe. Ideas: GTM from scratch, and investor management.</p></div>
+  <div class="titlebox">
+    <p class="k">Session title, as they submitted it</p>
+    <p class="val">B2B: from idea &gt; funding &gt; failure</p>
   </div>
 
-  <div class="flags">
-    <p class="k" style="font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; font-weight: 700; letter-spacing: 0.14em; color: #cf5b8d;">SETTLE ON THE CALL</p>
-    <ul style="padding-left: 16px; margin-top: 6px;">
-      <li>How openly can he name numbers, timelines and the decision to close? The candour is the whole value, so agree the boundary before the day.</li>
-      <li>Julia Kahky also proposed a shutdown post-mortem. Keep his on the founder and funding arc, hers on enterprise sales, and space them a week apart.</li>
-      <li>Fireside means we need the questions. Ask him for the three he wishes someone had asked him at the start.</li>
+  <div class="facts">
+    <p><span class="k">Open to other dates</span><br>Yes</p>
+    <p><span class="k">Open to a series, up to three sessions</span><br>Maybe, wants to discuss</p>
+    <p><span class="k">Brings for the resource library</span><br>Workbench Ventures GTM Weekly newsletter. Open to a series: GTM from scratch, and investor management.</p>
+    <p><span class="k">Deck</span><br>None needed for a fireside.</p>
+  </div>
+
+  <span class="zone two">2 · The ask</span><span class="zone-note">what to build, and by when</span>
+  <ul class="build">
+      <li><b>No deck required.</b> We interview him and founders ask questions</li>
+      <li>Bring <b>three questions he wishes someone had asked</b> at the start, which become the run of show</li>
+      <li>Agree <b>what he is comfortable naming out loud</b>: numbers, timelines, the decision to close</li>
+  </ul>
+
+  <div class="steps">
+    <div class="step"><p class="n">STEP 1 · IMMEDIATELY</p><p class="t"><b>Calendar hold</b> for this slot goes out as soon as the date is confirmed.</p></div>
+    <div class="step"><p class="n">STEP 2 · WEEK PRIOR</p><p class="t"><b>15 minute sync call.</b> Lock the title and intro, walk the shape of the 30 minutes, confirm recording and promotion, tech check.</p></div>
+    <div class="step"><p class="n">STEP 3 · 72 HOURS OUT</p><p class="t"><b>Deck due</b>, if a deck is being used, so we can prep and promote.</p></div>
+  </div>
+
+  <div class="call">
+    <p class="k" style="color: #110465;">Settle on the sync call</p>
+    <ul>
+      <li>What you are comfortable naming out loud: numbers, timelines, the decision to close</li>
+      <li>The three questions you wish someone had asked you at the start, which become the run of show</li>
+      <li>Who conducts the fireside and who fields founder questions</li>
     </ul>
   </div>
 
-  <div class="spacer"></div>
-  <div class="verdict">
-    <p class="lab">Recommendation</p>
-    <p class="call">GO</p>
-    <p class="rec">Recommend booking. Founders hear success stories constantly and almost never a first-hand account of winding down. Fireside is the right format and needs no prep from him.</p>
+  <span class="zone three">3 · Luma event page</span><span class="zone-note">draft copy, for your approval</span>
+  <div class="luma">
+    <p class="etitle">B2B: from idea &gt; funding &gt; failure</p>
+    <p class="emeta">Uplift Expert Session · Mon Sept 14 · 12:30 PM ET · Virtual · 30 minutes</p>
+    <p class="h">About this session</p>
+    <p class="txt">Founders hear success stories constantly and almost never a first-hand account of the other outcome. Eric Schmalzbauer takes us through the whole arc of his venture-backed B2B startup: the idea, the fundraising, building the team, and the decision to wind it down. He covers what worked, what he would change next time, and what he would do more of. Expect a candid conversation rather than a polished talk.</p>
+    <p class="h">What you will leave with</p>
+    <ul>
+      <li>Tangible examples of what worked and what did not inside a venture-backed startup</li>
+      <li>As a founder you always have to be selling, in some form</li>
+      <li>Honest acknowledgement that the job is very lonely</li>
+    </ul>
+    <p class="h">About Eric</p>
+    <p class="txt">Eric Schmalzbauer is a technology executive, founder, and venture partner across product strategy, data platforms, and go-to-market execution. He is the now former co-Founder and CEO of Prospective, the team behind the open-source Perspective project, building high-performance tools for interactive data analytics. Eric previously held senior leadership roles across financial market infrastructure and enterprise technology, driving product innovation and commercialization. As a Venture Partner at REFASHIOND Ventures, he advises early-stage founders on product-market fit, fundraising, and scaling.</p>
   </div>
+
+  <div class="spacer"></div>
+  <div class="foot">
+    <span>eric.schmalzbauer@gmail.com</span>
+    <span>Uplift Mentorship Program · TechUnited:NJ</span>
   </div>
 </div>
 
-<!-- ─────────────────────────── 3 · Julia Kahky ───────────────────────────── -->
 <div class="page">
-  <div class="top"><div class="logo"></div><div class="meta-right">Expert Sessions · Fall 2026<br>Speaker review <b>03 / 04</b></div></div>
-  <h1>Julia Kahky</h1>
-  <p class="who"><b>VP Operations, Tailsight</b> · aviation software; formerly chief of staff, fintech and sports media operations</p>
-  <p class="meta">julia.m.kahky@gmail.com · linkedin.com/in/juliamkahky · applied Aug 28 · speaks to audiences regularly</p>
-
-  <div class="slot">
-    <div><p class="k">Proposed slot</p><p class="v">Session 5 · Mon Sept 21 · 12:30 PM ET</p></div>
-    <p class="alt">Her ranking: 2, then 5, then 4<br>Session 2 goes to Eric, so this is her second choice</p>
+  <div class="mast">
+    <div class="logo"></div>
+    <div class="r">Expert Sessions · Fall 2026<br>Session brief <b>03 / 03</b></div>
   </div>
 
-  <h2>Title</h2>
-  <div class="titles">
-    <div class="titlebox"><p class="lab">Hers</p><p class="val">From startup to dissolution: a post-mortem</p></div>
-    <div class="titlebox ours"><p class="lab">Ours, and the rename matters</p><p class="val">Selling Software to Enterprise and Regulated Customers: Lessons From a Startup That Closed</p></div>
+  <span class="zone">1 · The session</span><span class="zone-note">at a glance</span>
+  <div class="head">
+    <div class="who">
+      <h1>Julia Kahky</h1>
+      <p>VP Operations, Tailsight</p>
+    </div>
+    <div class="slot">
+      <p class="k">Date</p>
+      <p class="v">Session 5<br>Mon Sept 21 · 12:30 PM ET</p>
+      <p class="sub">30 minutes · virtual</p>
+    </div>
+    <div class="fmt">
+      <p class="k">Format</p>
+      <p class="v" style="font-size: 11pt;">Presentation, then Q&amp;A</p>
+      <p class="sub">Aimed at: Every stage, idea through raising</p>
+    </div>
   </div>
 
-  <h2>What founders leave with, in their words</h2>
-  <div class="aways">
-    <div class="away"><p class="n">TAKEAWAY 1</p><p class="t">Problems to avoid early on</p></div>
-    <div class="away"><p class="n">TAKEAWAY 2</p><p class="t">Product-market fit</p></div>
-    <div class="away"><p class="n">TAKEAWAY 3</p><p class="t">Sales cycles</p></div>
-  </div>
-  <h2>The 30 minutes</h2>
-  <p class="body">Everything she learned trying to sell software to enterprise customers and into highly regulated markets, framed as a post-mortem of a company that did not make it. What worked, what did not. Presentation with slides.</p>
-
-
-  <h2>Why it matters now, in her words</h2>
-  <p class="body">Everything online is about how companies succeed, and people learn more from the mistakes of companies that failed.</p>
-
-  <div class="cols">
-    <div class="kv"><p class="k">Format</p><p class="v">Presentation, then Q&amp;A</p></div>
-    <div class="kv"><p class="k">Aimed at</p><p class="v">Selected every audience option</p></div>
-    <div class="kv"><p class="k">Brings</p><p class="v">Her community, The Atrium; the post-mortem deck; a list of AI tools, tips and tricks</p></div>
-    <div class="kv"><p class="k">Deck link</p><p class="v">Points to a podcast episode, not a deck</p></div>
+  <div class="titlebox">
+    <p class="k">Session title, as they submitted it</p>
+    <p class="val">From startup to dissolution: a post-mortem</p>
   </div>
 
-  <div class="flags">
-    <p class="k" style="font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; font-weight: 700; letter-spacing: 0.14em; color: #cf5b8d;">SETTLE ON THE CALL</p>
-    <ul style="padding-left: 16px; margin-top: 6px;">
-      <li><b>Reframe the title.</b> Two shutdown post-mortems in one cohort is repetitive, and her real differentiator is enterprise and regulated sales. Same content, sharper promise.</li>
-      <li>The three takeaways are topic labels rather than outcomes. Ask what a founder should do differently on Monday for each.</li>
-      <li>She aimed at every stage at once. Push her to pick the two that fit best so the blurb has an edge.</li>
-      <li>Get the actual deck, and confirm what The Atrium is before we put it in the resource library.</li>
+  <div class="facts">
+    <p><span class="k">Open to other dates</span><br>Yes</p>
+    <p><span class="k">Open to a series, up to three sessions</span><br>Maybe, wants to discuss</p>
+    <p><span class="k">Brings for the resource library</span><br>Her community, The Atrium. The post-mortem deck. A list of AI tools, tips and tricks.</p>
+    <p><span class="k">Deck</span><br>Deck to be sent. Due 72 hours before.</p>
+  </div>
+
+  <span class="zone two">2 · The ask</span><span class="zone-note">what to build, and by when</span>
+  <ul class="build">
+      <li><b>20 minutes of slides</b> on the enterprise and regulated sales arc: cycle lengths, where deals died, what she would do differently</li>
+      <li>Turn the three takeaways into <b>actions a founder can take on Monday</b></li>
+      <li><b>10 minutes of questions</b> at the end</li>
+  </ul>
+
+  <div class="steps">
+    <div class="step"><p class="n">STEP 1 · IMMEDIATELY</p><p class="t"><b>Calendar hold</b> for this slot goes out as soon as the date is confirmed.</p></div>
+    <div class="step"><p class="n">STEP 2 · WEEK PRIOR</p><p class="t"><b>15 minute sync call.</b> Lock the title and intro, walk the shape of the 30 minutes, confirm recording and promotion, tech check.</p></div>
+    <div class="step"><p class="n">STEP 3 · 72 HOURS OUT</p><p class="t"><b>Deck due</b>, if a deck is being used, so we can prep and promote.</p></div>
+  </div>
+
+  <div class="call">
+    <p class="k" style="color: #110465;">Settle on the sync call</p>
+    <ul>
+      <li>How each takeaway becomes something a founder can act on the following Monday</li>
+      <li>Which stages to aim at, so the invitation to the cohort has an edge</li>
+      <li>Who moderates and how questions reach you, plus where The Atrium and the AI tools list fit</li>
     </ul>
   </div>
 
-  <div class="spacer"></div>
-  <div class="verdict">
-    <p class="lab">Recommendation</p>
-    <p class="call cond">GO, IF SHE TAKES THE RENAME</p>
-    <p class="rec">Experienced speaker with real scar tissue in a lane nobody else offered. It only works billed as enterprise and regulated sales rather than a second failure story.</p>
-  </div>
-  </div>
-</div>
-
-<!-- ─────────────────────────── 4 · Jeffrey Hang ──────────────────────────── -->
-<div class="page">
-  <div class="top"><div class="logo"></div><div class="meta-right">Expert Sessions · Fall 2026<br>Speaker review <b>04 / 04</b></div></div>
-  <h1>Jeffrey Hang</h1>
-  <p class="who"><b>Senior Associate, Lair East Labs</b> · and Head of Program, Pioneering Minds AI</p>
-  <p class="meta">jeffrey@pioneeringminds.ai · linkedin.com/in/jeffrey-ze-chong-hang · applied Aug 28 · found your LinkedIn post · speaks regularly</p>
-
-  <div class="slot">
-    <div><p class="k">Proposed slot</p><p class="v">Session 8 · Mon Sept 28 · 12:30 PM ET</p></div>
-    <p class="alt">His ranking: 8, then 11, then 14<br>Open to other dates: yes</p>
-  </div>
-
-  <h2>Title</h2>
-  <div class="titles">
-    <div class="titlebox"><p class="lab">His, which is two sessions</p><p class="val">What do VCs look for / GTM in the Age of AI</p></div>
-    <div class="titlebox ours"><p class="lab">Ours, pick one</p><p class="val">A. How Investors Evaluate Early-Stage Startups<br>B. Building a Go-to-Market Plan When AI Changes the Playbook</p></div>
-  </div>
-
-  <h2>What founders leave with, in their words</h2>
-  <div class="aways">
-    <div class="away"><p class="n">TAKEAWAY 1</p><p class="t">GTM strategies in the age of AI</p></div>
-    <div class="away"><p class="n">TAKEAWAY 2</p><p class="t">Executive storytelling</p></div>
-    <div class="away"><p class="n">TAKEAWAY 3</p><p class="t">Product design methodologies</p></div>
-  </div>
-  <h2>The 30 minutes</h2>
-  <p class="body">A working session where founders bring their own material and he coaches live. Stated scope: business model analysis, product design, pitch, go-to-market. He is a venture-side operator at a New York accelerator who works with early-stage founders on go-to-market, fundraising, positioning and growth.</p>
-
-
-  <h2>Why it matters now, in his words</h2>
-  <p class="body">The old playbook is not working as well in the age of AI, so founders need a framework to stand out.</p>
-
-  <div class="cols">
-    <div class="kv"><p class="k">Format</p><p class="v">Working session, coaches live</p></div>
-    <div class="kv"><p class="k">Aimed at</p><p class="v">Idea stage through raising, plus understanding investors</p></div>
-    <div class="kv"><p class="k">Brings</p><p class="v">Individual comments and a GTM playbook</p></div>
-    <div class="kv"><p class="k">Series</p><p class="v">Yes, up to three. Wants to iterate on decks and GTM with founders across sessions.</p></div>
-  </div>
-
-  <div class="flags">
-    <p class="k" style="font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; font-weight: 700; letter-spacing: 0.14em; color: #cf5b8d;">SETTLE ON THE CALL</p>
-    <ul style="padding-left: 16px; margin-top: 6px;">
-      <li><b>One topic, not two.</b> The investor lens and GTM in the age of AI are separate sessions. Pick one for Session 8 and hold the other for the series.</li>
-      <li>Thinnest application of the four: a four-word summary, no deck, takeaways written as phrases. Ask for the actual structure of the 30 minutes.</li>
-      <li>A live teardown needs volunteers. Decide whether we pre-recruit two founders to bring work, or it will stall on the day.</li>
-      <li>He is the only one who wants a series, so if the first lands he can fill three slots.</li>
+  <span class="zone three">3 · Luma event page</span><span class="zone-note">draft copy, for your approval</span>
+  <div class="luma">
+    <p class="etitle">From startup to dissolution: a post-mortem</p>
+    <p class="emeta">Uplift Expert Session · Mon Sept 21 · 12:30 PM ET · Virtual · 30 minutes</p>
+    <p class="h">About this session</p>
+    <p class="txt">Everything online is about how companies succeed. Julia Kahky takes the other route and walks through the post-mortem of a startup that closed, specifically what she learned selling software to enterprise customers and into highly regulated markets. Expect specifics on the problems worth avoiding early, product-market fit, and how long sales cycles really take.</p>
+    <p class="h">What you will leave with</p>
+    <ul>
+      <li>Problems to avoid early on</li>
+      <li>Product-market fit</li>
+      <li>Sales cycles</li>
     </ul>
+    <p class="h">About Julia</p>
+    <p class="txt">Julia Kahky is VP of Operations at a software company in the aviation industry, with prior experience as a chief of staff and in financial technology and operations in sports media. She started her career in finance and has worked across Fortune 15 companies, 500-person companies, and startups, with experience spanning finance, operations, marketing, revenue operations, and HR.</p>
   </div>
 
   <div class="spacer"></div>
-  <div class="verdict">
-    <p class="lab">Recommendation</p>
-    <p class="call cond">GO, ONCE SCOPED</p>
-    <p class="rec">Credentials and format are useful and the series upside is real, but nothing in the application says what actually happens in the room. Scope it on the call before the event page goes live.</p>
-  </div>
+  <div class="foot">
+    <span>julia.m.kahky@gmail.com</span>
+    <span>Uplift Mentorship Program · TechUnited:NJ</span>
   </div>
 </div>
 
