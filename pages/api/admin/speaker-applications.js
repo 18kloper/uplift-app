@@ -152,22 +152,28 @@ export default async function handler(req, res) {
     for (const s of speakers) {
       const d = decisions.latest[s.id];
       s.decision = !d || d.decision === "clear" ? null : d.decision || null;
-      s.assignedSession = s.decision === "approved" ? d?.session ?? null : null;
+      // A pending offer carries a slot exactly like a confirmed booking does.
+      s.assignedSession = ["approved", "pending"].includes(s.decision) ? d?.session ?? null : null;
       s.note = d?.note || "";
     }
 
     // Slot board: which of the 22 sessions now have a booked speaker, and who
     // is asking for the ones that don't.
-    const booked = {};
+    const taken = {};
     for (const s of speakers) {
-      if (s.decision === "approved" && s.assignedSession) booked[s.assignedSession] = s;
+      if (["approved", "pending"].includes(s.decision) && s.assignedSession) taken[s.assignedSession] = s;
     }
     const slots = EDU_SESSIONS.map(sess => {
-      const speaker = booked[sess.n] || null;
+      const speaker = taken[sess.n] || null;
       return {
         ...sess,
         url: `https://luma.com/${sess.slug}`,
-        speaker: speaker && { id: speaker.id, name: speaker.name, company: speaker.company, topicTitle: speaker.topicTitle },
+        // status: confirmed once the speaker has replied, pending while we wait.
+        status: speaker ? (speaker.decision === "approved" ? "confirmed" : "pending") : "open",
+        speaker: speaker && {
+          id: speaker.id, name: speaker.name, company: speaker.company,
+          topicTitle: speaker.topicTitle, decision: speaker.decision,
+        },
         interestedCount: speakers.filter(s => !s.decision && s.requestedSessions.includes(sess.n)).length,
       };
     });
@@ -181,8 +187,10 @@ export default async function handler(req, res) {
         total: speakers.length,
         undecided: speakers.filter(s => !s.decision).length,
         approved: speakers.filter(s => s.decision === "approved").length,
+        pending: speakers.filter(s => s.decision === "pending").length,
         rejected: speakers.filter(s => s.decision === "rejected").length,
-        slotsFilled: Object.keys(booked).length,
+        slotsFilled: slots.filter(sl => sl.status === "confirmed").length,
+        slotsPending: slots.filter(sl => sl.status === "pending").length,
         slotsTotal: EDU_SESSIONS.length,
       },
       speakers,

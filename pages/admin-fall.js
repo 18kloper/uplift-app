@@ -1041,7 +1041,9 @@ export default function AdminFall() {
                   {[
                     ["On Luma", `${sessions.totals.eduBooked}/${sessions.totals.eduTotal}`, "#1a6e42"],
                     ["Total Registrations", sessions.totals.totalRegistrations, "#5c4eb5"],
-                    ["Need Speaker / Title", `${sessions.sessions.filter(needsSessionInfo).length}/${sessions.totals.eduTotal}`, "#c0392b"],
+                    ["Speaker Confirmed", `${speakers?.slots?.filter(sl => sl.status === "confirmed").length ?? 0}/${sessions.totals.eduTotal}`, "#1a6e42"],
+                    ["Speaker Pending", speakers?.slots?.filter(sl => sl.status === "pending").length ?? 0, "#b35c00"],
+                    ["Still Needs a Speaker", `${speakers?.slots ? speakers.slots.filter(sl => sl.status === "open").length : sessions.sessions.filter(needsSessionInfo).length}/${sessions.totals.eduTotal}`, "#c0392b"],
                     ["Onboarding Slots w/ Luma", `${sessions.totals.onboardingWithLuma}/${sessions.totals.onboardingSlots}`, "#b35c00"],
                   ].map(([label, value, color]) => (
                     <div key={label} style={{ background: "#fafafa", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
@@ -1056,7 +1058,7 @@ export default function AdminFall() {
                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                     <thead>
                       <tr style={{ textAlign: "left", color: "#9b8fcf", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                        {["#", "When", "On Luma", "Event Name", "Registered", "Link"].map(h => (
+                        {["#", "When", "Speaker", "On Luma", "Event Name", "Registered", "Link"].map(h => (
                           <th key={h} style={{ padding: "8px 10px", borderBottom: "1px solid #e8e4f5", whiteSpace: "nowrap" }}>{h}</th>
                         ))}
                       </tr>
@@ -1066,6 +1068,19 @@ export default function AdminFall() {
                         <tr key={sess.n} style={{ borderBottom: "1px solid #f0edf9" }}>
                           <td style={{ padding: "9px 10px", fontWeight: 800, color: "#3d2f8a" }}>{sess.n}</td>
                           <td style={{ padding: "9px 10px", whiteSpace: "nowrap" }}>{sess.day} · {sess.time}</td>
+                          <td style={{ padding: "9px 10px", fontSize: 12 }}>{(() => {
+                            const sl = speakers?.slots?.find(x => x.n === sess.n);
+                            if (!sl?.speaker) return <span style={{ color: "#c8bfef" }}>needs a speaker</span>;
+                            const pending = sl.status === "pending";
+                            return (
+                              <>
+                                <span style={{ fontSize: 10, fontWeight: 800, borderRadius: 4, padding: "1px 6px", marginRight: 6, background: pending ? "#fdf4e8" : "#e8f8f0", color: pending ? "#b35c00" : "#1a6e42" }}>
+                                  {pending ? "PENDING" : "CONFIRMED"}
+                                </span>
+                                <span style={{ fontWeight: 600, color: "#3d2f8a" }}>{sl.speaker.name}</span>
+                              </>
+                            );
+                          })()}</td>
                           <td style={{ padding: "9px 10px" }}>
                             <span style={{ fontSize: 11, fontWeight: 700, borderRadius: 4, padding: "2px 8px", background: sess.onLuma ? "#e8f8f0" : "#fff5f5", color: sess.onLuma ? "#1a6e42" : "#b32424" }}>
                               {sess.onLuma ? "✓ Live" : "Missing"}
@@ -1125,8 +1140,9 @@ export default function AdminFall() {
                       {[
                         ["Applications", speakers.counts.total, "#5c4eb5"],
                         ["Waiting on you", speakers.counts.undecided, speakers.counts.undecided ? "#c0392b" : "#1a6e42"],
-                        ["Slots booked", `${speakers.counts.slotsFilled}/${speakers.counts.slotsTotal}`, "#1a6e42"],
-                        ["Slots still open", speakers.counts.slotsTotal - speakers.counts.slotsFilled, "#b35c00"],
+                        ["Confirmed", `${speakers.counts.slotsFilled}/${speakers.counts.slotsTotal}`, "#1a6e42"],
+                        ["Pending reply", speakers.counts.slotsPending ?? 0, "#b35c00"],
+                        ["Slots still open", speakers.counts.slotsTotal - speakers.counts.slotsFilled - (speakers.counts.slotsPending ?? 0), "#5c4eb5"],
                       ].map(([label, value, color]) => (
                         <div key={label} style={{ background: "#fafafa", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
                           <p style={{ margin: 0, fontSize: 24, fontWeight: 800, color }}>{value}</p>
@@ -1156,13 +1172,13 @@ export default function AdminFall() {
                             textAlign: "left", cursor: "pointer", fontFamily: "inherit",
                             border: active ? "2px solid #5c4eb5" : "1px solid #e8e4f5",
                             borderRadius: 10, padding: "9px 11px",
-                            background: sl.speaker ? "#f4fbf7" : "#fff",
+                            background: sl.status === "confirmed" ? "#f4fbf7" : sl.status === "pending" ? "#fdf7ef" : "#fff",
                           }}>
                             <span style={{ fontSize: 11, fontWeight: 800, color: "#9b8fcf" }}>SESSION {sl.n}</span>
                             <div style={{ fontSize: 12.5, fontWeight: 700, color: "#3d2f8a" }}>{sl.day} · {sl.time}</div>
                             {sl.speaker ? (
-                              <div style={{ fontSize: 11.5, color: "#1a6e42", fontWeight: 700, marginTop: 2 }}>
-                                ✓ {sl.speaker.name}
+                              <div style={{ fontSize: 11.5, color: sl.status === "pending" ? "#b35c00" : "#1a6e42", fontWeight: 700, marginTop: 2 }}>
+                                {sl.status === "pending" ? "⏳ PENDING · " : "✓ "}{sl.speaker.name}
                                 <div style={{ fontWeight: 500, color: "#6b6480" }}>{sl.speaker.topicTitle || sl.speaker.company || ""}</div>
                               </div>
                             ) : (
@@ -1185,7 +1201,7 @@ export default function AdminFall() {
 
                 <div style={card}>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
-                    {[["undecided", "Undecided"], ["approved", "Booked"], ["rejected", "Declined"], ["all", "All"]].map(([id, label]) => (
+                    {[["undecided", "Undecided"], ["pending", "Pending reply"], ["approved", "Confirmed"], ["rejected", "Declined"], ["all", "All"]].map(([id, label]) => (
                       <button key={id} onClick={() => setSpeakerFilter(id)} style={{
                         border: "1px solid #e8e4f5", borderRadius: 20, padding: "4px 12px",
                         background: speakerFilter === id ? "#5c4eb5" : "#fff",
@@ -1217,7 +1233,8 @@ export default function AdminFall() {
                             <p style={{ margin: 0, fontSize: 16.5, fontWeight: 800, color: "#1a1733" }}>
                               {sp.name || "(no name)"}
                               {isNew(sp.submittedAt) && <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 800, background: "#f5f3ff", color: "#5c4eb5", borderRadius: 4, padding: "1px 6px", verticalAlign: "middle" }}>NEW</span>}
-                              {sp.decision === "approved" && <span style={{ marginLeft: 8, fontSize: 10.5, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "2px 7px", verticalAlign: "middle" }}>BOOKED · SESSION {sp.assignedSession}</span>}
+                              {sp.decision === "approved" && <span style={{ marginLeft: 8, fontSize: 10.5, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "2px 7px", verticalAlign: "middle" }}>CONFIRMED · SESSION {sp.assignedSession}</span>}
+                              {sp.decision === "pending" && <span style={{ marginLeft: 8, fontSize: 10.5, fontWeight: 800, background: "#fdf4e8", color: "#b35c00", borderRadius: 4, padding: "2px 7px", verticalAlign: "middle" }}>PENDING · SESSION {sp.assignedSession}</span>}
                               {sp.decision === "rejected" && <span style={{ marginLeft: 8, fontSize: 10.5, fontWeight: 800, background: "#fef0f0", color: "#c0392b", borderRadius: 4, padding: "2px 7px", verticalAlign: "middle" }}>DECLINED</span>}
                             </p>
                             <p style={{ margin: "3px 0 0", fontSize: 13, color: "#6b6480" }}>
@@ -1331,8 +1348,11 @@ export default function AdminFall() {
                                   </option>
                                 ))}
                               </select>
+                              <button disabled={matchBusy || !pick} onClick={() => doSpeakerDecide(sp, "pending", Number(pick))} style={{ border: "none", borderRadius: 8, padding: "7px 14px", background: pick ? "#b35c00" : "#e0d9c9", color: "#fff", fontSize: 12.5, fontWeight: 700, cursor: pick ? "pointer" : "not-allowed", fontFamily: "inherit" }}>
+                                ⏳ Offer &amp; hold
+                              </button>
                               <button disabled={matchBusy || !pick} onClick={() => doSpeakerDecide(sp, "approved", Number(pick))} style={{ border: "none", borderRadius: 8, padding: "7px 14px", background: pick ? "#1a6e42" : "#cfd8d2", color: "#fff", fontSize: 12.5, fontWeight: 700, cursor: pick ? "pointer" : "not-allowed", fontFamily: "inherit" }}>
-                                ✓ Approve &amp; book
+                                ✓ Confirm &amp; book
                               </button>
                               <button disabled={matchBusy} onClick={() => doSpeakerDecide(sp, "rejected")} style={{ border: "none", borderRadius: 8, padding: "7px 14px", background: "#fef0f0", color: "#c0392b", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                                 ✗ Decline
@@ -1350,6 +1370,11 @@ export default function AdminFall() {
                                   Luma event →
                                 </a>
                               )}
+                              {sp.decision === "pending" && (
+                                <button disabled={matchBusy} onClick={() => doSpeakerDecide(sp, "approved", sp.assignedSession)} style={{ border: "none", borderRadius: 8, padding: "6px 12px", background: "#1a6e42", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                                  ✓ They replied, confirm Session {sp.assignedSession}
+                                </button>
+                              )}
                               <button disabled={matchBusy} onClick={() => doSpeakerDecide(sp, "clear")} style={{ border: "1px solid #e8e4f5", borderRadius: 8, padding: "6px 12px", background: "#fff", color: "#9b8fcf", fontSize: 11.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>undo</button>
                             </>
                           )}
@@ -1358,7 +1383,7 @@ export default function AdminFall() {
                     );
                   })}
                   <p style={{ margin: "6px 0 0", fontSize: 11.5, color: "#9b8fcf", fontStyle: "italic" }}>
-                    Decisions save to the FallSpeakers sheet tab. Approving books that speaker into the slot and takes it off the board for everyone else.
+                    Offer &amp; hold marks the slot pending and holds it while you wait for their reply. Confirm &amp; book marks it confirmed. Either way the date leaves the board for everyone else, and it all saves to the FallSpeakers sheet tab.
                   </p>
                 </div>
               </>

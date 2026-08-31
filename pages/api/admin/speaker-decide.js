@@ -1,6 +1,10 @@
 // POST /api/admin/speaker-decide
-// Body: { applicant: { id, name, email }, decision: "approved" | "rejected" | "clear",
+// Body: { applicant: { id, name, email }, decision: "pending" | "approved" | "rejected" | "clear",
 //         session: <1..22 | null>, note: "" }
+//
+// "pending" means we have offered them a specific slot and are waiting on their
+// reply. It holds the slot exactly like an approval does, so the date cannot be
+// offered twice, but the board shows it as pending rather than booked.
 //
 // The decision layer over speaker applications, stored in FallSpeakers
 // (append-only; the latest row per applicant wins), matching fall-decide.js.
@@ -48,15 +52,15 @@ async function ensureTab(sheets, spreadsheetId) {
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
   const { applicant, decision, session, note } = req.body || {};
-  if (!applicant?.id || !["approved", "rejected", "clear"].includes(decision)) {
+  if (!applicant?.id || !["pending", "approved", "rejected", "clear"].includes(decision)) {
     return res.status(400).json({ error: "Missing/invalid applicant.id or decision" });
   }
 
   let slot = null;
-  if (decision === "approved") {
+  if (decision === "approved" || decision === "pending") {
     slot = parseInt(session, 10);
     if (!EDU_SESSIONS.some(s => s.n === slot)) {
-      return res.status(400).json({ error: "Approving a speaker needs a session slot between 1 and 22" });
+      return res.status(400).json({ error: `Marking a speaker ${decision} needs a session slot between 1 and 22` });
     }
   }
 
@@ -80,10 +84,13 @@ export default async function handler(req, res) {
         if (!row[1]) continue;
         latest[row[1]] = { decision: row[4], session: row[5] ? parseInt(row[5], 10) : null, name: row[2] };
       }
+      // A pending offer holds the slot too, so two speakers can never be
+      // offered the same date.
       const clash = Object.entries(latest).find(([id, v]) =>
-        id !== applicant.id && v.decision === "approved" && v.session === slot);
+        id !== applicant.id && ["approved", "pending"].includes(v.decision) && v.session === slot);
       if (clash) {
-        return res.status(409).json({ error: `Session ${slot} is already booked for ${clash[1].name || "another speaker"}. Clear that booking first or pick another slot.` });
+        const state = clash[1].decision === "pending" ? "held pending a reply from" : "booked for";
+        return res.status(409).json({ error: `Session ${slot} is already ${state} ${clash[1].name || "another speaker"}. Clear that first or pick another slot.` });
       }
     }
 
