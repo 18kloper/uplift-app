@@ -7,10 +7,13 @@
 
 SPEAKERS = [
   dict(
-    name="Steve Cummins", role="Principal / Chief Marketer, Solent Strategies",
+    name="Steve Cummins",
+    date_line="Session 7<br>Fri, Sept 25 · 12:30 PM ET", fmt_line="Presentation<br>with slides, then Q&amp;A",
+    aim="Founders who are pre-revenue and testing the market, already generating revenue, or raising. Useful to anyone who knows they should be marketing and has neither the time nor the budget to do all of it.",
+    linkedin="linkedin.com/in/stevecummins", applied="Aug 28", role="Principal / Chief Marketer, Solent Strategies",
     email="steve@solentstrategies.com",
-    meta="Session 7 · Friday, September 25 · 12:30 PM ET · 30 minutes · Virtual · Presentation, then Q&amp;A",
     title="Marketing that Maps the Customer Journey",
+    suggestion="Yours is good. We would publish it exactly as written.",
     about=("Every founder is told to do marketing, and everyone they ask has a different opinion. Steve Cummins, a "
            "fractional CMO with more than 20 years in B2B marketing, walks the customer journey stage by stage and "
            "shows which tactics actually belong at each one. The session closes on the one or two things this cohort "
@@ -23,7 +26,8 @@ SPEAKERS = [
          "reaching a broader audience, and executing a marketing plan tailored for their business. Steve has an "
          "engineering background and more than 20 years experience in global B2B marketing with name-brand companies "
          "and feisty start-ups. He also coaches and mentors marketers and teams of one."),
-    need=[("Your deck", "Final version 72 hours before the session, so we can prep and promote."),
+    need=[("Your 30 minutes", "Roughly 20 minutes of content, then questions. 30 minutes total, and we hold the clock."),
+          ("Your deck", "Final version 72 hours before the session, so we can prep and promote."),
           ("Sync call", "15 minutes with us the week before. We send the invite."),
           ("Calendar hold", "Lands in your inbox as soon as you confirm the date.")],
     settle=["Which one or two tactics we close on, so the room leaves with a decision",
@@ -31,10 +35,13 @@ SPEAKERS = [
             "Whether your one-pager and eBook go into the cohort resource library under your name"],
   ),
   dict(
-    name="Eric Schmalzbauer", role="Former co-founder &amp; CEO, Prospective",
+    name="Eric Schmalzbauer",
+    date_line="Session 2<br>Mon, Sept 14 · 12:30 PM ET", fmt_line="Fireside chat<br>we interview, founders ask",
+    aim="Any founder in the cohort. The worries overlap whatever the stage: fundraising, team building, go-to-market, managing investors.",
+    linkedin="linkedin.com/in/ericschmalzbauer", applied="Aug 31", role="Former co-founder &amp; CEO, Prospective",
     email="eric.schmalzbauer@gmail.com",
-    meta="Session 2 · Monday, September 14 · 12:30 PM ET · 30 minutes · Virtual · Fireside chat",
     title="B2B: from idea &gt; funding &gt; failure",
+    suggestion="Yours is good. We would publish it exactly as written.",
     about=("Founders hear success stories constantly and almost never a first-hand account of the other outcome. "
            "Eric Schmalzbauer takes us through the whole arc of his venture-backed B2B startup: the idea, the "
            "fundraising, building the team, and the decision to wind it down. He covers what worked, what he would "
@@ -48,7 +55,8 @@ SPEAKERS = [
          "analytics. Eric previously held senior leadership roles across financial market infrastructure and "
          "enterprise technology. As a Venture Partner at REFASHIOND Ventures, he advises early-stage founders on "
          "product-market fit, fundraising, and scaling."),
-    need=[("No deck needed", "It is a fireside. We drive with questions."),
+    need=[("Your 30 minutes", "A 30 minute conversation, questions from founders throughout. We hold the clock."),
+          ("No deck needed", "It is a fireside. We drive with questions."),
           ("Sync call", "15 minutes with us the week before. We send the invite."),
           ("Calendar hold", "Lands in your inbox as soon as you confirm the date.")],
     settle=["What you are comfortable naming out loud: numbers, timelines, the decision to close",
@@ -56,10 +64,13 @@ SPEAKERS = [
             "Who conducts the fireside with you, and how much time we leave for founder questions"],
   ),
   dict(
-    name="Julia Kahky", role="VP Operations, Tailsight",
+    name="Julia Kahky",
+    date_line="Session 5<br>Mon, Sept 21 · 12:30 PM ET", fmt_line="Presentation<br>with slides, then Q&amp;A",
+    aim="Founders at any stage, from idea through raising, and anyone selling into enterprise or regulated buyers where cycles are long and requirements arrive late.",
+    linkedin="linkedin.com/in/juliamkahky", applied="Aug 28", role="VP Operations, Tailsight",
     email="julia.m.kahky@gmail.com",
-    meta="Session 5 · Monday, September 21 · 12:30 PM ET · 30 minutes · Virtual · Presentation, then Q&amp;A",
     title="From startup to dissolution: a post-mortem",
+    suggestion="Yours is good. One option: add the subtitle <b>Selling into enterprise and regulated markets</b>, so it reads distinctly beside another founder post-mortem in the same series. Entirely your call.",
     about=("Everything online is about how companies succeed. Julia Kahky takes the other route and walks through the "
            "post-mortem of a startup that closed, specifically what she learned selling software to enterprise "
            "customers and into highly regulated markets. Expect specifics on the problems worth avoiding early, "
@@ -69,12 +80,13 @@ SPEAKERS = [
          "chief of staff and in financial technology and operations in sports media. She started her career in "
          "finance and has worked across Fortune 15 companies, 500-person companies, and startups, with experience "
          "spanning finance, operations, marketing, revenue operations, and HR."),
-    need=[("Your deck", "Final version 72 hours before the session, so we can prep and promote."),
+    need=[("Your 30 minutes", "Roughly 20 minutes of content, then questions. 30 minutes total, and we hold the clock."),
+          ("Your deck", "Final version 72 hours before the session, so we can prep and promote."),
           ("Sync call", "15 minutes with us the week before. We send the invite."),
           ("Calendar hold", "Lands in your inbox as soon as you confirm the date.")],
     settle=["How each takeaway becomes something a founder can act on the following Monday",
             "How much of the 30 minutes you want to keep for questions",
-            "Where The Atrium and your AI tools list fit in the cohort resource library"],
+            "Where The Atrium and your AI tools list fit in the resource library"],
   ),
 ]
 
@@ -83,8 +95,8 @@ CSS = """
   @page { size: 8.5in 11in; margin: 0; }
   :root { --ink: #110465; --body: #35324f; --soft: #6f6a8c; --pink: #cf5b8d; --rule: #d7d2e3; --wash: #f7f6f2; }
   body { background: #fff; color: var(--body); font-family: 'Archivo', system-ui, sans-serif;
-    font-size: 9.9pt; line-height: 1.44; }
-  .page { width: 8.5in; height: 10.96in; overflow: hidden; padding: 0.48in 0.68in 0.34in;
+    font-size: 8.9pt; line-height: 1.38; }
+  .page { width: 8.5in; height: 10.96in; overflow: hidden; padding: 0.4in 0.66in 0.26in;
     display: flex; flex-direction: column; break-after: page; page-break-after: always; }
   .page:last-child { break-after: auto; page-break-after: auto; }
 
@@ -94,39 +106,56 @@ CSS = """
   .mast .r { font-family: 'JetBrains Mono', monospace; font-size: 8pt; font-weight: 700;
     letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft); }
 
-  h1 { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 24pt;
-    text-transform: uppercase; color: var(--ink); line-height: 1.0; margin-top: 20px; }
+  h1 { font-family: 'Archivo Narrow', sans-serif; font-weight: 700; font-size: 21pt;
+    text-transform: uppercase; color: var(--ink); line-height: 1.0; margin-top: 16px; }
   .role { margin-top: 4px; font-size: 10.5pt; color: var(--body); }
-  .meta { margin-top: 10px; padding: 7px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
-    font-family: 'JetBrains Mono', monospace; font-size: 8.5pt; letter-spacing: 0.06em;
-    text-transform: uppercase; color: var(--ink); }
+  .contact { margin-top: 5px; font-family: 'JetBrains Mono', monospace; font-size: 8pt;
+    letter-spacing: 0.04em; color: var(--soft); }
+  .contact b { color: var(--ink); font-weight: 700; }
+  .strip { margin-top: 10px; display: grid; grid-template-columns: 1.15fr 1.35fr 0.9fr;
+    border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+  .strip div { padding: 7px 14px 7px 0; border-right: 1px solid var(--rule); }
+  .strip div:last-child { border-right: none; padding-left: 14px; padding-right: 0; }
+  .strip div:nth-child(2) { padding-left: 14px; }
+  .strip .lab { font-family: 'JetBrains Mono', monospace; font-size: 7pt; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--soft); }
+  .strip .val { margin-top: 3px; font-family: 'Archivo Narrow', sans-serif; font-weight: 700;
+    font-size: 12.5pt; color: var(--ink); text-transform: uppercase; line-height: 1.12; }
 
   h2 { font-family: 'JetBrains Mono', monospace; font-size: 8pt; font-weight: 700;
-    letter-spacing: 0.18em; text-transform: uppercase; color: var(--pink); margin-top: 18px; }
-  .title { margin-top: 7px; font-family: 'Archivo Narrow', sans-serif; font-weight: 700;
-    font-size: 17pt; color: var(--ink); line-height: 1.15; }
-  p.txt { margin-top: 7px; }
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--pink); margin-top: 11px; }
+  .titles { margin-top: 10px; display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px; }
+  .tcell { border-top: 2px solid var(--ink); padding-top: 7px; }
+  .tcell.sug { border-top-color: var(--pink); }
+  .tcell .lab { font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--soft); }
+  .tcell.sug .lab { color: var(--pink); }
+  .tcell .val { margin-top: 3px; font-family: 'Archivo Narrow', sans-serif; font-weight: 700;
+    font-size: 15pt; color: var(--ink); line-height: 1.14; }
+  .tcell.sug .val { font-family: 'Archivo', sans-serif; font-weight: 500; font-size: 10pt;
+    line-height: 1.4; color: var(--body); }
+  p.txt { margin-top: 6px; }
   ul.aways { margin: 9px 0 0 0; list-style: none; }
-  ul.aways li { position: relative; padding-left: 17px; margin-bottom: 3px; }
+  ul.aways li { position: relative; padding-left: 16px; margin-bottom: 2px; }
   ul.aways li:before { content: "\\2014"; position: absolute; left: 0; color: var(--pink); font-weight: 700; }
 
   .need { margin-top: 8px; }
-  .need .row { display: flex; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--rule); }
+  .need .row { display: flex; gap: 14px; padding: 5px 0; border-bottom: 1px solid var(--rule); }
   .need .row:first-child { border-top: 1px solid var(--rule); }
   .need .lab { flex: 0 0 1.7in; font-weight: 600; color: var(--ink); }
-  .copyband { margin-top: 18px; border-top: 3px solid var(--ink); padding-top: 9px;
+  .copyband { margin-top: 12px; border-top: 3px solid var(--ink); padding-top: 9px;
     display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
   .copyband .l { font-family: 'JetBrains Mono', monospace; font-size: 8.5pt; font-weight: 700;
     letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink); }
   .copyband .n { font-size: 9pt; color: var(--soft); text-align: right; }
   .copyblock { border-left: 3px solid var(--pink); padding-left: 16px; margin-top: 4px; }
-  .copyblock h2:first-child { margin-top: 11px; }
-  .settle { margin-top: 8px; background: var(--wash); padding: 10px 14px; }
+  .copyblock h2:first-child { margin-top: 9px; }
+  .settle { margin-top: 6px; background: var(--wash); padding: 8px 12px; }
   .settle ul { margin: 0 0 0 16px; }
-  .settle li { margin-bottom: 3px; }
+  .settle li { margin-bottom: 2px; }
 
   .spacer { flex: 1; }
-  .foot { border-top: 1px solid var(--rule); margin-top: 10px; padding-top: 7px;
+  .foot { border-top: 1px solid var(--rule); margin-top: 8px; padding-top: 6px;
     font-family: 'JetBrains Mono', monospace; font-size: 7.5pt; letter-spacing: 0.08em;
     color: var(--soft); display: flex; justify-content: space-between; }
 """
@@ -146,9 +175,23 @@ def page(s, i, total):
 
   <h1>{s['name']}</h1>
   <p class="role">{s['role']}</p>
-  <p class="meta">{s['meta']}</p>
+  <p class="contact">{s['email']} &nbsp;·&nbsp; {s['linkedin']}</p>
+  <div class="strip">
+    <div><p class="lab">When</p><p class="val">{s['date_line']}</p></div>
+    <div><p class="lab">Format</p><p class="val">{s['fmt_line']}</p></div>
+    <div><p class="lab">Length</p><p class="val">30 minutes<br>Virtual</p></div>
+  </div>
 
-  <p class="title">{s['title']}</p>
+  <div class="titles">
+    <div class="tcell">
+      <p class="lab">Your title</p>
+      <p class="val">{s['title']}</p>
+    </div>
+    <div class="tcell sug">
+      <p class="lab">Our suggestion</p>
+      <p class="val">{s['suggestion']}</p>
+    </div>
+  </div>
 
   <div class="copyband">
     <span class="l">Default event copy</span>
@@ -162,6 +205,9 @@ def page(s, i, total):
     <ul class="aways">
 {aways}
     </ul>
+
+    <h2>Who it is for</h2>
+    <p class="txt">{s['aim']}</p>
 
     <h2>About {first}</h2>
     <p class="txt">{s['bio']}</p>
@@ -180,7 +226,7 @@ def page(s, i, total):
   </div>
 
   <div class="spacer"></div>
-  <div class="foot"><span>{s['email']}</span><span>Uplift Mentorship Program · TechUnited:NJ</span></div>
+  <div class="foot"><span>Applied {s['applied']} · Uplift Expert Sessions, Fall 2026</span><span>Uplift Mentorship Program · TechUnited:NJ</span></div>
 </div>
 """
 
