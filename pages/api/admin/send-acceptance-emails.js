@@ -38,12 +38,12 @@ const SITE = "https://uplift2026.vercel.app";
 // nobody gets a second one. The first three went by hand from Gmail; the rest
 // went through this endpoint on 2026-09-01.
 //
-// collin-coke is deliberately NOT in this list. His first send went to the
-// address on his application, airgrandson@gnail.con, which is a typo for
-// gmail.com and will bounce. Once the FallMentees tab carries the corrected
-// address he is the only person a Preview/Send will target.
+// collin-coke's first send went to the address on his application,
+// airgrandson@gnail.con, a typo for gmail.com that bounced. The FallMentees
+// tab was corrected and he was re-sent on 2026-09-01, so he is listed here
+// too: everyone in the cohort now has their email exactly once.
 const ALREADY_SENT = [
-  "takeerah-jones", "laura-acosta", "ceana-santori",
+  "takeerah-jones", "laura-acosta", "ceana-santori", "collin-coke",
   "clevon-brown", "carolina-galvis", "christina-brown", "mayank-doultani",
   "vishruti-mehta", "neha-panwar", "kristen-chin", "ifeanyi-osuji",
   "jairo-contreras", "jt-keitt", "durvish-paliwal", "udbhav-gupta",
