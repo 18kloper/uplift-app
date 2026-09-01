@@ -470,7 +470,7 @@ export default function AdminFall() {
               {/* The SOP is the page you look for when you do not know where
                   something lives, so it has to be reachable from the screen
                   everyone already opens. Same admin session, no second login. */}
-              <a href="/fall/sop" style={{ border: "1px solid rgba(255,255,255,0.28)", borderRadius: 8, padding: "7px 14px", color: "#fff", fontSize: 13, fontWeight: 700, textDecoration: "none", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+              <a href="/fallsop" style={{ border: "1px solid rgba(255,255,255,0.28)", borderRadius: 8, padding: "7px 14px", color: "#fff", fontSize: 13, fontWeight: 700, textDecoration: "none", fontFamily: "inherit", whiteSpace: "nowrap" }}>
                 SOP
               </a>
               <a href="/fallfounderlookbook" style={{ border: "1px solid rgba(255,255,255,0.28)", borderRadius: 8, padding: "7px 14px", color: "#fff", fontSize: 13, fontWeight: 700, textDecoration: "none", fontFamily: "inherit", whiteSpace: "nowrap" }}>
