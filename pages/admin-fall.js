@@ -177,6 +177,29 @@ export default function AdminFall() {
   // The acceptance send. Always a dry run first: the endpoint returns exactly
   // who would be emailed and who it refuses, and nothing goes out until that
   // list has been looked at and confirmed.
+  // Rebuilds the PortalSnapshot tab and reports whether anything is missing.
+  const [snapshot, setSnapshot] = useState(null);
+  const [snapshotBusy, setSnapshotBusy] = useState(false);
+  const rebuildSnapshot = async () => {
+    const token = sessionStorage.getItem("uplift_admin_secret") || window.prompt("Admin secret (from Vercel env ADMIN_SECRET):");
+    if (!token) return;
+    sessionStorage.setItem("uplift_admin_secret", token);
+    setSnapshotBusy(true);
+    try {
+      const r = await fetch(`/api/admin/portal-snapshot?token=${encodeURIComponent(token)}`, { method: "POST" });
+      const d = await r.json();
+      if (!r.ok) {
+        if (r.status === 401) sessionStorage.removeItem("uplift_admin_secret");
+        setSnapshot({ error: d.error || `HTTP ${r.status}` });
+      } else {
+        setSnapshot(d);
+      }
+    } catch (e) {
+      setSnapshot({ error: e.message });
+    }
+    setSnapshotBusy(false);
+  };
+
   const acceptanceSend = async (dryRun) => {
     const token = sessionStorage.getItem("uplift_admin_secret") || window.prompt("Admin secret (from Vercel env ADMIN_SECRET):");
     if (!token) return;
@@ -1184,6 +1207,37 @@ export default function AdminFall() {
               <span style={{ fontSize: 12, fontWeight: 800, color: v ? "#1a6e42" : "#c9c3e0" }}>{v ? "✓" : "—"}</span>
             );
             return (
+              <>
+              <div style={card}>
+                <p style={{ ...kicker, margin: 0 }}>Portal data · everything the portal has recorded, one row per founder</p>
+                <p style={{ margin: "6px 0 10px", fontSize: 12.5, color: "#4a4363", lineHeight: 1.55 }}>
+                  FallResponses stores one row per answer, which is right for writing and unreadable for checking.
+                  This rebuilds the <strong>PortalSnapshot</strong> tab as a grid: every founder down the side, every question across the top.
+                  It only reads, so pressing it can never cost you data.
+                </p>
+                <button onClick={rebuildSnapshot} disabled={snapshotBusy} style={{ border: "none", borderRadius: 8, padding: "8px 16px", background: snapshotBusy ? "#b9b1e0" : "#5c4eb5", color: "#fff", fontSize: 12.5, fontWeight: 700, cursor: snapshotBusy ? "default" : "pointer", fontFamily: "inherit" }}>
+                  {snapshotBusy ? "Rebuilding…" : "↻ Rebuild the PortalSnapshot tab"}
+                </button>
+                {snapshot?.error && (
+                  <p style={{ margin: "10px 0 0", fontSize: 12.5, fontWeight: 700, color: "#c0392b" }}>{snapshot.error}</p>
+                )}
+                {snapshot?.ok && (
+                  <div style={{ margin: "10px 0 0", fontSize: 12.5, color: "#37324e", lineHeight: 1.6 }}>
+                    <p style={{ margin: 0, fontWeight: 700, color: "#1a6e42" }}>
+                      Rebuilt · {snapshot.founders} founders · {snapshot.columns} questions · {snapshot.answersRecorded} answers stored
+                    </p>
+                    {snapshot.loggedInButSilent?.length > 0 ? (
+                      <p style={{ margin: "4px 0 0", color: "#c0392b", fontWeight: 700 }}>
+                        Logged in but nothing recorded: {snapshot.loggedInButSilent.join(" · ")}. That is the shape a lost write would take, worth a look.
+                      </p>
+                    ) : (
+                      <p style={{ margin: "4px 0 0", color: "#6b6480" }}>
+                        Nobody has logged in without their answers landing. {snapshot.withNoAnswers} founders have not started yet.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
               <div style={card}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
                   <p style={{ ...kicker, margin: 0 }}>Completion evidence · the numbers grant reporting runs on · verified beats submitted</p>
@@ -1252,6 +1306,7 @@ export default function AdminFall() {
                   Verified = human-checked milestone columns in the sheet. Meetings/minutes = submitted to the Typeform. Certificates issue Nov 7–20 as founders complete.
                 </p>
               </div>
+              </>
             );
           })()}
 

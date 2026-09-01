@@ -5,7 +5,7 @@
 // updates the "Last Active" timestamp on the Dashboard.
 
 import { getSheetsClient } from "../../lib/sheets-helper";
-import { postPortalInput } from "../../lib/slack-portal-inputs";
+import { postPortalInput, postPortalSaveFailure } from "../../lib/slack-portal-inputs";
 import { FALL_SLUGS, FALL_RESPONSES_TAB, FALL_RESPONSES_HEADERS } from "../../lib/fall-roster";
 
 export default async function handler(req, res) {
@@ -184,7 +184,9 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error("Sheet write failed:", err.message);
-    // Don't surface errors to the client — localStorage is the source of truth
+    // The client checks sheetError, queues the answer and retries, so the
+    // 200 here means "received", never "stored". Slack gets told either way.
+    await postPortalSaveFailure({ slug, weekNum, fieldKey, error: err.message });
     return res.status(200).json({ ok: true, sheetError: true });
   }
 }
