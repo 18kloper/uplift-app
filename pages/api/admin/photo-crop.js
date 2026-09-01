@@ -111,6 +111,13 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "POST") {
+      // The deployed book is read-only. Photo and order changes are made on
+      // the local copy and pushed with the code, so nothing on the live site
+      // can rewrite them.
+      if (process.env.NODE_ENV === "production" && process.env.LOOKBOOK_ALLOW_EDITS !== "1") {
+        return res.status(403).json({ error: "The published lookbook is read-only" });
+      }
+
       // The lookbook is public, so the write path needs its own key. Without
       // this, anyone who worked out the ?edit=1 trick could re-crop, reorder,
       // or hide photos in the live book.

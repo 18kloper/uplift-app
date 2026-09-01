@@ -45,6 +45,11 @@ export default async function handler(req, res) {
     const founders = approvedFounders(mentees);
 
     if (req.method === "POST") {
+      // Contact reveal is a local tool. The deployed book never hands out
+      // addresses, whatever code is presented.
+      if (process.env.NODE_ENV === "production" && process.env.LOOKBOOK_ALLOW_CONTACTS !== "1") {
+        return res.status(404).end();
+      }
       const code = String(req.body?.code || "").trim().toLowerCase();
       if (code !== CONTACT_CODE.toLowerCase()) return res.status(403).json({ error: "Wrong code" });
       const contacts = {};

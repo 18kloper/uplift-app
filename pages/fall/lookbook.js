@@ -37,6 +37,10 @@ const properName = (v) => String(v || "")
 
 const isSoon = (v) => /^yes$/i.test(v || "") || /next 6 months/i.test(v || "");
 
+// The tools only exist in a local build. On the deployed site the book is
+// something you read, not something anyone can change.
+const EDITABLE_BUILD = process.env.NODE_ENV !== "production";
+
 // Founders who applied on the earlier, shorter form wrote nothing but their
 // focus areas. A page each would be mostly white space, so they pair up.
 const isSparse = (f) => !f.bio && !f.hoping && !f.valueSought && !f.brings;
@@ -90,6 +94,9 @@ export default function Lookbook() {
     // ?edit=1 turns the tools on and is remembered for the rest of the browser
     // session, so following a link or refreshing does not silently drop you
     // back into read-only.
+    // The deployed book is read-only for everyone: no photo tools, no page
+    // moving, no email reveal, no print. Editing happens on the local copy.
+    if (!EDITABLE_BUILD) return;
     const wantsEdit = new URLSearchParams(window.location.search).get("edit") === "1";
     if (wantsEdit) sessionStorage.setItem("lookbook_edit", "1");
     setIsAdmin(
@@ -580,12 +587,12 @@ export default function Lookbook() {
               >
                 {adjustMode ? "Done" : "Photos"}
               </button>}
-              <button
+              {EDITABLE_BUILD && <button
                 onClick={() => { if (contactsShown) { setContactsShown(false); setEmails({}); } else revealContacts(); }}
                 style={{ ...chrome, background: contactsShown ? INK : PAPER, color: contactsShown ? PAPER : INK }}
               >
                 {contactsShown ? "Hide emails" : "Show emails"}
-              </button>
+              </button>}
               {saveState && (
                 <span style={{
                   fontFamily: SANS, fontSize: 9, fontWeight: 700, letterSpacing: "0.12em",
@@ -596,7 +603,9 @@ export default function Lookbook() {
                   {saveState === "saving" ? "Saving" : saveState === "saved" ? "Saved" : "Not saved"}
                 </span>
               )}
-              <button onClick={printIssue} disabled={!founders} style={{ ...chrome, background: INK, color: PAPER, borderColor: INK }}>Print</button>
+              {EDITABLE_BUILD && (
+                <button onClick={printIssue} disabled={!founders} style={{ ...chrome, background: INK, color: PAPER, borderColor: INK }}>Print</button>
+              )}
             </div>
           </div>
         </div>
