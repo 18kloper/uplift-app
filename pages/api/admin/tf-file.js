@@ -15,7 +15,7 @@
 import convert from "heic-convert";
 import { Jimp } from "jimp";
 
-const MAX_WIDTH = 900;
+const MAX_WIDTH = 1600;
 
 const isHeic = (url, contentType) =>
   /\.heic$/i.test(new URL(url).pathname) || /image\/hei[cf]/i.test(contentType || "");
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
       const img = await Jimp.read(buf);
       if (img.width > MAX_WIDTH) {
         img.resize({ w: MAX_WIDTH });
-        buf = Buffer.from(await img.getBuffer("image/jpeg", { quality: 82 }));
+        buf = Buffer.from(await img.getBuffer("image/jpeg", { quality: 88 }));
         type = "image/jpeg";
       }
     } catch (e) {

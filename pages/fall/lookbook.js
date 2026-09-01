@@ -11,11 +11,13 @@
 // page source. The single-founder handout (/fall/profile/<id>) is a separate,
 // plainer document, and that is the link a mentor gets.
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Head from "next/head";
-import { SheetStyles, pickMentorSafe } from "../../components/FounderSheet";
+import { SheetStyles, FounderPhoto, pickMentorSafe } from "../../components/FounderSheet";
+import { UPLIFT_ALUMNI } from "../../lib/uplift-alumni";
 import {
-  CoverPage, ContentsPage, GlancePage, IndexPage, MosaicPage, FeaturePage,
+  CoverPage, ContentsPage, GlancePage, IndexPage, FeaturePage, DuoPage,
+  AlumniDividerPage, AlumniPage,
   PAPER, INK, INK_SOFT, RULE, ACCENT, DISPLAY, SANS,
 } from "../../components/LookbookPages";
 
@@ -23,6 +25,10 @@ import {
 // form and noise in a tally.
 const short = (v) => String(v || "").replace(/\s*\([^)]*\)\s*$/, "").replace(/:$/, "").trim();
 const isSoon = (v) => /^yes$/i.test(v || "") || /next 6 months/i.test(v || "");
+
+// Founders who applied on the earlier, shorter form wrote nothing but their
+// focus areas. A page each would be mostly white space, so they pair up.
+const isSparse = (f) => !f.bio && !f.hoping && !f.valueSought && !f.brings;
 
 function tally(founders, pick) {
   const counts = new Map();
@@ -34,67 +40,219 @@ function tally(founders, pick) {
   return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 }
 
-function PasswordGate({ onAuthenticated }) {
-  const [input, setInput] = useState("");
-  const [error, setError] = useState(false);
-  const attempt = () => {
-    if (input.trim().toLowerCase() === "admin") onAuthenticated();
-    else setError(true);
-  };
-  return (
-    <div style={{ minHeight: "100vh", background: INK, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: SANS }}>
-      <div style={{ background: PAPER, borderRadius: 4, padding: "40px 44px", width: 380, textAlign: "center" }}>
-        <p style={{ margin: "0 0 6px", fontFamily: DISPLAY, fontSize: 26, fontWeight: 900, color: INK }}>Uplift</p>
-        <p style={{ margin: "0 0 22px", fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: INK_SOFT }}>The Founder Lookbook</p>
-        <input
-          type="password" value={input}
-          onChange={e => { setInput(e.target.value); setError(false); }}
-          onKeyDown={e => e.key === "Enter" && attempt()}
-          placeholder="Access code"
-          style={{ width: "100%", padding: "10px 14px", borderRadius: 3, border: error ? "1.5px solid #c0392b" : `1px solid ${RULE}`, fontSize: 14, outline: "none", fontFamily: "inherit", marginBottom: 12, background: "#fff" }}
-        />
-        <button onClick={attempt} style={{ width: "100%", border: "none", borderRadius: 3, padding: "11px 0", background: INK, color: PAPER, fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", cursor: "pointer", fontFamily: "inherit" }}>
-          Enter
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export default function Lookbook() {
-  const [authed, setAuthed] = useState(false);
+  // Anyone with the link can read the book. Only the founders' email
+  // addresses are gated, and they are gated server-side: see
+  // pages/api/fall-lookbook.js.
+  const [isAdmin, setIsAdmin] = useState(false);
   const [founders, setFounders] = useState(null);
   const [err, setErr] = useState(null);
   const [page, setPage] = useState(0);
   const [generatedAt] = useState(() => new Date().toISOString());
+  const [crops, setCrops] = useState({});
+  const [adjustMode, setAdjustMode] = useState(false);
+  const [adjusting, setAdjusting] = useState(null);
+  // Clicking a name in an index opens their page as a preview rather than
+  // jumping the book: you look, then either go there or come back.
+  const [preview, setPreview] = useState(null);
+  // Mounting all 53 sheets at once means 53 fit passes and every photo at
+  // once, which takes the better part of a minute before anything appears.
+  // On screen only the current spread and its neighbours are mounted;
+  // printing mounts the whole issue first (see printAll).
+  const [printAll, setPrintAll] = useState(false);
+  // Emails are blurred until someone enters the contact code. The book is
+  // already behind the admin gate; this is the second lock, so it can be
+  // opened in front of people who should see the founders but not their
+  // inboxes.
+  const [contactsShown, setContactsShown] = useState(false);
+  const [emails, setEmails] = useState({});
 
   useEffect(() => {
-    if (sessionStorage.getItem("auth_admin_fall") === "1") setAuthed(true);
+    // The photo tools appear for anyone already signed into the fall admin
+    // board in this browser, or for anyone who adds ?edit=1 to the URL. The
+    // book itself is public; this is the difference between reading it and
+    // re-cropping it.
+    const wantsEdit = new URLSearchParams(window.location.search).get("edit") === "1";
+    setIsAdmin(wantsEdit || sessionStorage.getItem("auth_admin_fall") === "1");
   }, []);
 
   useEffect(() => {
-    if (!authed) return;
-    fetch("/api/admin/fall-people")
+    fetch("/api/fall-lookbook")
       .then(r => r.json())
       .then(d => {
         if (d.error) throw new Error(d.error);
-        setFounders((d.mentees || [])
-          .filter(m => m.decision === "approved" && !m.isTest)
-          .sort((a, b) => `${a.first} ${a.last}`.localeCompare(`${b.first} ${b.last}`))
-          .map(f => pickMentorSafe(f)));
+        setCrops(d.crops || {});
+        setFounders(d.founders || []);
       })
       .catch(e => setErr(e.message));
-  }, [authed]);
+  }, []);
 
-  // Cover, contents, at a glance, seeking, hiring, faces, then the features.
-  const FRONT = 6;
-  const pageCount = founders ? FRONT + founders.length : 0;
+  // The contact code is checked on the server, which is also where the
+  // addresses live until it passes.
+  // Every page has to be in the document before the print dialog opens, and
+  // each one needs a frame to measure itself, hence the pause.
+  const printIssue = useCallback(() => {
+    setPrintAll(true);
+    setTimeout(() => {
+      window.print();
+      setPrintAll(false);
+    }, 1200);
+  }, []);
+
+  const revealContacts = useCallback(async () => {
+    const code = window.prompt("Contact code to show emails");
+    if (!code) return;
+    try {
+      const r = await fetch("/api/fall-lookbook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      if (!r.ok) return window.alert("That code is not right.");
+      const { contacts } = await r.json();
+      setEmails(contacts || {});
+      setContactsShown(true);
+    } catch (e) {
+      window.alert("Could not load the emails just now.");
+    }
+  }, []);
+
+  // The issue as an explicit running order: front matter, a feature per
+  // founder who wrote one, then the short-form founders two to a page.
+  // A photo is set up twice over: once for the full page it leads, once for
+  // the small square it occupies on the cover and the mosaic. They are stored
+  // under separate keys so adjusting one never disturbs the other. A tile
+  // with no setup of its own inherits the page's, which is what everything
+  // saved before this split does.
+  const TILE = (id) => `${id}:tile`;
+
+  const cast = useMemo(
+    () => (founders || []).map(f => ({
+      ...f,
+      ...(crops[f.id] ? { crop: crops[f.id] } : null),
+      ...(emails[f.id] ? { email: emails[f.id] } : null),
+    })),
+    [founders, crops, emails],
+  );
+
+  const tileCast = useMemo(
+    () => (founders || []).map(f => {
+      const crop = crops[TILE(f.id)] || crops[f.id];
+      return crop ? { ...f, crop } : f;
+    }),
+    [founders, crops],
+  );
+
+  // Alumni photos are croppable on the same terms as the founders', keyed by
+  // their slug rather than an application id.
+  const alumniCast = useMemo(
+    () => UPLIFT_ALUMNI.map(a => (crops[a.slug] ? { ...a, crop: crops[a.slug] } : a)),
+    [crops],
+  );
+
+  const pages = useMemo(() => {
+    const list = [{ kind: "cover" }, { kind: "contents" }, { kind: "glance" }, { kind: "seeking" }, { kind: "hiring" }];
+    if (!founders) return list;
+    cast.filter(f => !isSparse(f)).forEach(f => list.push({ kind: "feature", people: [f] }));
+    const shorts = cast.filter(isSparse);
+    for (let i = 0; i < shorts.length; i += 2) list.push({ kind: "duo", people: shorts.slice(i, i + 2) });
+    // Part two: the summer graduates, four to a page.
+    list.push({ kind: "alumniDivider" });
+    const alumniPages = Math.ceil(alumniCast.length / 4);
+    for (let i = 0; i < alumniCast.length; i += 4) {
+      list.push({
+        kind: "alumni",
+        alumni: alumniCast.slice(i, i + 4),
+        partOf: `${i / 4 + 1} of ${alumniPages}`,
+      });
+    }
+    return list;
+  }, [founders, cast, alumniCast]);
+
+  // Dragging a photo moves its focal point. The distance you drag is read as
+  // a share of the frame, so a small nudge is a small move, and the result is
+  // saved when you let go.
+  const dragRef = useRef(null);
+  const justDragged = useRef(0);
+
+  const dragProps = useCallback((subject) => {
+    if (!adjustMode) return {};
+    const key = subject.id || subject.slug;
+    return {
+      onMouseDown: (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const box = e.currentTarget.getBoundingClientRect();
+        const cur = crops[key] || { posX: 50, posY: 50, zoom: 1, hidden: false, fit: "cover", layout: null };
+        dragRef.current = { key, startX: e.clientX, startY: e.clientY, box, cur, moved: false };
+      },
+    };
+  }, [adjustMode, crops]);
+
+  const saveCrop = useCallback(async (id, next) => {
+    setCrops(c => ({ ...c, [id]: next }));
+    try {
+      await fetch("/api/admin/photo-crop", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...next }),
+      });
+    } catch (e) {
+      console.error("crop save failed", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!adjustMode) return;
+    const onMove = (e) => {
+      const d = dragRef.current;
+      if (!d) return;
+      const dx = ((e.clientX - d.startX) / d.box.width) * 100;
+      const dy = ((e.clientY - d.startY) / d.box.height) * 100;
+      if (Math.abs(dx) > 0.4 || Math.abs(dy) > 0.4) d.moved = true;
+      // Dragging right reveals more of the photo's left side, so the focal
+      // point moves against the pointer.
+      d.next = {
+        ...d.cur,
+        posX: Math.min(100, Math.max(0, d.cur.posX - dx)),
+        posY: Math.min(100, Math.max(0, d.cur.posY - dy)),
+      };
+      setCrops(c => ({ ...c, [d.key]: d.next }));
+    };
+    const onUp = () => {
+      const d = dragRef.current;
+      dragRef.current = null;
+      if (!d || !d.moved || !d.next) return;
+      // Save what the drag ended on. Doing this inside a setCrops updater
+      // looked right and silently never ran: React discards side effects in
+      // an updater.
+      saveCrop(d.key, d.next);
+      // The mouseup is followed by a click on the same photo; without this
+      // the panel opens every time you finish a drag.
+      justDragged.current = Date.now();
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [adjustMode, saveCrop]);
+
+
+  const pageCount = founders ? pages.length : 0;
+
+  // Which page a given founder is on, for the contents list and every link.
+  const pageOfFounder = useMemo(() => {
+    const map = {};
+    pages.forEach((pg, i) => (pg.people || []).forEach(f => { map[f.id] = i; }));
+    return map;
+  }, [pages]);
 
   const openFounder = useCallback((id) => {
-    if (!founders) return;
-    const i = founders.findIndex(f => f.id === id);
-    if (i >= 0) setPage(FRONT + i);
-  }, [founders]);
+    const i = pageOfFounder[id];
+    if (i != null) setPage(i);
+  }, [pageOfFounder]);
 
   const turn = useCallback((delta) => {
     setPage(p => Math.min(Math.max(p + delta, 0), Math.max(pageCount - 1, 0)));
@@ -103,6 +261,8 @@ export default function Lookbook() {
   useEffect(() => {
     const onKey = (e) => {
       if (["INPUT", "SELECT", "TEXTAREA"].includes(e.target.tagName)) return;
+      // Escape backs out of whatever is open before it turns a page.
+      if (e.key === "Escape") { setPreview(null); setAdjusting(null); return; }
       if (e.key === "ArrowRight") turn(1);
       if (e.key === "ArrowLeft") turn(-1);
     };
@@ -119,23 +279,23 @@ export default function Lookbook() {
 
   useEffect(() => { window.scrollTo({ top: 0 }); }, [page]);
 
-  const seeking = useMemo(() => (founders || [])
+  const seeking = useMemo(() => cast
     .filter(f => f.snapshot?.lookingForCustomers === true || f.snapshot?.seekingPartnerships === true)
     .map(f => ({
       founder: f,
       note: [f.snapshot?.lookingForCustomers === true && "Customers and pilots",
         f.snapshot?.seekingPartnerships === true && "Partnerships"].filter(Boolean).join(" · "),
-    })), [founders]);
+    })), [cast]);
 
-  const hiring = useMemo(() => (founders || [])
+  const hiring = useMemo(() => cast
     .filter(f => isSoon(f.snapshot?.hiring))
     .map(f => ({
       founder: f,
       note: /^yes$/i.test(f.snapshot?.hiring || "") ? "Hiring now" : "Hiring within six months",
-    })), [founders]);
+    })), [cast]);
 
   const glance = useMemo(() => {
-    const fs = founders || [];
+    const fs = cast;
     return {
       stats: [
         { n: fs.filter(f => f.snapshot?.generatingRevenue === true).length, label: "generating revenue" },
@@ -150,20 +310,23 @@ export default function Lookbook() {
         { title: "What they want help with", rows: tally(fs, f => f.primaryFocus) },
       ],
     };
-  }, [founders]);
+  }, [cast]);
 
-  if (!authed) {
-    return (
-      <>
-        <Head>
-          <title>Uplift · The Founder Lookbook</title>
-          <meta name="robots" content="noindex,nofollow" />
-          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&display=swap" rel="stylesheet" />
-        </Head>
-        <PasswordGate onAuthenticated={() => { sessionStorage.setItem("auth_admin_fall", "1"); setAuthed(true); }} />
-      </>
-    );
-  }
+  // Printing needs the whole issue in the document; the screen needs three
+  // pages at most.
+  const near = (idx) => printAll || Math.abs(idx - page) <= 1;
+
+  // A drag ends in a mouseup on the photo, which would otherwise read as a
+  // click and open the panel on top of what you were just doing.
+  // Callers hand this either a whole record (the cover, the feature pages) or
+  // just an id (the mosaic, which is built from links). Both are fine.
+  const openPanel = (subject, scope = "page") => {
+    if (dragRef.current || Date.now() - justDragged.current < 250) return;
+    const record = typeof subject === "string"
+      ? cast.find(f => f.id === subject) || alumniCast.find(a => a.slug === subject)
+      : subject;
+    if (record) setAdjusting({ ...record, scope });
+  };
 
   const chrome = {
     border: `1px solid ${RULE}`, background: PAPER, color: INK,
@@ -174,8 +337,8 @@ export default function Lookbook() {
     { label: "At a glance", page: 2 },
     { label: "Looking for customers and partners", page: 3 },
     { label: "Hiring in the next six months", page: 4 },
-    { label: "The full class", page: 5 },
-  ];
+    { label: "The alumni: Summer 2026 graduates", page: pages.findIndex(p => p.kind === "alumniDivider") },
+  ].filter(sec => sec.page >= 0);
 
   return (
     <>
@@ -183,7 +346,7 @@ export default function Lookbook() {
         <title>Uplift · The Founder Lookbook</title>
         <meta name="robots" content="noindex,nofollow" />
         <link rel="icon" href="/uplift-logo.png" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Red+Hat+Text:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
       </Head>
       <SheetStyles multi />
       <style jsx global>{`
@@ -205,11 +368,23 @@ export default function Lookbook() {
               {founders && (
                 <select
                   value=""
-                  onChange={e => { if (e.target.value) openFounder(e.target.value); }}
-                  style={{ ...chrome, letterSpacing: "0.06em", textTransform: "none", fontSize: 11, maxWidth: 180 }}
+                  onChange={e => {
+                    const v = e.target.value;
+                    if (!v) return;
+                    if (v.startsWith("p:")) setPage(Number(v.slice(2)));
+                    else openFounder(v);
+                  }}
+                  style={{ ...chrome, letterSpacing: "0.06em", textTransform: "none", fontSize: 11, maxWidth: 200 }}
                 >
-                  <option value="">Jump to a founder</option>
-                  {founders.map(f => <option key={f.id} value={f.id}>{f.first} {f.last}</option>)}
+                  <option value="">Jump to a page</option>
+                  <optgroup label="Sections">
+                    <option value="p:0">Cover</option>
+                    <option value="p:1">Contents</option>
+                    {sections.map(sec => <option key={sec.label} value={`p:${sec.page}`}>{sec.label}</option>)}
+                  </optgroup>
+                  <optgroup label="Founders">
+                    {founders.map(f => <option key={f.id} value={f.id}>{f.first} {f.last}</option>)}
+                  </optgroup>
                 </select>
               )}
               <button onClick={() => turn(-1)} disabled={page === 0} style={{ ...chrome, opacity: page === 0 ? 0.4 : 1 }}>‹ Prev</button>
@@ -217,50 +392,241 @@ export default function Lookbook() {
                 {founders ? `${page + 1} / ${pageCount}` : "…"}
               </span>
               <button onClick={() => turn(1)} disabled={page >= pageCount - 1} style={{ ...chrome, opacity: page >= pageCount - 1 ? 0.4 : 1 }}>Next ›</button>
-              <button onClick={() => window.print()} disabled={!founders} style={{ ...chrome, background: INK, color: PAPER, borderColor: INK }}>Print</button>
+              {isAdmin && <button
+                onClick={() => { setAdjustMode(v => !v); setAdjusting(null); setPreview(null); }}
+                style={{ ...chrome, background: adjustMode ? ACCENT : PAPER, color: adjustMode ? "#fff" : INK, borderColor: adjustMode ? ACCENT : RULE }}
+                title="Click a face on the cover or the founders page to zoom, re-centre, or hide it"
+              >
+                {adjustMode ? "Done" : "Photos"}
+              </button>}
+              <button
+                onClick={() => { if (contactsShown) { setContactsShown(false); setEmails({}); } else revealContacts(); }}
+                style={{ ...chrome, background: contactsShown ? INK : PAPER, color: contactsShown ? PAPER : INK }}
+              >
+                {contactsShown ? "Hide emails" : "Show emails"}
+              </button>
+              <button onClick={printIssue} disabled={!founders} style={{ ...chrome, background: INK, color: PAPER, borderColor: INK }}>Print</button>
             </div>
           </div>
         </div>
 
         {founders && (
           <div className="book" style={{ padding: "18px 0 40px" }}>
-            <CoverPage founders={founders} generatedAt={generatedAt} active={page === 0} />
-            <ContentsPage
-              founders={founders}
+            {near(0) && <CoverPage founders={tileCast} generatedAt={generatedAt} active={page === 0} onPick={adjustMode ? (f => openPanel(f, "tile")) : (f => setPreview(f.id))} />}
+            {near(1) && <ContentsPage
+              founders={cast}
               sections={sections}
-              onOpen={{ page: setPage, founder: openFounder }}
+              pageOfFounder={pageOfFounder}
+              onOpen={{ page: setPage, founder: id => setPreview(id) }}
               active={page === 1}
               pageNumber={2}
-            />
-            <GlancePage founders={glance.columns} stats={glance.stats} active={page === 2} pageNumber={3} />
-            <IndexPage
+            />}
+            {near(2) && <GlancePage founders={glance.columns} stats={glance.stats} active={page === 2} pageNumber={3} />}
+            {near(3) && <IndexPage
               active={page === 3}
               kicker="Open doors"
               title="Looking for customers and partners"
               standfirst="Founders actively seeking customers, pilot partners, or strategic partnerships. Click a name to read their feature."
               rows={seeking}
-              onOpen={openFounder}
+              onOpen={id => setPreview(id)}
               empty="Nobody has flagged this yet."
               pageNumber={4}
-            />
-            <IndexPage
+            />}
+            {near(4) && <IndexPage
               active={page === 4}
               kicker="Open doors"
               title="Hiring in the next six months"
               standfirst="Founders hiring today or planning to within six months. Click a name to read their feature."
               rows={hiring}
-              onOpen={openFounder}
+              onOpen={id => setPreview(id)}
               empty="Nobody has flagged this yet."
               pageNumber={5}
-            />
-            <MosaicPage founders={founders} onOpen={openFounder} active={page === 5} pageNumber={6} />
-            {founders.map((f, i) => (
-              <div key={f.id} id={`f-${f.id}`} className={i === founders.length - 1 ? "lastpage" : undefined}>
-                <FeaturePage founder={f} active={page === FRONT + i} pageNumber={FRONT + i + 1} />
-              </div>
-            ))}
+            />}
+            {pages.slice(5).map((pg, i) => {
+              const idx = i + 5;
+              const last = idx === pages.length - 1;
+              const key = pg.people ? pg.people.map(f => f.id).join("-") : `${pg.kind}-${idx}`;
+              if (!near(idx)) return null;
+              return (
+                <div key={key} id={pg.people ? `f-${pg.people[0].id}` : undefined} className={last ? "lastpage" : undefined}>
+                  {pg.kind === "feature" && <FeaturePage founder={pg.people[0]} active={page === idx} pageNumber={idx + 1} onAdjust={adjustMode ? openPanel : undefined} dragProps={dragProps} />}
+                  {pg.kind === "duo" && <DuoPage founders={pg.people} active={page === idx} pageNumber={idx + 1} onAdjust={adjustMode ? openPanel : undefined} />}
+                  {pg.kind === "alumniDivider" && <AlumniDividerPage alumni={alumniCast} active={page === idx} />}
+                  {pg.kind === "alumni" && (
+                    <AlumniPage
+                      alumni={pg.alumni}
+                      active={page === idx}
+                      pageNumber={idx + 1}
+                      partOf={pg.partOf}
+                      onAdjust={adjustMode ? openPanel : undefined}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
+        {preview && (() => {
+          const f = cast.find(x => x.id === preview);
+          if (!f) return null;
+          const target = pageOfFounder[preview];
+          const pg = pages[target];
+          return (
+            <div
+              className="noprint"
+              onClick={() => setPreview(null)}
+              style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(23,20,31,0.62)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 16 }}
+            >
+              <div onClick={e => e.stopPropagation()} style={{ display: "flex", gap: 8 }}>
+                <button
+                  onClick={() => { setPage(target); setPreview(null); }}
+                  style={{ ...chrome, background: INK, color: PAPER, borderColor: INK }}
+                >
+                  Go to this page
+                </button>
+                <button onClick={() => setPreview(null)} style={chrome}>Back</button>
+              </div>
+              <div onClick={e => e.stopPropagation()} style={{ flex: "0 1 auto", minHeight: 0 }}>
+                {pg?.kind === "duo"
+                  ? <DuoPage founders={pg.people} active pageNumber={target + 1} />
+                  : <FeaturePage founder={f} active pageNumber={(target ?? 0) + 1} />}
+              </div>
+            </div>
+          );
+        })()}
+
+        {adjusting && (
+          <div
+            className="noprint"
+            onClick={() => setAdjusting(null)}
+            style={{ position: "fixed", inset: 0, zIndex: 40, background: "rgba(23,20,31,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+          >
+            <div onClick={e => e.stopPropagation()} style={{ background: PAPER, borderRadius: 4, padding: "22px 24px", width: 380, fontFamily: SANS }}>
+              <p style={{ margin: "0 0 2px", fontFamily: DISPLAY, fontSize: 20, fontWeight: 900, color: INK }}>
+                {adjusting.first} {adjusting.last}
+              </p>
+              <p style={{ margin: "0 0 14px", fontSize: 9, letterSpacing: "0.16em", textTransform: "uppercase", color: INK_SOFT }}>
+                {adjusting.scope === "tile" ? "Photo on the cover and the founders grid" : "Photo on their page"}
+              </p>
+
+              {(() => {
+                // Founders are keyed by application id and their photo comes
+                // through the Typeform proxy; alumni are keyed by slug with a
+                // file in /photos. Everything below treats them the same.
+                const base = adjusting.id || adjusting.slug;
+                const key = adjusting.scope === "tile" ? `${base}:tile` : base;
+                const src = adjusting.headshotUrl
+                  ? `/api/admin/tf-file?u=${encodeURIComponent(adjusting.headshotUrl)}`
+                  : adjusting.photo;
+                const cur = crops[key] || crops[base] || { posX: 50, posY: 50, zoom: 1, hidden: false, fit: "cover", layout: null };
+                const set = (patch) => saveCrop(key, { ...cur, ...patch });
+                // The layout belongs to the founder's own page, so it is
+                // offered wherever you open the panel from and always saved
+                // against the page record, never the tile.
+                const isFounderPage = !!adjusting.headshotUrl;
+                const pageCrop = crops[base] || { posX: 50, posY: 50, zoom: 1, hidden: false, fit: "cover", layout: null };
+                const setLayout = (layout) => saveCrop(base, { ...pageCrop, layout });
+                const layouts = [
+                  ["left-half", "Half page, left"],
+                  ["right-half", "Half page, right"],
+                  ["top-band", "Band across the top"],
+                  ["bottom-band", "Band across the bottom"],
+                  ["full-bleed", "Full page behind the text"],
+                  ["inset", "Narrow column"],
+                  ["icon", "Small floating photo"],
+                ];
+                return (
+                  <>
+                    {/* Drag inside this box to move the photo, exactly as on
+                        the page itself. */}
+                    <div
+                      onMouseDown={(e) => {
+                        const box = e.currentTarget.getBoundingClientRect();
+                        const start = { x: e.clientX, y: e.clientY, posX: cur.posX, posY: cur.posY };
+                        let latest = null;
+                        const move = (ev) => {
+                          const dx = ((ev.clientX - start.x) / box.width) * 100;
+                          const dy = ((ev.clientY - start.y) / box.height) * 100;
+                          latest = {
+                            ...cur,
+                            posX: Math.min(100, Math.max(0, start.posX - dx)),
+                            posY: Math.min(100, Math.max(0, start.posY - dy)),
+                          };
+                          setCrops(c => ({ ...c, [key]: latest }));
+                        };
+                        const up = () => {
+                          window.removeEventListener("mousemove", move);
+                          window.removeEventListener("mouseup", up);
+                          if (latest) saveCrop(key, latest);
+                        };
+                        window.addEventListener("mousemove", move);
+                        window.addEventListener("mouseup", up);
+                      }}
+                      style={{ width: 170, height: 212, margin: "0 auto 6px", overflow: "hidden", background: "#efe9df", position: "relative", cursor: "grab" }}
+                    >
+                      {src && !cur.hidden && (
+                        <img
+                          src={src}
+                          alt=""
+                          draggable={false}
+                          style={{
+                            position: "absolute", inset: 0, width: "100%", height: "100%",
+                            objectFit: cur.fit === "contain" ? "contain" : "cover",
+                            objectPosition: `${cur.posX}% ${cur.posY}%`,
+                            ...(cur.zoom > 1 ? { transform: `scale(${cur.zoom})`, transformOrigin: `${cur.posX}% ${cur.posY}%` } : null),
+                          }}
+                        />
+                      )}
+                      {(!src || cur.hidden) && (
+                        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: ACCENT, color: "#fff", fontFamily: DISPLAY, fontSize: 30, fontWeight: 700 }}>
+                          {`${(adjusting.first || "")[0] || ""}${(adjusting.last || "")[0] || ""}`.toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <p style={{ margin: "0 0 14px", textAlign: "center", fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: INK_SOFT }}>
+                      Drag the photo to move it
+                    </p>
+
+                    <p style={{ margin: "0 0 6px", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: INK_SOFT }}>Size</p>
+                    <input
+                      type="range" min="1" max="2.5" step="0.05" value={cur.zoom || 1}
+                      onChange={e => set({ zoom: parseFloat(e.target.value) })}
+                      style={{ width: "100%", marginBottom: 14 }}
+                    />
+
+                    {isFounderPage && (
+                      <>
+                        <p style={{ margin: "0 0 6px", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: INK_SOFT }}>
+                          Where it sits on {adjusting.first}&rsquo;s page
+                        </p>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+                          {layouts.map(([value, label]) => (
+                            <button key={value} onClick={() => setLayout(value)}
+                              style={{ ...chrome, fontSize: 8.5, padding: "5px 9px", letterSpacing: "0.04em", textTransform: "none", background: (pageCrop.layout || "left-half") === value ? INK : PAPER, color: (pageCrop.layout || "left-half") === value ? PAPER : INK }}>
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: INK, marginBottom: 8 }}>
+                      <input type="checkbox" checked={cur.fit === "contain"} onChange={e => set({ fit: e.target.checked ? "contain" : "cover" })} />
+                      Show the whole photo (with space around it)
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: INK, marginBottom: 16 }}>
+                      <input type="checkbox" checked={!!cur.hidden} onChange={e => set({ hidden: e.target.checked })} />
+                      Hide this photo (show initials instead)
+                    </label>
+                  </>
+                );
+              })()}
+
+              <button onClick={() => setAdjusting(null)} style={{ ...chrome, width: "100%", background: INK, color: PAPER, borderColor: INK }}>Done</button>
+            </div>
+          </div>
+        )}
+
         {!founders && (
           <p style={{ maxWidth: "8.5in", margin: "80px auto", textAlign: "center", fontFamily: DISPLAY, fontSize: 16, color: INK_SOFT }}>
             {err ? `Could not load the fall program: ${err}` : "Loading the issue…"}

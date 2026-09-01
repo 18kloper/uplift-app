@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Two Claude sessions working this repo at once were both building into
+  // .next and corrupting each other's chunks. NEXT_DIST_DIR lets a second
+  // dev server keep its own build directory; unset, nothing changes.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   async rewrites() {
     return [
       { source: "/uplift-legacy", destination: "/founder-cards.html" },

@@ -23,7 +23,7 @@ function PasswordGate({ onAuthenticated }) {
     else setError(true);
   };
   return (
-    <div style={{ minHeight: "100vh", background: "#0f0729", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#0f0729", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Red Hat Text', system-ui, sans-serif" }}>
       <div style={{ background: "#fff", borderRadius: 16, padding: "36px 40px", width: 360, textAlign: "center" }}>
         <p style={{ margin: "0 0 4px", fontSize: 20, fontWeight: 800, color: "#1a1733" }}>Founder profiles · Fall 2026</p>
         <p style={{ margin: "0 0 20px", fontSize: 13, color: MUTED }}>Enter the admin code to continue</p>
@@ -83,7 +83,7 @@ export default function FounderProfileIndex() {
         <Head>
           <title>Founder profiles · Uplift Fall 2026</title>
           <meta name="robots" content="noindex,nofollow" />
-          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+          <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Red+Hat+Text:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
         </Head>
         <PasswordGate onAuthenticated={() => { sessionStorage.setItem("auth_admin_fall", "1"); setAuthed(true); }} />
       </>
@@ -103,9 +103,9 @@ export default function FounderProfileIndex() {
       <Head>
         <title>Founder profiles · Uplift Fall 2026</title>
         <meta name="robots" content="noindex,nofollow" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Red+Hat+Text:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
       </Head>
-      <div style={{ minHeight: "100vh", background: "#f7f5ff", fontFamily: "'Inter', system-ui, sans-serif", color: "#1a1733" }}>
+      <div style={{ minHeight: "100vh", background: "#f7f5ff", fontFamily: "'Red Hat Text', system-ui, sans-serif", color: "#1a1733" }}>
         <div style={{ maxWidth: 940, margin: "0 auto", padding: "34px 20px 60px" }}>
           <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: PINK }}>Uplift Mentorship Program · Fall 2026</p>
           <h1 style={{ margin: "0 0 6px", fontSize: 26, fontWeight: 800, color: NAVY }}>Founder profiles</h1>

@@ -79,23 +79,72 @@ export const photoUrl = (url) => `/api/admin/tf-file?u=${encodeURIComponent(url)
 // Typeform response id; drop the entry when a real photo arrives.
 const NOT_A_HEADSHOT = new Set(["88lr1p1k17o20cd2bu388lr1pji23pc5"]);
 
+// A photo we hold ourselves, used instead of (or in place of a missing)
+// Typeform upload. Save the file at the path below and it appears; until the
+// file exists the page falls back to the initials tile on its own. Keyed by
+// Typeform response id.
+const PHOTO_OVERRIDES = {
+  "88lr1p1k17o20cd2bu388lr1pji23pc5": "/photos/kristen-chin.jpg", // upload was a phone lock screen
+};
+
+// Whether a founder has something worth running large. Used by the lookbook
+// feature to decide between the portrait layout and the text-forward one.
+export const hasPhoto = (founder) =>
+  !!PHOTO_OVERRIDES[founder?.id] || (!!founder?.headshotUrl && !NOT_A_HEADSHOT.has(founder?.id));
+
 // An image that will not load (or was never uploaded) becomes initials rather
 // than a broken-image icon on a page going out to a mentor.
-export function FounderPhoto({ founder, style, fontSize = 22 }) {
+// fillFrame: thumbnail grids (the cover, the mosaic) always fill their tile.
+// Only "show the whole photo" is ignored there, because letterboxing a
+// 1-inch square leaves a hole in the grid. Focal point and zoom both apply,
+// so a face can be pulled in closer on the cover.
+export function FounderPhoto({ founder, style, fontSize = 22, fallbackColor = PINK, showInitials = true, fillFrame = false }) {
   const [failed, setFailed] = useState(false);
+  // How the face sits in the frame, set per founder in the lookbook's adjust
+  // mode and stored in the PhotoCrops tab. Untouched photos are centred at
+  // their natural size.
+  const crop = founder?.crop || {};
+  const objectPosition = crop.posX != null
+    ? `${crop.posX}% ${crop.posY}%`
+    : (style?.objectPosition || "center");
+  const zoom = crop.zoom && crop.zoom > 1 ? crop.zoom : 1;
   const initials = `${(founder.first || "")[0] || ""}${(founder.last || "")[0] || ""}`.toUpperCase();
-  if (!founder.headshotUrl || failed || NOT_A_HEADSHOT.has(founder.id)) {
+  const override = PHOTO_OVERRIDES[founder.id];
+  if ((!override && (!founder.headshotUrl || NOT_A_HEADSHOT.has(founder.id))) || failed || crop.hidden) {
     return (
       <div style={{
         ...style, display: "flex", alignItems: "center", justifyContent: "center",
-        background: "#efe9df", color: "#8b8172", fontWeight: 700, fontSize,
-        fontFamily: "'Playfair Display', Georgia, serif", letterSpacing: "0.04em",
+        // No usable photo: a filled brand-colour tile reads as a deliberate
+        // part of the grid, where a grey blank reads as broken. The cover
+        // drops the initials and runs the block plain.
+        background: fallbackColor, color: "#fff", fontWeight: 700, fontSize,
+        fontFamily: "'Red Hat Display', system-ui, sans-serif", letterSpacing: "0.04em",
       }}>
-        {initials}
+        {showInitials ? initials : null}
       </div>
     );
   }
-  return <img src={photoUrl(founder.headshotUrl)} alt="" style={style} onError={() => setFailed(true)} />;
+  // Zooming has to happen inside a clipping frame, or a scaled photo spills
+  // over the page it sits on.
+  const img = (
+    <img
+      src={override || photoUrl(founder.headshotUrl)}
+      alt=""
+      onError={() => setFailed(true)}
+      style={{
+        ...style, objectPosition,
+        ...(!fillFrame && crop.fit === "contain" ? { objectFit: "contain" } : null),
+        ...(zoom > 1 ? { transform: `scale(${zoom})`, transformOrigin: objectPosition } : null),
+      }}
+    />
+  );
+  if (zoom === 1) return img;
+  const { borderRadius, width, height, aspectRatio, position, inset, background, display } = style || {};
+  return (
+    <span style={{ display: display === "block" ? "block" : "inline-block", overflow: "hidden", borderRadius, width, height, aspectRatio, position, inset, background, lineHeight: 0 }}>
+      {img}
+    </span>
+  );
 }
 
 // Revenue is the one number founders are shown to everyone with, so the
@@ -156,8 +205,12 @@ export function Sheet({ children, active = true, fitViewport = false, fill = fal
         }
       }
       inner.style.width = `${100 / k}%`;
-      inner.style.minHeight = `${PAGE_H / k}px`;
       inner.style.transform = `scale(${k})`;
+      // A fill page needs a definite height, not just a minimum: its grid
+      // rows are 1fr, and without a hard height they fall back to the
+      // images' intrinsic size and run off the sheet.
+      inner.style.minHeight = fill ? "" : `${PAGE_H / k}px`;
+      inner.style.height = fill ? `${PAGE_H / k}px` : "";
       // In the book, a whole page has to be visible without scrolling, so the
       // sheet is scaled down to whatever the window leaves it. Printing
       // ignores this (see the print block in SheetStyles).
@@ -175,6 +228,7 @@ export function Sheet({ children, active = true, fitViewport = false, fill = fal
     const clear = () => {
       inner.style.width = "";
       inner.style.minHeight = "";
+      inner.style.height = "";
       inner.style.transform = "";
       wrap.parentElement.style.height = "";
     };

@@ -24,7 +24,7 @@ export default function FounderProfile({ founder, notFound, unavailable, generat
           <title>Profile not found · Uplift</title>
           <meta name="robots" content="noindex,nofollow" />
         </Head>
-        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f7f5ff", fontFamily: "'Inter', system-ui, sans-serif", padding: 24 }}>
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f7f5ff", fontFamily: "'Red Hat Text', system-ui, sans-serif", padding: 24 }}>
           <div style={{ background: "#fff", border: `1px solid ${LINE}`, borderRadius: 14, padding: "32px 36px", maxWidth: 440, textAlign: "center" }}>
             <p style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 800, color: NAVY }}>
               {unavailable ? "This profile is taking a moment" : "This profile isn\u2019t available"}
@@ -49,10 +49,10 @@ export default function FounderProfile({ founder, notFound, unavailable, generat
         <meta name="robots" content="noindex,nofollow" />
         <meta name="description" content={`${name}${founder.company ? `, ${founder.company}` : ""} — Uplift Mentorship Program, Fall 2026.`} />
         <link rel="icon" href="/uplift-logo.png" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Red+Hat+Text:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
       </Head>
       <SheetStyles />
-      <div style={{ fontFamily: "'Inter', system-ui, sans-serif", paddingBottom: 8 }}>
+      <div style={{ fontFamily: "'Red Hat Text', system-ui, sans-serif", paddingBottom: 8 }}>
         <div className="noprint" style={{ maxWidth: "8.5in", margin: "0 auto", padding: "14px 8px 10px", display: "flex", justifyContent: "flex-end" }}>
           <button
             onClick={() => window.print()}
