@@ -2593,6 +2593,7 @@ function MeetingStructureCheck({ slug }) {
     setShow(true);
     setOpened(true);
     localStorage.setItem(`${slug}_meeting_guide_opened`, "1");
+    persistToSheet(slug, 2, "meeting_guide_opened", "Opened", "Opened the mentor meeting guide");
   };
   const acknowledge = () => {
     setAcked(true);
@@ -4118,6 +4119,7 @@ function ResourcesSection({ slug, menteeName }) {
         ? prev.filter(k => k !== itemKey)
         : [...prev, itemKey];
       try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch (_) {}
+      persistToSheet(slug, 0, "resource_favorites", next.join(", "), "Saved resources");
       return next;
     });
   };
@@ -5221,6 +5223,10 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
             (actions[wk] = actions[wk] || {})[Number(m[2]) - 1] = val === "done";
           }
           if (key.endsWith("_quiz_passed")) seed(`${slug}_quiz_passed`, "1");
+          if (key.endsWith("_meeting_guide_opened")) seed(`${slug}_meeting_guide_opened`, "1");
+          if (key.endsWith("_resource_favorites")) {
+            seed(`${slug}_resource_favorites`, JSON.stringify(val.split(", ").filter(Boolean)));
+          }
           if (key.endsWith("_participation")) seed(`${slug}_participation`, val);
         }
         for (const [wk, map] of Object.entries(actions)) {
