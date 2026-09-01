@@ -170,6 +170,37 @@ export default function AdminFall() {
   const [signalSource, setSignalSource] = useState("");
   const [signalBusy, setSignalBusy] = useState(false);
   const [copiedPortal, setCopiedPortal] = useState(null);
+  const [sendState, setSendState] = useState(null);   // { phase, plan, result, error }
+  const [sendBusy, setSendBusy] = useState(false);
+
+  // The acceptance send. Always a dry run first: the endpoint returns exactly
+  // who would be emailed and who it refuses, and nothing goes out until that
+  // list has been looked at and confirmed.
+  const acceptanceSend = async (dryRun) => {
+    const token = sessionStorage.getItem("uplift_admin_secret") || window.prompt("Admin secret (from Vercel env ADMIN_SECRET):");
+    if (!token) return;
+    sessionStorage.setItem("uplift_admin_secret", token);
+    setSendBusy(true);
+    try {
+      const r = await fetch(`/api/admin/send-acceptance-emails?token=${encodeURIComponent(token)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dryRun }),
+      });
+      const d = await r.json();
+      if (!r.ok) {
+        if (r.status === 401) sessionStorage.removeItem("uplift_admin_secret");
+        setSendState({ phase: "error", error: d.error || `HTTP ${r.status}` });
+      } else if (dryRun) {
+        setSendState({ phase: "planned", plan: d });
+      } else {
+        setSendState({ phase: "sent", result: d });
+      }
+    } catch (e) {
+      setSendState({ phase: "error", error: e.message });
+    }
+    setSendBusy(false);
+  };
   const [origin, setOrigin] = useState("");
 
   useEffect(() => { setOrigin(window.location.origin); }, []);
@@ -749,6 +780,55 @@ export default function AdminFall() {
             return (
             <div style={card}>
               <p style={kicker}>Accepted Founders · {accepted.length}</p>
+              <div style={{ border: "1px solid #d4d0e8", borderRadius: 12, padding: "16px 18px", marginBottom: 16, background: "#fafaff" }}>
+                <p style={{ margin: "0 0 4px", fontSize: 13.5, fontWeight: 800, color: "#1a1733" }}>Acceptance email</p>
+                <p style={{ margin: "0 0 12px", fontSize: 12.5, color: "#6b6480", lineHeight: 1.6 }}>
+                  One personalized email per founder with their own Uplift ID and portal link, from kennedy@techunited.co, CC uplift@techunited.co.
+                  Preview first: it lists exactly who would be emailed and who it refuses. Nothing sends until you confirm that list.
+                </p>
+                <button disabled={sendBusy} onClick={() => acceptanceSend(true)} style={{ border: "1px solid #5c4eb5", borderRadius: 8, padding: "8px 16px", background: "#fff", color: "#5c4eb5", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginRight: 8 }}>
+                  {sendBusy ? "Working..." : "Preview the send"}
+                </button>
+                {sendState?.phase === "planned" && sendState.plan.wouldSend > 0 && (
+                  <button disabled={sendBusy} onClick={() => {
+                    if (window.confirm(`Send the acceptance email to ${sendState.plan.wouldSend} founders now? This cannot be undone.`)) acceptanceSend(false);
+                  }} style={{ border: "none", borderRadius: 8, padding: "9px 18px", background: "#1a6e42", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>
+                    Send to {sendState.plan.wouldSend} founders
+                  </button>
+                )}
+                {sendState?.phase === "error" && (
+                  <p style={{ margin: "12px 0 0", fontSize: 12.5, color: "#b3261e", lineHeight: 1.6 }}>Failed: {sendState.error}</p>
+                )}
+                {sendState?.phase === "planned" && (
+                  <div style={{ marginTop: 12, fontSize: 12.5, color: "#37324e", lineHeight: 1.7 }}>
+                    <strong>{sendState.plan.wouldSend} would be emailed.</strong>{" "}
+                    {sendState.plan.planned.map(p => p.firstName).join(", ")}
+                    {sendState.plan.refused.length > 0 && (
+                      <div style={{ marginTop: 8, color: "#b35c00" }}>
+                        <strong>{sendState.plan.refused.length} refused:</strong>{" "}
+                        {sendState.plan.refused.map(r => `${r.slug} (${r.reason})`).join(" · ")}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {sendState?.phase === "sent" && (
+                  <div style={{ marginTop: 12, fontSize: 12.5, lineHeight: 1.7 }}>
+                    <strong style={{ color: "#1a6e42" }}>Sent {sendState.result.sentCount}.</strong>
+                    {sendState.result.failedCount > 0 && (
+                      <div style={{ color: "#b3261e", marginTop: 6 }}>
+                        <strong>{sendState.result.failedCount} failed:</strong>{" "}
+                        {sendState.result.failed.map(f => `${f.slug} (${f.error})`).join(" · ")}
+                      </div>
+                    )}
+                    {sendState.result.refusedCount > 0 && (
+                      <div style={{ color: "#b35c00", marginTop: 6 }}>
+                        <strong>{sendState.result.refusedCount} refused:</strong>{" "}
+                        {sendState.result.refused.map(r => `${r.slug} (${r.reason})`).join(" · ")}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               <p style={{ margin: "0 0 12px", fontSize: 12.5, color: "#6b6480", lineHeight: 1.6 }}>
                 Every accepted founder has a portal at <code style={{ background: "#f5f3ff", borderRadius: 4, padding: "1px 5px" }}>/fall/&lt;slug&gt;</code> and logs in with their Uplift ID.
                 <strong> Copy</strong> puts the link and the ID on two lines, ready to paste into a welcome email; the ID never goes in the URL.
