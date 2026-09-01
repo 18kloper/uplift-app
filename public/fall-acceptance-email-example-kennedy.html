@@ -4,7 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700;900&amp;family=Red+Hat+Text:wght@400;500;700&amp;display=swap"/>
-  <title>You're In, Fall 2026 Uplift Mentorship Program (Kennedy)</title>
+  <title>You're In, Fall 2026 Uplift Mentorship Program</title>
   <!--
     DRAFT. Not sent to founders, not scheduled, not wired to a sending tool.
 
@@ -38,9 +38,11 @@
     Every action lands in the portal on purpose. We are training founders to
     open the portal for everything.
 
-    FILLED EXAMPLE, generated from public/fall-acceptance-email.html with real
-    values: first name Kennedy, Uplift ID UF262, portal /fall/kennedy.
-    Edit the template, not this file.
+    Merge fields use Customer.io liquid, matching demo-night-lineup-email-cio.html:
+      {{customer.first_name}}   already synced
+      UF262    NEW attribute, not in sync-cio-sheet.js yet
+      https://uplift2026.vercel.app/fall/kennedy   NEW attribute, e.g. https://uplift2026.vercel.app/fall/takeerah-jones
+    For a filled version, see public/fall-acceptance-email-example-kennedy.html.
 
     The Uplift ID appears as text, never inside a link. It is the founder's
     portal password and must not ride along in a URL that gets forwarded.
@@ -60,192 +62,195 @@
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f0ecff" style="background-color:#f0ecff">
 <tr>
-<td align="center" style="padding:32px 12px">
+<td align="center" style="padding:16px 12px">
 
   <table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0" style="width:640px;max-width:640px;border-collapse:collapse">
 
     <tr>
-      <td bgcolor="#1a1733" align="center" style="background-color:#1a1733;padding:22px 40px">
+      <td bgcolor="#1a1733" align="center" style="background-color:#1a1733;padding:14px 40px">
         <img src="https://uplift2026.vercel.app/uplift-logo-white.png" alt="UPLIFT" width="132" height="50" style="display:block;border:0;outline:none;width:132px;height:50px;color:#ffffff;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:20px;font-weight:bold;letter-spacing:2px"/>
       </td>
     </tr>
 
     <tr>
       <td bgcolor="#3d2f8a" style="background-color:#3d2f8a;padding:0;font-size:0;line-height:0">
-        <img src="https://uplift2026.vercel.app/uplift-confetti-band.png" alt="" width="640" height="220" style="display:block;border:0;outline:none;width:100%;max-width:640px;height:auto"/>
+        <img src="https://uplift2026.vercel.app/uplift-confetti-band.png" alt="" width="640" height="170" style="display:block;border:0;outline:none;width:100%;max-width:640px;height:auto"/>
       </td>
     </tr>
     <tr>
-      <td bgcolor="#3d2f8a" class="pad" align="center" style="background-color:#3d2f8a;padding:0 40px 42px">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="border-collapse:collapse;margin:0 auto 18px">
+      <td bgcolor="#3d2f8a" class="pad" align="center" style="background-color:#3d2f8a;padding:0 40px 26px">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="border-collapse:collapse;margin:0 auto 13px">
           <tr>
             <td bgcolor="#574a9c" align="center" style="background-color:#574a9c;border:1px solid #7a6db8;border-radius:100px;padding:7px 17px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:11px;font-weight:bold;letter-spacing:1.8px;color:#ffffff">YOU'RE IN</td>
           </tr>
         </table>
-        <div class="h1" style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:39px;font-weight:bold;color:#ffffff;line-height:1.1;letter-spacing:-1px;margin:0 0 18px">
+        <div class="h1" style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:39px;font-weight:bold;color:#ffffff;line-height:1.1;letter-spacing:-1px;margin:0 0 13px">
           Congratulations,<br/>Kennedy.
         </div>
-        <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:17px;color:#ffffff;line-height:1.55;font-weight:bold;margin:0 0 16px">
+        <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:17px;color:#ffffff;line-height:1.55;font-weight:bold;margin:0 0 12px">
           You've been selected for the Fall 2026 Uplift Mentorship Program, powered by TechUnited.
         </div>
-        <div style="font-family:'Red Hat Text',Arial,Helvetica,sans-serif;font-size:14.5px;color:#ddd7f2;line-height:1.7">
+        <div style="font-family:'Red Hat Text',Arial,Helvetica,sans-serif;font-size:14.5px;color:#ddd7f2;line-height:1.6">
           We are so excited to have you. Applications and support poured in this cycle after the growth this program saw over the summer, which made this a genuinely competitive round. We're grateful you're here, and grateful for the chance to help you grow further, faster.
+        </div>
+        <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:13.5px;color:#ffffff;font-weight:bold;line-height:1.6;margin:12px 0 0">
+          Please complete the action items in this email before September 9.
         </div>
       </td>
     </tr>
 
     <tr>
-      <td bgcolor="#ffffff" class="pad" style="background-color:#ffffff;padding:34px 40px;font-family:'Red Hat Text',Arial,Helvetica,sans-serif">
+      <td bgcolor="#ffffff" class="pad" style="background-color:#ffffff;padding:22px 40px;font-family:'Red Hat Text',Arial,Helvetica,sans-serif">
 
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:30px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:18px">
           <tr>
             <td style="border-left:3px solid #d4d0e8;padding:2px 0 2px 20px">
-              <div style="font-size:14.5px;color:#3d3558;line-height:1.8;margin-bottom:14px">Hi there,</div>
-              <div style="font-size:14.5px;color:#3d3558;line-height:1.8;margin-bottom:14px">
+              <div style="font-size:14.5px;color:#3d3558;line-height:1.55;margin-bottom:12px">Hi there,</div>
+              <div style="font-size:14.5px;color:#3d3558;line-height:1.55;margin-bottom:12px">
                 Thank you so much for taking the time to apply. It means the world to me, and to TechUnited, to see this program grow. I'm genuinely grateful you're here, and I'm excited to help and support you however I can.
               </div>
-              <div style="font-size:14.5px;color:#3d3558;line-height:1.8;margin-bottom:16px">
-                Take a look at everything below. That's what you need to get started. We'll meet and chat more next week.
+              <div style="font-size:14.5px;color:#3d3558;line-height:1.55;margin-bottom:12px">
+                Take a look at everything below. That's what you need to get started. You'll meet the TechUnited team next week, and we'll get the chance to chat more.
               </div>
-              <div style="font-size:14.5px;color:#3d3558;line-height:1.8">Best,</div>
+              <div style="font-size:14.5px;color:#3d3558;line-height:1.55">Best,</div>
               <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:16px;font-weight:bold;color:#1a1733;line-height:1.5">Kennedy</div>
             </td>
           </tr>
         </table>
 
-        <div style="font-size:10px;font-weight:bold;letter-spacing:1.4px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#9b8fcf;border-bottom:1px solid #e8e4f5;padding-bottom:6px;margin-bottom:16px">HERE'S WHAT YOU'RE GETTING</div>
+        <div style="font-size:10px;font-weight:bold;letter-spacing:1.4px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#9b8fcf;border-bottom:1px solid #e8e4f5;padding-bottom:6px;margin-bottom:12px">HERE'S WHAT YOU'RE GETTING THROUGH UPLIFT</div>
 
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:12px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:11px">
           <tr>
-            <td valign="top" width="20" style="padding:9px 0 14px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#5c4eb5" width="6" height="6" style="background-color:#5c4eb5;width:6px;height:6px;border-radius:3px;font-size:0;line-height:0">&nbsp;</td></tr></table></td>
-            <td valign="top" style="padding-bottom:14px">
-              <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14.5px;font-weight:bold;color:#1a1733;margin-bottom:2px">A mentor chosen for you, and three one-on-one sessions</div>
-              <div style="font-size:13px;color:#4a4060;line-height:1.6">An operator who has already been where you're headed, matched to what you asked for.</div>
+            <td valign="top" width="20" style="padding:9px 0 12px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#5c4eb5" width="6" height="6" style="background-color:#5c4eb5;width:6px;height:6px;border-radius:3px;font-size:0;line-height:0">&nbsp;</td></tr></table></td>
+            <td valign="top" style="padding-bottom:12px">
+              <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14.5px;font-weight:700;color:#1a1733;line-height:1.45;margin-bottom:3px">A mentor chosen for you, and three one-on-one sessions</div>
+              <div style="font-family:'Red Hat Text',Arial,Helvetica,sans-serif;font-size:13px;font-weight:400;color:#4a4060;line-height:1.6">An operator who has already been where you're headed, matched to what you asked for.</div>
             </td>
           </tr>
           <tr>
-            <td valign="top" width="20" style="padding:9px 0 14px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#5c4eb5" width="6" height="6" style="background-color:#5c4eb5;width:6px;height:6px;border-radius:3px;font-size:0;line-height:0">&nbsp;</td></tr></table></td>
-            <td valign="top" style="padding-bottom:14px">
-              <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14.5px;font-weight:bold;color:#1a1733;margin-bottom:2px">A custom-built portal, made for this program</div>
-              <div style="font-size:13px;color:#4a4060;line-height:1.6">It guides you week by week through your Deep Work, puts every session in one place, and keeps track of your progress as you go.</div>
+            <td valign="top" width="20" style="padding:9px 0 12px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#5c4eb5" width="6" height="6" style="background-color:#5c4eb5;width:6px;height:6px;border-radius:3px;font-size:0;line-height:0">&nbsp;</td></tr></table></td>
+            <td valign="top" style="padding-bottom:12px">
+              <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14.5px;font-weight:700;color:#1a1733;line-height:1.45;margin-bottom:3px">A custom-built portal, made for this program</div>
+              <div style="font-family:'Red Hat Text',Arial,Helvetica,sans-serif;font-size:13px;font-weight:400;color:#4a4060;line-height:1.6">It guides you week by week through your Deep Work, puts every session in one place, and keeps track of your progress as you go.</div>
             </td>
           </tr>
           <tr>
-            <td valign="top" width="20" style="padding:9px 0 14px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#5c4eb5" width="6" height="6" style="background-color:#5c4eb5;width:6px;height:6px;border-radius:3px;font-size:0;line-height:0">&nbsp;</td></tr></table></td>
-            <td valign="top" style="padding-bottom:14px">
-              <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14.5px;font-weight:bold;color:#1a1733;margin-bottom:2px">Educational sessions all program long</div>
-              <div style="font-size:13px;color:#4a4060;line-height:1.6">Expert insights, peer development, and industry Q&amp;A. Attend any of them, three minimum.</div>
+            <td valign="top" width="20" style="padding:9px 0 12px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#5c4eb5" width="6" height="6" style="background-color:#5c4eb5;width:6px;height:6px;border-radius:3px;font-size:0;line-height:0">&nbsp;</td></tr></table></td>
+            <td valign="top" style="padding-bottom:12px">
+              <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14.5px;font-weight:700;color:#1a1733;line-height:1.45;margin-bottom:3px">Educational sessions all program long</div>
+              <div style="font-family:'Red Hat Text',Arial,Helvetica,sans-serif;font-size:13px;font-weight:400;color:#4a4060;line-height:1.6">Expert insights, peer development, and industry Q&amp;A. Attend any of them, three minimum.</div>
             </td>
           </tr>
           <tr>
-            <td valign="top" width="20" style="padding:9px 0 14px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#5c4eb5" width="6" height="6" style="background-color:#5c4eb5;width:6px;height:6px;border-radius:3px;font-size:0;line-height:0">&nbsp;</td></tr></table></td>
-            <td valign="top" style="padding-bottom:14px">
-              <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14.5px;font-weight:bold;color:#1a1733;margin-bottom:2px">A cohort of New Jersey founders</div>
-              <div style="font-size:13px;color:#4a4060;line-height:1.6">People building at the same time as you, plus the wider TechUnited community and its alumni network.</div>
+            <td valign="top" width="20" style="padding:9px 0 12px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#5c4eb5" width="6" height="6" style="background-color:#5c4eb5;width:6px;height:6px;border-radius:3px;font-size:0;line-height:0">&nbsp;</td></tr></table></td>
+            <td valign="top" style="padding-bottom:12px">
+              <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14.5px;font-weight:700;color:#1a1733;line-height:1.45;margin-bottom:3px">A cohort of fellow peers</div>
+              <div style="font-family:'Red Hat Text',Arial,Helvetica,sans-serif;font-size:13px;font-weight:400;color:#4a4060;line-height:1.6">Founders building at the same time as you, plus the wider TechUnited community and its alumni network.</div>
             </td>
           </tr>
           <tr>
-            <td valign="top" width="20" style="padding:9px 0 14px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#5c4eb5" width="6" height="6" style="background-color:#5c4eb5;width:6px;height:6px;border-radius:3px;font-size:0;line-height:0">&nbsp;</td></tr></table></td>
-            <td valign="top" style="padding-bottom:14px">
-              <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14.5px;font-weight:bold;color:#1a1733;margin-bottom:2px">An in-person event in Newark, Tuesday October 27</div>
-              <div style="font-size:13px;color:#4a4060;line-height:1.6">The one in-person we ask everyone to be at. Put it in your calendar now.</div>
+            <td valign="top" width="20" style="padding:9px 0 12px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#5c4eb5" width="6" height="6" style="background-color:#5c4eb5;width:6px;height:6px;border-radius:3px;font-size:0;line-height:0">&nbsp;</td></tr></table></td>
+            <td valign="top" style="padding-bottom:12px">
+              <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14.5px;font-weight:700;color:#1a1733;line-height:1.45;margin-bottom:3px">An in-person event in Newark, Tuesday October 27</div>
+              <div style="font-family:'Red Hat Text',Arial,Helvetica,sans-serif;font-size:13px;font-weight:400;color:#4a4060;line-height:1.6">The one in-person we ask everyone to be at. Put it in your calendar now.</div>
             </td>
           </tr>
           <tr>
             <td valign="top" width="20" style="padding:9px 0 0"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#5c4eb5" width="6" height="6" style="background-color:#5c4eb5;width:6px;height:6px;border-radius:3px;font-size:0;line-height:0">&nbsp;</td></tr></table></td>
-            <td valign="top">
-              <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14.5px;font-weight:bold;color:#1a1733;margin-bottom:2px">A certificate of completion</div>
-              <div style="font-size:13px;color:#4a4060;line-height:1.6">Yours when you finish the program, September 9 through November 6.</div>
+            <td valign="top" style="padding-bottom:0">
+              <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14.5px;font-weight:700;color:#1a1733;line-height:1.45;margin-bottom:3px">A certificate of completion</div>
+              <div style="font-family:'Red Hat Text',Arial,Helvetica,sans-serif;font-size:13px;font-weight:400;color:#4a4060;line-height:1.6">Yours when you finish the program, September 9 through November 6.</div>
             </td>
           </tr>
         </table>
 
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:26px 0 30px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:17px 0 18px">
           <tr>
-            <td bgcolor="#e8f7ef" align="center" style="background-color:#e8f7ef;border:1px solid #b8e6cd;border-radius:14px;padding:18px 22px">
+            <td bgcolor="#e8f7ef" align="center" style="background-color:#e8f7ef;border:1px solid #b8e6cd;border-radius:14px;padding:13px 22px">
               <div style="font-size:15.5px;font-weight:bold;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#1a6e42;line-height:1.5;margin-bottom:6px">This week is just good news week.</div>
-              <div style="font-size:13.5px;color:#2d7a52;line-height:1.65">Onboarding week starts <strong>Wednesday, September 9</strong>. Nothing is due before then beyond the two quick things below.</div>
+              <div style="font-size:13.5px;color:#2d7a52;line-height:1.55">Onboarding week starts <strong>Wednesday, September 9</strong>. Nothing is due before then beyond the two quick things below.</div>
             </td>
           </tr>
         </table>
 
-        <div style="font-size:10px;font-weight:bold;letter-spacing:1.4px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#9b8fcf;border-bottom:1px solid #e8e4f5;padding-bottom:6px;margin-bottom:14px">THE HOME FOR ALL THINGS UPLIFT IS YOUR PORTAL</div>
+        <div style="font-size:10px;font-weight:bold;letter-spacing:1.4px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#9b8fcf;border-bottom:1px solid #e8e4f5;padding-bottom:6px;margin-bottom:12px">THE HOME FOR ALL THINGS UPLIFT IS YOUR PORTAL</div>
 
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:12px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:11px">
           <tr>
-            <td bgcolor="#f5f3ff" align="center" style="background-color:#f5f3ff;border:1px solid #d4d0e8;border-radius:14px;padding:24px">
-              <div style="font-size:13.5px;color:#5c4eb5;line-height:1.7;margin-bottom:20px">Your week by week journey, your action items, session registration, your mentor once matched, meeting logging, resources, and the founders in your cohort. It all lives in one place, and it's open right now.</div>
+            <td bgcolor="#f5f3ff" align="center" style="background-color:#f5f3ff;border:1px solid #d4d0e8;border-radius:14px;padding:15px">
+              <div style="font-size:13.5px;color:#5c4eb5;line-height:1.6;margin-bottom:15px">Your week by week journey, your action items, session registration, your mentor once matched, meeting logging, resources, and the founders in your cohort. It all lives in one place, and it's open right now.</div>
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="border-collapse:collapse;margin:0 auto">
                 <tr>
                   <td bgcolor="#5c4eb5" align="center" style="background-color:#5c4eb5;border-radius:100px">
-                    <a href="https://uplift2026.vercel.app/fall/kennedy" target="_blank" style="display:inline-block;padding:14px 34px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;color:#ffffff;text-decoration:none">Open my portal &rarr;</a>
+                    <a href="https://uplift2026.vercel.app/fall/kennedy" target="_blank" style="display:inline-block;padding:12px 34px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;color:#ffffff;text-decoration:none">Open my portal &rarr;</a>
                   </td>
                 </tr>
               </table>
-              <div style="font-size:11.5px;color:#9b8fcf;line-height:1.65;margin-top:16px">Bookmark it. This link is yours, and it's the same one all program long. One habit to build now: when something needs doing, open your portal. That's where every action item, deadline, and registration lives.</div>
+              <div style="font-size:11.5px;color:#9b8fcf;line-height:1.55;margin-top:12px">Bookmark it. This link is yours, and it's the same one all program long. One habit to build now: when something needs doing, open your portal. That's where every action item, deadline, and registration lives.</div>
             </td>
           </tr>
         </table>
-
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:14px">
-          <tr>
-            <td bgcolor="#1a1733" style="background-color:#1a1733;border-radius:14px;padding:22px 24px">
-              <div style="font-size:10px;font-weight:bold;letter-spacing:1.4px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#c8bfef;margin-bottom:8px">YOUR UPLIFT ID, YOUR PASSWORD</div>
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:14px">
-                <tr>
-                  <td bgcolor="#2e2b45" align="center" style="background-color:#2e2b45;border:1px solid #4a4470;border-radius:8px;padding:10px 20px;font-family:'Courier New',Courier,monospace;font-size:26px;font-weight:bold;color:#ffffff;letter-spacing:3px">UF262</td>
-                </tr>
-              </table>
-              <div style="border-top:1px solid #33304a;padding-top:14px;font-size:12.5px;color:#c8bfef;line-height:1.7">It logs you into your portal, submits your mentor meetings, and RSVPs you for educational sessions. It's private, it's yours, and it works all program long. Please don't share it.</div>
-            </td>
-          </tr>
-        </table>
-
-        <div style="font-size:10px;font-weight:bold;letter-spacing:1.4px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#9b8fcf;border-bottom:1px solid #e8e4f5;padding-bottom:6px;margin-bottom:16px">WHAT YOU NEED TO DO RIGHT NOW</div>
 
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:12px">
           <tr>
-            <td bgcolor="#ffffff" style="background-color:#ffffff;border:2px solid #5c4eb5;border-radius:14px;padding:22px 24px">
+            <td bgcolor="#1a1733" style="background-color:#1a1733;border-radius:14px;padding:14px 24px">
+              <div style="font-size:10px;font-weight:bold;letter-spacing:1.4px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#c8bfef;margin-bottom:8px">YOUR UPLIFT ID, YOUR PASSWORD</div>
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:12px">
+                <tr>
+                  <td bgcolor="#2e2b45" align="center" style="background-color:#2e2b45;border:1px solid #4a4470;border-radius:8px;padding:9px 20px;font-family:'Courier New',Courier,monospace;font-size:26px;font-weight:bold;color:#ffffff;letter-spacing:3px">UF262</td>
+                </tr>
+              </table>
+              <div style="border-top:1px solid #33304a;padding-top:12px;font-size:12.5px;color:#c8bfef;line-height:1.6">It logs you into your portal, submits your mentor meetings, and RSVPs you for educational sessions. It's private, it's yours, and it works all program long. Please don't share it.</div>
+            </td>
+          </tr>
+        </table>
+
+        <div style="font-size:10px;font-weight:bold;letter-spacing:1.4px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#9b8fcf;border-bottom:1px solid #e8e4f5;padding-bottom:6px;margin-bottom:12px">WHAT YOU NEED TO DO RIGHT NOW</div>
+
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:11px">
+          <tr>
+            <td bgcolor="#ffffff" style="background-color:#ffffff;border:2px solid #5c4eb5;border-radius:14px;padding:14px 24px">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:11px">
                 <tr>
                   <td width="40" valign="middle"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#5c4eb5" align="center" valign="middle" width="28" height="28" style="background-color:#5c4eb5;width:28px;height:28px;border-radius:14px;color:#ffffff;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold">1</td></tr></table></td>
                   <td valign="middle" style="font-size:16.5px;font-weight:bold;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#1a1733">Accept your spot, in your portal</td>
                 </tr>
               </table>
-              <div style="font-size:13.5px;color:#4a4060;line-height:1.65;margin-bottom:10px">Log in, press <strong>I Accept</strong>, and you're done. We need that by <strong>Wednesday, September 9</strong>.</div>
-              <div style="font-size:13.5px;color:#4a4060;line-height:1.65;margin-bottom:18px">That one click tells us three things at once: you can get into your portal, your Uplift ID works, and you're with us this fall. <strong>No reply to this email needed.</strong></div>
+              <div style="font-size:13.5px;color:#4a4060;line-height:1.55;margin-bottom:9px">Log in, press <strong>I Accept</strong>, and you're done. We need that by <strong>Wednesday, September 9</strong>.</div>
+              <div style="font-size:13.5px;color:#4a4060;line-height:1.55;margin-bottom:13px">That one click tells us three things at once: you can get into your portal, your Uplift ID works, and you're with us this fall. <strong>No reply to this email needed.</strong></div>
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">
                 <tr>
                   <td bgcolor="#5c4eb5" align="center" style="background-color:#5c4eb5;border-radius:100px">
-                    <a href="https://uplift2026.vercel.app/fall/kennedy" target="_blank" style="display:inline-block;padding:12px 28px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14.5px;font-weight:bold;color:#ffffff;text-decoration:none">Accept my spot &rarr;</a>
+                    <a href="https://uplift2026.vercel.app/fall/kennedy" target="_blank" style="display:inline-block;padding:11px 28px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14.5px;font-weight:bold;color:#ffffff;text-decoration:none">Accept my spot &rarr;</a>
                   </td>
                 </tr>
               </table>
-              <div style="border-top:1px solid #f0ecff;margin-top:18px;padding-top:14px;font-size:12.5px;color:#6b6480;line-height:1.65">Already know this fall isn't your season? There's a <strong>Decline</strong> button right next to it, or just reply and tell us. That's a real kindness, and it lets us offer your spot to another founder.</div>
+              <div style="border-top:1px solid #f0ecff;margin-top:13px;padding-top:12px;font-size:12.5px;color:#6b6480;line-height:1.55">Already know this fall isn't your season? There's a <strong>Decline</strong> button right next to it, or just reply and tell us. That's a real kindness, and it lets us offer your spot to another founder.</div>
             </td>
           </tr>
         </table>
 
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:32px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:20px">
           <tr>
-            <td bgcolor="#ffffff" style="background-color:#ffffff;border:1px solid #d4d0e8;border-radius:14px;padding:22px 24px">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:12px">
+            <td bgcolor="#ffffff" style="background-color:#ffffff;border:1px solid #d4d0e8;border-radius:14px;padding:14px 24px">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:11px">
                 <tr>
                   <td width="40" valign="middle"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#5c4eb5" align="center" valign="middle" width="28" height="28" style="background-color:#5c4eb5;width:28px;height:28px;border-radius:14px;color:#ffffff;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold">2</td></tr></table></td>
                   <td valign="middle" style="font-size:16.5px;font-weight:bold;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#1a1733">Register for an onboarding session, in your portal</td>
                 </tr>
               </table>
-              <div style="font-size:13.5px;color:#4a4060;line-height:1.65">Seven slots across Wednesday September 9, Thursday September 10, and Friday September 11. Every one covers the same material, so pick whichever fits your week. The two Thursday sessions are <strong>in person</strong> at 101 Hudson St, Jersey City, starting at 5:00 PM, right before AI Demo Night in the same building. The other five are virtual. Registration links are waiting in your portal.</div>
+              <div style="font-size:13.5px;color:#4a4060;line-height:1.55">Seven slots across Wednesday September 9, Thursday September 10, and Friday September 11. Every one covers the same material, so pick whichever fits your week. The two Thursday sessions are <strong>in person</strong> at 101 Hudson St, Jersey City, starting at 5:00 PM, right before AI Demo Night in the same building. The other five are virtual. Registration links are waiting in your portal.</div>
             </td>
           </tr>
         </table>
 
-        <div style="font-size:10px;font-weight:bold;letter-spacing:1.4px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#9b8fcf;border-bottom:1px solid #e8e4f5;padding-bottom:6px;margin-bottom:14px">THREE THINGS TO GET AHEAD OF THE GAME, IF YOU WANT</div>
-        <div style="font-size:14.5px;color:#3d3558;line-height:1.75;margin-bottom:16px">None of this is required this week. If you like walking in already knowing how it all works, these are the same materials we'll cover together.</div>
+        <div style="font-size:10px;font-weight:bold;letter-spacing:1.4px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#9b8fcf;border-bottom:1px solid #e8e4f5;padding-bottom:6px;margin-bottom:12px">THREE THINGS TO GET AHEAD OF THE GAME, IF YOU WANT</div>
+        <div style="font-size:14.5px;color:#3d3558;line-height:1.6;margin-bottom:12px">None of this is required this week. If you like walking in already knowing how it all works, these are the same materials we'll cover together.</div>
 
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:10px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:9px">
           <tr>
-            <td bgcolor="#fafaff" style="background-color:#fafaff;border:1px solid #d4d0e8;border-left:4px solid #5c4eb5;border-radius:10px;padding:14px 18px">
+            <td bgcolor="#fafaff" style="background-color:#fafaff;border:1px solid #d4d0e8;border-left:4px solid #5c4eb5;border-radius:10px;padding:12px 18px">
               <a href="https://uplift2026.vercel.app/uplift-matching-logic-one-pager.html" target="_blank" style="text-decoration:none">
                 <span style="font-size:14px;font-weight:bold;color:#3d2f8a">How We Match Founders &amp; Mentors &rarr;</span><br/>
                 <span style="font-size:12.5px;color:#6b6480;line-height:1.55">What actually goes into your match: the factors we score, how the shortlist gets built, and why a person always makes the final call.</span>
@@ -254,9 +259,9 @@
           </tr>
         </table>
 
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:10px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:9px">
           <tr>
-            <td bgcolor="#fafaff" style="background-color:#fafaff;border:1px solid #d4d0e8;border-left:4px solid #5c4eb5;border-radius:10px;padding:14px 18px">
+            <td bgcolor="#fafaff" style="background-color:#fafaff;border:1px solid #d4d0e8;border-left:4px solid #5c4eb5;border-radius:10px;padding:12px 18px">
               <a href="https://uplift2026.vercel.app/onboarding-deck-fall2026-test.html" target="_blank" style="text-decoration:none">
                 <span style="font-size:14px;font-weight:bold;color:#3d2f8a">Fall Onboarding Deck &rarr;</span><br/>
                 <span style="font-size:12.5px;color:#6b6480;line-height:1.55">The whole orientation ahead of time: program snapshot, expectations, your journey week by week, and a walkthrough of your portal.</span>
@@ -265,9 +270,9 @@
           </tr>
         </table>
 
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:26px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:17px">
           <tr>
-            <td bgcolor="#fafaff" style="background-color:#fafaff;border:1px solid #d4d0e8;border-left:4px solid #5c4eb5;border-radius:10px;padding:14px 18px">
+            <td bgcolor="#fafaff" style="background-color:#fafaff;border:1px solid #d4d0e8;border-left:4px solid #5c4eb5;border-radius:10px;padding:12px 18px">
               <a href="https://uplift2026.vercel.app/uplift-three-meetings-one-pager.html" target="_blank" style="text-decoration:none">
                 <span style="font-size:14px;font-weight:bold;color:#3d2f8a">Discover, Act, Roadmap &rarr;</span><br/>
                 <span style="font-size:12.5px;color:#6b6480;line-height:1.55">Your three mentor meetings and the job each one does. Read it before you meet your mentor and your first session starts miles ahead.</span>
@@ -276,22 +281,28 @@
           </tr>
         </table>
 
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:30px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:18px">
           <tr>
-            <td bgcolor="#1a1733" style="background-color:#1a1733;border-radius:14px;padding:24px 26px">
+            <td bgcolor="#1a1733" style="background-color:#1a1733;border-radius:14px;padding:15px 26px">
               <div style="font-size:10px;font-weight:bold;letter-spacing:1.4px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#c8bfef;margin-bottom:8px">BONUS, AND IT'S THIS WEEK</div>
-              <div style="font-size:19px;font-weight:bold;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#ffffff;line-height:1.3;margin-bottom:8px">AI Demo Night, in person</div>
-              <div style="font-size:13.5px;color:#c8bfef;line-height:1.7;margin-bottom:18px">Thursday September 10 in Jersey City, in the same building as the Thursday in-person onboarding sessions, so you can walk straight from one into the other. Three founders pitch, the room votes, and about a hundred founders, operators, and investors are there to meet. Seats are capped.</div>
-              <div style="font-size:11px;font-weight:bold;letter-spacing:1.2px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#c8bfef;margin-bottom:8px">YOUR TICKET IS FREE WITH THIS CODE</div>
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:18px">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:12px">
                 <tr>
-                  <td bgcolor="#2e2b45" align="center" style="background-color:#2e2b45;border:1px dashed #9b8fcf;border-radius:8px;padding:10px 18px;font-family:'Courier New',Courier,monospace;font-size:16px;font-weight:bold;color:#ffffff;letter-spacing:1.5px">UPLIFTATDEMONIGHT</td>
+                  <td style="font-size:0;line-height:0">
+                    <img src="https://uplift2026.vercel.app/demo-night-email-hero-550.jpg" alt="AI Demo Nights, September 10, three live demos, Jersey City, 6:30 to 9 PM" width="430" height="214" style="display:block;border:0;outline:none;width:100%;max-width:430px;height:auto;border-radius:8px"/>
+                  </td>
+                </tr>
+              </table>
+              <div style="font-size:13.5px;color:#c8bfef;line-height:1.6;margin-bottom:13px">Same building as the Thursday in-person onboarding sessions, so you can walk straight from one into the other. Three founders pitch, the room votes, and about a hundred founders, operators, and investors are there to meet. Seats are capped.</div>
+              <div style="font-size:11px;font-weight:bold;letter-spacing:1.2px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#c8bfef;margin-bottom:8px">YOUR TICKET IS FREE WITH THIS CODE</div>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:13px">
+                <tr>
+                  <td bgcolor="#2e2b45" align="center" style="background-color:#2e2b45;border:1px dashed #9b8fcf;border-radius:8px;padding:9px 18px;font-family:'Courier New',Courier,monospace;font-size:16px;font-weight:bold;color:#ffffff;letter-spacing:1.5px">UPLIFTATDEMONIGHT</td>
                 </tr>
               </table>
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">
                 <tr>
                   <td bgcolor="#ffffff" align="center" style="background-color:#ffffff;border-radius:100px">
-                    <a href="https://luma.com/na6vswhb" target="_blank" style="display:inline-block;padding:12px 26px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#1a1733;text-decoration:none">Register for Demo Night &rarr;</a>
+                    <a href="https://luma.com/na6vswhb" target="_blank" style="display:inline-block;padding:11px 26px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#1a1733;text-decoration:none">Register for Demo Night &rarr;</a>
                   </td>
                 </tr>
               </table>
@@ -299,37 +310,37 @@
           </tr>
         </table>
 
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:26px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:17px">
           <tr>
-            <td bgcolor="#fafaff" style="background-color:#fafaff;border:1px solid #e8e4f5;border-radius:12px;padding:20px 22px">
-              <div style="font-size:15px;font-weight:bold;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#1a1733;line-height:1.4;margin-bottom:12px">So when do I actually get my mentor?</div>
-              <div style="font-size:13.5px;color:#4a4060;line-height:1.7;margin-bottom:10px">Two things have to happen, in this order.</div>
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:12px">
+            <td bgcolor="#fafaff" style="background-color:#fafaff;border:1px solid #e8e4f5;border-radius:12px;padding:15px 22px">
+              <div style="font-size:15px;font-weight:bold;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;color:#1a1733;line-height:1.4;margin-bottom:11px">So when do I actually get my mentor?</div>
+              <div style="font-size:13.5px;color:#4a4060;line-height:1.6;margin-bottom:9px">Two things have to happen, in this order.</div>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:11px">
                 <tr>
-                  <td valign="top" width="24" style="padding:0 0 10px;font-size:13.5px;color:#5c4eb5;font-weight:bold">1.</td>
-                  <td valign="top" style="font-size:13.5px;color:#4a4060;line-height:1.65;padding-bottom:10px"><strong>You finish all of onboarding.</strong> Attend an onboarding session, pass the short onboarding quiz, and answer your Week 1 Deep Work.</td>
+                  <td valign="top" width="24" style="padding:0 0 9px;font-size:13.5px;color:#5c4eb5;font-weight:bold">1.</td>
+                  <td valign="top" style="font-size:13.5px;color:#4a4060;line-height:1.55;padding-bottom:9px"><strong>You finish all of onboarding.</strong> Attend an onboarding session, pass the short onboarding quiz, and answer your Week 1 Deep Work.</td>
                 </tr>
                 <tr>
                   <td valign="top" width="24" style="padding:0;font-size:13.5px;color:#5c4eb5;font-weight:bold">2.</td>
-                  <td valign="top" style="font-size:13.5px;color:#4a4060;line-height:1.65"><strong>We cross-reference our initial match against your Week 1 Deep Work.</strong> Your answers there are the most current thing we have about where you are and what you need, so we hold the pairing up against them before we confirm it.</td>
+                  <td valign="top" style="font-size:13.5px;color:#4a4060;line-height:1.55"><strong>We cross-reference our initial match against your Week 1 Deep Work.</strong> Your answers there are the most current thing we have about where you are and what you need, so we hold the pairing up against them before we confirm it.</td>
                 </tr>
               </table>
-              <div style="font-size:13.5px;color:#4a4060;line-height:1.7">Once both are done, your mentor appears in your portal. No email to wait on, and no chasing us.</div>
+              <div style="font-size:13.5px;color:#4a4060;line-height:1.6">Once both are done, your mentor appears in your portal. No email to wait on, and no chasing us.</div>
             </td>
           </tr>
         </table>
 
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:28px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-bottom:18px">
           <tr>
-            <td bgcolor="#f5f3ff" style="background-color:#f5f3ff;border:1px dashed #b4a9e0;border-radius:12px;padding:20px 22px">
+            <td bgcolor="#f5f3ff" style="background-color:#f5f3ff;border:1px dashed #b4a9e0;border-radius:12px;padding:15px 22px">
               <div style="font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:10px;font-weight:bold;letter-spacing:1.4px;color:#5c4eb5;margin-bottom:8px">ONE QUICK ASK</div>
-              <div style="font-size:13.5px;color:#3d3558;line-height:1.75;margin-bottom:16px">
+              <div style="font-size:13.5px;color:#3d3558;line-height:1.6;margin-bottom:12px">
                 Priority matching and eligibility closed today, and we're still taking applications through <strong>September 9</strong>. If this got you excited about the program, we'd love for you to send the mentee application to someone who should be in it.
               </div>
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse">
                 <tr>
                   <td bgcolor="#ffffff" align="center" style="background-color:#ffffff;border:1px solid #5c4eb5;border-radius:100px">
-                    <a href="https://form.typeform.com/to/hAbo7Jdh" target="_blank" style="display:inline-block;padding:11px 24px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:13.5px;font-weight:bold;color:#5c4eb5;text-decoration:none">Share the mentee application &rarr;</a>
+                    <a href="https://form.typeform.com/to/hAbo7Jdh" target="_blank" style="display:inline-block;padding:10px 24px;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:13.5px;font-weight:bold;color:#5c4eb5;text-decoration:none">Share the mentee application &rarr;</a>
                   </td>
                 </tr>
               </table>
@@ -337,15 +348,15 @@
           </tr>
         </table>
 
-        <div style="font-size:15.5px;color:#1a1733;line-height:1.75;margin-bottom:24px;font-weight:bold">Welcome to Uplift. We're glad you're here, and we can't wait to see what you build.</div>
+        <div style="text-align:center;font-size:13px;color:#6b6480;line-height:1.6">Questions about anything? Reply here or reach us at <a href="mailto:uplift@techunited.co" style="color:#5c4eb5;text-decoration:none;font-weight:bold">uplift@techunited.co</a></div>
 
-        <div style="text-align:center;font-size:13px;color:#6b6480;line-height:1.7">Questions about anything? Reply here or reach us at <a href="mailto:uplift@techunited.co" style="color:#5c4eb5;text-decoration:none;font-weight:bold">uplift@techunited.co</a></div>
+        <div style="text-align:center;font-family:'Red Hat Display',Arial,Helvetica,sans-serif;font-size:15.5px;color:#1a1733;line-height:1.6;font-weight:bold;margin-top:14px">Welcome to Uplift. We're glad you're here, and we can't wait to see what you build.</div>
 
       </td>
     </tr>
 
     <tr>
-      <td bgcolor="#1a1733" align="center" style="background-color:#1a1733;padding:24px 40px;font-family:'Red Hat Text',Arial,Helvetica,sans-serif;font-size:12px;color:#9b8fcf;line-height:1.7">
+      <td bgcolor="#1a1733" align="center" style="background-color:#1a1733;padding:15px 40px;font-family:'Red Hat Text',Arial,Helvetica,sans-serif;font-size:12px;color:#9b8fcf;line-height:1.6">
         TechUnited:NJ &middot; Fall 2026 Uplift Mentorship Program<br/>
         You're receiving this because you applied to the Uplift Mentorship Program.<br/>
         <a href="#" style="color:#9b8fcf;text-decoration:underline">Unsubscribe</a>
