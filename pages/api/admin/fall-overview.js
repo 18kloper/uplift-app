@@ -54,11 +54,17 @@ async function readMilestones(sheets, spreadsheetId) {
   };
 
   try {
-    const partRes = await sheets.spreadsheets.values.get({ spreadsheetId, range: "Participation!A6:E500" });
+    const partRes = await sheets.spreadsheets.values.get({ spreadsheetId, range: "Participation!A6:F500" });
     for (const row of partRes.data.values || []) {
       const slug = row[0]?.trim();
       if (!slug) continue;
-      if (row[4]?.trim() === "Accepted") ensure(slug).milestones.participation = true;
+      const rec = ensure(slug);
+      const status = row[4]?.trim() || "";
+      if (status === "Accepted") rec.milestones.participation = true;
+      // Declined is a real answer, not a missing one, and the two must never
+      // collapse into the same bucket on the overview.
+      if (status) rec.participationStatus = status.toLowerCase();
+      if (row[5]) rec.participationAt = row[5];
     }
   } catch (_) {}
 
@@ -202,6 +208,17 @@ function computeFounder(m, sheetRec, meetings, activity, now, firstLogin) {
   const rows = activity?.rows || [];
   const get = (fieldKey, week) => rows.find(x => x.fieldKey === fieldKey && (week == null || x.week === week));
 
+  // Participation has two writers. save-response.js stamps the Participation
+  // tab, but only for founders who already have a row there, and the fall
+  // cohort was built after that tab was. FallResponses always gets the answer,
+  // so it is the one that cannot silently miss someone.
+  const partAnswer = (get("participation")?.value || "").trim().toLowerCase();
+  const declined = partAnswer === "declined" || sheetRec?.participationStatus === "declined";
+  const accepted = !declined && (milestones.participation || partAnswer === "accepted");
+  const participationStatus = accepted ? "accepted" : declined ? "declined" : "waiting";
+  const participationAt = get("participation")?.updatedAt || sheetRec?.participationAt || null;
+  if (accepted) milestones.participation = true;
+
   const quizPassed = !!get("quiz_passed");
   const deepWorkDone = DEEP_WORK_KEYS.every(k => (get(k, 1)?.value || "").trim());
   const structureAck = !!get("structure_ack");
@@ -272,6 +289,8 @@ function computeFounder(m, sheetRec, meetings, activity, now, firstLogin) {
     wins,
     lastActive,
     firstLogin: firstLogin?.at || null,
+    participationStatus,
+    participationAt,
     firstLoginApprox: !!firstLogin?.approx,
     milestones,
     notes: sheetRec?.notes || "",
@@ -315,6 +334,9 @@ export default async function handler(req, res) {
       gateComplete: list.filter(f => f.gateComplete).length,
       avgMeetings: list.length ? +(list.reduce((s, f) => s + f.meetingCount, 0) / list.length).toFixed(1) : 0,
       avgEdu: list.length ? +(list.reduce((s, f) => s + f.eduCount, 0) / list.length).toFixed(1) : 0,
+      participationAccepted: list.filter(f => f.participationStatus === "accepted").length,
+      participationDeclined: list.filter(f => f.participationStatus === "declined").length,
+      participationWaiting: list.filter(f => f.participationStatus === "waiting").length,
     });
 
     // Fall cohort placements are not assigned yet, so most founders have
