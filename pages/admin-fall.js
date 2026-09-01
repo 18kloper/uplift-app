@@ -467,6 +467,15 @@ export default function AdminFall() {
                   Data as of {new Date(data.generatedAt).toLocaleTimeString()} ({freshness}s ago{data.cached ? ", cached" : ""})
                 </span>
               )}
+              {/* The SOP is the page you look for when you do not know where
+                  something lives, so it has to be reachable from the screen
+                  everyone already opens. Same admin session, no second login. */}
+              <a href="/fallsop" style={{ border: "1px solid rgba(255,255,255,0.28)", borderRadius: 8, padding: "7px 14px", color: "#fff", fontSize: 13, fontWeight: 700, textDecoration: "none", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                SOP
+              </a>
+              <a href="/fallfounderlookbook" style={{ border: "1px solid rgba(255,255,255,0.28)", borderRadius: 8, padding: "7px 14px", color: "#fff", fontSize: 13, fontWeight: 700, textDecoration: "none", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                Lookbook
+              </a>
               <button onClick={() => { load(true); if (["speakers", "today"].includes(tab)) refreshSpeakers(); }} disabled={loading} style={{ border: "none", borderRadius: 8, padding: "8px 16px", background: "#5c4eb5", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: loading ? 0.6 : 1 }}>
                 {loading ? "Refreshing…" : "↻ Refresh now"}
               </button>
