@@ -55,7 +55,8 @@ export function Folio({ page, section }) {
   );
 }
 
-function Page({ children, active, pad = "0.62in 0.7in 0.2in" }) {
+function Page({ children, active, pad }) {
+  pad = pad || "0.62in 0.7in 0.2in";
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", background: PAPER, color: INK, padding: pad }}>
       {children}
@@ -276,21 +277,22 @@ export function GlancePage({ founders, stats, active, pageNumber }) {
   );
 }
 
-export function IndexPage({ kicker, title, standfirst, rows, onOpen, empty, active, pageNumber }) {
+// deep: a taller masthead that pushes the title down the page, so it still
+// reads as a title in a thumbnail. Used on the hiring page; the customers and
+// partners page keeps the standard one.
+export function IndexPage({ kicker, title, standfirst, rows, onOpen, empty, active, pageNumber, deep = false }) {
   return (
     <Sheet active={active} fitViewport mark="right">
-      {/* A deep masthead: the title sits well down the page so it still reads
-          as a title when the page is seen as a thumbnail or a screenshot. */}
-      <Page active={active} pad="1.5in 0.7in 0.2in">
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 26, marginBottom: 30 }}>
-          <div style={{ maxWidth: "5.1in" }}>
-            <Label size={9.5}>{kicker}</Label>
-            <h2 style={{ margin: "14px 0 0", fontFamily: DISPLAY, fontWeight: 900, fontSize: 52, letterSpacing: "-0.025em", lineHeight: 0.98 }}>
+      <Page active={active} pad={deep ? "1.5in 0.7in 0.2in" : undefined}>
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 26, marginBottom: deep ? 30 : 16 }}>
+          <div style={{ maxWidth: deep ? "5.1in" : "4.9in" }}>
+            <Label size={deep ? 9.5 : 8.5}>{kicker}</Label>
+            <h2 style={{ margin: deep ? "14px 0 0" : "8px 0 0", fontFamily: DISPLAY, fontWeight: 900, fontSize: deep ? 52 : 40, letterSpacing: "-0.02em", lineHeight: deep ? 0.98 : 1.02 }}>
               {title}
             </h2>
-            <p style={{ margin: "16px 0 0", fontFamily: SANS, fontSize: 12, lineHeight: 1.6, color: INK_SOFT }}>{standfirst}</p>
+            <p style={{ margin: deep ? "16px 0 0" : "10px 0 0", fontFamily: SANS, fontSize: deep ? 12 : 11, lineHeight: 1.6, color: INK_SOFT }}>{standfirst}</p>
           </div>
-          <p style={{ margin: 0, fontFamily: DISPLAY, fontWeight: 900, fontSize: 82, lineHeight: 0.78, color: ACCENT, letterSpacing: "-0.03em" }}>
+          <p style={{ margin: 0, fontFamily: DISPLAY, fontWeight: 900, fontSize: deep ? 82 : 62, lineHeight: 0.8, color: ACCENT, letterSpacing: "-0.03em" }}>
             {rows.length}
           </p>
         </div>

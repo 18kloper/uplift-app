@@ -671,6 +671,7 @@ export default function Lookbook() {
                       kicker="Open doors"
                       title="Hiring in the next six months"
                       standfirst="Founders hiring today or planning to within six months. Click a name to read their feature."
+                      deep
                       rows={hiring}
                       onOpen={id => setPreview(id)}
                       empty="Nobody has flagged this yet."
