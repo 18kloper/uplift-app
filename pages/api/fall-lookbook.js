@@ -73,7 +73,10 @@ export default async function handler(req, res) {
       // fundraising go with them: the figure, whether there is any at all,
       // and whether they are raising. The page blurs those rows, and there is
       // nothing real behind the blur to recover.
-      .map(({ email, phone, snapshot, ...rest }) => ({
+      // Where a founder sits is withheld per person as well. The county tally
+      // below is the aggregate the application does allow, computed here so
+      // no individual location has to travel to the browser to produce it.
+      .map(({ email, phone, city, county, snapshot, ...rest }) => ({
         ...rest,
         snapshot: snapshot
           ? (({ revenueRange, generatingRevenue, raising, priorCapital, ...snap }) => snap)(snapshot)
@@ -81,8 +84,15 @@ export default async function handler(req, res) {
       }))
       .sort((a, b) => `${a.first} ${a.last}`.localeCompare(`${b.first} ${b.last}`));
 
+    const countyTally = Object.entries(
+      founders.reduce((acc, f) => {
+        if (f.county) acc[f.county] = (acc[f.county] || 0) + 1;
+        return acc;
+      }, {}),
+    ).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
     res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=600");
-    return res.status(200).json({ founders: safe, crops: await readCrops(), count: safe.length });
+    return res.status(200).json({ founders: safe, crops: await readCrops(), count: safe.length, countyTally });
   } catch (err) {
     console.error("[fall-lookbook] failed:", err.message);
     return res.status(500).json({ error: err.message });

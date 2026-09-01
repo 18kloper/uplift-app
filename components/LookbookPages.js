@@ -451,7 +451,7 @@ function factRows(f) {
     ["Hiring in 6 months", soon(f.snapshot?.hiring)],
     ["Seeking customers", yes(f.snapshot?.lookingForCustomers)],
     ["Seeking partnerships", yes(f.snapshot?.seekingPartnerships)],
-    ["Based", [f.city, f.county && `${f.county} County`].filter(Boolean).join(", ")],
+    ["Based", "REDACT"],
   ].filter(([, v]) => v != null && v !== "");
 }
 
@@ -879,7 +879,7 @@ export function VoicesPage({ voices, active, pageNumber }) {
 }
 
 function AlumniCard({ a, onAdjust }) {
-  const facts = [tidyIndustry(a.industry), a.stage, a.county && `${a.county} County`].filter(Boolean);
+  const facts = [tidyIndustry(a.industry), a.stage].filter(Boolean);
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1.45in 1fr", gap: 14, padding: "16px 0", borderTop: `1px solid ${RULE}`, minHeight: 0, alignItems: "start", alignContent: "center" }}>
       <div

@@ -65,6 +65,8 @@ export default function Lookbook() {
   const [page, setPage] = useState(0);
   const [generatedAt] = useState(() => new Date().toISOString());
   const [crops, setCrops] = useState({});
+  // Counties arrive already counted, so no individual location is in the page.
+  const [countyTally, setCountyTally] = useState([]);
   const [adjustMode, setAdjustMode] = useState(false);
   const [adjusting, setAdjusting] = useState(null);
   // Clicking a name in an index opens their page as a preview rather than
@@ -113,6 +115,7 @@ export default function Lookbook() {
       .then(d => {
         if (d.error) throw new Error(d.error);
         setCrops(d.crops || {});
+        setCountyTally(d.countyTally || []);
         setFounders(d.founders || []);
       })
       .catch(e => setErr(e.message));
@@ -465,11 +468,11 @@ export default function Lookbook() {
       columns: [
         { title: "Stage", rows: tally(fs, f => short(f.stage)) },
         { title: "Industry", rows: tally(fs, f => short(f.industry)) },
-        { title: "Where they are", rows: tally(fs, f => f.county && `${f.county} County`) },
+        { title: "Where they are", rows: countyTally.map(([c, n]) => [`${c} County`, n]) },
         { title: "What they want help with", rows: tally(fs, f => f.primaryFocus) },
       ],
     };
-  }, [cast]);
+  }, [cast, countyTally]);
 
   // Printing needs the whole issue in the document; the screen needs three
   // pages at most.
