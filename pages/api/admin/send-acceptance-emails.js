@@ -86,11 +86,14 @@ export default async function handler(req, res) {
   if (secret && req.query.token !== secret) {
     return res.status(401).json({ error: "Unauthorized" });
   }
-  if (!process.env.RESEND_API_KEY) {
+  const { dryRun = true, slugs = null, skip = ALREADY_SENT } = req.body || {};
+
+  // A dry run touches nothing but the sheet, so it must work without the send
+  // key. That is what makes it usable locally to check the roster and the
+  // addresses before anything goes near production.
+  if (!dryRun && !process.env.RESEND_API_KEY) {
     return res.status(500).json({ error: "RESEND_API_KEY not configured" });
   }
-
-  const { dryRun = true, slugs = null, skip = ALREADY_SENT } = req.body || {};
 
   try {
     const sheet = await readMenteeSheet();
