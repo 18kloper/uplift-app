@@ -1112,10 +1112,26 @@ export default function AdminFall() {
                 f.meetingMinutes >= 180 && f.eduCount >= 3 && ms.midpoint && ms.endSurvey && ms.summit;
               return { f, ms, verifiedSessions, complete };
             });
+            // First portal login: the earliest signal any founder gives off.
+            // It lands before Confirmed Participation — before they have done
+            // anything at all — so a founder who has not opened their portal
+            // days after the acceptance email is the first person to chase.
+            const fmtLogin = (iso) => {
+              const d = iso ? new Date(iso) : null;
+              if (!d || isNaN(d.getTime())) return null;
+              const opts = { timeZone: "America/New_York", month: "short", day: "numeric" };
+              return {
+                day: d.toLocaleString("en-US", opts),
+                time: d.toLocaleString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }),
+                full: d.toLocaleString("en-US", { timeZone: "America/New_York", dateStyle: "full", timeStyle: "short" }),
+              };
+            };
+            const notLoggedIn = rows.filter(({ f }) => !f.firstLogin);
+            const loggedInCount = rows.length - notLoggedIn.length;
             const csv = () => {
-              const header = ["Founder", "Company", "Participation", "Onboarding", "Quiz", "Meetings Submitted", "Minutes Submitted", "Sessions Verified", "Edu Sessions", "OverdriveAI", "Exit Survey", "Signature Signed", "Certificate", "Complete"];
+              const header = ["Founder", "Company", "First Portal Login", "Participation", "Onboarding", "Quiz", "Meetings Submitted", "Minutes Submitted", "Sessions Verified", "Edu Sessions", "OverdriveAI", "Exit Survey", "Signature Signed", "Certificate", "Complete"];
               const lines = rows.map(({ f, ms, verifiedSessions, complete }) => [
-                f.name, f.company, ms.participation, ms.onboarding, !!f.gate?.quizPassed, f.meetingCount,
+                f.name, f.company, f.firstLogin || "never", ms.participation, ms.onboarding, !!f.gate?.quizPassed, f.meetingCount,
                 f.meetingMinutes || 0, verifiedSessions, f.eduCount, !!ms.midpoint, !!ms.endSurvey, !!ms.summit, !!ms.certificate, !!complete,
               ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(","));
               const blob = new Blob([[header.join(","), ...lines].join("\n")], { type: "text/csv" });
@@ -1133,11 +1149,25 @@ export default function AdminFall() {
                   <p style={{ ...kicker, margin: 0 }}>Completion evidence · the numbers grant reporting runs on · verified beats submitted</p>
                   <button onClick={csv} style={{ border: "none", borderRadius: 8, padding: "7px 14px", background: "#5c4eb5", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>⬇ Export CSV</button>
                 </div>
+                <div style={{ margin: "10px 0 14px", padding: "12px 14px", borderRadius: 10, background: notLoggedIn.length ? "#fdf7ee" : "#e8f8f0", border: `1px solid ${notLoggedIn.length ? "#f0dfc4" : "#c8ecd9"}` }}>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: notLoggedIn.length ? "#b35c00" : "#1a6e42" }}>
+                    {loggedInCount} of {rows.length} have logged into their portal
+                  </p>
+                  <p style={{ margin: "3px 0 0", fontSize: 11.5, color: "#6b6480" }}>
+                    The first signal, before Confirmed Participation. Only a founder’s own Uplift ID counts — the team’s master password does not. A ≈ date is a visit recorded before stamping started.
+                  </p>
+                  {notLoggedIn.length > 0 && (
+                    <p style={{ margin: "8px 0 0", fontSize: 12, color: "#3d2f8a" }}>
+                      <strong style={{ color: "#b35c00" }}>Not yet:</strong>{" "}
+                      {notLoggedIn.map(({ f }) => f.name).join(" · ")}
+                    </p>
+                  )}
+                </div>
                 <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                     <thead>
                       <tr style={{ textAlign: "left", color: "#9b8fcf", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                        {["Founder", "Part.", "Onboard", "Quiz", "Meetings", "Verified", "Edu", "OverdriveAI", "Survey", "Signed", "Cert", "Complete"].map(h => (
+                        {["Founder", "First login", "Part.", "Onboard", "Quiz", "Meetings", "Verified", "Edu", "OverdriveAI", "Survey", "Signed", "Cert", "Complete"].map(h => (
                           <th key={h} style={{ padding: "8px 10px", borderBottom: "1px solid #e8e4f5", whiteSpace: "nowrap" }}>{h}</th>
                         ))}
                       </tr>
@@ -1146,6 +1176,17 @@ export default function AdminFall() {
                       {rows.map(({ f, ms, verifiedSessions, complete }) => (
                         <tr key={f.slug} style={{ borderBottom: "1px solid #f0edf9" }}>
                           <td style={{ padding: "10px", fontWeight: 700, color: "#3d2f8a", whiteSpace: "nowrap" }}>{f.name}<div style={{ fontSize: 11.5, fontWeight: 400, color: "#9b8fcf" }}>{f.company}</div></td>
+                          <td style={{ padding: "10px", whiteSpace: "nowrap" }}>{(() => {
+                            const l = fmtLogin(f.firstLogin);
+                            if (!l) return <span style={{ fontSize: 11, fontWeight: 800, color: "#b35c00" }}>not yet</span>;
+                            const approx = f.firstLoginApprox;
+                            return (
+                              <span title={approx ? `Last recorded visit: ${l.full}. Logged in before first-login stamping started, so this is their visit, not necessarily their first.` : l.full}>
+                                <span style={{ fontSize: 12.5, fontWeight: 700, color: "#1a6e42" }}>{approx ? "≈ " : ""}{l.day}</span>
+                                <div style={{ fontSize: 11, color: "#9b8fcf" }}>{l.time}</div>
+                              </span>
+                            );
+                          })()}</td>
                           <td style={{ padding: "10px" }}>{yn(ms.participation)}</td>
                           <td style={{ padding: "10px" }}>{yn(ms.onboarding)}</td>
                           <td style={{ padding: "10px" }}>{yn(f.gate?.quizPassed)}</td>

@@ -37,6 +37,8 @@ const D = {
 // PULSE_WEEKS now imported from lib/fall-roster.js (as PULSE_WINDOWS) —
 // single source of truth shared with the portal, do not redefine it here.
 
+const ACTIVITY_TAB = "PortalActivity";
+
 const DEEP_WORK_KEYS = ["five_relationship", "five_clarity", "five_resources", "five_mentor", "five_community", "primary_refine"];
 
 let cache = { at: 0, payload: null };
@@ -164,7 +166,38 @@ async function readPortalActivity(sheets, spreadsheetId, roster) {
   return bySlug;
 }
 
-function computeFounder(m, sheetRec, meetings, activity, now) {
+// First portal login per founder — column D of PortalActivity, stamped by
+// portal-auth.js the first time someone logs in with their own Uplift ID.
+// It is the earliest engagement signal there is: it lands before Confirmed
+// Participation, before onboarding, before anything else reporting counts.
+//
+// Stamping started the day the acceptance emails went out, so a founder who
+// logged in during the hours before it shipped has a visit row (column C,
+// written by track-visit.js) but no stamp. Reporting that founder as "not yet"
+// would be a lie about the fastest movers, so their last recorded visit comes
+// back as `approx` and the table marks it as such.
+async function readFirstLogins(sheets, spreadsheetId) {
+  const bySlug = {};
+  try {
+    const r = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `${ACTIVITY_TAB}!A2:D500`,
+    });
+    for (const row of r.data.values || []) {
+      const slug = (row[0] || "").trim();
+      if (!slug) continue;
+      const first = (row[3] || "").trim();
+      const seen = (row[2] || "").trim();
+      if (first) bySlug[slug] = { at: first, approx: false };
+      else if (seen) bySlug[slug] = { at: seen, approx: true };
+    }
+  } catch (err) {
+    console.error("[fall-overview] PortalActivity read failed:", err.message);
+  }
+  return bySlug;
+}
+
+function computeFounder(m, sheetRec, meetings, activity, now, firstLogin) {
   const milestones = sheetRec?.milestones || Object.fromEntries(MILESTONE_KEYS.map(k => [k, false]));
   const rows = activity?.rows || [];
   const get = (fieldKey, week) => rows.find(x => x.fieldKey === fieldKey && (week == null || x.week === week));
@@ -238,6 +271,8 @@ function computeFounder(m, sheetRec, meetings, activity, now) {
     missStreak,
     wins,
     lastActive,
+    firstLogin: firstLogin?.at || null,
+    firstLoginApprox: !!firstLogin?.approx,
     milestones,
     notes: sheetRec?.notes || "",
   };
@@ -260,14 +295,15 @@ export default async function handler(req, res) {
     const roster = FALL_SLUGS.map(slug => MENTEES.find(m => m.slug === slug)).filter(Boolean);
     const today = new Date();
 
-    const [milestoneData, meetingData, activityData] = await Promise.all([
+    const [milestoneData, meetingData, activityData, firstLogins] = await Promise.all([
       readMilestones(sheets, spreadsheetId),
       readMeetings(roster),
       readPortalActivity(sheets, spreadsheetId, roster),
+      readFirstLogins(sheets, spreadsheetId),
     ]);
 
     const founders = roster.map(m =>
-      computeFounder(m, milestoneData[m.slug], meetingData[m.slug], activityData[m.slug], today)
+      computeFounder(m, milestoneData[m.slug], meetingData[m.slug], activityData[m.slug], today, firstLogins[m.slug])
     );
 
     const active = founders.filter(f => f.status !== "churned");

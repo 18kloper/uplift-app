@@ -20,6 +20,50 @@ import { MENTEES } from "../../lib/mentees";
 
 const masterPw = () => process.env.PORTAL_MASTER_PASSWORD || process.env.ADMIN_SECRET || "";
 
+const ACTIVITY_TAB = "PortalActivity";
+
+// The first time a founder actually gets into their portal. Stamped here, not
+// client-side, because this is the only place that knows the login used the
+// founder's own Uplift ID and not the team's master password — a staff member
+// opening someone's portal must never look like that founder showing up.
+//
+// Column D of PortalActivity, written once and never overwritten; track-visit.js
+// owns B and C (name, last seen). Bookkeeping never costs anyone their login:
+// every failure in here is swallowed.
+async function recordFirstLogin(sheets, spreadsheetId, slug) {
+  try {
+    const r = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${ACTIVITY_TAB}!A:D` });
+    const rows = r.data.values || [];
+    const stamp = new Date().toISOString();
+
+    if (!(rows[0] || [])[3]) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId, range: `${ACTIVITY_TAB}!D1`, valueInputOption: "RAW",
+        requestBody: { values: [["First Login"]] },
+      });
+    }
+
+    const idx = rows.findIndex((row, i) => i > 0 && row[0] === slug);
+    if (idx > 0) {
+      if ((rows[idx][3] || "").trim()) return; // already stamped — the first one stands
+      await sheets.spreadsheets.values.update({
+        spreadsheetId, range: `${ACTIVITY_TAB}!D${idx + 1}`, valueInputOption: "RAW",
+        requestBody: { values: [[stamp]] },
+      });
+      return;
+    }
+
+    const person = MENTEES.find(m => m.slug === slug);
+    await sheets.spreadsheets.values.append({
+      spreadsheetId, range: `${ACTIVITY_TAB}!A:D`,
+      valueInputOption: "RAW", insertDataOption: "INSERT_ROWS",
+      requestBody: { values: [[slug, person ? `${person.first} ${person.last}`.trim() : slug, "", stamp]] },
+    });
+  } catch (err) {
+    console.error("[portal-auth] first-login stamp failed:", err.message);
+  }
+}
+
 async function findUpliftId(sheets, spreadsheetId, slug) {
   const person = MENTEES.find(m => m.slug === slug);
   if (!person) return null;
@@ -63,6 +107,7 @@ export default async function handler(req, res) {
     const ok = isMaster || (upliftId
       ? entered.toUpperCase() === upliftId.toUpperCase()
       : entered.toLowerCase() === slug); // no ID issued yet: access code = slug
+    if (ok && !isMaster) await recordFirstLogin(sheets, process.env.GOOGLE_SHEET_ID, slug);
     // The founder's own ID rides back on success so the portal can show it.
     return res.status(ok ? 200 : 401).json(ok ? { ok, master: isMaster || undefined, upliftId: upliftId || null } : { ok });
   } catch (err) {
