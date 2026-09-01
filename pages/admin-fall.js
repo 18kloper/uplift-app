@@ -1183,14 +1183,15 @@ export default function AdminFall() {
                 full: d.toLocaleString("en-US", { timeZone: "America/New_York", dateStyle: "full", timeStyle: "short" }),
               };
             };
-            // Only a verified stamp counts. The ≈ entries came from the visit
-            // log, which until now also recorded the team opening a portal
-            // with the master password, so they cannot be told apart from a
-            // founder showing up. They resolve to exact dates on the next login.
-            const verified = rows.filter(({ f }) => f.firstLogin && !f.firstLoginApprox);
-            const unverified = rows.filter(({ f }) => f.firstLogin && f.firstLoginApprox);
+            // A recorded visit is a login. The ≈ only marks how precise the
+            // timestamp is: those came from the visit log, which stores the
+            // most recent visit rather than the first, so the founder's real
+            // first login was at or before the time shown. Master-password
+            // sessions no longer leave a visit behind, so nothing in here is
+            // the team looking at a portal.
+            const approxTimed = rows.filter(({ f }) => f.firstLogin && f.firstLoginApprox);
             const notLoggedIn = rows.filter(({ f }) => !f.firstLogin);
-            const loggedInCount = verified.length;
+            const loggedInCount = rows.length - notLoggedIn.length;
             const csv = () => {
               const header = ["Founder", "Company", "First Portal Login", "Participation", "Onboarding", "Quiz", "Meetings Submitted", "Minutes Submitted", "Sessions Verified", "Edu Sessions", "OverdriveAI", "Exit Survey", "Signature Signed", "Certificate", "Complete"];
               const lines = rows.map(({ f, ms, verifiedSessions, complete }) => [
@@ -1245,11 +1246,11 @@ export default function AdminFall() {
                 </div>
                 <div style={{ margin: "10px 0 14px", padding: "12px 14px", borderRadius: 10, background: notLoggedIn.length ? "#fdf7ee" : "#e8f8f0", border: `1px solid ${notLoggedIn.length ? "#f0dfc4" : "#c8ecd9"}` }}>
                   <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: notLoggedIn.length ? "#b35c00" : "#1a6e42" }}>
-                    {loggedInCount} of {rows.length} have logged into their portal, confirmed
+                    {loggedInCount} of {rows.length} have logged into their portal
                   </p>
                   <p style={{ margin: "3px 0 0", fontSize: 11.5, color: "#6b6480" }}>
-                    The first signal, before Confirmed Participation. Only a founder’s own Uplift ID counts — the team’s master password does not.
-                    {unverified.length > 0 && ` ${unverified.length} more show a ≈ date: a visit logged before stamping started, which may be a team member opening the portal. Those turn exact on that founder’s next login.`}
+                    The first signal, before Confirmed Participation. Only a founder’s own Uplift ID counts, never the team’s master password.
+                    {approxTimed.length > 0 && ` ${approxTimed.length} of these show a ≈ time: the visit was logged before login stamping started, and that log keeps the latest visit, so their first login was at or before the time shown.`}
                   </p>
                   {notLoggedIn.length > 0 && (
                     <p style={{ margin: "8px 0 0", fontSize: 12, color: "#3d2f8a" }}>
@@ -1276,7 +1277,7 @@ export default function AdminFall() {
                             if (!l) return <span style={{ fontSize: 11, fontWeight: 800, color: "#b35c00" }}>not yet</span>;
                             const approx = f.firstLoginApprox;
                             return (
-                              <span title={approx ? `Last recorded visit: ${l.full}. Logged in before first-login stamping started, so this is their visit, not necessarily their first.` : l.full}>
+                              <span title={approx ? `Recorded visit: ${l.full}. Logged in before login stamping started, and the visit log keeps only the latest visit, so their first login was at or before this.` : l.full}>
                                 <span style={{ fontSize: 12.5, fontWeight: 700, color: "#1a6e42" }}>{approx ? "≈ " : ""}{l.day}</span>
                                 <div style={{ fontSize: 11, color: "#9b8fcf" }}>{l.time}</div>
                               </span>
