@@ -9,6 +9,7 @@
 
 import { useState } from "react";
 import { Sheet, FounderPhoto, hasPhoto } from "./FounderSheet";
+import { applyQuoteCuts, applyBioEdit } from "../lib/lookbook-copy-edits";
 
 export const PAPER = "#faf7f2";
 export const INK = "#17141f";
@@ -47,10 +48,6 @@ export function Folio({ page, section }) {
       <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
         <LogoMark />
         <Label size={7.5} color={INK_SOFT}>Uplift Mentorship Program</Label>
-        {/* The full-colour TechUnited mark, never inverted: its gradient glyph
-            overlaps the wordmark and turns to mush in white. The cream stock
-            is close enough to the white plate it needs. */}
-        <img src="/techunited-logo.png" alt="TechUnited:NJ" style={{ height: 9, width: "auto", display: "block", opacity: 0.75 }} />
       </div>
       <Label size={7.5} color={INK_SOFT}>{section}</Label>
       <p style={{ margin: 0, fontFamily: DISPLAY, fontSize: 11, color: INK_SOFT }}>{page}</p>
@@ -70,6 +67,13 @@ function Page({ children, active, pad = "0.62in 0.7in 0.2in" }) {
 // Emails are not in the public payload at all until someone enters the
 // contact code, so before that this shows a blurred stand-in rather than a
 // blurred real address.
+// Profile links are pasted straight out of the LinkedIn app, so most carry a
+// utm share trail. It is noise on the page and adds nothing to the link.
+export function cleanLinkedIn(url) {
+  if (!url) return url;
+  return String(url).split("?")[0].replace(/\/$/, "");
+}
+
 export function ContactLine({ founder: f, size = 8.5 }) {
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: "2px 12px" }}>
@@ -77,8 +81,8 @@ export function ContactLine({ founder: f, size = 8.5 }) {
         ? <a href={`mailto:${f.email}`} style={{ fontFamily: SANS, fontSize: size, color: ACCENT, textDecoration: "none", fontWeight: 700 }}>{f.email}</a>
         : <span aria-label="Email hidden" style={{ fontFamily: SANS, fontSize: size, color: ACCENT, fontWeight: 700, filter: "blur(3.4px)", userSelect: "none" }}>firstname@company.com</span>}
       {f.linkedin && (
-        <a href={f.linkedin} target="_blank" rel="noopener noreferrer" style={{ fontFamily: SANS, fontSize: size, color: INK_SOFT, textDecoration: "none" }}>
-          {String(f.linkedin).replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/$/, "")}
+        <a href={cleanLinkedIn(f.linkedin)} target="_blank" rel="noopener noreferrer" style={{ fontFamily: SANS, fontSize: size, color: INK_SOFT, textDecoration: "none" }}>
+          {cleanLinkedIn(f.linkedin).replace(/^https?:\/\//, "").replace(/^www\./, "")}
         </a>
       )}
     </div>
@@ -119,17 +123,13 @@ export function CoverPage({ founders, generatedAt, active, onPick }) {
   // the cover is not half empty.
   const n = founders.length;
   const cols = [6, 7, 5, 8, 9].find(c => n % c === 0) || 6;
-  // A founder with no usable photo becomes a plain tile. Rather than let
-  // those pool in one corner, the first sits top left and the rest close the
-  // grid bottom right, so the empty squares read as balance.
+  // A founder with no usable photo becomes a plain tile in the stock colour.
+  // They all sit at the end, so the grid opens on a face and the quiet
+  // squares close it out rather than punching a hole in the top corner.
   const usable = (f) => hasPhoto(f) && !f.crop?.hidden;
-  const withPhoto = founders.filter(usable);
-  const without = founders.filter(f => !usable(f));
-  const ordered = without.length
-    ? [without[0], ...withPhoto, ...without.slice(1)]
-    : withPhoto;
+  const ordered = [...founders.filter(usable), ...founders.filter(f => !usable(f))];
   return (
-    <Sheet active={active} fitViewport fill>
+    <Sheet active={active} fitViewport fill mark="right">
       <div style={{ flex: 1, background: PAPER, color: INK, display: "flex", flexDirection: "column", minHeight: 0 }}>
         <div style={{ padding: "0.5in 0.7in 0.22in", textAlign: "center" }}>
           <img src="/uplift-logo.png" alt="Uplift" style={{ height: 40, display: "block", margin: "0 auto 16px" }} />
@@ -145,9 +145,11 @@ export function CoverPage({ founders, generatedAt, active, onPick }) {
           </p>
           <div style={{ margin: "14px auto 0", maxWidth: "4.4in" }}>
             <Rule />
-            <p style={{ margin: "9px 0 0", fontFamily: SANS, fontSize: 10.5, lineHeight: 1.6, color: INK_SOFT }}>
+            {/* textWrap balance, plus a hard space before the last word, so
+                the line never ends on a lone "them". */}
+            <p style={{ margin: "9px 0 0", fontFamily: SANS, fontSize: 10.5, lineHeight: 1.6, color: INK_SOFT, textWrap: "balance" }}>
               {founders.length} New Jersey founders. What they are building, what they need,
-              and who should meet them.
+              and who should meet&nbsp;them.
             </p>
           </div>
         </div>
@@ -166,19 +168,14 @@ export function CoverPage({ founders, generatedAt, active, onPick }) {
               {/* A photoless founder is a quiet tile the colour of the stock,
                   not a navy block: sitting above the navy footer band, navy
                   merged into one dark mass and read as a hole in the grid. */}
-              <FounderPhoto founder={f} fontSize={13} fallbackColor="#ffffff" showInitials={false} fillFrame
+              <FounderPhoto founder={f} fontSize={13} fallbackColor={PAPER} showInitials={false} fillFrame
                 style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", background: "#efe9df" }} />
             </button>
           ))}
         </div>
 
         <div style={{ background: NAVY, color: "#fff", padding: "10px 0.7in", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ background: "#fff", borderRadius: 2, padding: "3px 6px", display: "flex" }}>
-              <img src="/techunited-logo.png" alt="TechUnited:NJ" style={{ height: 10, display: "block" }} />
-            </span>
-            <Label size={7.5} color="#c8c2e8">Uplift Mentorship Program</Label>
-          </span>
+          <Label size={7.5} color="#c8c2e8">Uplift Mentorship Program</Label>
           <Label size={7.5} color="#c8c2e8">
             {new Date(generatedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
           </Label>
@@ -192,7 +189,7 @@ export function ContentsPage({ founders, sections, pageOfFounder = {}, onOpen, a
   const half = Math.ceil(founders.length / 2);
   const columns = [founders.slice(0, half), founders.slice(half)];
   return (
-    <Sheet active={active} fitViewport>
+    <Sheet active={active} fitViewport mark="right">
       <Page active={active}>
         <div style={{ marginBottom: 16 }}>
           <Label>In this issue</Label>
@@ -242,7 +239,7 @@ export function ContentsPage({ founders, sections, pageOfFounder = {}, onOpen, a
 
 export function GlancePage({ founders, stats, active, pageNumber }) {
   return (
-    <Sheet active={active} fitViewport>
+    <Sheet active={active} fitViewport mark="right">
       <Page active={active}>
         <div style={{ marginBottom: 14 }}>
           <Label>The class of Fall 2026</Label>
@@ -281,7 +278,7 @@ export function GlancePage({ founders, stats, active, pageNumber }) {
 
 export function IndexPage({ kicker, title, standfirst, rows, onOpen, empty, active, pageNumber }) {
   return (
-    <Sheet active={active} fitViewport>
+    <Sheet active={active} fitViewport mark="right">
       <Page active={active}>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 26, marginBottom: 16 }}>
           <div style={{ maxWidth: "4.9in" }}>
@@ -325,7 +322,7 @@ export function IndexPage({ kicker, title, standfirst, rows, onOpen, empty, acti
 
 export function MosaicPage({ founders, onOpen, active, pageNumber }) {
   return (
-    <Sheet active={active} fitViewport fill>
+    <Sheet active={active} fitViewport fill mark="right">
       <div style={{ flex: 1, minHeight: 0, background: PAPER, color: INK, display: "flex", flexDirection: "column" }}>
         <div style={{ padding: "0.55in 0.7in 0.24in", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 20 }}>
           <div>
@@ -367,6 +364,62 @@ export function MosaicPage({ founders, onOpen, active, pageNumber }) {
 // right. One founder, one spread-feeling page.
 // "Other:" is what the form records when nobody picked a category. It is not
 // an industry, so it does not go on the page.
+
+// Founders wrote these answers in a form box, so they arrive with stray line
+// breaks, missing capitals, no full stop, and the odd em dash. This tidies
+// the mechanics without touching a word: dashes become commas (house style),
+// sentences start with a capital, and the text ends on punctuation.
+export function tidyText(v) {
+  if (!v) return v;
+  let t = String(v).replace(/\s+/g, " ").trim();
+  t = t.replace(/\s*[—–]\s*/g, ", ");
+  t = t.replace(/,\s*,/g, ",").replace(/,\s*([.!?])/g, "$1");
+  t = t.replace(/([.!?])\s+([a-z])/g, (m, stop, ch) => `${stop} ${ch.toUpperCase()}`);
+  t = t.charAt(0).toUpperCase() + t.slice(1);
+  if (!/[.!?…”"')]$/.test(t)) t += ".";
+  return t;
+}
+
+
+// Cut long answers at the end of a sentence, never mid-thought. If no
+// sentence ends inside the budget, fall back to a word boundary with an
+// ellipsis so it reads as continuing rather than broken.
+export function trimTo(text, max) {
+  if (!text || text.length <= max) return text;
+  const window = text.slice(0, max);
+  const end = Math.max(window.lastIndexOf(". "), window.lastIndexOf("! "), window.lastIndexOf("? "));
+  if (end > max * 0.45) return window.slice(0, end + 1);
+  const space = window.lastIndexOf(" ");
+  return `${window.slice(0, space > 0 ? space : max).replace(/[,;:]+$/, "")}…`;
+}
+
+
+// Whole sentences only, for the short blocks where an ellipsis reads as
+// software running out of room rather than a quote trailing off. Takes as
+// many complete sentences as fit the budget, and never fewer than one.
+export function wholeSentences(text, softMax) {
+  if (!text) return text;
+  if (text.length <= softMax) return text;
+  const parts = text.match(/[^.!?]+[.!?]+["'”’)]*\s*/g);
+  if (!parts || parts.length === 0) return text;
+  let out = "";
+  for (const part of parts) {
+    if (out && (out + part).trim().length > softMax) break;
+    out += part;
+  }
+  return (out || parts[0]).trim();
+}
+
+
+// A last line carrying one word is a widow, and it is the fastest way to make
+// a page look unset. Binding the final two words together prevents it, and
+// text-wrap balance evens the lines above.
+export function noWidow(text) {
+  if (!text) return text;
+  const at = String(text).lastIndexOf(" ");
+  return at < 0 ? text : `${text.slice(0, at)}\u00a0${text.slice(at + 1)}`;
+}
+
 function tidyIndustry(v) {
   const out = String(v || "").replace(/:$/, "").trim();
   return /^other$/i.test(out) ? null : out;
@@ -409,7 +462,7 @@ function FactValue({ value }) {
   );
 }
 
-export function FeaturePage({ founder: f, active, pageNumber, onAdjust, dragProps }) {
+export function FeaturePage({ founder: f, active, pageNumber, onAdjust, dragProps, floatDrag }) {
   // The portrait runs large wherever the photo can carry it. A missing,
   // suppressed, or small upload gets the text-forward layout instead of a
   // blown-up thumbnail. Anything else is the page layout chosen for this
@@ -424,8 +477,32 @@ export function FeaturePage({ founder: f, active, pageNumber, onAdjust, dragProp
     : f.crop?.layout || (smallPhoto ? "inset" : "left-half");
 
   const facts = factRows(f);
-  const quote = f.valueSought || f.hoping || f.bio;
-  const body = f.bio || f.hoping;
+  // Why mentorship now carries the pull quote; the bio carries the body. If
+  // there is no bio, what they hope to accomplish stands in for it, and the
+  // "hoping to get" block below steps aside so nothing is said twice.
+  const body = tidyText(applyBioEdit(f.id, f.bio) || f.hoping);
+  const cut = (text) => {
+    const out = applyQuoteCuts(f.id, text);
+    return out && out.trim().length > 2 ? tidyText(out) : null;
+  };
+  // If a cut empties the line the quote would have used, the page falls
+  // through to the next thing they wrote rather than running blank.
+  const firstOf = (...vals) => vals.map(cut).find(Boolean) || null;
+  const quote = firstOf(f.valueSought, f.hoping, f.bio);
+  const wantsToGet = f.bio ? cut(f.hoping) : null;
+  const wantsToGive = cut(f.brings);
+
+  // Where the floating photo sits, and how much room the text has to give up
+  // for it. Default is the top right corner.
+  const floatW = f.crop?.floatW || 1.6;
+  const floatX = f.crop?.floatX;
+  const floatOnLeft = floatX != null && floatX < 50;
+  const floatClear = floatX == null
+    // Default corner: the photo hangs 0.7in off the right edge.
+    ? { left: 0.7, right: +(0.7 + floatW + 0.25).toFixed(2) }
+    : floatOnLeft
+      ? { left: +((floatX / 100) * 8.5 + floatW + 0.25).toFixed(2), right: 0.7 }
+      : { left: 0.7, right: +(8.5 - (floatX / 100) * 8.5 + 0.25).toFixed(2) };
 
   const photo = portrait && (
     <div
@@ -454,10 +531,14 @@ export function FeaturePage({ founder: f, active, pageNumber, onAdjust, dragProp
   const story = (
     <div style={{
       display: "flex", flexDirection: "column", height: "100%", minHeight: 0,
+      // The floating photo sits over the page, so the text column is pulled
+      // in to clear whichever side it has been dragged to. Text never runs
+      // underneath it.
       padding: layout === "left-half" ? "0.55in 0.6in 0 0.5in"
         : layout === "right-half" ? "0.55in 0.5in 0 0.6in"
-        : layout === "icon" ? "0.5in 2.5in 0 0.7in"
-        : "0.5in 0.7in 0",
+        : layout === "icon"
+          ? `0.5in ${floatClear.right}in 0 ${floatClear.left}in`
+          : "0.5in 0.7in 0",
     }}>
       <Label>{tidyIndustry(f.industry) || "Founder"}</Label>
       <h2 style={{ margin: "9px 0 0", fontFamily: DISPLAY, fontWeight: 900, fontSize: layout === "full-bleed" ? 42 : 36, lineHeight: 0.98, letterSpacing: "-0.02em" }}>
@@ -470,8 +551,8 @@ export function FeaturePage({ founder: f, active, pageNumber, onAdjust, dragProp
       {quote && (
         <>
           <Rule style={{ margin: "14px 0" }} />
-          <p style={{ margin: 0, fontFamily: DISPLAY, fontStyle: "italic", fontSize: 15.5, lineHeight: 1.45, color: INK }}>
-            &ldquo;{String(quote).replace(/\s+/g, " ").slice(0, 260)}{String(quote).length > 260 ? "…" : ""}&rdquo;
+          <p style={{ margin: 0, fontFamily: DISPLAY, fontStyle: "italic", fontSize: 15.5, lineHeight: 1.45, color: INK, textWrap: "pretty" }}>
+            &ldquo;{noWidow(trimTo(quote, 300))}&rdquo;
           </p>
         </>
       )}
@@ -479,8 +560,11 @@ export function FeaturePage({ founder: f, active, pageNumber, onAdjust, dragProp
       <Rule style={{ margin: "14px 0 12px" }} />
 
       {body && (
-        <p style={{ margin: 0, fontFamily: SANS, fontSize: 9.8, lineHeight: 1.68, color: INK_SOFT, columnCount: 2, columnGap: 18 }}>
-          {String(body).replace(/\s+/g, " ")}
+        <p style={{ margin: 0, fontFamily: SANS, fontSize: 9.8, lineHeight: 1.68, color: INK_SOFT, columnGap: 18, textWrap: "pretty",
+          // Two columns need enough text to fill both. A short bio split in
+          // half leaves a word or two stranded in the second column.
+          columnCount: (body || "").length > 260 ? 2 : 1 }}>
+          {noWidow(wholeSentences(body, 700))}
         </p>
       )}
 
@@ -492,10 +576,42 @@ export function FeaturePage({ founder: f, active, pageNumber, onAdjust, dragProp
         {f.milestonesExpected === true && f.milestonesText && (
           <p style={{ margin: "8px 0 0", fontFamily: SANS, fontSize: 9.5, lineHeight: 1.6, color: INK_SOFT }}>
             <span style={{ fontWeight: 800, color: INK }}>By the end of the program: </span>
-            {String(f.milestonesText).replace(/\s+/g, " ")}
+            {noWidow(tidyText(applyQuoteCuts(f.id, f.milestonesText)))}
           </p>
         )}
       </div>
+
+      {/* Who they pictured, and what they are putting in. The two halves of
+          the match a mentor actually wants to read before saying yes. */}
+      {(wantsToGive || wantsToGet) && (
+        <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: wantsToGive && wantsToGet ? "1fr 1fr" : "1fr", gap: "0 18px" }}>
+          {wantsToGive && (
+            <div>
+              <Label size={8}>Hoping to give</Label>
+              <p style={{ margin: "4px 0 0", fontFamily: SANS, fontSize: 9, lineHeight: 1.5, color: INK_SOFT, textWrap: "pretty" }}>
+                {noWidow(wholeSentences(wantsToGive, 230))}
+              </p>
+            </div>
+          )}
+          {wantsToGet && (
+            <div>
+              <Label size={8}>Hoping to get</Label>
+              <p style={{ margin: "4px 0 0", fontFamily: SANS, fontSize: 9, lineHeight: 1.5, color: INK_SOFT, textWrap: "pretty" }}>
+                {noWidow(wholeSentences(wantsToGet, 230))}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {(f.mentorType || []).length > 0 && (
+        <div style={{ marginTop: 10 }}>
+          <Label size={8}>The mentor they pictured</Label>
+          <p style={{ margin: "4px 0 0", fontFamily: SANS, fontSize: 9, lineHeight: 1.5, color: INK_SOFT, textWrap: "pretty" }}>
+            {f.mentorType.join(" · ")}
+          </p>
+        </div>
+      )}
 
       <div style={{ flex: 1 }} />
 
@@ -533,7 +649,13 @@ export function FeaturePage({ founder: f, active, pageNumber, onAdjust, dragProp
   };
 
   return (
-    <Sheet active={active} fitViewport fill>
+    <Sheet
+      active={active}
+      fitViewport
+      fill
+      // The photo owns the top right in these layouts, so the mark moves over.
+      mark={["right-half", "top-band", "full-bleed", "icon"].includes(layout) ? "left" : "right"}
+    >
       <div style={{ flex: 1, minHeight: 0, background: PAPER, color: INK, ...frames[layout] }}>
         {layout === "full-bleed" && (
           <>
@@ -547,7 +669,22 @@ export function FeaturePage({ founder: f, active, pageNumber, onAdjust, dragProp
         )}
         {layout === "icon" && (
           <>
-            <div style={{ position: "absolute", top: "0.5in", right: "0.7in", width: "1.5in", height: "1.9in", zIndex: 2, boxShadow: "0 2px 12px rgba(23,20,31,0.14)" }}>
+            {/* Free-floating: the size and the corner it sits in are saved per
+                founder, so it can be moved into whatever white space the page
+                leaves. Default is the top right. */}
+            <div
+              {...(floatDrag ? floatDrag(f) : {})}
+              style={{
+                position: "absolute",
+                left: f.crop?.floatX != null ? `${f.crop.floatX}%` : undefined,
+                top: f.crop?.floatY != null ? `${f.crop.floatY}%` : "0.5in",
+                right: f.crop?.floatX != null ? undefined : "0.7in",
+                width: `${f.crop?.floatW || 1.6}in`,
+                height: `${(f.crop?.floatW || 1.6) * 1.25}in`,
+                zIndex: 3, boxShadow: "0 2px 14px rgba(23,20,31,0.16)",
+                cursor: floatDrag ? "move" : "default",
+              }}
+            >
               {photo}
             </div>
             {story}
@@ -567,7 +704,7 @@ export function FeaturePage({ founder: f, active, pageNumber, onAdjust, dragProp
 // white space, so they run two to a page, like a magazine's shorts.
 export function DuoPage({ founders, active, pageNumber, onAdjust }) {
   return (
-    <Sheet active={active} fitViewport fill>
+    <Sheet active={active} fitViewport fill mark="right">
       <div style={{ flex: 1, minHeight: 0, background: PAPER, color: INK, display: "flex", flexDirection: "column" }}>
         <div style={{ padding: "0.5in 0.7in 0.18in" }}>
           <Label>Also in the program</Label>
@@ -582,7 +719,9 @@ export function DuoPage({ founders, active, pageNumber, onAdjust }) {
               style={{ position: "relative", background: "#efe9df", overflow: "hidden", cursor: onAdjust ? "zoom-in" : "default" }}
             >
               {onAdjust && <AdjustBadge />}
-              <FounderPhoto founder={f} fontSize={34}
+              {/* A photoless founder gets a quiet tile in the stock colour,
+                  the same as the cover. A pink slab this size shouts. */}
+              <FounderPhoto founder={f} fontSize={34} fallbackColor="#efe9df" initialsColor={INK_SOFT}
                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
             </div>
             <div style={{ padding: "0.3in 0.7in 0.3in 0.45in", display: "flex", flexDirection: "column", justifyContent: "center" }}>
@@ -658,7 +797,7 @@ export function AlumniDividerPage({ alumni = [], active }) {
   );
 
   return (
-    <Sheet active={active} fitViewport fill>
+    <Sheet active={active} fitViewport fill mark="right">
       <div style={{ flex: 1, minHeight: 0, background: NAVY, color: "#fff", display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 0.9in" }}>
         <Label color={ACCENT}>Part two</Label>
         <h2 style={{ margin: "12px 0 0", fontFamily: DISPLAY, fontWeight: 900, fontSize: 52, lineHeight: 0.98, letterSpacing: "-0.025em" }}>
@@ -690,12 +829,43 @@ export function AlumniDividerPage({ alumni = [], active }) {
           {column("Industry vertical", industries)}
         </div>
 
-        <div style={{ marginTop: 26, display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ background: "#fff", borderRadius: 2, padding: "3px 6px", display: "flex" }}>
-            <img src="/techunited-logo.png" alt="TechUnited:NJ" style={{ height: 10, display: "block" }} />
-          </span>
-          <Label size={7.5} color="#b9b2e0">Uplift Mentorship Program</Label>
+      </div>
+    </Sheet>
+  );
+}
+
+
+// The longer testimonials, given a page of their own. They come from founders
+// across Uplift's cohorts rather than only this summer's class, so the page
+// says so rather than implying they all graduated in August.
+export function VoicesPage({ voices, active, pageNumber }) {
+  return (
+    <Sheet active={active} fitViewport mark="right">
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", background: PAPER, color: INK, padding: "0.5in 0.65in 0.18in" }}>
+        <Label>In their words</Label>
+        <h2 style={{ margin: "7px 0 0", fontFamily: DISPLAY, fontWeight: 900, fontSize: 34, letterSpacing: "-0.02em", lineHeight: 1.02 }}>
+          What founders say about Uplift
+        </h2>
+        <p style={{ margin: "7px 0 12px", fontFamily: SANS, fontSize: 10, lineHeight: 1.5, color: INK_SOFT }}>
+          Founders and mentors from the Summer 2026 cohorts.
+        </p>
+
+        {/* All of them on one page: two columns, tight rows. The sheet scales
+            the whole block down rather than dropping anyone. */}
+        <div style={{ flex: 1, columnCount: 2, columnGap: 26 }}>
+          {voices.map(v => (
+            <div key={v.name} style={{ breakInside: "avoid", borderTop: `1px solid ${RULE}`, padding: "9px 0" }}>
+              <p style={{ margin: 0, fontFamily: DISPLAY, fontStyle: "italic", fontSize: 11, lineHeight: 1.45, color: INK }}>
+                &ldquo;{v.quote}&rdquo;
+              </p>
+              <p style={{ margin: "5px 0 0", fontFamily: SANS, fontSize: 7.5, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: ACCENT }}>
+                {v.name}
+                {v.role && <span style={{ color: INK_SOFT, fontWeight: 600 }}> · {v.role}</span>}
+              </p>
+            </div>
+          ))}
         </div>
+        <Folio page={pageNumber} section="In their words" />
       </div>
     </Sheet>
   );
@@ -754,12 +924,13 @@ function AlumniCard({ a, onAdjust }) {
             </p>
           </div>
         )}
-        {a.linkedin && (
-          <a href={a.linkedin} target="_blank" rel="noopener noreferrer"
-            style={{ display: "inline-block", marginTop: 7, fontFamily: SANS, fontSize: 8.5, color: INK_SOFT, textDecoration: "none", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-            LinkedIn
-          </a>
+        {/* Their own words about the program, where they gave them. */}
+        {a.testimonial && (
+          <p style={{ margin: "8px 0 0", fontFamily: DISPLAY, fontStyle: "italic", fontSize: 10.5, lineHeight: 1.4, color: INK }}>
+            &ldquo;{a.testimonial}&rdquo;
+          </p>
         )}
+
       </div>
     </div>
   );
@@ -767,7 +938,7 @@ function AlumniCard({ a, onAdjust }) {
 
 export function AlumniPage({ alumni, active, pageNumber, partOf, onAdjust }) {
   return (
-    <Sheet active={active} fitViewport>
+    <Sheet active={active} fitViewport mark="right">
       <div style={{ flex: 1, display: "flex", flexDirection: "column", background: PAPER, color: INK, padding: "0.55in 0.7in 0.2in" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
           <Label>Summer 2026 graduates</Label>

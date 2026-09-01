@@ -23,12 +23,12 @@ async function readCrops() {
     const sheets = getSheetsClient();
     const r = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: "PhotoCrops!A2:I5000",
+      range: "PhotoCrops!A2:M5000",
     });
     const crops = {};
-    for (const [, id, position, zoom, hidden, fit, posX, posY, layout] of r.data.values || []) {
+    for (const [, id, position, zoom, hidden, fit, posX, posY, layout, order, floatW, floatX, floatY] of r.data.values || []) {
       if (!id) continue;
-      crops[id] = normalizeCrop(position, zoom, hidden, fit, posX, posY, layout);
+      crops[id] = normalizeCrop(position, zoom, hidden, fit, posX, posY, layout, order, floatW, floatX, floatY);
     }
     return crops;
   } catch {

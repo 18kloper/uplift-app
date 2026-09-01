@@ -15,7 +15,9 @@
 import { getSheetsClient } from "../../../lib/sheets-helper";
 
 const TAB = "PhotoCrops";
-const HEADERS = ["Updated At", "Application Id", "Object Position", "Zoom", "Hidden", "Fit", "Pos X", "Pos Y", "Layout"];
+const HEADERS = ["Updated At", "Application Id", "Object Position", "Zoom", "Hidden", "Fit", "Pos X", "Pos Y", "Layout", "Order", "Float W", "Float X", "Float Y"];
+
+const EDIT_CODE = process.env.LOOKBOOK_EDIT_CODE || "uplift-edit";
 
 export const LAYOUTS = ["left-half", "right-half", "bottom-band", "top-band", "full-bleed", "inset", "icon"];
 
@@ -31,7 +33,7 @@ const pct = (v, fallback) => {
   return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : fallback;
 };
 
-export function normalizeCrop(position, zoom, hidden, fit, posX, posY, layout) {
+export function normalizeCrop(position, zoom, hidden, fit, posX, posY, layout, order, floatW, floatX, floatY) {
   const legacy = LEGACY[position] || [50, 50];
   return {
     posX: pct(posX, legacy[0]),
@@ -40,6 +42,14 @@ export function normalizeCrop(position, zoom, hidden, fit, posX, posY, layout) {
     hidden: String(hidden).toLowerCase() === "true",
     fit: fit === "contain" ? "contain" : "cover",
     layout: LAYOUTS.includes(layout) ? layout : null,
+    // Where this founder sits in the running order. Blank means "wherever
+    // the alphabet puts them".
+    order: Number.isFinite(parseFloat(order)) ? parseFloat(order) : null,
+    // The floating photo: how wide it is, in inches, and where its top left
+    // corner sits as a percentage of the page. Null means the default spot.
+    floatW: Math.min(5, Math.max(1, parseFloat(floatW) || 1.6)),
+    floatX: Number.isFinite(parseFloat(floatX)) ? Math.min(92, Math.max(0, parseFloat(floatX))) : null,
+    floatY: Number.isFinite(parseFloat(floatY)) ? Math.min(92, Math.max(0, parseFloat(floatY))) : null,
   };
 }
 
@@ -64,41 +74,83 @@ async function ensureTab(sheets, spreadsheetId) {
   });
 }
 
+// The whole tab, cached briefly. Saves merge against this; a save updates it
+// in place so the next merge sees the new value without another read.
+let cropCache = { at: 0, crops: null };
+const CROP_CACHE_MS = 20 * 1000;
+
+async function readAllCrops(sheets, spreadsheetId, { fresh = false } = {}) {
+  if (!fresh && cropCache.crops && Date.now() - cropCache.at < CROP_CACHE_MS) return cropCache.crops;
+  let rows = [];
+  try {
+    const r = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${TAB}!A2:M5000` });
+    rows = r.data.values || [];
+  } catch (e) {
+    if ((e?.code || e?.response?.status) !== 400) {
+      // On a quota trip, stale beats failing the save outright.
+      if (cropCache.crops) return cropCache.crops;
+      throw e;
+    }
+  }
+  const crops = {};
+  for (const [, id, position, zoom, hidden, fit, posX, posY, layout, order, floatW, floatX, floatY] of rows) {
+    if (!id) continue;
+    crops[id] = normalizeCrop(position, zoom, hidden, fit, posX, posY, layout, order, floatW, floatX, floatY);
+  }
+  cropCache = { at: Date.now(), crops };
+  return crops;
+}
+
 export default async function handler(req, res) {
   const spreadsheetId = process.env.GOOGLE_SHEET_ID;
   try {
     const sheets = getSheetsClient();
 
     if (req.method === "GET") {
-      let rows = [];
-      try {
-        const r = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${TAB}!A2:I5000` });
-        rows = r.data.values || [];
-      } catch (e) {
-        if ((e?.code || e?.response?.status) !== 400) throw e; // 400 = tab not created yet
-      }
-      const crops = {};
-      for (const [, id, position, zoom, hidden, fit, posX, posY, layout] of rows) {
-        if (!id) continue;
-        crops[id] = normalizeCrop(position, zoom, hidden, fit, posX, posY, layout);
-      }
-      return res.status(200).json({ crops });
+      return res.status(200).json({ crops: await readAllCrops(sheets, spreadsheetId, { fresh: req.query.fresh === "1" }) });
     }
 
     if (req.method === "POST") {
-      const { id, posX = 50, posY = 50, zoom = 1, hidden = false, fit = "cover", layout = null } = req.body || {};
+      // The lookbook is public, so the write path needs its own key. Without
+      // this, anyone who worked out the ?edit=1 trick could re-crop, reorder,
+      // or hide photos in the live book.
+      const code = String(req.body?.code || req.headers["x-edit-code"] || "").trim();
+      if (code.toLowerCase() !== EDIT_CODE.toLowerCase()) {
+        return res.status(403).json({ error: "Wrong or missing edit code" });
+      }
+
+      const { id } = req.body || {};
       if (!id) return res.status(400).json({ error: "Missing id" });
-      const saved = normalizeCrop(null, zoom, hidden, fit, posX, posY, layout);
+
+      // Merge onto whatever is already stored for this photo rather than
+      // replacing it. Two people adjusting the same book (or the same person
+      // in two tabs) would otherwise wipe each other's settings, which reads
+      // as "it reverted".
+      //
+      // The merge reads from a short-lived cache of the sheet. Reading the
+      // whole tab on every save ran into the Sheets per-minute read quota
+      // the moment anyone dragged a slider.
+      const current = (await readAllCrops(sheets, spreadsheetId))[id] || {};
+
+      const merged = { ...current, ...req.body };
+      const saved = normalizeCrop(
+        null, merged.zoom, merged.hidden, merged.fit, merged.posX, merged.posY,
+        merged.layout, merged.order, merged.floatW, merged.floatX, merged.floatY,
+      );
       await ensureTab(sheets, spreadsheetId);
       await sheets.spreadsheets.values.append({
-        spreadsheetId, range: `${TAB}!A:I`, valueInputOption: "USER_ENTERED",
+        spreadsheetId, range: `${TAB}!A:M`, valueInputOption: "USER_ENTERED",
         requestBody: {
           values: [[
             new Date().toISOString(), id, "", saved.zoom, saved.hidden ? "TRUE" : "FALSE",
             saved.fit, saved.posX, saved.posY, saved.layout || "",
+            saved.order == null ? "" : saved.order,
+            saved.floatW, saved.floatX == null ? "" : saved.floatX, saved.floatY == null ? "" : saved.floatY,
           ]],
         },
       });
+      // Keep the cache in step so the next merge does not need a read.
+      if (cropCache.crops) cropCache.crops[id] = saved;
       return res.status(200).json({ ok: true, id, ...saved });
     }
 

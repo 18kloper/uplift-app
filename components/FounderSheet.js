@@ -98,7 +98,7 @@ export const hasPhoto = (founder) =>
 // Only "show the whole photo" is ignored there, because letterboxing a
 // 1-inch square leaves a hole in the grid. Focal point and zoom both apply,
 // so a face can be pulled in closer on the cover.
-export function FounderPhoto({ founder, style, fontSize = 22, fallbackColor = PINK, showInitials = true, fillFrame = false }) {
+export function FounderPhoto({ founder, style, fontSize = 22, fallbackColor = PINK, initialsColor = "#fff", showInitials = true, fillFrame = false }) {
   const [failed, setFailed] = useState(false);
   // How the face sits in the frame, set per founder in the lookbook's adjust
   // mode and stored in the PhotoCrops tab. Untouched photos are centred at
@@ -117,7 +117,7 @@ export function FounderPhoto({ founder, style, fontSize = 22, fallbackColor = PI
         // No usable photo: a filled brand-colour tile reads as a deliberate
         // part of the grid, where a grey blank reads as broken. The cover
         // drops the initials and runs the block plain.
-        background: fallbackColor, color: "#fff", fontWeight: 700, fontSize,
+        background: fallbackColor, color: initialsColor, fontWeight: 700, fontSize,
         fontFamily: "'Red Hat Display', system-ui, sans-serif", letterSpacing: "0.04em",
       }}>
         {showInitials ? initials : null}
@@ -164,7 +164,7 @@ export function pickMentorSafe(founder, { reveal = false } = {}) {
 // One fixed 8.5 x 11 page. Whatever is inside is scaled to fit it exactly,
 // so a founder who wrote three paragraphs and one who wrote ten both land on
 // a single sheet.
-export function Sheet({ children, active = true, fitViewport = false, fill = false }) {
+export function Sheet({ children, active = true, fitViewport = false, fill = false, mark = null }) {
   const pageRef = useRef(null);
   const innerRef = useRef(null);
   const wrapRef = useRef(null);
@@ -275,6 +275,20 @@ export function Sheet({ children, active = true, fitViewport = false, fill = fal
           <div className="inner" ref={innerRef}>
             {children}
           </div>
+          {/* The TechUnited mark rides in a top corner of every page. It
+              swaps sides when the photo takes the corner it usually sits in.
+              Full colour on a white plate, never inverted: the gradient glyph
+              overlaps the wordmark and turns to mush knocked out. */}
+          {mark && (
+            <span style={{
+              position: "absolute", top: "0.26in", zIndex: 5,
+              ...(mark === "left" ? { left: "0.3in" } : { right: "0.3in" }),
+              background: "rgba(255,255,255,0.92)", borderRadius: 2, padding: "3px 6px",
+              display: "flex", alignItems: "center",
+            }}>
+              <img src="/techunited-logo.png" alt="TechUnited:NJ" style={{ height: 9, width: "auto", display: "block" }} />
+            </span>
+          )}
         </div>
       </div>
     </div>
