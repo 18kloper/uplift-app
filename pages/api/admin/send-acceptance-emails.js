@@ -34,9 +34,25 @@ const FROM = "Uplift by TechUnited:NJ <kennedy@techunited.co>";
 const CC = "uplift@techunited.co";
 const SITE = "https://uplift2026.vercel.app";
 
-// Sent by hand from Gmail before this endpoint existed. Skipped by default so
-// nobody gets the same acceptance twice.
-const ALREADY_SENT = ["takeerah-jones", "laura-acosta", "ceana-santori"];
+// Everyone who already has their acceptance email, skipped by default so
+// nobody gets a second one. The first three went by hand from Gmail; the rest
+// went through this endpoint on 2026-09-01.
+//
+// collin-coke is deliberately NOT in this list. His first send went to the
+// address on his application, airgrandson@gnail.con, which is a typo for
+// gmail.com and will bounce. Once the FallMentees tab carries the corrected
+// address he is the only person a Preview/Send will target.
+const ALREADY_SENT = [
+  "takeerah-jones", "laura-acosta", "ceana-santori",
+  "clevon-brown", "carolina-galvis", "christina-brown", "mayank-doultani",
+  "vishruti-mehta", "neha-panwar", "kristen-chin", "ifeanyi-osuji",
+  "jairo-contreras", "jt-keitt", "durvish-paliwal", "udbhav-gupta",
+  "sameer-dhawan", "ninad-dhoble", "sumayya-tabassum-shaik", "johnny-pillacela",
+  "lola-abanum", "tami-brown", "kimberly-butler", "brittany-payton",
+  "tamara-fleming", "melinda-rushing", "rachel-khasky-levy", "rosalind-griffie",
+  "tammy-hollaway", "megan-fonseca", "suresh-y", "jannie-wolff",
+  "david-singletary", "mehul-shah", "naomie-sophia-renarde", "sanjeev-wadhwa",
+];
 
 // Uplift IDs and emails live in the decision tab, keyed by the name that was
 // on the application. Same exact, case-insensitive full-name match that
