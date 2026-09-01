@@ -592,12 +592,16 @@ export default function AdminFall() {
               The three walkthrough accounts are left out — this is a count of
               real founders answering a real question. */}
           {data?.founders && (() => {
-            const real = data.founders.filter(f => !TEST_SLUGS.includes(f.slug) && f.status !== "churned");
-            const bucket = (k) => real.filter(f => f.participationStatus === k);
+            const real = data.founders.filter(f => !TEST_SLUGS.includes(f.slug));
+            // Declining marks a founder churned, so declined founders have to
+            // be counted before churn is filtered out — otherwise the one
+            // number that says someone turned the seat down reads zero forever.
+            const declinedList = real.filter(f => f.participationStatus === "declined");
+            const live = real.filter(f => f.status !== "churned" && f.participationStatus !== "declined");
             const groups = [
-              ["Accepted their seat", bucket("accepted"), "#1a6e42", "#e8f8f0", "Confirmed participation in the portal, or marked Accepted on the Participation tab."],
-              ["Declined", bucket("declined"), "#c0392b", "#fdf0ef", "Answered the participation question with a no. A declined founder is not a waiting one."],
-              ["Still waiting on", bucket("waiting"), "#b35c00", "#fdf7ee", "Accepted into the program, but has not answered the participation question either way."],
+              ["Accepted their seat", live.filter(f => f.participationStatus === "accepted"), "#1a6e42", "#e8f8f0", "Confirmed participation in the portal, or marked Accepted on the Participation tab."],
+              ["Declined", declinedList, "#c0392b", "#fdf0ef", "Answered the participation question with a no. A declined founder is not a waiting one."],
+              ["Still waiting on", live.filter(f => f.participationStatus === "waiting"), "#b35c00", "#fdf7ee", "Accepted into the program, but has not answered the participation question either way."],
             ];
             return (
               <div style={card}>

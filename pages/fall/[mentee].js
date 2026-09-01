@@ -201,14 +201,62 @@ function TabTooltip({ tip, children, direction = "up" }) {
 }
 
 // ─── Save to Google Sheets ────────────────────────────────────────────────────
+// A save that fails must not vanish. The old version fired and forgot, so a
+// dropped connection or a Sheets hiccup left the answer in this browser only —
+// invisible to the team, and gone the moment the founder switched devices. Now
+// anything that does not land is queued locally and retried: on the next save,
+// on the next page load, and the moment the browser comes back online.
+const OUTBOX = (slug) => `${slug}_pending_saves`;
+
+function readOutbox(slug) {
+  try { return JSON.parse(localStorage.getItem(OUTBOX(slug)) || "[]"); } catch { return []; }
+}
+
+function writeOutbox(slug, items) {
+  try { localStorage.setItem(OUTBOX(slug), JSON.stringify(items.slice(-200))); } catch (_) {}
+}
+
+async function postResponse(slug, weekNum, fieldKey, value, question) {
+  const r = await fetch("/api/save-response", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ slug, weekNum, fieldKey, value, question }),
+  });
+  const body = await r.json().catch(() => ({}));
+  // save-response answers 200 with sheetError when the write itself failed,
+  // so an ok status alone proves nothing.
+  if (!r.ok || body.sheetError) throw new Error(body.error || "save failed");
+  return body;
+}
+
+async function flushOutbox(slug) {
+  const queued = readOutbox(slug);
+  if (!queued.length) return;
+  const stillPending = [];
+  for (const item of queued) {
+    try {
+      await postResponse(slug, item.weekNum, item.fieldKey, item.value, item.question);
+    } catch (_) {
+      stillPending.push(item);
+    }
+  }
+  writeOutbox(slug, stillPending);
+}
+
 async function persistToSheet(slug, weekNum, fieldKey, value, question = "") {
   try {
-    await fetch("/api/save-response", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug, weekNum, fieldKey, value, question }),
-    });
-  } catch (_) {}
+    await postResponse(slug, weekNum, fieldKey, value, question);
+    flushOutbox(slug); // a working connection is the moment to clear the backlog
+    return true;
+  } catch (_) {
+    // One field, one queue entry: the newest answer replaces the older one.
+    const queued = readOutbox(slug).filter(
+      (x) => !(x.fieldKey === fieldKey && String(x.weekNum) === String(weekNum))
+    );
+    queued.push({ weekNum, fieldKey, value, question, at: new Date().toISOString() });
+    writeOutbox(slug, queued);
+    return false;
+  }
 }
 
 // ─── Autosaving textarea — syncs to Google Sheets ─────────────────────────────
@@ -735,6 +783,9 @@ function PasswordGate({ slug, onAuthenticated }) {
       const data = await r.json();
       if (data.ok) {
         sessionStorage.setItem(`auth_${slug}`, "1");
+        // A team member opening someone's portal is not that founder showing
+        // up, and must not leave a visit behind that reads like one.
+        if (data.master) sessionStorage.setItem(`master_${slug}`, "1");
         if (data.upliftId) sessionStorage.setItem(`upliftid_${slug}`, data.upliftId);
         onAuthenticated();
       } else {
@@ -5136,6 +5187,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
     if (!isAuthenticated || !slug) return;
     const trackKey = `visit_tracked_${slug}`;
     if (sessionStorage.getItem(trackKey)) return;
+    if (sessionStorage.getItem(`master_${slug}`)) return; // staff session, not a visit
     sessionStorage.setItem(trackKey, "1");
     fetch("/api/track-visit", {
       method: "POST",
@@ -5150,19 +5202,44 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
     const syncKey = `synced_${slug}`;
     if (sessionStorage.getItem(syncKey)) return; // already synced this session
     sessionStorage.setItem(syncKey, "1");
+    flushOutbox(slug); // anything a previous session could not save
     fetch(`/api/get-responses?slug=${slug}`)
       .then(r => r.json())
       .then(({ responses }) => {
         if (!responses) return;
+        const seed = (k, v) => { if (v && !localStorage.getItem(k)) localStorage.setItem(k, v); };
+        const actions = {};
         for (const [key, val] of Object.entries(responses)) {
-          const storageKey = `${slug}_${key}`;
-          // Only seed if not already set locally (don't overwrite local edits)
-          if (!localStorage.getItem(storageKey)) {
-            localStorage.setItem(storageKey, val);
+          seed(`${slug}_${key}`, val);
+          // Three fields are stored under a shape the plain w{n}_{field} seed
+          // cannot restore. Without these, a founder on a new device would be
+          // asked to retake the quiz and re-confirm participation they had
+          // already given, and their action items would come back empty.
+          const m = key.match(/^w(\d+)_action_(\d+)$/);
+          if (m) {
+            const wk = m[1];
+            (actions[wk] = actions[wk] || {})[Number(m[2]) - 1] = val === "done";
           }
+          if (key.endsWith("_quiz_passed")) seed(`${slug}_quiz_passed`, "1");
+          if (key.endsWith("_participation")) seed(`${slug}_participation`, val);
+        }
+        for (const [wk, map] of Object.entries(actions)) {
+          const storageKey = `${slug}_w${wk}_actions`;
+          if (localStorage.getItem(storageKey)) continue;
+          const size = Math.max(...Object.keys(map).map(Number)) + 1;
+          const arr = Array.from({ length: size }, (_, i) => !!map[i]);
+          try { localStorage.setItem(storageKey, JSON.stringify(arr)); } catch (_) {}
         }
       })
       .catch(() => {});
+  }, [isAuthenticated, slug]);
+
+  // Retry queued saves the moment the connection is back.
+  useEffect(() => {
+    if (!isAuthenticated || !slug) return;
+    const retry = () => flushOutbox(slug);
+    window.addEventListener("online", retry);
+    return () => window.removeEventListener("online", retry);
   }, [isAuthenticated, slug]);
 
   // Announcement modals — each shows once per mentee (until dismissed), in order.
@@ -5192,6 +5269,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
       }).then(r => r.json()).then(d => {
         if (d.ok) {
           sessionStorage.setItem(`auth_${slug}`, "1");
+          if (d.master) sessionStorage.setItem(`master_${slug}`, "1");
           if (d.upliftId) sessionStorage.setItem(`upliftid_${slug}`, d.upliftId);
           setIsAuthenticated(true);
         }

@@ -27,7 +27,7 @@ export default async function handler(req, res) {
   // Read all Luma Attendance rows
   const attRes = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: "Luma Attendance!A:L",
+    range: "LumaAttendance!A:L",
   });
   const attRows = attRes.data.values || [];
   const attHeaders = attRows[0] || [];
