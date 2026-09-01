@@ -169,6 +169,26 @@ export default function AdminFall() {
   const [signalText, setSignalText] = useState("");
   const [signalSource, setSignalSource] = useState("");
   const [signalBusy, setSignalBusy] = useState(false);
+  const [copiedPortal, setCopiedPortal] = useState(null);
+  const [origin, setOrigin] = useState("");
+
+  useEffect(() => { setOrigin(window.location.origin); }, []);
+
+  // What a founder needs in their welcome email: the portal link and, on its
+  // own line, the Uplift ID that opens it. Deliberately two lines rather than
+  // a ?code= deep link — the ID is a password and does not belong in a URL
+  // that gets forwarded, logged, or pasted into a thread.
+  const copyPortal = async (a) => {
+    const text = [`${origin}/fall/${a.inRoster}`, a.upliftId ? `Uplift ID: ${a.upliftId}` : null]
+      .filter(Boolean).join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedPortal(a.id);
+      setTimeout(() => setCopiedPortal(c => (c === a.id ? null : c)), 1600);
+    } catch (_) {
+      window.prompt("Copy this:", text);
+    }
+  };
 
   useEffect(() => {
     try { setTodayState(JSON.parse(localStorage.getItem("uplift_admin_today_v1") || "{}")); } catch (_) {}
@@ -459,9 +479,9 @@ export default function AdminFall() {
             {[["today", "📋 Today"], ["overview", "Overview"], ["founders", "Roster"],
               ["menteeapps", `Mentee Apps${people ? ` (${people.menteeCount})` : ""}`],
               ["mentorapps", `Mentor Apps${people ? ` (${people.mentorCount})` : ""}`],
-              ["acceptedfounders", `Accepted Founders${people ? ` (${people.mentees.filter(a => a.decision === "approved" && !a.inRoster).length})` : ""}`],
-              ["acceptedmentors", `Accepted Mentors${people ? ` (${people.mentors.filter(m2 => m2.decision === "approved" && !m2.inRoster).length})` : ""}`],
-              ["matching", `Matching${people ? ` (${people.mentees.filter(a => a.decision === "approved" && !a.inRoster && !a.matchedMentorId).length} waiting)` : ""}`],
+              ["acceptedfounders", `Accepted Founders${people ? ` (${people.mentees.filter(a => a.decision === "approved" && !a.isTest).length})` : ""}`],
+              ["acceptedmentors", `Accepted Mentors${people ? ` (${people.mentors.filter(m2 => m2.decision === "approved" && !m2.isTest).length})` : ""}`],
+              ["matching", `Matching${people ? ` (${people.mentees.filter(a => a.decision === "approved" && !a.isTest && !a.matchedMentorId).length} waiting)` : ""}`],
               ["matched", `Matched${people ? ` (${people.matchedCount})` : ""}`],
               ["signals", "Signals"],
               ["deadlines", "\u23F1 Deadlines"], ["reporting", "\ud83d\udcca Reporting"], ["sessions", "Sessions"],
@@ -533,7 +553,7 @@ export default function AdminFall() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}>
               {p && [
                 ["Founders", p.total, "#5c4eb5",
-                  "Everyone in the fall portal roster (currently the test accounts, until the application ingest lands)."],
+                  "Everyone in the fall portal roster: every accepted founder plus the three walkthrough accounts. Grows when scripts/build-fall-cohort.mjs is re-run after new acceptances."],
                 ["On Track", p.onTrack, "#1a6e42",
                   "No warning flags tripped. Status is computed fresh from the rulebook on every load, never hand-set."],
                 ["Needs Attention", p.attention, "#b35c00",
@@ -563,7 +583,7 @@ export default function AdminFall() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
               {data && Object.entries(data.cohortHealth).sort(([a], [b]) => a - b).map(([c, h]) => (
                 <div key={c} style={{ border: "1px solid #e8e4f5", borderRadius: 10, padding: "12px 16px" }}>
-                  <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 800, color: "#3d2f8a" }}>Cohort {c}</p>
+                  <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 800, color: "#3d2f8a" }}>{c === "unassigned" ? "Cohort TBD" : `Cohort ${c}`}</p>
                   <p style={{ margin: 0, fontSize: 12.5, color: "#37324e", lineHeight: 1.7 }}>
                     {h.total} founders · 🟢 {h.onTrack} · 🟡 {h.attention} · 🔴 {h.atRisk}<br />
                     Gate done: {h.gateComplete}/{h.total} · Avg meetings {h.avgMeetings} · Avg edu {h.avgEdu}
@@ -620,7 +640,7 @@ export default function AdminFall() {
                             <span title="Uplift ID — assigned on approval; this founder's portal login" style={{ marginLeft: 6, fontFamily: "monospace", fontSize: 11, fontWeight: 700, background: "#f0eef8", color: "#5c4eb5", borderRadius: 5, padding: "2px 6px", cursor: "help" }}>{app.upliftId}</span>
                           ) : null;
                         })()}
-                        <div style={{ fontSize: 11.5, color: "#9b8fcf" }}>{f.company} · Cohort {f.cohort}{f.mentor ? ` · ${f.mentor}` : ""}</div>
+                        <div style={{ fontSize: 11.5, color: "#9b8fcf" }}>{f.company} · {f.cohort ? `Cohort ${f.cohort}` : "Cohort TBD"}{f.mentor ? ` · ${f.mentor}` : ""}</div>
                       </td>
                       <td style={{ padding: "10px" }}><StatusChip status={f.status} /></td>
                       <td style={{ padding: "10px" }}><GateDots gate={f.gate} /></td>
@@ -713,21 +733,54 @@ export default function AdminFall() {
           </p>
           </>)}
 
-          {tab === "acceptedfounders" && people && (
+          {tab === "acceptedfounders" && people && (() => {
+            const accepted = people.mentees.filter(a => a.decision === "approved" && !a.isTest);
+            const noPortal = accepted.filter(a => !a.inRoster);
+            const noId = accepted.filter(a => !a.upliftId);
+            return (
             <div style={card}>
-              <p style={kicker}>Accepted Founders · {people.mentees.filter(a => a.decision === "approved").length}</p>
-              {people.mentees.filter(a => a.decision === "approved").map(a => (
-                <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderTop: "1px solid #f0edf9", flexWrap: "wrap" }}>
+              <p style={kicker}>Accepted Founders · {accepted.length}</p>
+              <p style={{ margin: "0 0 12px", fontSize: 12.5, color: "#6b6480", lineHeight: 1.6 }}>
+                Every accepted founder has a portal at <code style={{ background: "#f5f3ff", borderRadius: 4, padding: "1px 5px" }}>/fall/&lt;slug&gt;</code> and logs in with their Uplift ID.
+                <strong> Copy</strong> puts the link and the ID on two lines, ready to paste into a welcome email; the ID never goes in the URL.
+              </p>
+              {noPortal.length > 0 && (
+                <p style={{ margin: "0 0 12px", fontSize: 12.5, color: "#b35c00", background: "#fff8ef", border: "1px solid #f3dcc0", borderRadius: 8, padding: "8px 12px", lineHeight: 1.6 }}>
+                  {noPortal.length} accepted founder{noPortal.length === 1 ? " has" : "s have"} no portal yet ({noPortal.map(a => `${a.first} ${a.last}`).join(", ")}).
+                  The roster is generated: run <code>node scripts/build-fall-cohort.mjs</code> and deploy to create their pages.
+                </p>
+              )}
+              {noId.length > 0 && (
+                <p style={{ margin: "0 0 12px", fontSize: 12.5, color: "#b35c00", background: "#fff8ef", border: "1px solid #f3dcc0", borderRadius: 8, padding: "8px 12px", lineHeight: 1.6 }}>
+                  No Uplift ID issued to {noId.map(a => `${a.first} ${a.last}`).join(", ")} — they were approved before IDs existed. Hit <em>undo</em> then <em>Approve</em> on the Mentee Apps tab to issue one.
+                </p>
+              )}
+              {accepted.map(a => (
+                <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: "1px solid #f0edf9", flexWrap: "wrap" }}>
                   <button onClick={() => setProfile({ kind: "mentee", person: a })} style={{ border: "none", background: "none", padding: 0, fontWeight: 700, color: "#3d2f8a", fontSize: 14, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>{a.first} {a.last}</button>
+                  {a.upliftId && <span title="Uplift ID — their portal password. Private to them." style={{ fontSize: 10.5, fontWeight: 700, fontFamily: "monospace", background: "#f0eef8", color: "#5c4eb5", borderRadius: 4, padding: "2px 7px", cursor: "help" }}>{a.upliftId}</span>}
                   <span style={{ fontSize: 12.5, color: "#9b8fcf" }}>{a.company || "no company"} · {a.tier?.startsWith("Minimum") ? "3 sessions" : a.tier || ""}</span>
                   {a.matchedMentorName
                     ? <span style={{ fontSize: 11, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "2px 8px" }}>MATCHED → {a.matchedMentorName}</span>
                     : <span style={{ fontSize: 11, fontWeight: 800, background: "#fffbeb", color: "#7a5c00", borderRadius: 4, padding: "2px 8px" }}>IN MATCHING QUEUE</span>}
+                  <span style={{ marginLeft: "auto", display: "inline-flex", gap: 6, alignItems: "center" }}>
+                    {a.inRoster ? (
+                      <>
+                        <code style={{ fontSize: 11.5, color: "#6b6480" }}>/fall/{a.inRoster}</code>
+                        <button onClick={() => copyPortal(a)} style={{ border: "1px solid #e8e4f5", borderRadius: 6, padding: "3px 10px", background: "#fff", color: "#5c4eb5", fontSize: 11.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", minWidth: 60 }}>{copiedPortal === a.id ? "Copied" : "Copy"}</button>
+                        <a href={`/fall/${a.inRoster}`} target="_blank" rel="noopener noreferrer" style={{ border: "1px solid #e8e4f5", borderRadius: 6, padding: "3px 10px", background: "#fff", color: "#5c4eb5", fontSize: 11.5, fontWeight: 700, textDecoration: "none" }}>Portal ↗</a>
+                      </>
+                    ) : (
+                      <span style={{ fontSize: 11, fontWeight: 700, background: "#fff8ef", color: "#b35c00", borderRadius: 4, padding: "2px 8px" }}>NO PORTAL YET</span>
+                    )}
+                    <a href={`/fall/profile/${a.id}`} target="_blank" rel="noopener noreferrer" title="The mentor-facing profile — safe to send out" style={{ border: "1px solid #e8e4f5", borderRadius: 6, padding: "3px 10px", background: "#fff", color: "#6b6480", fontSize: 11.5, fontWeight: 700, textDecoration: "none" }}>Profile ↗</a>
+                  </span>
                 </div>
               ))}
-              {people.mentees.filter(a => a.decision === "approved").length === 0 && <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>No approved founders yet. Approve them on the Mentee Apps tab.</p>}
+              {accepted.length === 0 && <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>No approved founders yet. Approve them on the Mentee Apps tab.</p>}
             </div>
-          )}
+            );
+          })()}
 
           {tab === "acceptedmentors" && people && (
             <div style={card}>
@@ -816,13 +869,13 @@ export default function AdminFall() {
               Object.values(dupEmails).filter(g => g.length > 1).forEach(g => derived.push({
                 text: `${g[0].first} ${g[0].last} (${g[0].email}) submitted the mentee application ${g.length} times`, source: "Duplicate applications",
               }));
-              people.mentees.filter(a => a.summerAlum && !a.inRoster).forEach(a => derived.push({
+              people.mentees.filter(a => a.summerAlum && !a.isTest).forEach(a => derived.push({
                 text: `${a.first} ${a.last} is a Summer 2026 alum applying again — auto-marked ineligible, but worth a personal reply (alumni meetup, mentor pool?)`, source: "Alumni re-applying",
               }));
-              people.mentees.filter(a => !a.meetsRequirements && !a.summerAlum && !a.inRoster && a.decision !== "rejected").forEach(a => derived.push({
+              people.mentees.filter(a => !a.meetsRequirements && !a.summerAlum && !a.isTest && a.decision !== "rejected").forEach(a => derived.push({
                 text: `${a.first} ${a.last} doesn't meet requirements (${!a.njResident ? "not NJ-resident" : "program focus"}) and hasn't been formally rejected — they're waiting on an answer`, source: "Undecided ineligible",
               }));
-              people.mentors.filter(m2 => m2.decision === "approved" && !m2.inRoster && (m2.assignedTo || []).length === 0).forEach(m2 => derived.push({
+              people.mentors.filter(m2 => m2.decision === "approved" && !m2.isTest && (m2.assignedTo || []).length === 0).forEach(m2 => derived.push({
                 text: `Mentor ${m2.name} is approved but has no mentee assigned yet — unused capacity (${m2.tier || "availability unknown"})`, source: "Idle approved mentors",
               }));
             }
@@ -1395,7 +1448,7 @@ export default function AdminFall() {
             const fs = data?.founders || [];
             const weekAgo = Date.now() - 7 * 24 * 3600 * 1000;
             const freshOf = (list) => (list || []).filter(a => a.submittedAt && new Date(a.submittedAt).getTime() > weekAgo);
-            const newMenteeApps = freshOf(people?.mentees).filter(a => !a.inRoster);
+            const newMenteeApps = freshOf(people?.mentees).filter(a => !a.isTest);
             const newMentorApps = freshOf(people?.mentors);
             if (newMenteeApps.length) todo.push({ icon: "📥", level: "info", text: `${newMenteeApps.length} new mentee application${newMenteeApps.length === 1 ? "" : "s"} this week awaiting a roster decision`, sub: newMenteeApps.slice(0, 6).map(a => `${a.first} ${a.last} (${a.company || "no company"})`).join(" · ") + (newMenteeApps.length > 6 ? ` · +${newMenteeApps.length - 6} more` : ""), go: "applications" });
             if (newMentorApps.length) todo.push({ icon: "🧑‍🏫", level: "info", text: `${newMentorApps.length} new mentor application${newMentorApps.length === 1 ? "" : "s"} this week to review for the pool`, sub: newMentorApps.slice(0, 6).map(m => `${m.name} (${m.company || "no company"})`).join(" · "), go: "applications" });
@@ -1534,7 +1587,7 @@ export default function AdminFall() {
                   </thead>
                   <tbody>
                     {people.mentees.filter(a => {
-                      const test = !!a.inRoster;
+                      const test = !!a.isTest;
                       if (appFilter === "test") return test;
                       if (test && appFilter !== "all") return false;
                       if (appFilter === "undecided") return !a.decision;
@@ -1555,7 +1608,9 @@ export default function AdminFall() {
                             <button onClick={() => setProfile({ kind: "mentee", person: a })} style={{ border: "none", background: "none", padding: 0, fontWeight: 700, color: "#3d2f8a", fontSize: 13, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>{a.first} {a.last}</button>
                           </span>
                           {isNew(a.submittedAt) && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#f5f3ff", color: "#5c4eb5", borderRadius: 4, padding: "1px 6px" }}>NEW</span>}
-                          {a.inRoster && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "1px 6px" }}>IN ROSTER</span>}
+                          {a.isTest
+                            ? <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#6b6480", borderRadius: 4, padding: "1px 6px" }}>TEST ACCOUNT</span>
+                            : a.inRoster && <a href={`/fall/${a.inRoster}`} target="_blank" rel="noopener noreferrer" title="Open their portal" style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "1px 6px", textDecoration: "none" }}>PORTAL ↗</a>}
                           <div style={{ fontSize: 11.5, color: "#9b8fcf" }}>{a.email}</div>
                         </td>
                         <td style={{ padding: "10px", whiteSpace: "nowrap" }}>
@@ -1618,7 +1673,7 @@ export default function AdminFall() {
                         <td style={{ padding: "10px", whiteSpace: "nowrap" }}>
                           <button onClick={() => setProfile({ kind: "mentor", person: m })} style={{ border: "none", background: "none", padding: 0, fontWeight: 700, color: "#3d2f8a", fontSize: 13, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>{m.name}</button>
                           {isNew(m.submittedAt) && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#f5f3ff", color: "#5c4eb5", borderRadius: 4, padding: "1px 6px" }}>NEW</span>}
-                          {m.inRoster && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#6b6480", borderRadius: 4, padding: "1px 6px" }}>TEST ACCOUNT</span>}
+                          {m.isTest && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#6b6480", borderRadius: 4, padding: "1px 6px" }}>TEST ACCOUNT</span>}
                           {m.assignedTo.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "1px 6px" }}>MATCHED</span>}
                           <div style={{ fontSize: 11.5, color: "#9b8fcf" }}>{m.email}</div>
                         </td>

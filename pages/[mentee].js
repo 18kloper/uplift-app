@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
 import Head from "next/head";
-import { getMenteeBySlug, MENTEES, PROMPTS, getFocusKey } from "../lib/mentees";
+import { getMenteeBySlug, MENTEES } from "../lib/mentees";
+// Prompts come from their own module so the roster stays server-side
+// (it is only used in getStaticPaths/getStaticProps) — see lib/prompts.js.
+import { PROMPTS, getFocusKey } from "../lib/prompts";
 import { PROGRAM_EMAILS, RESOURCES, COHORTS } from "../lib/program-data";
 import { WRAPPED_DATA } from "../lib/wrapped-data";
 import { CERTIFICATES } from "../lib/certificates";

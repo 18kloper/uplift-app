@@ -281,9 +281,13 @@ export default async function handler(req, res) {
       avgEdu: list.length ? +(list.reduce((s, f) => s + f.eduCount, 0) / list.length).toFixed(1) : 0,
     });
 
+    // Fall cohort placements are not assigned yet, so most founders have
+    // cohort null. They group under "unassigned" rather than a "Cohort null"
+    // card, and get their own numbered cards once placements are made.
     const cohorts = {};
     for (const f of active) {
-      (cohorts[f.cohort] = cohorts[f.cohort] || []).push(f);
+      const key = f.cohort ?? "unassigned";
+      (cohorts[key] = cohorts[key] || []).push(f);
     }
     const cohortHealth = Object.fromEntries(Object.entries(cohorts).map(([c, list]) => [c, agg(list)]));
 

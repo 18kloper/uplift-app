@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
 import Head from "next/head";
-import { getMenteeBySlug, MENTEES, PROMPTS, getFocusKey } from "../../lib/mentees";
+import { getMenteeBySlug, MENTEES } from "../../lib/mentees";
+// Prompts come from their own module so the roster stays server-side
+// (it is only used in getStaticPaths/getStaticProps) — see lib/prompts.js.
+import { PROMPTS, getFocusKey } from "../../lib/prompts";
 import { PROGRAM_EMAILS, RESOURCES_FALL as RESOURCES, COHORTS } from "../../lib/program-data";
 import { CERTIFICATES } from "../../lib/certificates";
-import { PULSE_WINDOWS } from "../../lib/fall-roster";
+import { PULSE_WINDOWS, FALL_SLUGS, TEST_SLUGS } from "../../lib/fall-roster";
 
 // Mentees whose match is approved but pending mentor acceptance — show holding notice
 const HOLDING_SLUGS = new Set([
@@ -1115,13 +1118,22 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
         <p style={{ margin: "0 0 20px", fontSize: 14, lineHeight: 1.8, opacity: 0.9 }}>
           We're thrilled you've been accepted into this program and honored to be a small part of your entrepreneurial journey. This fall is going to be big. Let's make the most of it.
         </p>
-        {cohort && (
+        {cohort ? (
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 18 }}>
             <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", opacity: 0.6 }}>
               You've been placed in Cohort {cohort.num} · {cohort.name}
             </p>
             <p style={{ margin: "0 0 10px", fontSize: 16, fontWeight: 700 }}>{cohort.namesake}</p>
             <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7, opacity: 0.85 }}>{cohort.why}</p>
+          </div>
+        ) : (
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 18 }}>
+            <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", opacity: 0.6 }}>
+              Your cohort · to be announced
+            </p>
+            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.7, opacity: 0.85 }}>
+              Cohort placements aren't set yet. Yours will appear right here, named after a New Jersey innovator, as soon as it is. Nothing in your portal waits on it: everything below is yours to start now.
+            </p>
           </div>
         )}
       </div>
@@ -1237,7 +1249,7 @@ function Week1({ mentee, slug, prompts, mentorUnlocked, onParticipationAccepted,
         borderRadius: 14, padding: "28px 32px", color: "#fff", marginBottom: 24,
       }}>
         <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 600, letterSpacing: "0.08em", opacity: 0.75, textTransform: "uppercase" }}>
-          ⭐ Your primary goal this summer
+          ⭐ Your primary goal this fall
         </p>
         <p style={{ margin: "0 0 18px", fontSize: 22, fontWeight: 700, lineHeight: 1.3 }}>
           {mentee.primaryFocus}
@@ -3503,7 +3515,7 @@ function GoalsSection({ mentee, slug }) {
         borderRadius: 14, padding: "28px 32px", color: "#fff", marginBottom: 20,
       }}>
         <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", opacity: 0.65 }}>
-          ⭐ Primary goal this summer
+          ⭐ Primary goal this fall
         </p>
         <p style={{ margin: "0 0 20px", fontSize: 22, fontWeight: 700, lineHeight: 1.3 }}>
           {mentee.primaryFocus}
@@ -4440,15 +4452,22 @@ function ProfileSection({ mentee, slug, cohortMates, allCohortMembers }) {
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             <span style={{ background: "#f0ecff", color: "#5c4eb5", borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 500 }}>{mentee.stage}</span>
             <span style={{ background: "#e8f4ff", color: "#2a7fd4", borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 500 }}>{mentee.industry}</span>
-            <span style={{ background: "#f0faf5", color: "#22a366", borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 500 }}>Cohort {mentee.cohort}, {myCohort?.name}</span>
+            <span style={{ background: "#f0faf5", color: "#22a366", borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 500 }}>
+              {myCohort ? `Cohort ${myCohort.num}, ${myCohort.name}` : "Cohort TBD"}
+            </span>
           </div>
         </div>
       </div>
 
       {/* Cohort directory — own cohort */}
       <p style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: "#1a1733" }}>
-        Cohort {mentee.cohort}, {myCohort?.name}, Your Fellow Founders
+        {myCohort ? `Cohort ${myCohort.num}, ${myCohort.name}, Your Fellow Founders` : "Uplift Fall 2026, Your Fellow Founders"}
       </p>
+      {!myCohort && (
+        <p style={{ margin: "-8px 0 14px", fontSize: 13, color: "#9b8fcf", lineHeight: 1.6 }}>
+          Everyone accepted into the fall cohort. Cohort placements are still being set; once yours is, this page will show your cohort and its namesake.
+        </p>
+      )}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12, marginBottom: 40 }}>
         {cohortMates.map((m) => (
           <FounderCard key={m.slug} m={m} isSelf={m.slug === slug} />
@@ -5449,7 +5468,7 @@ export default function MenteePage({ menteeData, cohortMates, allCohortMembers }
             <img src="/uplift-logo-white.png" alt="Uplift" style={{ height: 36, marginBottom: 18, display: "block" }} />
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                Cohort {mentee.cohort}{myCohortHeader ? `, ${myCohortHeader.name}` : ""}
+                {myCohortHeader ? `Cohort ${myCohortHeader.num}, ${myCohortHeader.name}` : "Cohort TBD"}
               </div>
               <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                 Uplift Fall 2026
@@ -5709,19 +5728,25 @@ export async function getStaticProps({ params }) {
     linkedin: m.linkedin || null,
     photo: m.photo || null,
     // Company-at-a-glance is shared with the cohort, except the revenue dollar
-    // range: that stays between the founder and their mentor. Stripped here so
-    // it never ships in other founders' page payloads at all.
+    // range and the demographic disclosure block: those stay between the
+    // founder and the team. Stripped here so they never ship in other
+    // founders' page payloads at all.
     application: m.application
-      ? { ...m.application, snapshot: m.application.snapshot ? { ...m.application.snapshot, revenueRange: null } : null }
+      ? {
+          ...m.application,
+          disclosure: null,
+          snapshot: m.application.snapshot ? { ...m.application.snapshot, revenueRange: null } : null,
+        }
       : null,
   });
 
-  // The fall test cohort is just the three test founders; summer alumni stay
-  // out of this directory. Grows with application ingest.
-  const FALL_ROSTER = ["kennedy", "mj", "hana"];
-
+  // The fall cohort directory: every accepted founder, summer alumni out.
+  // The walkthrough accounts only see each other on their own portals, so a
+  // demo still has a populated directory without putting fake founders in
+  // front of the real cohort.
+  const viewerIsTest = TEST_SLUGS.includes(params.mentee);
   const cohortMates = MENTEES
-    .filter((m) => FALL_ROSTER.includes(m.slug))
+    .filter((m) => FALL_SLUGS.includes(m.slug) && (viewerIsTest || !TEST_SLUGS.includes(m.slug)))
     .map(directoryFields);
 
   const allCohortMembers = [];
