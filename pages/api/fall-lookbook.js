@@ -16,6 +16,12 @@ import { pickMentorSafe } from "../../components/FounderSheet";
 import { getSheetsClient } from "../../lib/sheets-helper";
 import { normalizeCrop } from "./admin/photo-crop";
 
+// Deployed means Vercel, or any production build. Both are checked because
+// NODE_ENV alone has been wrong before, and this is the lock that keeps a
+// public URL read-only.
+const IS_DEPLOYED = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+
+
 const CONTACT_CODE = process.env.LOOKBOOK_CONTACT_CODE || "uplift26";
 
 async function readCrops() {
@@ -47,7 +53,7 @@ export default async function handler(req, res) {
     if (req.method === "POST") {
       // Contact reveal is a local tool. The deployed book never hands out
       // addresses, whatever code is presented.
-      if (process.env.NODE_ENV === "production" && process.env.LOOKBOOK_ALLOW_CONTACTS !== "1") {
+      if (IS_DEPLOYED && process.env.LOOKBOOK_ALLOW_CONTACTS !== "1") {
         return res.status(404).end();
       }
       const code = String(req.body?.code || "").trim().toLowerCase();

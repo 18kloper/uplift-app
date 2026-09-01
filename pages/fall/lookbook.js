@@ -39,7 +39,7 @@ const isSoon = (v) => /^yes$/i.test(v || "") || /next 6 months/i.test(v || "");
 
 // The tools only exist in a local build. On the deployed site the book is
 // something you read, not something anyone can change.
-const EDITABLE_BUILD = process.env.NODE_ENV !== "production";
+const EDITABLE_BUILD = process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_VERCEL_ENV === undefined;
 
 // Founders who applied on the earlier, shorter form wrote nothing but their
 // focus areas. A page each would be mostly white space, so they pair up.

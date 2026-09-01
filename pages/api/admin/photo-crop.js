@@ -14,6 +14,12 @@
 
 import { getSheetsClient } from "../../../lib/sheets-helper";
 
+// Deployed means Vercel, or any production build. Both are checked because
+// NODE_ENV alone has been wrong before, and this is the lock that keeps a
+// public URL read-only.
+const IS_DEPLOYED = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+
+
 const TAB = "PhotoCrops";
 const HEADERS = ["Updated At", "Application Id", "Object Position", "Zoom", "Hidden", "Fit", "Pos X", "Pos Y", "Layout", "Order", "Float W", "Float X", "Float Y"];
 
@@ -114,7 +120,7 @@ export default async function handler(req, res) {
       // The deployed book is read-only. Photo and order changes are made on
       // the local copy and pushed with the code, so nothing on the live site
       // can rewrite them.
-      if (process.env.NODE_ENV === "production" && process.env.LOOKBOOK_ALLOW_EDITS !== "1") {
+      if (IS_DEPLOYED && process.env.LOOKBOOK_ALLOW_EDITS !== "1") {
         return res.status(403).json({ error: "The published lookbook is read-only" });
       }
 
