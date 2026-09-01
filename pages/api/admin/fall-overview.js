@@ -39,6 +39,17 @@ const D = {
 
 const ACTIVITY_TAB = "PortalActivity";
 
+// Doing the Week 1 work is an acceptance in everything but name: nobody takes
+// the onboarding quiz or writes their Deep Work for a program they are turning
+// down. That stands as the baseline for anything recorded before 7:51 PM ET on
+// Sept 1. After that the explicit answer is the only thing that counts, so this
+// never becomes a way of assuming a yes nobody gave.
+//
+// It earns its keep as a backstop: if a founder's participation write is ever
+// lost while their quiz lands, they still show as accepted instead of silently
+// joining the chase list.
+const WEEK1_ACCEPT_CUTOFF = new Date("2026-09-01T23:51:00Z");
+
 const DEEP_WORK_KEYS = ["five_relationship", "five_clarity", "five_resources", "five_mentor", "five_community", "primary_refine"];
 
 let cache = { at: 0, payload: null };
@@ -214,8 +225,13 @@ function computeFounder(m, sheetRec, meetings, activity, now, firstLogin) {
   // so it is the one that cannot silently miss someone.
   const partAnswer = (get("participation")?.value || "").trim().toLowerCase();
   const declined = partAnswer === "declined" || sheetRec?.participationStatus === "declined";
-  const accepted = !declined && (milestones.participation || partAnswer === "accepted");
+  const answeredYes = milestones.participation || partAnswer === "accepted";
+  const week1Work = rows.filter(x => x.week === 1 && x.fieldKey !== "participation" && (x.value || "").trim());
+  const inferredYes = !declined && !answeredYes &&
+    week1Work.some(x => x.updatedAt && new Date(x.updatedAt) < WEEK1_ACCEPT_CUTOFF);
+  const accepted = !declined && (answeredYes || inferredYes);
   const participationStatus = accepted ? "accepted" : declined ? "declined" : "waiting";
+  const participationSource = !accepted ? null : answeredYes ? "confirmed" : "inferred-week1";
   const participationAt = get("participation")?.updatedAt || sheetRec?.participationAt || null;
   if (accepted) milestones.participation = true;
 
@@ -290,6 +306,7 @@ function computeFounder(m, sheetRec, meetings, activity, now, firstLogin) {
     lastActive,
     firstLogin: firstLogin?.at || null,
     participationStatus,
+    participationSource,
     participationAt,
     firstLoginApprox: !!firstLogin?.approx,
     milestones,

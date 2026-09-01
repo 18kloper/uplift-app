@@ -629,6 +629,15 @@ export default function AdminFall() {
             return (
               <div style={card}>
                 <p style={kicker}>Participation · {real.length} accepted founders · due Sept 10</p>
+                {(() => {
+                  const inferred = live.filter(f => f.participationSource === "inferred-week1");
+                  if (!inferred.length) return null;
+                  return (
+                    <p style={{ margin: "0 0 10px", fontSize: 11.5, color: "#6b6480", lineHeight: 1.5 }}>
+                      Counted as accepted from their Week 1 work rather than an explicit answer, which only applies before 7:51 PM Sept 1: {inferred.map(f => f.name).join(" · ")}
+                    </p>
+                  );
+                })()}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
                   {groups.map(([label, list, color, bg, tip]) => (
                     <div key={label} title={tip} style={{ background: bg, borderRadius: 10, padding: "14px 16px", cursor: "help" }}>
