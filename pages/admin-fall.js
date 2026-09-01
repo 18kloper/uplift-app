@@ -1160,8 +1160,14 @@ export default function AdminFall() {
                 full: d.toLocaleString("en-US", { timeZone: "America/New_York", dateStyle: "full", timeStyle: "short" }),
               };
             };
+            // Only a verified stamp counts. The ≈ entries came from the visit
+            // log, which until now also recorded the team opening a portal
+            // with the master password, so they cannot be told apart from a
+            // founder showing up. They resolve to exact dates on the next login.
+            const verified = rows.filter(({ f }) => f.firstLogin && !f.firstLoginApprox);
+            const unverified = rows.filter(({ f }) => f.firstLogin && f.firstLoginApprox);
             const notLoggedIn = rows.filter(({ f }) => !f.firstLogin);
-            const loggedInCount = rows.length - notLoggedIn.length;
+            const loggedInCount = verified.length;
             const csv = () => {
               const header = ["Founder", "Company", "First Portal Login", "Participation", "Onboarding", "Quiz", "Meetings Submitted", "Minutes Submitted", "Sessions Verified", "Edu Sessions", "OverdriveAI", "Exit Survey", "Signature Signed", "Certificate", "Complete"];
               const lines = rows.map(({ f, ms, verifiedSessions, complete }) => [
@@ -1185,14 +1191,15 @@ export default function AdminFall() {
                 </div>
                 <div style={{ margin: "10px 0 14px", padding: "12px 14px", borderRadius: 10, background: notLoggedIn.length ? "#fdf7ee" : "#e8f8f0", border: `1px solid ${notLoggedIn.length ? "#f0dfc4" : "#c8ecd9"}` }}>
                   <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: notLoggedIn.length ? "#b35c00" : "#1a6e42" }}>
-                    {loggedInCount} of {rows.length} have logged into their portal
+                    {loggedInCount} of {rows.length} have logged into their portal, confirmed
                   </p>
                   <p style={{ margin: "3px 0 0", fontSize: 11.5, color: "#6b6480" }}>
-                    The first signal, before Confirmed Participation. Only a founder’s own Uplift ID counts — the team’s master password does not. A ≈ date is a visit recorded before stamping started.
+                    The first signal, before Confirmed Participation. Only a founder’s own Uplift ID counts — the team’s master password does not.
+                    {unverified.length > 0 && ` ${unverified.length} more show a ≈ date: a visit logged before stamping started, which may be a team member opening the portal. Those turn exact on that founder’s next login.`}
                   </p>
                   {notLoggedIn.length > 0 && (
                     <p style={{ margin: "8px 0 0", fontSize: 12, color: "#3d2f8a" }}>
-                      <strong style={{ color: "#b35c00" }}>Not yet:</strong>{" "}
+                      <strong style={{ color: "#b35c00" }}>No sign of them yet:</strong>{" "}
                       {notLoggedIn.map(({ f }) => f.name).join(" · ")}
                     </p>
                   )}
