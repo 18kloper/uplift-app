@@ -279,16 +279,18 @@ export function GlancePage({ founders, stats, active, pageNumber }) {
 export function IndexPage({ kicker, title, standfirst, rows, onOpen, empty, active, pageNumber }) {
   return (
     <Sheet active={active} fitViewport mark="right">
-      <Page active={active}>
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 26, marginBottom: 16 }}>
-          <div style={{ maxWidth: "4.9in" }}>
-            <Label>{kicker}</Label>
-            <h2 style={{ margin: "8px 0 0", fontFamily: DISPLAY, fontWeight: 900, fontSize: 40, letterSpacing: "-0.02em", lineHeight: 1.02 }}>
+      {/* A deep masthead: the title sits well down the page so it still reads
+          as a title when the page is seen as a thumbnail or a screenshot. */}
+      <Page active={active} pad="1.5in 0.7in 0.2in">
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 26, marginBottom: 30 }}>
+          <div style={{ maxWidth: "5.1in" }}>
+            <Label size={9.5}>{kicker}</Label>
+            <h2 style={{ margin: "14px 0 0", fontFamily: DISPLAY, fontWeight: 900, fontSize: 52, letterSpacing: "-0.025em", lineHeight: 0.98 }}>
               {title}
             </h2>
-            <p style={{ margin: "10px 0 0", fontFamily: SANS, fontSize: 11, lineHeight: 1.6, color: INK_SOFT }}>{standfirst}</p>
+            <p style={{ margin: "16px 0 0", fontFamily: SANS, fontSize: 12, lineHeight: 1.6, color: INK_SOFT }}>{standfirst}</p>
           </div>
-          <p style={{ margin: 0, fontFamily: DISPLAY, fontWeight: 900, fontSize: 62, lineHeight: 0.8, color: ACCENT, letterSpacing: "-0.03em" }}>
+          <p style={{ margin: 0, fontFamily: DISPLAY, fontWeight: 900, fontSize: 82, lineHeight: 0.78, color: ACCENT, letterSpacing: "-0.03em" }}>
             {rows.length}
           </p>
         </div>
@@ -437,11 +439,15 @@ function factRows(f) {
     if (/next 6 months/i.test(v)) return "Planning to";
     return v;
   };
+  // Revenue and fundraising timing are withheld outright, whatever the
+  // answer. Both are commercially sensitive, and the application routed this
+  // sort of detail to mentors rather than to the public. The rows stay so the
+  // page reads as complete; the values are never printed.
   return [
     ["Stage", tight(f.stage)],
     ["Industry", tidyIndustry(f.industry)],
-    ["Revenue", f.revenueHidden ? "REDACT" : f.snapshot?.generatingRevenue === true ? (f.snapshot?.revenueRange || "Yes") : f.snapshot?.generatingRevenue === false ? "Pre-revenue" : f.snapshot?.revenueRange],
-    ["Raising in 6 months", soon(f.snapshot?.raising)],
+    ["Revenue", "REDACT"],
+    ["Raising in 6 months", "REDACT"],
     ["Hiring in 6 months", soon(f.snapshot?.hiring)],
     ["Seeking customers", yes(f.snapshot?.lookingForCustomers)],
     ["Seeking partnerships", yes(f.snapshot?.seekingPartnerships)],
@@ -450,14 +456,15 @@ function factRows(f) {
 }
 
 
-// The fact of revenue is public; the figure is not. Both pages say "Yes" and
-// blur a stand-in number, so a blurred cell never reads as "no answer".
+// A withheld answer. The blurred text is a stand-in, never the founder's real
+// answer: the real one does not reach the page at all (see the public feed in
+// pages/api/fall-lookbook.js). The blur is there so the row reads as private
+// rather than as unanswered.
 function FactValue({ value }) {
   if (value !== "REDACT") return value;
   return (
-    <span>
-      Yes{" "}
-      <span aria-hidden="true" style={{ filter: "blur(3px)", userSelect: "none", fontWeight: 600 }}>$000,000</span>
+    <span aria-label="Shared at match" style={{ filter: "blur(3.2px)", userSelect: "none", fontWeight: 600, color: INK_SOFT }}>
+      Yes, $000,000
     </span>
   );
 }

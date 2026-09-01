@@ -453,11 +453,14 @@ export default function Lookbook() {
   const glance = useMemo(() => {
     const fs = cast;
     return {
+      // Revenue and fundraising are withheld across the book, so they are not
+      // counted here either. A tally of something the pages will not show is
+      // the same disclosure by another route.
       stats: [
-        { n: fs.filter(f => f.snapshot?.generatingRevenue === true).length, label: "generating revenue" },
-        { n: fs.filter(f => isSoon(f.snapshot?.raising)).length, label: "raising now or within six months" },
+        { n: fs.length, label: "founders in the cohort" },
         { n: fs.filter(f => isSoon(f.snapshot?.hiring)).length, label: "hiring now or within six months" },
         { n: fs.filter(f => f.snapshot?.lookingForCustomers === true).length, label: "looking for customers or pilots" },
+        { n: fs.filter(f => f.snapshot?.seekingPartnerships === true).length, label: "seeking partnerships" },
       ],
       columns: [
         { title: "Stage", rows: tally(fs, f => short(f.stage)) },

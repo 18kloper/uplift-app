@@ -69,9 +69,15 @@ export default async function handler(req, res) {
       .map(f => pickMentorSafe(f))
       // Email is POST-only; phone never leaves the server for this page, and
       // the revenue key goes with it rather than shipping an empty slot.
+      // Email and phone never leave the server for this page. Revenue and
+      // fundraising go with them: the figure, whether there is any at all,
+      // and whether they are raising. The page blurs those rows, and there is
+      // nothing real behind the blur to recover.
       .map(({ email, phone, snapshot, ...rest }) => ({
         ...rest,
-        snapshot: snapshot ? (({ revenueRange, ...snap }) => snap)(snapshot) : snapshot,
+        snapshot: snapshot
+          ? (({ revenueRange, generatingRevenue, raising, priorCapital, ...snap }) => snap)(snapshot)
+          : snapshot,
       }))
       .sort((a, b) => `${a.first} ${a.last}`.localeCompare(`${b.first} ${b.last}`));
 
