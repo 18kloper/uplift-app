@@ -33,15 +33,15 @@ const WEEKS = [
   {
     num: 1, label: "Week 1", title: "Welcome & Onboarding", dateRange: "Sept 9\u201313",
     tagline: "Get acclimated. Attend one of the seven onboarding sessions, and start mapping your asks, your needs, and what you're looking for from your mentor.",
-    note: "All seven sessions cover the same material. Pick whichever slot works for you. Luma links land here once created.",
+    note: "All seven sessions cover the same material. Pick whichever slot works for you. The two Thursday sessions are in person in Jersey City; the other five are virtual.",
     type: "onboarding",
     events: [
       { name: "Welcome & Onboarding 1 (Edison)", day: "Wed Sept 9", time: "10:00\u201310:45 AM", format: "Virtual", url: "https://luma.com/techun-q0gf" },
       { name: "Welcome & Onboarding 2 (Hopper)", day: "Wed Sept 9", time: "12:30\u20131:15 PM", format: "Virtual", url: "https://luma.com/0ajrxrma" },
       { name: "Welcome & Onboarding 3 (Bardeen)", day: "Wed Sept 9", time: "5:30\u20136:15 PM", format: "Virtual", url: "https://luma.com/1joflzni" },
-      { name: "Welcome & Onboarding 4 (Lawrence)", day: "Thu Sept 10", time: "10:00\u201310:45 AM", format: "Virtual", url: "https://luma.com/2egw051q" },
-      { name: "Welcome & Onboarding 5 (Morrison)", day: "Thu Sept 10", time: "12:30\u20131:15 PM", format: "Virtual", url: "https://luma.com/zchii8yf" },
-      { name: "AI Demo Night \ud83c\udf89", day: "Thu Sept 10", time: "Evening", format: "In-Person", optional: true, url: "", note: "Bonus event. Not directly connected to the program, but a head start on connecting with our community. Your ticket is free: use code UPLIFT to claim it." },
+      { name: "Welcome & Onboarding 4 (Lawrence)", day: "Thu Sept 10", time: "5:00\u20136:00 PM", format: "In-Person", url: "https://luma.com/2egw051q", note: "In person at 101 Hudson St, Jersey City (Colgate Center). Same building as AI Demo Night, which starts right after." },
+      { name: "Welcome & Onboarding 5 (Morrison)", day: "Thu Sept 10", time: "5:00\u20136:00 PM", format: "In-Person", url: "https://luma.com/zchii8yf", note: "In person at 101 Hudson St, Jersey City (Colgate Center). Same building as AI Demo Night, which starts right after." },
+      { name: "AI Demo Night \ud83c\udf89", day: "Thu Sept 10", time: "Evening", format: "In-Person", optional: true, url: "", note: "Bonus event. Not directly connected to the program, but a head start on connecting with our community. Same building as the Thursday in-person onboarding sessions, so you can go straight from one to the other. Your ticket is free: use code UPLIFT to claim it." },
       { name: "Welcome & Onboarding 6", day: "Fri Sept 11", time: "10:00\u201310:45 AM", format: "Virtual", url: "https://luma.com/hw8z03dq" },
       { name: "Welcome & Onboarding 7", day: "Fri Sept 11", time: "11:30 AM\u201312:15 PM", format: "Virtual", url: "https://luma.com/4lw55vqz" },
       { name: "Educational Session 1", day: "Fri Sept 11", time: "12:30 PM ET", format: "Virtual", url: "https://luma.com/techun-lfmg" , note: "Double up: finish Welcome & Onboarding 7 at 12:15, then go straight into this session and get a head start on your 3 educational sessions." },
@@ -401,7 +401,7 @@ function EventsSection({ events: allEvents, submitLabel, submitPrimary, note, fo
           </p>
           <p style={{ margin: "0 0 14px", fontSize: 12, color: "#9b8fcf", fontStyle: "italic", lineHeight: 1.65 }}>
             {intro || (isOnboarding
-              ? "All seven onboarding sessions cover the same material, so attend whichever one fits your schedule. Note: onboarding sessions are separate from the 3 required educational sessions and do not count toward that requirement."
+              ? "All seven onboarding sessions cover the same material, so attend whichever one fits your schedule. The two Thursday sessions are in person in Jersey City; the other five are virtual. Note: onboarding sessions are separate from the 3 required educational sessions and do not count toward that requirement."
               : "We vary the format. Educational sessions rotate between three formats (Expert Insights, Peer Development, and Industry Q&A) based on the guest speaker's preference and the needs and wants you've communicated across the program. You can attend any of them, and you must attend three. If the time works for you, show up: every session counts toward your 3."
             )}
           </p>
