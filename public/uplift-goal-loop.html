@@ -1,0 +1,1070 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="How Uplift captures a founder's goal at intake, sharpens it in week one, works it through three mentor meetings, and reports on it at the close.">
+<title>The Uplift Goal Loop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --navy:#110465;
+  --indigo:#3d2f8a;
+  --violet:#5c4eb5;
+  --pink:#d86697;
+  --pink-ink:#ab3f6f;
+  --gold:#8f6710;
+  --ink:#1c1a2e;
+  --ink-2:#5f5c78;
+  --ink-3:#8b87a3;
+  --ground:#f4f2fb;
+  --surface:#ffffff;
+  --surface-2:#f0ecff;
+  --rule:#ddd8ee;
+  --rule-2:#ebe7f7;
+  --panel:#110465;
+  --onpanel:#f4f2fb;
+  --shadow:0 1px 2px rgba(17,4,101,.05), 0 10px 32px rgba(17,4,101,.07);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --navy:#b9a9ff;
+    --indigo:#a897ee;
+    --violet:#9b8ae6;
+    --pink:#ef94b9;
+    --pink-ink:#ef94b9;
+    --gold:#dfae4c;
+    --ink:#eeebf8;
+    --ink-2:#a9a2c4;
+    --ink-3:#807a9c;
+    --ground:#100e1c;
+    --surface:#191630;
+    --surface-2:#221e3c;
+    --rule:#332d52;
+    --rule-2:#272247;
+    --panel:#241f42;
+    --onpanel:#eeebf8;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 32px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --navy:#b9a9ff;
+  --indigo:#a897ee;
+  --violet:#9b8ae6;
+  --pink:#ef94b9;
+  --pink-ink:#ef94b9;
+  --gold:#dfae4c;
+  --ink:#eeebf8;
+  --ink-2:#a9a2c4;
+  --ink-3:#807a9c;
+  --ground:#100e1c;
+  --surface:#191630;
+  --surface-2:#221e3c;
+  --rule:#332d52;
+  --rule-2:#272247;
+  --panel:#241f42;
+  --onpanel:#eeebf8;
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 32px rgba(0,0,0,.4);
+}
+
+*,*::before,*::after{box-sizing:border-box;}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:"Figtree",system-ui,-apple-system,sans-serif;
+  font-size:16.5px;line-height:1.66;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px 110px;}
+
+h1,h2,h3,.dsp{font-family:"Bricolage Grotesque","Figtree",system-ui,sans-serif;}
+p{margin:0 0 15px;max-width:70ch;}
+strong{font-weight:600;}
+a{color:var(--indigo);text-underline-offset:3px;}
+a:focus-visible{outline:2.5px solid var(--violet);outline-offset:3px;border-radius:3px;}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;}
+
+/* ── masthead ─────────────────────────────────────────── */
+.mast{padding:60px 0 0;}
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--pink-ink);margin:0 0 22px;
+}
+.mast h1{
+  font-size:clamp(38px,6.6vw,72px);font-weight:800;letter-spacing:-.035em;
+  line-height:.98;margin:0 0 22px;text-wrap:balance;max-width:15ch;color:var(--navy);
+}
+.mast .standfirst{font-size:20.5px;color:var(--ink-2);max-width:60ch;line-height:1.55;}
+
+/* ── stage rail ───────────────────────────────────────── */
+.rail{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:1px;
+  background:var(--rule);border:1px solid var(--rule);border-radius:4px;
+  overflow:hidden;margin:44px 0 0;box-shadow:var(--shadow);
+}
+.rail a{
+  background:var(--surface);padding:18px 20px 20px;text-decoration:none;color:inherit;
+  display:block;transition:background .15s;
+}
+.rail a:hover{background:var(--surface-2);}
+.rail .rn{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10px;font-weight:600;letter-spacing:.14em;color:var(--pink-ink);
+  display:block;margin-bottom:9px;
+}
+.rail .rt{
+  font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:17px;font-weight:700;letter-spacing:-.022em;display:block;
+  margin-bottom:4px;color:var(--navy);line-height:1.15;
+}
+.rail .rd{font-size:13px;color:var(--ink-2);line-height:1.45;display:block;}
+
+/* ── chapters ─────────────────────────────────────────── */
+.chapter{padding-top:82px;scroll-margin-top:20px;}
+.chead{border-top:3px solid var(--navy);padding-top:18px;margin-bottom:26px;}
+.chead .cn{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--pink-ink);margin:0 0 12px;
+}
+.chead h2{
+  font-size:clamp(28px,4.2vw,44px);font-weight:800;letter-spacing:-.03em;
+  line-height:1.04;margin:0 0 14px;text-wrap:balance;max-width:19ch;color:var(--navy);
+}
+.chead .clede{font-size:18.5px;color:var(--ink-2);max-width:64ch;line-height:1.56;margin:0;}
+
+h3{
+  font-size:21px;font-weight:700;letter-spacing:-.022em;
+  margin:44px 0 12px;text-wrap:balance;color:var(--ink);
+}
+h4.lbl{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 10px;
+}
+
+/* ── ask / tells split ────────────────────────────────── */
+.split{
+  display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
+  gap:0;background:var(--rule);border:1px solid var(--rule);
+  border-radius:4px;overflow:hidden;margin:16px 0;box-shadow:var(--shadow);
+}
+.split > div{background:var(--surface);padding:22px 26px;}
+.split .asks{border-right:1px solid var(--rule);}
+.split .gname{
+  font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:17.5px;font-weight:700;letter-spacing:-.02em;margin:0 0 3px;color:var(--navy);
+}
+.split .gcount{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--pink-ink);
+  margin:0 0 13px;
+}
+.qlist{margin:0;padding:0;list-style:none;}
+.qlist li{
+  position:relative;padding-left:17px;margin-bottom:6px;
+  font-size:14.5px;line-height:1.5;color:var(--ink);
+}
+.qlist li::before{
+  content:"";position:absolute;left:0;top:.66em;
+  width:7px;height:2.5px;border-radius:2px;background:var(--pink);
+}
+.tells{display:flex;flex-direction:column;justify-content:center;}
+.tells p{margin:0;font-size:15.5px;color:var(--ink-2);line-height:1.62;max-width:46ch;}
+.tells p + p{margin-top:11px;}
+.tells strong{color:var(--ink);font-weight:600;}
+
+/* ── funnel ───────────────────────────────────────────── */
+.funnel{
+  background:var(--panel);border-radius:5px;padding:30px 34px;margin:26px 0;
+  color:var(--onpanel);
+}
+.funnel h4{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;
+  margin:0 0 16px;opacity:.72;color:var(--onpanel);
+}
+.fsteps{display:flex;flex-wrap:wrap;align-items:stretch;gap:12px;}
+.fstep{
+  flex:1 1 190px;border:1px solid rgba(216,102,151,.5);border-radius:4px;
+  padding:15px 17px;background:rgba(216,102,151,.09);
+}
+.fstep .fq{
+  font-size:13.5px;line-height:1.45;margin:0 0 9px;opacity:.85;color:var(--onpanel);
+}
+.fstep .fa{
+  font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:16px;font-weight:700;letter-spacing:-.018em;margin:0;color:var(--pink);
+}
+.farrow{
+  align-self:center;color:var(--pink);font-size:19px;font-weight:700;flex:0 0 auto;
+}
+.funnel .fnote{
+  margin:18px 0 0;font-size:14.5px;line-height:1.6;opacity:.82;max-width:66ch;color:var(--onpanel);
+}
+
+/* ── meeting cards ────────────────────────────────────── */
+.meetings{display:flex;flex-direction:column;gap:14px;margin:24px 0;}
+.meet{
+  background:var(--surface);border:1px solid var(--rule);border-radius:5px;
+  border-top:4px solid var(--navy);padding:22px 26px;box-shadow:var(--shadow);
+}
+.meet.m2{border-top-color:var(--pink);}
+.meet.m3{border-top-color:var(--gold);}
+.meet-hd{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 14px;margin-bottom:4px;}
+.meet-hd h3{margin:0;font-size:25px;font-weight:800;letter-spacing:-.028em;color:var(--navy);}
+.meet.m2 .meet-hd h3{color:var(--pink-ink);}
+.meet.m3 .meet-hd h3{color:var(--gold);}
+.meet-hd .when{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10.5px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);
+}
+.meet .job{font-size:16px;color:var(--ink);margin:0 0 18px;max-width:62ch;}
+.meet .job b{font-weight:600;}
+.bl{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+.bl h5{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 8px;
+}
+.bl ul{margin:0;padding:0;list-style:none;}
+.bl li{
+  position:relative;padding-left:16px;margin-bottom:6px;
+  font-size:14.5px;line-height:1.48;
+}
+.bl li::before{
+  content:"";position:absolute;left:0;top:.64em;
+  width:7px;height:2.5px;border-radius:2px;background:var(--pink);
+}
+
+/* ── loop table ───────────────────────────────────────── */
+.tscroll{
+  overflow-x:auto;margin:22px 0;border:1px solid var(--rule);
+  border-radius:4px;background:var(--surface);box-shadow:var(--shadow);
+}
+table{border-collapse:collapse;width:100%;font-size:14.5px;}
+thead th{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:9.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;
+  text-align:left;vertical-align:bottom;padding:14px 16px;
+  background:var(--surface-2);border-bottom:1.5px solid var(--rule);white-space:nowrap;
+  color:var(--ink-3);
+}
+thead th.before{color:var(--navy);}
+thead th.during{color:var(--pink-ink);}
+thead th.after{color:var(--gold);}
+tbody td{padding:15px 16px;border-bottom:1px solid var(--rule-2);vertical-align:top;line-height:1.5;}
+tbody tr:last-child td{border-bottom:0;}
+td.q{font-weight:600;color:var(--ink);min-width:180px;}
+td.mid{color:var(--ink-2);}
+td.out{color:var(--ink-2);}
+td.prod{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:12.5px;color:var(--indigo);font-weight:500;min-width:150px;
+}
+.same{
+  display:inline-block;font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--gold);border:1px solid var(--gold);border-radius:2px;
+  padding:2px 6px;margin-left:6px;white-space:nowrap;vertical-align:1px;
+}
+
+/* ── five promises ────────────────────────────────────── */
+.five{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:1px;background:var(--rule);border:1px solid var(--rule);
+  border-radius:4px;overflow:hidden;margin:24px 0;box-shadow:var(--shadow);
+}
+.pr{background:var(--surface);padding:20px 22px;}
+.pr .pe{font-size:22px;display:block;margin-bottom:9px;line-height:1;}
+.pr h5{
+  font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:16.5px;font-weight:700;letter-spacing:-.02em;margin:0 0 6px;color:var(--navy);
+}
+.pr p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.5;}
+.pr .test{
+  margin-top:11px;padding-top:10px;border-top:1px solid var(--rule-2);
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:11px;color:var(--pink-ink);line-height:1.45;
+}
+
+/* ── leave-with ledger ────────────────────────────────── */
+.ledger{
+  margin:24px 0;border:1px solid var(--rule);border-radius:4px;
+  overflow:hidden;background:var(--surface);box-shadow:var(--shadow);
+}
+.lrow{
+  display:grid;grid-template-columns:104px minmax(0,1fr);
+  gap:0;border-bottom:1px solid var(--rule-2);
+}
+.lrow:last-child{border-bottom:0;}
+.lrow .lq{
+  font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:23px;font-weight:800;letter-spacing:-.03em;color:var(--pink-ink);
+  padding:18px 0 18px 24px;font-variant-numeric:tabular-nums;line-height:1.2;
+}
+.lrow .lc{padding:18px 26px 18px 12px;}
+.lrow .lc h5{
+  font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:16.5px;font-weight:700;letter-spacing:-.018em;margin:0 0 4px;color:var(--navy);
+}
+.lrow .lc p{margin:0;font-size:14.5px;color:var(--ink-2);line-height:1.55;max-width:62ch;}
+
+/* ── pullquote ────────────────────────────────────────── */
+.pull{
+  border-left:3px solid var(--pink);padding:4px 0 4px 24px;margin:30px 0;
+}
+.pull p{
+  font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:clamp(20px,2.7vw,27px);font-weight:600;letter-spacing:-.024em;
+  line-height:1.28;color:var(--navy);margin:0;max-width:26ch;text-wrap:balance;
+}
+
+/* ── note ─────────────────────────────────────────────── */
+.note{
+  background:var(--surface-2);border-radius:4px;padding:20px 24px;margin:24px 0;
+}
+.note p{margin:0;font-size:15.5px;color:var(--ink);line-height:1.6;max-width:66ch;}
+.note p + p{margin-top:10px;}
+
+/* ── worked example ───────────────────────────────────── */
+.example{
+  background:var(--surface-2);border-radius:6px;
+  padding:38px 38px 42px;margin:34px 0 0;
+}
+.example .exlabel{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--pink-ink);margin:0 0 12px;
+}
+.example h3{margin-top:36px;}
+.example h3:first-of-type{margin-top:30px;}
+.exgrid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
+  gap:1px;background:var(--rule);border:1px solid var(--rule);
+  border-radius:4px;overflow:hidden;margin:18px 0;
+}
+.exgrid > div{background:var(--surface);padding:16px 19px;}
+.exgrid dt{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
+  margin:0 0 5px;
+}
+.exgrid dd{
+  margin:0;font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:16px;font-weight:700;letter-spacing:-.018em;color:var(--navy);line-height:1.28;
+}
+.exgrid dd small{
+  display:block;font-family:"Figtree",sans-serif;font-size:13px;
+  font-weight:400;color:var(--ink-2);letter-spacing:0;margin-top:3px;line-height:1.45;
+}
+.scoretag{
+  display:inline-flex;align-items:baseline;gap:10px;
+  background:var(--panel);color:var(--onpanel);border-radius:4px;
+  padding:12px 20px;margin:6px 0 4px;
+}
+.scoretag b{
+  font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:20px;font-weight:800;letter-spacing:-.024em;
+}
+.scoretag span{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:12px;letter-spacing:.08em;opacity:.8;
+}
+td.pts{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;
+  font-weight:600;color:var(--navy);
+}
+th.pts{text-align:right;}
+td.pts.zero{color:var(--ink-3);}
+tr.runtot td{
+  background:var(--surface-2);font-weight:700;
+  border-top:1.5px solid var(--rule);
+}
+tr.runtot td.pts{font-size:16px;color:var(--navy);}
+.arc{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:1px;background:var(--rule);border:1px solid var(--rule);
+  border-radius:4px;overflow:hidden;margin:18px 0;
+}
+.arc > div{background:var(--surface);padding:17px 20px;}
+.arc .an{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:9.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;
+  margin:0 0 7px;
+}
+.arc .a1 .an{color:var(--navy);}
+.arc .a2 .an{color:var(--pink-ink);}
+.arc .a3 .an{color:var(--gold);}
+.arc p{margin:0;font-size:14px;color:var(--ink-2);line-height:1.55;}
+.arc p b{color:var(--ink);font-weight:600;}
+td.delta{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:12.5px;font-weight:600;color:var(--gold);white-space:nowrap;
+}
+td.delta.flat{color:var(--ink-3);font-weight:400;}
+@media (max-width:800px){
+  .example{padding:26px 20px 30px;margin-left:-18px;margin-right:-18px;border-radius:0;}
+}
+
+.foot{
+  margin-top:84px;border-top:3px solid var(--navy);padding-top:22px;
+  display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+}
+
+@media (max-width:800px){
+  .wrap{padding:0 18px 76px;}
+  .rail{grid-template-columns:1fr 1fr;}
+  .split{grid-template-columns:1fr;}
+  .split .asks{border-right:0;border-bottom:1px solid var(--rule);}
+  .bl{grid-template-columns:1fr;gap:16px;}
+  .fsteps{flex-direction:column;}
+  .farrow{align-self:flex-start;transform:rotate(90deg);}
+  .lrow{grid-template-columns:1fr;}
+  .lrow .lq{padding:16px 24px 0;}
+  .lrow .lc{padding:6px 24px 18px;}
+}
+@media print{
+  body{background:#fff;}
+  .rail,.split,.meet,.tscroll,.five,.ledger{box-shadow:none;}
+  .chapter{break-inside:avoid-page;}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+
+<style>
+.pdf-btn{
+  position:fixed;top:20px;right:20px;z-index:20;
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--navy);color:var(--ground);border:none;border-radius:999px;
+  padding:10px 20px;font-family:"Figtree",system-ui,sans-serif;font-size:13px;font-weight:700;
+  cursor:pointer;box-shadow:0 4px 16px rgba(17,4,101,.25);
+}
+.pdf-btn:hover{opacity:.9;}
+.pdf-btn:focus-visible{outline:2.5px solid var(--pink);outline-offset:3px;}
+@media print{.pdf-btn{display:none;}}
+@media (max-width:900px){.pdf-btn{top:12px;right:12px;padding:8px 16px;font-size:12px;}}
+</style>
+</head>
+<body>
+<button class="pdf-btn" onclick="window.print()">⇩ Download PDF</button>
+
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">TechUnited:NJ &nbsp;·&nbsp; Uplift Mentorship Program</p>
+  <h1>A goal, followed all the way through</h1>
+  <p class="standfirst">Every founder in Uplift names a goal before they meet anyone. They sharpen it in week one, work it across three structured meetings, and answer for it at the end. This is what we ask, what it tells us, and what each founder walks away holding.</p>
+
+  <nav class="rail">
+    <a href="#s1"><span class="rn">Stage 01</span><span class="rt">The application</span><span class="rd">What we ask, and the snapshot it gives us</span></a>
+    <a href="#s2"><span class="rn">Stage 02</span><span class="rt">Week one</span><span class="rd">A topic becomes a target</span></a>
+    <a href="#s3"><span class="rn">Stage 03</span><span class="rt">Discover, Act, Roadmap</span><span class="rd">The goal gets worked</span></a>
+    <a href="#s4"><span class="rn">Stage 04</span><span class="rt">The closing report</span><span class="rd">The same questions, asked again</span></a>
+    <a href="#s6"><span class="rn">Example</span><span class="rt">One founder, end to end</span><span class="rd">A scored match and a measured result</span></a>
+  </nav>
+</header>
+
+<!-- ══════════ 1 ══════════ -->
+<section class="chapter" id="s1">
+  <div class="chead">
+    <p class="cn">Stage 01</p>
+    <h2>The application is the baseline</h2>
+    <p class="clede">Two forms, one for founders and one for mentors, built on a shared vocabulary. Nothing in the application is asked out of curiosity. Every field either decides eligibility, feeds the match, or establishes a starting point we will measure against later.</p>
+  </div>
+
+  <h3>What we ask founders</h3>
+
+  <div class="split">
+    <div class="asks">
+      <p class="gname">Eligibility and commitment</p>
+      <p class="gcount">7 questions &nbsp;·&nbsp; yes or no &nbsp;·&nbsp; gating</p>
+      <ul class="qlist">
+        <li>Have you participated in Uplift before?</li>
+        <li>Do you identify as an aspiring founder, founder, CEO, or small business owner?</li>
+        <li>Are you a resident of New Jersey?</li>
+        <li>Can you commit to a minimum of three one-hour 1:1 mentoring sessions?</li>
+        <li>Can you commit to a minimum of 1.5 hours of educational programming?</li>
+        <li>Will you attend the in-person event on October 27 in Newark?</li>
+        <li>Do you understand that while this program is open to all, we focus on supporting women and minority founders?</li>
+      </ul>
+    </div>
+    <div class="tells">
+      <p><strong>It tells us who is actually available for the work.</strong> These run before anything else, and a no on the wrong one ends the application there.</p>
+      <p>It also does something quieter that matters more later. Every attendance expectation we hold a founder to traces back to a yes on this page, in their own hand, before they were accepted. Nothing we ask for at the end is a surprise.</p>
+    </div>
+  </div>
+
+  <div class="split">
+    <div class="asks">
+      <p class="gname">The company snapshot</p>
+      <p class="gcount">12 questions &nbsp;·&nbsp; the economic baseline</p>
+      <ul class="qlist">
+        <li>Are you currently raising capital?</li>
+        <li>Are you currently hiring?</li>
+        <li>Do you currently have employees, and how many full-time?</li>
+        <li>Are you currently generating revenue?</li>
+        <li>Are you actively looking for customers or pilot partners?</li>
+        <li>Are you seeking strategic partnerships?</li>
+        <li>Have you previously raised outside capital?</li>
+        <li>What stage is your company currently in?</li>
+        <li>Approximately how much revenue in the last 12 months?</li>
+        <li>Any major milestones you expect to hit during the mentorship period, and what are they?</li>
+      </ul>
+    </div>
+    <div class="tells">
+      <p><strong>It gives us the "before" picture for every hard outcome we later claim.</strong> A first customer, a first hire, a first dollar of revenue only counts as movement if we recorded that it had not happened yet.</p>
+      <p>The milestone question does double duty. It captures what the founder already expects to achieve in the same window the program runs, which keeps us honest about what the program caused and what would have happened anyway.</p>
+    </div>
+  </div>
+
+  <div class="split">
+    <div class="asks">
+      <p class="gname">Goal architecture</p>
+      <p class="gcount">7 questions &nbsp;·&nbsp; two deliberate funnels</p>
+      <ul class="qlist">
+        <li>Which best describes where you are on your company-building journey?</li>
+        <li>What would make this program successful for you? Select up to two.</li>
+        <li>Which of those is most important to you right now? Select one.</li>
+        <li>Which topics would you most like to explore with your mentor? Select up to three.</li>
+        <li>Of those, which is your primary focus area?</li>
+        <li>How confident do you currently feel navigating your top focus area?</li>
+        <li>Which best describes the current stage of your company?</li>
+      </ul>
+    </div>
+    <div class="tells">
+      <p><strong>This is the part the whole program hangs on.</strong> By the end of this page a founder has named one focus area, ranked one definition of success above all others, and put a confidence score against the thing they are worst at.</p>
+      <p>The narrowing is the point. Three topics down to one, two success criteria down to one. A founder who is allowed to want everything arrives with nothing a mentor can act on in an hour.</p>
+    </div>
+  </div>
+
+  <div class="funnel">
+    <h4>How the funnel runs</h4>
+    <div class="fsteps">
+      <div class="fstep">
+        <p class="fq">Which topics would you most like to explore with your mentor?</p>
+        <p class="fa">Up to 3</p>
+      </div>
+      <div class="farrow">&rarr;</div>
+      <div class="fstep">
+        <p class="fq">Of those, which is your primary focus area for this program?</p>
+        <p class="fa">Exactly 1</p>
+      </div>
+      <div class="farrow">&rarr;</div>
+      <div class="fstep">
+        <p class="fq">How confident do you currently feel navigating your top focus area?</p>
+        <p class="fa">A score we can re-ask</p>
+      </div>
+    </div>
+    <p class="fnote">That last question is the single most valuable field in the form. It is the only one that produces a clean before-and-after on a goal the founder chose themselves, rather than one we assigned them.</p>
+  </div>
+
+  <div class="split">
+    <div class="asks">
+      <p class="gname">Motivation, scheduling, and reach</p>
+      <p class="gcount">15 questions &nbsp;·&nbsp; match inputs and reporting</p>
+      <ul class="qlist">
+        <li>What about mentorship feels valuable at this stage of your business?</li>
+        <li>What are you hoping to accomplish through your mentorship?</li>
+        <li>What will you bring to the mentorship relationship?</li>
+        <li>What level of availability can you commit to: 3 sessions, 4 to 6, or 7 to 10?</li>
+        <li>Any known scheduling constraints over the program period?</li>
+        <li>Time-of-day preference and preferred meeting method</li>
+        <li>I commit to responding to my mentor within 72 hours</li>
+        <li>What type of mentor would be most helpful right now?</li>
+        <li>Gender, ethnicity, age range, income range, and county (optional, aggregated only)</li>
+      </ul>
+    </div>
+    <div class="tells">
+      <p><strong>The third question is a filter, not a formality.</strong> Mentorship is a two-way commitment, and founders who cannot articulate what they bring tend to be the ones who go quiet in week four.</p>
+      <p>Availability is self-selected into a tier rather than assumed, so a founder who commits to seven sessions is held to seven. The 72-hour checkbox becomes the service standard the program team enforces all season.</p>
+      <p>Demographics are voluntary and reported only in aggregate. They are what let us show reach across New Jersey against the communities the program exists to serve.</p>
+    </div>
+  </div>
+
+  <h3>What we ask mentors</h3>
+
+  <div class="split">
+    <div class="asks">
+      <p class="gname">The mentor application</p>
+      <p class="gcount">Mirrors the founder form where it counts</p>
+      <ul class="qlist">
+        <li>Why are you interested in serving as a mentor?</li>
+        <li>What are you hoping to <em>provide</em> through mentoring?</li>
+        <li>What are you hoping to <em>get</em> through mentoring?</li>
+        <li>Mentorship focus areas: select up to three</li>
+        <li>Founder stage preference: select all that apply</li>
+        <li>1:1 availability and mentoring capacity</li>
+        <li>I commit to responding to my mentee within 72 hours</li>
+        <li>What is your superpower?</li>
+        <li>I understand I will be asked to confirm mentorship engagement at program end</li>
+      </ul>
+    </div>
+    <div class="tells">
+      <p><strong>The mentor picks up to three focus areas from the same list the founder picks from.</strong> That shared vocabulary is what makes a match a match instead of a guess, and it is why the program can rank every possible pairing rather than assign them by hand.</p>
+      <p>The give-and-get pair is deliberate. Mentors who name something they want out of it stay engaged longer than mentors who frame it purely as charity.</p>
+      <p>One consent line does real work at the end of the season: mentors agree at intake that they will be asked to confirm the engagement, so the closing sign-off is an expectation rather than an ask.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <p><strong>What the application leaves us holding, per founder:</strong> a verified eligibility record, a company baseline across stage, revenue, headcount and funding, a named primary focus with a confidence score, a ranked definition of success, a stated availability tier, and a voluntary demographic profile. All of it captured before the founder has met a single person.</p>
+  </div>
+</section>
+
+<!-- ══════════ 2 ══════════ -->
+<section class="chapter" id="s2">
+  <div class="chead">
+    <p class="cn">Stage 02</p>
+    <h2>Week one turns a topic into a target</h2>
+    <p class="clede">A focus area is not a goal. "Fundraising" is a category. Week one is where the portal makes the founder say what they actually mean, in their own words, with a date attached.</p>
+  </div>
+
+  <p>The portal opens by replaying the founder's own application answers back to them: their primary focus, their secondary areas, what they said they were hoping to accomplish, what they said success looks like. Then it asks them to be specific. Both prompts are required, and nothing further in the program unlocks until they are submitted.</p>
+
+  <div class="split">
+    <div class="asks">
+      <p class="gname">The two required prompts</p>
+      <p class="gcount">Week 1 &nbsp;·&nbsp; gated &nbsp;·&nbsp; saved permanently</p>
+      <ul class="qlist">
+        <li><strong>Primary focus.</strong> What does real progress on this look like for you by November?</li>
+        <li><strong>Secondary focus.</strong> What is the one thing that would move the needle here this fall?</li>
+      </ul>
+      <p style="margin:16px 0 0;font-size:14px;color:var(--ink-2);font-style:italic;max-width:none;">The example shown in the field: "I want to close my first 3 paying customers and have a clear pricing model."</p>
+    </div>
+    <div class="tells">
+      <p><strong>This is the difference between a category and a commitment.</strong> "Go-to-market" cannot be evaluated in November. Three paying customers and a pricing model can.</p>
+      <p>The founder is told upfront that these answers will be revisited at the end of the program, which changes how carefully they are written.</p>
+      <p>Everything typed here is stored and surfaced in a dedicated <strong>My Goals and Reflections</strong> tab that builds across the season. The founder keeps it.</p>
+    </div>
+  </div>
+
+  <h3>Five things every founder leaves with</h3>
+  <p>Alongside their own goal, every founder defines what five program-wide outcomes mean to them personally, in a sentence or less. These are the promises the program makes to everyone, and they are written in the founder's language rather than ours.</p>
+
+  <div class="five">
+    <div class="pr">
+      <span class="pe" aria-hidden="true">🤝</span>
+      <h5>A stronger relationship</h5>
+      <p>Defined by the founder in week one.</p>
+      <p class="test">Tested at close: "I have stronger relationships in the startup community"</p>
+    </div>
+    <div class="pr">
+      <span class="pe" aria-hidden="true">🎯</span>
+      <h5>Greater clarity</h5>
+      <p>Defined by the founder in week one.</p>
+      <p class="test">Tested at close: "I see my next steps with greater clarity"</p>
+    </div>
+    <div class="pr">
+      <span class="pe" aria-hidden="true">🛠️</span>
+      <h5>New resources</h5>
+      <p>Defined by the founder in week one.</p>
+      <p class="test">Tested at close: "I learned things I've already put into practice"</p>
+    </div>
+    <div class="pr">
+      <span class="pe" aria-hidden="true">👤</span>
+      <h5>A trusted mentor</h5>
+      <p>Defined by the founder in week one.</p>
+      <p class="test">Tested at close: match fit, plus intent to keep meeting</p>
+    </div>
+    <div class="pr">
+      <span class="pe" aria-hidden="true">🏠</span>
+      <h5>A community</h5>
+      <p>Defined by the founder in week one.</p>
+      <p class="test">Tested at close: "I feel less alone in building this company"</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <p>The five promises are not decorative. Each one has a matching statement in the exit survey, so at the end of the season we can report on each promise separately rather than hiding all five behind a single satisfaction score.</p>
+  </div>
+</section>
+
+<!-- ══════════ 3 ══════════ -->
+<section class="chapter" id="s3">
+  <div class="chead">
+    <p class="cn">Stage 03</p>
+    <h2>Discover, Act, Roadmap</h2>
+    <p class="clede">Three meetings, each with a job. The arc runs from context to action to a plan that outlasts the program. One hour each, logged in the portal right after they happen, with an AI note-taker running.</p>
+  </div>
+
+  <div class="meetings">
+    <div class="meet m1">
+      <div class="meet-hd">
+        <h3>Discover</h3>
+        <span class="when">Meeting 1 &nbsp;·&nbsp; within 7 days of the match</span>
+      </div>
+      <p class="job"><b>The job:</b> context and trust. Pick the problem worth your hours together.</p>
+      <div class="bl">
+        <div>
+          <h5>Bring</h5>
+          <ul>
+            <li>Your goals reflection from the portal</li>
+            <li>Where the company actually is: traction, runway, blockers</li>
+            <li>The one decision you keep circling</li>
+          </ul>
+        </div>
+        <div>
+          <h5>Leave with</h5>
+          <ul>
+            <li>One focus area you both agree matters most</li>
+            <li>What winning looks like by November</li>
+            <li>Your next meeting on the calendar</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="meet m2">
+      <div class="meet-hd">
+        <h3>Act</h3>
+        <span class="when">Meeting 2 &nbsp;·&nbsp; within 10 days of Discover</span>
+      </div>
+      <p class="job"><b>The job:</b> turn Discover into a move. Advice becomes action here.</p>
+      <div class="bl">
+        <div>
+          <h5>Bring</h5>
+          <ul>
+            <li>What you tried since the last meeting, including what flopped</li>
+            <li>Real numbers, real customer conversations</li>
+            <li>The obstacle that surprised you</li>
+          </ul>
+        </div>
+        <div>
+          <h5>Leave with</h5>
+          <ul>
+            <li>One concrete commitment with a date on it</li>
+            <li>An experiment, a decision, or an intro your mentor can make</li>
+            <li>A clear picture of what to measure before the next meeting</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="meet m3">
+      <div class="meet-hd">
+        <h3>Roadmap</h3>
+        <span class="when">Meeting 3 &nbsp;·&nbsp; by October 23</span>
+      </div>
+      <p class="job"><b>The job:</b> zoom out. Build the 90-day plan that runs past graduation.</p>
+      <div class="bl">
+        <div>
+          <h5>Bring</h5>
+          <ul>
+            <li>Results from your Act commitment</li>
+            <li>An honest read on what has changed since Discover</li>
+            <li>Your biggest open question for the next quarter</li>
+          </ul>
+        </div>
+        <div>
+          <h5>Leave with</h5>
+          <ul>
+            <li>Your next three moves, in order</li>
+            <li>The signals that tell you it is working</li>
+            <li>An agreement on staying in touch, on your terms</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pull">
+    <p>Discover and Roadmap stay the spine. Everything after is another Act.</p>
+  </div>
+
+  <p>Three meetings is the floor, not the expectation. Founders self-select into a tier of three, four to six, or seven to ten sessions at application. However many they run, meeting one is always Discover and the closing meeting is always Roadmap. Every session in between is another Act, going deeper on the work between milestones, and each one is logged the same way.</p>
+
+  <div class="split">
+    <div class="asks">
+      <p class="gname">How a meeting gets logged</p>
+      <p class="gcount">Submitted in the portal, right after</p>
+      <ul class="qlist">
+        <li>Date of the meeting</li>
+        <li>Estimated session length in minutes</li>
+        <li>Transcript from the AI note-taker, or written key takeaways with a 350-character minimum</li>
+      </ul>
+    </div>
+    <div class="tells">
+      <p><strong>Every log is reviewed. AI vetted, human verified.</strong> Sessions recorded under 60 minutes count as half credit toward the three-hour threshold, which is what keeps the minute counts honest without policing anyone.</p>
+      <p>The Roadmap is not the end of the arc. It is what a founder carries into the in-person event on October 27 as their launch pad for the room.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 4 ══════════ -->
+<section class="chapter" id="s4">
+  <div class="chead">
+    <p class="cn">Stage 04</p>
+    <h2>The closing report asks the same questions again</h2>
+    <p class="clede">This is why the intake form is built the way it is. The exit survey deliberately reuses the application's exact questions and exact answer options, so movement is a measured delta rather than a founder's recollection of how far they came.</p>
+  </div>
+
+  <div class="tscroll">
+    <table>
+      <thead>
+        <tr>
+          <th class="before">Asked at application</th>
+          <th class="during">Sharpened in week one</th>
+          <th class="after">Asked again at close</th>
+          <th>What it produces</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="q">Which best describes the current stage of your company?</td>
+          <td class="mid">Carried into Discover as shared context with the mentor</td>
+          <td class="out">The same question, the same five options <span class="same">identical</span></td>
+          <td class="prod">Stage advancement rate</td>
+        </tr>
+        <tr>
+          <td class="q">Which best describes where you are on your company-building journey?</td>
+          <td class="mid">Carried into Discover</td>
+          <td class="out">The same question, the same five options <span class="same">identical</span></td>
+          <td class="prod">Aspiring founder to active founder conversions</td>
+        </tr>
+        <tr>
+          <td class="q">How confident do you feel navigating your top focus area?</td>
+          <td class="mid">The founder writes what real progress on that focus looks like by November</td>
+          <td class="out">The same question, the same four-point scale <span class="same">identical</span></td>
+          <td class="prod">Confidence delta on a self-chosen goal</td>
+        </tr>
+        <tr>
+          <td class="q">What would make this program successful for you? (up to two)</td>
+          <td class="mid">The founder defines the five program promises in their own words</td>
+          <td class="out">"Which of these did the program actually deliver for you?" drawn from the same list <span class="same">identical</span></td>
+          <td class="prod">Promised against delivered, item by item</td>
+        </tr>
+        <tr>
+          <td class="q">Any major milestones you expect to hit during the mentorship period?</td>
+          <td class="mid">Turned into a dated commitment in Act, then a 90-day plan in Roadmap</td>
+          <td class="out">"Which of these did you accomplish during the program?" across 15 concrete outcomes</td>
+          <td class="prod">Incorporations, first customers, first revenue, hires, partnerships, grants, raises</td>
+        </tr>
+        <tr>
+          <td class="q">Revenue in the last 12 months, employee count, previously raised capital</td>
+          <td class="mid">Tracked through the season in meeting logs</td>
+          <td class="out">Funding raised during the program, and headcount today</td>
+          <td class="prod">Economic movement per company</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>What the closing report adds on top</h3>
+  <p>Alongside the mirrored questions, the exit survey captures what only a founder at the end of the program can tell us. Six statements test the five promises made in week one. A direct question asks whether they discovered New Jersey resources they did not know existed. A count of people they would reach out to again measures the network effect. Match quality is asked of both sides of every pair, using the same question, so a mismatch is visible from two angles rather than one.</p>
+
+  <p>The mentor completes a separate short survey at the same time. It confirms whether the engagement was completed, roughly how many hours it took, how productive the sessions were, and how much progress the mentor saw from their own vantage point. That gives every founder's outcome an independent second read rather than resting on self-report.</p>
+
+  <p>Both sides then sign a verification form certifying that the logged sessions and educational attendance are accurate. The countersignature is what turns a season of self-reported activity into a documented record, and it is the final key that unlocks the founder's numbered certificate of completion.</p>
+
+  <div class="pull">
+    <p>Nobody is asked to remember how far they came. We already wrote it down.</p>
+  </div>
+</section>
+
+<!-- ══════════ 5 ══════════ -->
+<section class="chapter" id="s5">
+  <div class="chead">
+    <p class="cn">The takeaway</p>
+    <h2>What every founder walks away holding</h2>
+    <p class="clede">Not a feeling about the program. A set of specific, countable things that exist after November 20 and belong to the founder.</p>
+  </div>
+
+  <div class="ledger">
+    <div class="lrow">
+      <div class="lq">1</div>
+      <div class="lc"><h5>A matched mentor, and a relationship on their own terms</h5>
+      <p>Matched against a shared taxonomy of focus areas and founder stage rather than assigned by hand. The Roadmap meeting closes with an explicit agreement on staying in touch, set by the founder.</p></div>
+    </div>
+    <div class="lrow">
+      <div class="lq">3<span style="font-size:15px;font-weight:600;letter-spacing:0;"> hrs min</span></div>
+      <div class="lc"><h5>One-to-one time with an experienced operator</h5>
+      <p>Three hours is the floor. Founders self-select into tiers running up to ten sessions, and the sessions beyond Roadmap go deeper on the work between milestones.</p></div>
+    </div>
+    <div class="lrow">
+      <div class="lq">20</div>
+      <div class="lc"><h5>Educational sessions offered across the eight weeks</h5>
+      <p>Three are required. Sessions run Monday, Tuesday and Friday so a founder with a job or a caregiving schedule can still reach the minimum, and a written reflection covers a session they had to miss.</p></div>
+    </div>
+    <div class="lrow">
+      <div class="lq">90<span style="font-size:15px;font-weight:600;letter-spacing:0;"> days</span></div>
+      <div class="lc"><h5>A written plan that runs past graduation</h5>
+      <p>The Roadmap is built to outlast the program: the next three moves in order, and the signals that tell the founder it is working.</p></div>
+    </div>
+    <div class="lrow">
+      <div class="lq">1</div>
+      <div class="lc"><h5>A place in the room at the in-person event</h5>
+      <p>Uplift at OverdriveAI in Newark on October 27, TechUnited's marquee event. Founders are coached to arrive with a mission drawn from their Roadmap rather than a business card.</p></div>
+    </div>
+    <div class="lrow">
+      <div class="lq">&infin;</div>
+      <div class="lc"><h5>Their own written record</h5>
+      <p>Every goal, reflection and prompt response the founder wrote across the season, collected in one place in the portal. It stays theirs.</p></div>
+    </div>
+    <div class="lrow">
+      <div class="lq">1</div>
+      <div class="lc"><h5>A numbered certificate of completion</h5>
+      <p>Issued the moment both signatures are verified, ready for LinkedIn. It is earned against six documented gates, not attendance at a closing ceremony.</p></div>
+    </div>
+    <div class="lrow">
+      <div class="lq">NJ</div>
+      <div class="lc"><h5>A working map of the New Jersey ecosystem</h5>
+      <p>The exit survey asks directly whether founders discovered state resources they did not know existed, which makes ecosystem literacy a reported outcome rather than an assumed one.</p></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <p><strong>The through line.</strong> A founder names one goal in the application, defines what progress on it looks like in week one, works it across Discover, Act and Roadmap, and is asked about that same goal in the same words at the end. Every number in the program report comes out of that loop. Nothing is collected twice, and nothing is asked that we do not use.</p>
+  </div>
+</section>
+
+<!-- ══════════ worked example ══════════ -->
+<section class="chapter" id="s6">
+  <div class="chead">
+    <p class="cn">Worked example</p>
+    <h2>One founder, all the way through</h2>
+    <p class="clede">Everything above is the machinery. This is what it produces for a single person: an application, a scored match, a sharpened goal, three meetings, and a measured result at the end.</p>
+  </div>
+
+  <div class="example">
+    <p class="exlabel">Fall 2026 &nbsp;·&nbsp; illustrative founder profile, real matching algorithm</p>
+
+    <h3>What she told us at application</h3>
+    <div class="exgrid">
+      <div><dt>Company stage</dt><dd>Early traction<small>Users and early customers, pre-scale</small></dd></div>
+      <div><dt>Revenue, last 12 months</dt><dd>Under $25k</dd></div>
+      <div><dt>Full-time employees</dt><dd>0<small>Founder only</small></dd></div>
+      <div><dt>Previously raised</dt><dd>No</dd></div>
+      <div><dt>Topics selected</dt><dd>3<small>Pitch and narrative · Fundraising · Financial fluency</small></dd></div>
+      <div><dt>Primary focus</dt><dd>Pitch and narrative</dd></div>
+      <div><dt>Confidence in that focus</dt><dd>Somewhat confident<small>Second of four points on the scale</small></dd></div>
+      <div><dt>Success criterion ranked first</dt><dd>Improving my pitch, narrative, or positioning</dd></div>
+      <div><dt>Milestone expected</dt><dd>First investor conversations</dd></div>
+      <div><dt>Session tier chosen</dt><dd>4 to 6 sessions</dd></div>
+    </div>
+
+    <h3>How the match scored</h3>
+    <p style="max-width:66ch;">Matched against a real Fall 2026 mentor: a founder and business-innovation professor whose application listed go-to-market, pitch and narrative, and hiring and leadership as her focus areas, a 4-to-6-session capacity, and flexible availability. The scorer runs every eligible mentor and ranks them. Here is the breakdown for the one that came out on top.</p>
+
+    <div class="tscroll">
+      <table>
+        <thead>
+          <tr><th>Factor</th><th>What matched</th><th class="pts">Points</th><th class="pts">Running</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="q">Session commitment</td>
+            <td class="mid">Both selected the 4-to-6 tier. Exact alignment carries the heaviest single weight in the model.</td>
+            <td class="pts">+4</td><td class="pts">4</td>
+          </tr>
+          <tr>
+            <td class="q">Focus overlap</td>
+            <td class="mid">One shared area, pitch and narrative, which is also her primary focus. Two points per overlapping area, capped at three areas.</td>
+            <td class="pts">+2</td><td class="pts">6</td>
+          </tr>
+          <tr>
+            <td class="q">Shared language</td>
+            <td class="mid">She wrote that she wanted to sharpen her pitch and story before putting it in front of investors. The mentor wrote that she offers exactly that. The scorer compares the free-text answers and found the overlap on its own.</td>
+            <td class="pts">+2</td><td class="pts">8</td>
+          </tr>
+          <tr>
+            <td class="q">Founder-stage fit</td>
+            <td class="mid">No points. This mentor left the optional founder-stage preference blank, so there was nothing to score against.</td>
+            <td class="pts zero">0</td><td class="pts">8</td>
+          </tr>
+          <tr>
+            <td class="q">Schedule</td>
+            <td class="mid">Mentor availability marked flexible, which clears any founder's preference.</td>
+            <td class="pts">+1</td><td class="pts">9</td>
+          </tr>
+          <tr class="runtot">
+            <td>Total</td><td>Out of a possible 15</td><td class="pts">&nbsp;</td><td class="pts">9</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="scoretag"><b>Excellent match</b> <span>9 / 15</span></div>
+    <p style="max-width:66ch;font-size:15px;color:var(--ink-2);">The score builds the shortlist. It does not make the decision. A program manager reviews every pairing before it is announced, which is exactly why a blank field like founder-stage preference is visible here rather than hidden inside a single number.</p>
+
+    <h3>What she wrote in week one</h3>
+    <p style="max-width:66ch;">Her application said her focus was "pitch and narrative." The portal made her say what that actually meant:</p>
+    <div class="pull" style="margin:18px 0 22px;">
+      <p style="font-size:clamp(18px,2.3vw,23px);max-width:32ch;">"By November I want a deck I'm not embarrassed by, and three investor conversations that go past the first meeting."</p>
+    </div>
+    <p style="max-width:66ch;">That sentence is the difference between a category and something a mentor can act on in an hour, and something we can evaluate in November.</p>
+
+    <h3>How the three meetings ran</h3>
+    <div class="arc">
+      <div class="a1">
+        <p class="an">Discover &nbsp;·&nbsp; day 5</p>
+        <p>Agreed the deck was not the real problem. <b>The story was.</b> Picked the narrative as the focus and put Act on the calendar before leaving.</p>
+      </div>
+      <div class="a2">
+        <p class="an">Act &nbsp;·&nbsp; day 14</p>
+        <p>Rewrote the opening two minutes together, then made a commitment with a date: <b>pitch it live to three people who are not investors</b> before the next session.</p>
+      </div>
+      <div class="a3">
+        <p class="an">Roadmap &nbsp;·&nbsp; day 38</p>
+        <p>Two of the three practice pitches had gone badly and the third landed. Built the 90-day plan off what changed, plus <b>an intro the mentor offered to make.</b></p>
+      </div>
+    </div>
+    <p style="max-width:66ch;">She logged five sessions in total against a four-to-six commitment, 312 minutes. Sessions four and five were both Acts, working the plan between milestones.</p>
+
+    <h3>What the closing report showed</h3>
+    <div class="tscroll">
+      <table>
+        <thead>
+          <tr><th class="before">At application</th><th class="after">At close</th><th>Movement</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="q">Confidence navigating pitch and narrative: <strong>Somewhat confident</strong></td>
+            <td class="out">The identical question and scale: <strong>Confident</strong></td>
+            <td class="delta">+1 point</td>
+          </tr>
+          <tr>
+            <td class="q">Company stage: <strong>Early traction</strong></td>
+            <td class="out">The identical question: <strong>Early traction</strong></td>
+            <td class="delta flat">No change</td>
+          </tr>
+          <tr>
+            <td class="q">Ranked first: improving my pitch, narrative, or positioning</td>
+            <td class="out">Selected from the identical list as something the program delivered</td>
+            <td class="delta">Promised, delivered</td>
+          </tr>
+          <tr>
+            <td class="q">Expected milestone: first investor conversations</td>
+            <td class="out">Checked "rebuilt my pitch or deck and put it in front of investors or customers" and "expanded my network with relevant contacts"</td>
+            <td class="delta">2 outcomes</td>
+          </tr>
+          <tr>
+            <td class="q">No independent read available</td>
+            <td class="out">Mentor reported 6 to 10 hours, productive sessions, and <strong>moderate progress</strong></td>
+            <td class="delta flat">Second angle</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="max-width:66ch;"><strong>Her company stage did not move, and her mentor called the progress moderate rather than significant.</strong> Both of those go in the report exactly as recorded. A program that only reports the founders who advanced a stage is not measuring anything, it is selecting. The confidence delta, the delivered success criterion, and the two concrete outcomes are what genuinely moved in eight weeks, and they moved on the goal she named herself before she met anyone.</p>
+
+    <p style="max-width:66ch;margin-bottom:0;">Multiply this by roughly sixty founders a year and it becomes the program report: stage advancement across the cohort, confidence deltas by focus area, success criteria promised against delivered, and a count of the hard outcomes underneath.</p>
+  </div>
+</section>
+
+<div class="foot">
+  <span>TechUnited:NJ &nbsp;·&nbsp; Uplift Mentorship Program</span>
+  <span>Fall 2026 &nbsp;·&nbsp; techunited.co</span>
+</div>
+
+</div>
+
+</body>
+</html>
