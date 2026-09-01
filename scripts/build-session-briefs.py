@@ -30,7 +30,8 @@ SPEAKERS = [
          "engineering background and more than 20 years experience in global B2B marketing with name-brand companies "
          "and feisty start-ups. He also coaches and mentors marketers and teams of one."),
     need=[("Calendar hold", "For the educational session only. Lands as soon as you confirm the date."),
-          ("Sync call", "Book a prep call for the week before, whatever time works for you: calendly.com/mj-techunited/30min"),
+          ("Sync call", 'Book a prep call for the week before, whatever time works for you: '
+           '<a href="https://calendly.com/mj-techunited/30min">calendly.com/mj-techunited/30min</a>'),
           ("Your 30 minutes", "Roughly 20 minutes of content, then questions. We hold the clock.")],
     settle=["Which one or two tactics we close on, so the room leaves with a decision",
             "How much of the 30 minutes you want to keep for questions",
@@ -61,7 +62,8 @@ SPEAKERS = [
          "enterprise technology. As a Venture Partner at REFASHIOND Ventures, he advises early-stage founders on "
          "product-market fit, fundraising, and scaling."),
     need=[("Calendar hold", "For the educational session only. Lands as soon as you confirm the date."),
-          ("Sync call", "Book a prep call for the week before, whatever time works for you: calendly.com/mj-techunited/30min"),
+          ("Sync call", 'Book a prep call for the week before, whatever time works for you: '
+           '<a href="https://calendly.com/mj-techunited/30min">calendly.com/mj-techunited/30min</a>'),
           ("Your 30 minutes", "A 20 to 25 minute moderated conversation, then questions from founders at the end. We hold the clock.")],
     settle=["What you are comfortable naming out loud: numbers, timelines, the decision to close",
             "The three questions you wish someone had asked you at the start, which become the run of show",
@@ -88,7 +90,8 @@ SPEAKERS = [
          "finance and has worked across Fortune 15 companies, 500-person companies, and startups, with experience "
          "spanning finance, operations, marketing, revenue operations, and HR."),
     need=[("Calendar hold", "For the educational session only. Lands as soon as you confirm the date."),
-          ("Sync call", "Book a prep call for the week before, whatever time works for you: calendly.com/mj-techunited/30min"),
+          ("Sync call", 'Book a prep call for the week before, whatever time works for you: '
+           '<a href="https://calendly.com/mj-techunited/30min">calendly.com/mj-techunited/30min</a>'),
           ("Your 30 minutes", "Roughly 20 minutes of content, then questions. We hold the clock.")],
     settle=["How each takeaway becomes something a founder can act on the following Monday",
             "How much of the 30 minutes you want to keep for questions",
@@ -152,6 +155,7 @@ CSS = """
   .need .row { display: flex; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--rule); }
   .need .row:first-child { border-top: 1px solid var(--rule); }
   .need .lab { flex: 0 0 1.7in; font-weight: 600; color: var(--ink); }
+  a { color: var(--pink); text-decoration: underline; text-underline-offset: 2px; font-weight: 600; }
   .copyband { margin-top: 11px; border-top: 3px solid var(--ink); padding-top: 9px;
     display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
   .copyband .l { font-family: 'JetBrains Mono', monospace; font-size: 8.5pt; font-weight: 700;
