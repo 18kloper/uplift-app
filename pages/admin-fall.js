@@ -579,34 +579,46 @@ export default function AdminFall() {
         </div>
 
         <div style={{ background: "#fff", borderBottom: "1px solid #e8e4f5" }}>
-          {/* Sixteen tabs do not fit on one line on a laptop, and a row that
-              scrolls sideways hides the tabs at the end of it. Wrapping to two
-              rows keeps every tab visible and clickable. */}
-          <div style={{ maxWidth: 1560, margin: "0 auto", padding: "0 28px", display: "flex", gap: 4, flexWrap: "wrap", rowGap: 0 }}>
-            {[["today", "📋 Today"], ["overview", "Overview"], ["founders", "Roster"],
-              // These two counters are a to-do list, not a scoreboard: the number
-              // in the tab is how many applications still need a yes or a no.
-              // Once everyone is decided it reads (0) and the useful totals are
-              // on the Accepted tabs. Running totals stay on Overview.
-              ["menteeapps", `Mentee Apps${people ? ` (${undecidedMentees})` : ""}`],
-              ["mentorapps", `Mentor Apps${people ? ` (${undecidedMentors})` : ""}`],
-              ["acceptedfounders", `Accepted Founders${people ? ` (${people.mentees.filter(a => a.decision === "approved" && !a.isTest).length})` : ""}`],
-              ["acceptedmentors", `Accepted Mentors${people ? ` (${people.mentors.filter(m2 => m2.decision === "approved" && !m2.isTest).length})` : ""}`],
-              ["matching", `Matching${people ? ` (${people.mentees.filter(a => a.decision === "approved" && !a.isTest && !a.matchedMentorId).length} waiting)` : ""}`],
-              ["matched", `Matched${people ? ` (${people.matchedCount})` : ""}`],
-              ["signals", "Signals"],
-              ["deadlines", "\u23F1 Deadlines"], ["reporting", "\ud83d\udcca Reporting"], ["sessions", "Sessions"],
-              ["speakers", `\ud83c\udfa4 Speakers${speakers?.counts ? ` (${speakers.counts.undecided})` : ""}`],
-              ["cohorts", `Cohorts${cohortGroups ? ` (${cohortGroups.groups.length})` : ""}`],
-              ["pulse", "Pulse & Wins"]].map(([id, label]) => (
-              <button key={id} onClick={() => setTab(id)} style={{
-                border: "none", background: "none", padding: "10px 13px 8px", whiteSpace: "nowrap",
-                borderBottom: tab === id ? "3px solid #5c4eb5" : "3px solid transparent",
-                color: tab === id ? "#3d2f8a" : "#9b8fcf",
-                fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-              }}>
-                {label}
-              </button>
+          {/* Sixteen tabs do not fit on one line, and letting them wrap on
+              their own put the break wherever the window happened to end,
+              which read as misalignment. The rows are declared instead, and
+              grouped by what they are for: the funnel, then the cohort, then
+              reporting, then the calendar. */}
+          <div style={{ maxWidth: 1560, margin: "0 auto", padding: "4px 28px 0" }}>
+            {[
+              // Getting people in
+              [["today", "📋 Today"], ["overview", "Overview"], ["founders", "Roster"],
+                // These two counters are a to-do list, not a scoreboard: the
+                // number is how many applications still need a yes or a no, so
+                // it reads (0) once the inbox is clear. Totals live on Overview.
+                ["menteeapps", `Mentee Apps${people ? ` (${undecidedMentees})` : ""}`],
+                ["mentorapps", `Mentor Apps${people ? ` (${undecidedMentors})` : ""}`]],
+              // Running the cohort
+              [["acceptedfounders", `Accepted Founders${people ? ` (${people.mentees.filter(a => a.decision === "approved" && !a.isTest).length})` : ""}`],
+                ["acceptedmentors", `Accepted Mentors${people ? ` (${people.mentors.filter(m2 => m2.decision === "approved" && !m2.isTest).length})` : ""}`],
+                ["matching", `Matching${people ? ` (${people.mentees.filter(a => a.decision === "approved" && !a.isTest && !a.matchedMentorId).length} waiting)` : ""}`],
+                ["matched", `Matched${people ? ` (${people.matchedCount})` : ""}`],
+                ["cohorts", `Cohorts${cohortGroups ? ` (${cohortGroups.groups.length})` : ""}`],
+                ["signals", "Signals"],
+                ["pulse", "Pulse & Wins"]],
+              // Reporting out
+              [["deadlines", "\u23F1 Deadlines"], ["reporting", "\ud83d\udcca Reporting"]],
+              // The calendar
+              [["sessions", "Sessions"],
+                ["speakers", `\ud83c\udfa4 Speakers${speakers?.counts ? ` (${speakers.counts.undecided})` : ""}`]],
+            ].map((row, r) => (
+              <div key={r} style={{ display: "flex", gap: 4, borderTop: r === 0 ? "none" : "1px solid #f4f2fb" }}>
+                {row.map(([id, label]) => (
+                  <button key={id} onClick={() => setTab(id)} style={{
+                    border: "none", background: "none", padding: "9px 13px 7px", whiteSpace: "nowrap",
+                    borderBottom: tab === id ? "3px solid #5c4eb5" : "3px solid transparent",
+                    color: tab === id ? "#3d2f8a" : "#9b8fcf",
+                    fontSize: 13.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                  }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
             ))}
           </div>
         </div>
@@ -756,7 +768,14 @@ export default function AdminFall() {
           {/* Founders */}
           <div style={card}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
-              <p style={{ ...kicker, margin: 0 }}>Founders ({founders.length})</p>
+              <p style={{ ...kicker, margin: 0 }}>
+                Founders ({founders.filter(f => !TEST_SLUGS.includes(f.slug)).length})
+                {founders.some(f => TEST_SLUGS.includes(f.slug)) && (
+                  <span style={{ fontWeight: 600, letterSpacing: 0, textTransform: "none", color: "#9b8fcf" }}>
+                    {" "}+ {founders.filter(f => TEST_SLUGS.includes(f.slug)).length} walkthrough portals
+                  </span>
+                )}
+              </p>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {["all", "on-track", "needs-attention", "at-risk", "churned"].map(sf => (
                   <button key={sf} onClick={() => setStatusFilter(sf)} style={{
@@ -785,16 +804,29 @@ export default function AdminFall() {
                 </thead>
                 <tbody>
                   {founders.map(f => (
-                    <tr key={f.slug} style={{ borderBottom: "1px solid #f0edf9", verticalAlign: "top" }}>
+                    <tr key={f.slug} style={{
+                      borderBottom: "1px solid #f0edf9", verticalAlign: "top",
+                      // The three walkthrough portals sit in the same table as
+                      // real founders and used to be indistinguishable from
+                      // them, which makes every count on the row a small lie.
+                      background: TEST_SLUGS.includes(f.slug) ? "#fbfaff" : "transparent",
+                    }}>
                       <td style={{ padding: "10px" }}>
-                        <a href={`/fall/${f.slug}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700, color: "#3d2f8a", textDecoration: "none" }}>{f.name}</a>
+                        <a href={`/fall/${f.slug}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700, color: TEST_SLUGS.includes(f.slug) ? "#6b6480" : "#3d2f8a", textDecoration: "none" }}>{f.name}</a>
+                        {TEST_SLUGS.includes(f.slug) && (
+                          <span title="A walkthrough portal, not a real founder. It exists so the team can click through the founder experience; its milestones, meetings and pulse checks are not cohort data." style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#6b6480", borderRadius: 4, padding: "1px 6px", letterSpacing: "0.04em", cursor: "help" }}>TEST ACCOUNT</span>
+                        )}
                         {(() => {
                           const app = people?.mentees?.find(a => `${a.first} ${a.last}`.trim().toLowerCase() === (f.name || "").trim().toLowerCase());
                           return app?.upliftId ? (
                             <span title="Uplift ID — assigned on approval; this founder's portal login" style={{ marginLeft: 6, fontFamily: "monospace", fontSize: 11, fontWeight: 700, background: "#f0eef8", color: "#5c4eb5", borderRadius: 5, padding: "2px 6px", cursor: "help" }}>{app.upliftId}</span>
                           ) : null;
                         })()}
-                        <div style={{ fontSize: 11.5, color: "#9b8fcf" }}>{f.company} · {f.cohort ? `Cohort ${f.cohort}` : "Cohort TBD"}{f.mentor ? ` · ${f.mentor}` : ""}</div>
+                        <div style={{ fontSize: 11.5, color: "#9b8fcf" }}>
+                          {TEST_SLUGS.includes(f.slug)
+                            ? <>walkthrough portal · {f.mentor ? `mock match with ${f.mentor}` : "no mock match"}</>
+                            : <>{f.company} · {f.cohort ? `Cohort ${f.cohort}` : "Cohort TBD"}{f.mentor ? ` · ${f.mentor}` : ""}</>}
+                        </div>
                       </td>
                       <td style={{ padding: "10px" }}><StatusChip status={f.status} /></td>
                       <td style={{ padding: "10px" }}><GateDots gate={f.gate} /></td>
@@ -857,33 +889,26 @@ export default function AdminFall() {
               {/* Say what was done, in three steps, with this cohort's own
                   numbers in them. The principles alone did not land. */}
               <div style={{ ...card, borderLeft: "4px solid #5c4eb5" }}>
-                <p style={kicker}>How these five rooms were built</p>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14, marginBottom: 16 }}>
-                  {[
-                    ["Step 1 · Line all " + all.length + " up by stage",
-                      `Stage is the only field in the application with an order to it, and it is the thing that decides whether a room's problems rhyme. This cohort is ${stageCounts.map(x => `${x.n} ${STAGE_LABEL[x.r]}`).join(", ")}.`],
-                    ["Step 2 · Cut into five rooms",
-                      `${cohortGroups.groups.map(g => g.members.length).join(" / ")} founders, so no room is a rump. Cutting a sorted line means every room opens spanning one or two neighbouring stages instead of four.`],
-                    ["Step 3 · Swap until no swap helps",
-                      `${cohortGroups.passes} round${cohortGroups.passes === 1 ? "" : "s"} of trading founders between rooms, each trade taken only if it improves the set: a shared meeting window first, then reciprocity, then spread of industry. Sizes are held, so a swap never unbalances anything.`],
-                  ].map(([h, b]) => (
-                    <div key={h} style={{ background: "#faf9ff", border: "1px solid #e8e4f5", borderRadius: 10, padding: "12px 14px" }}>
-                      <p style={{ margin: "0 0 5px", fontSize: 12.5, fontWeight: 800, color: "#3d2f8a" }}>{h}</p>
-                      <p style={{ margin: 0, fontSize: 12, color: "#6b6480", lineHeight: 1.6 }}>{b}</p>
-                    </div>
-                  ))}
-                </div>
-                <p style={{ margin: "0 0 4px", fontSize: 12.5, color: "#37324e", lineHeight: 1.65 }}>
-                  <strong>The order matters.</strong> A room with no common window never convenes, and then nothing else
-                  about it is worth discussing — so that outranks everything. Stage comes next, because peer value comes
-                  from facing comparable problems at the same time; an idea-stage founder beside a growth-stage founder
-                  produces mentoring, not exchange. Then reciprocity, which is your gives-and-gets: what each founder
-                  says they bring, against what the others say they need. Then spread of industry, for fresh perspective
-                  and to keep direct competitors out of the same room.
+                <p style={kicker}>How these five rooms were decided</p>
+                <p style={{ margin: "0 0 8px", fontSize: 13.5, color: "#37324e", lineHeight: 1.75 }}>
+                  All {all.length} founders were lined up by how far along they are — from shaping an idea through to
+                  scaling an operation — and cut into five rooms of {cohortGroups.groups.map(g => g.members.length).join(", ")}.
+                  That ordering is the spine of it, because a peer room only works when the problems in it rhyme: an
+                  idea-stage founder sitting with a growth-stage founder gets mentoring, not an exchange between equals.
+                  From there founders were traded between neighbouring rooms for three reasons, in this order of
+                  importance. First, that everybody in a room can make the same meeting time, since a room with no
+                  common window never actually meets and nothing else about it matters then. Second, that each room
+                  holds a spread of industries rather than five of one, so the perspectives are fresh and nobody is
+                  sitting across from a competitor. Third, that each room contains people who have already done what
+                  the others are setting out to do — somebody who has raised, hired or sold, beside somebody about to.
+                  Region was deliberately left out: the sessions are virtual and a third of founders did not state a
+                  county, so grouping by geography would have fought stage for nothing.
                 </p>
                 <p style={{ margin: 0, fontSize: 12, color: "#6b6480", lineHeight: 1.6 }}>
-                  <strong>Not region.</strong> The fall sessions are virtual and a third of the county fields are blank,
-                  so geography would fight stage for nothing. It would only earn a place if these rooms met in person.
+                  Each room&apos;s own paragraph is below, written to be shared as it stands. The two earliest rooms are
+                  the ones to watch: with everyone at the same starting line there is nobody in the room who has done it
+                  before, so those two want a facilitator or an alum in the chair rather than waiting for a peer to have
+                  the answer. Recomputed from the applications on every load, so the rooms move as founders are approved.
                 </p>
               </div>
 
@@ -904,7 +929,7 @@ export default function AdminFall() {
                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
                     <thead>
                       <tr style={{ textAlign: "left", color: "#9b8fcf", fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                        {["Room", "Stage make-up", "Everyone in the room", "When it can meet", "Peers who have done it", "Industries doubled"].map(h => (
+                        {["Room", "Stage make-up", "Everyone in the room", "When it can meet", "Industries doubled"].map(h => (
                           <th key={h} style={{ padding: "7px 10px", borderBottom: "1px solid #e8e4f5", whiteSpace: "nowrap" }}>{h}</th>
                         ))}
                       </tr>
@@ -938,9 +963,6 @@ export default function AdminFall() {
                             <td style={{ padding: "9px 10px", fontSize: 12, whiteSpace: "nowrap", color: s.meetable === 1 ? "#1a6e42" : "#b35c00", fontWeight: 700 }}>
                               {s.meetable === 1 ? "all 9" : `${Math.round(s.meetable * g.members.length)} of ${g.members.length}`} · {win[s.bestWindow] || s.bestWindow}
                             </td>
-                            <td style={{ padding: "9px 10px", fontSize: 12, whiteSpace: "nowrap", color: s.avgHelpers >= 3 ? "#1a6e42" : "#b35c00", fontWeight: 600 }}>
-                              {s.avgHelpers.toFixed(1)} of {g.members.length - 1} have done it before
-                            </td>
                             <td style={{ padding: "9px 10px", fontSize: 11.5, color: "#6b6480" }}>
                               {doubled.length ? doubled.map(([k, v]) => `${k.split(" /")[0]} ×${v}`).join(", ") : "none repeated"}
                             </td>
@@ -950,21 +972,9 @@ export default function AdminFall() {
                     </tbody>
                   </table>
                 </div>
-                <p style={{ margin: "12px 0 6px", fontSize: 12, color: "#37324e", lineHeight: 1.65 }}>
+                <p style={{ margin: "12px 0 0", fontSize: 12, color: "#6b6480", lineHeight: 1.65 }}>
                   Reading down the rooms is reading up the stages, which is the whole idea: a room whose squares are all
-                  one or two shades is a room where the problems rhyme. The last column but one is the reciprocity
-                  measure, and it reads literally — of the eight other people in the room, how many have already done the
-                  thing a given founder is working on. It comes from what founders have actually done (raised outside
-                  capital, paying customers, employees, been through an accelerator, users) against the focus they
-                  picked, not from what they wrote about themselves.
-                </p>
-                <p style={{ margin: 0, fontSize: 12, color: "#b9770e", lineHeight: 1.65 }}>
-                  <strong>Worth knowing:</strong> that number climbs as the stages do, and it has to. In a room of
-                  idea-stage founders nobody has raised, hired or sold anything yet, so peer expertise is thin at the
-                  early end no matter how the rooms are cut — stage cohesion and peer experience genuinely pull against
-                  each other down there. The two youngest rooms are the ones that will want a facilitator, an alum, or a
-                  deliberately seeded founder who is further along. That is a programme decision, so the split does not
-                  quietly make it: it leaves the bands clean and tells you instead.
+                  one or two shades is a room where the problems rhyme.
                 </p>
               </div>
 
