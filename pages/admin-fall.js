@@ -7,7 +7,7 @@ import { TEST_SLUGS } from "../lib/fall-roster";
 // "best for this founder" and "best for the whole group of them" separately.
 import {
   scoreMentor, gradeOf, buildCohort, cohortPlan, greedyPlan, recommendFor, isEligibleMentor, samePerson,
-  sessionsFor, sessionShortfall,
+  sessionsFor, sessionsPlanned,
 } from "../lib/cohort-matching";
 
 
@@ -2124,25 +2124,31 @@ export default function AdminFall() {
                       }}>{label}</button>
                     ))}
                   </div>
-                  {/* Sessions, not headcount. This is the constraint that
-                      actually decides whether the cohort can be served, and no
-                      amount of matching moves it. */}
-                  {cohort && cohort.sessionDemand > cohort.sessionSupply && (
-                    <div style={{ marginBottom: 10, padding: "10px 14px", background: "#fff8ef", border: "1px solid #f2e2c8", borderRadius: 8 }}>
-                      <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#b9770e" }}>
-                        Session capacity is short by {cohort.sessionDemand - cohort.sessionSupply}
+                  {/* Session depth, stated as the trade it is rather than as an
+                      alarm. Three sessions is the promise and it is always
+                      kept; asking for 7-10 is a preference that loses to match
+                      quality, which is the deal founders are told about. The
+                      numbers are here because more mentors is what would buy
+                      more depth, not because anything is broken. */}
+                  {cohort && plan.summary.shortchanged > 0 && (
+                    <div style={{ marginBottom: 10, padding: "10px 14px", background: "#faf9ff", border: "1px solid #e8e4f5", borderRadius: 8 }}>
+                      <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#3d2f8a" }}>
+                        Session depth · everyone gets at least the 3-session minimum
                       </p>
                       <p style={{ margin: "0 0 4px", fontSize: 12.5, color: "#37324e", lineHeight: 1.6 }}>
-                        The mentor pool offers <strong>{cohort.sessionSupply} sessions</strong> and these founders asked for{" "}
-                        <strong>{cohort.sessionDemand}</strong>. {plan.summary.shortchanged} founder{plan.summary.shortchanged === 1 ? "" : "s"} will
-                        get fewer sessions than they asked for, {plan.summary.shortSessions} short in total, and that is the
-                        best any arrangement of these people can do.
+                        The plan commits <strong>{plan.summary.sessionsPromised} sessions</strong> out of the{" "}
+                        <strong>{cohort.sessionSupply}</strong> the pool offers, against{" "}
+                        <strong>{cohort.sessionDemand}</strong> asked for.{" "}
+                        {plan.summary.shortchanged} founder{plan.summary.shortchanged === 1 ? "" : "s"} land nearer the minimum than the
+                        range they picked{plan.summary.atMinimum > 0 && <>, {plan.summary.atMinimum} of them at three</>} — because a
+                        better-fitting mentor with fewer sessions beat a more available one with a worse fit, which is the
+                        trade founders are told about. Nobody is booked past what they offered and nobody drops below three.
                       </p>
                       <p style={{ margin: 0, fontSize: 12, color: "#6b6480" }}>
-                        {cohort.founderBands[3] || 0} founders asked for 7-10 sessions and {cohort.mentorBands[3] || 0} mentors offer that much
+                        {cohort.founderBands[3] || 0} founders asked for 7-10 sessions against {cohort.mentorBands[3] || 0} mentors offering that much
                         · {cohort.founderBands[2] || 0} asked 4-6 against {cohort.mentorBands[2] || 0} mentors
                         · {cohort.founderBands[1] || 0} asked the minimum against {cohort.mentorBands[1] || 0} mentors.
-                        Approving more high-availability mentors is the only thing that closes this.
+                        More mentors at 7-10 is what buys more depth; it is not something matching can conjure.
                       </p>
                     </div>
                   )}
@@ -2177,11 +2183,13 @@ export default function AdminFall() {
                                   </button>
                                 </td>
                                 <td style={{ padding: "6px 10px", color: "#6b6480", whiteSpace: "nowrap" }}>→ {pr.mentor.name}{pr.second ? " (2nd founder)" : ""}</td>
-                                <td style={{ padding: "6px 10px", fontSize: 11.5, whiteSpace: "nowrap", color: sessionShortfall(pr.mentee, pr.mentor, pr.extra || 0) > 0 ? "#b35c00" : "#6b6480" }}>
+                                <td style={{ padding: "6px 10px", fontSize: 11.5, whiteSpace: "nowrap", color: "#6b6480" }}>
                                   {(() => {
                                     const asked = sessionsFor(pr.mentee.tier);
-                                    const miss = Math.round(sessionShortfall(pr.mentee, pr.mentor, pr.extra || 0));
-                                    return miss > 0 ? `asked ${asked}, gets about ${asked - miss}` : `${asked} sessions, fits`;
+                                    const gets = sessionsPlanned(pr.mentee, pr.mentor, pr.extra || 0);
+                                    return gets >= asked
+                                      ? `${gets} sessions, the full ask`
+                                      : `${gets} of the ${asked} asked${gets <= 3 ? " (the minimum)" : ""}`;
                                   })()}
                                 </td>
                                 <td style={{ padding: "6px 10px", whiteSpace: "nowrap" }}>
