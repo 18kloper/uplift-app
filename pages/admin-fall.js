@@ -497,6 +497,28 @@ export default function AdminFall() {
     setBulk({ phase: "done", done: pairs.length, total: pairs.length, errors });
   };
 
+  // Mentors who already have a founder, by any route: a committed match, a
+  // roster assignment, or the plan earmarking them for somebody still
+  // waiting. Naming one of these as a "better fit" for an already-matched
+  // founder is not an upgrade, it is an unmatch of somebody else wearing an
+  // upgrade's clothes. And a gate built only on the plan stops working the
+  // moment the waiting room empties, which is exactly when every mentor is
+  // taken — so committed matches have to count too.
+  const mentorsTaken = useMemo(() => {
+    const taken = new Set();
+    for (const a of people?.mentees || []) if (a.matchedMentorId) taken.add(a.matchedMentorId);
+    for (const mt of people?.mentors || []) if ((mt.assignedTo || []).length) taken.add(mt.id);
+    for (const pr of bestForCohort?.pairs || []) taken.add(pr.mentor.id);
+    return taken;
+  }, [people, bestForCohort]);
+
+  // The only mentors worth suggesting as an upgrade: approved, and carrying
+  // nobody at all.
+  const mentorsFree = useMemo(
+    () => (people?.mentors || []).filter(mt => isEligibleMentor(mt) && !mentorsTaken.has(mt.id)),
+    [people, mentorsTaken],
+  );
+
   if (!authed) {
     return (
       <>
@@ -528,28 +550,6 @@ export default function AdminFall() {
   const undecidedMentees = people ? people.mentees.filter(a => !a.decision && !a.isTest).length : 0;
   const undecidedMentors = people ? people.mentors.filter(m2 => !m2.decision && !m2.isTest).length : 0;
 
-  // Mentors who already have a founder, by any route: a committed match, a
-  // roster assignment, or the plan earmarking them for somebody still
-  // waiting. Naming one of these as a "better fit" for an already-matched
-  // founder is not an upgrade, it is an unmatch of somebody else wearing an
-  // upgrade's clothes. And a gate built only on the plan stops working the
-  // moment the waiting room empties, which is exactly when every mentor is
-  // taken — so committed matches have to count too.
-  const mentorsTaken = useMemo(() => {
-    const taken = new Set();
-    for (const a of people?.mentees || []) if (a.matchedMentorId) taken.add(a.matchedMentorId);
-    for (const mt of people?.mentors || []) if ((mt.assignedTo || []).length) taken.add(mt.id);
-    for (const pr of bestForCohort?.pairs || []) taken.add(pr.mentor.id);
-    return taken;
-  }, [people, bestForCohort]);
-
-  // The only mentors worth suggesting as an upgrade: approved, and carrying
-  // nobody at all.
-  const mentorsFree = useMemo(
-    () => (people?.mentors || []).filter(mt => isEligibleMentor(mt) && !mentorsTaken.has(mt.id)),
-    [people, mentorsTaken],
-  );
-
   const needsSessionInfo = (sess) => !sess.lumaName || /educational session|uplift session|tbd|placeholder/i.test(sess.lumaName);
   const card = { background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 16 };
   const kicker = { margin: "0 0 12px", fontSize: 12, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#5c4eb5" };
@@ -577,6 +577,42 @@ export default function AdminFall() {
                 </div>
                 <button onClick={() => setProfile(null)} style={{ border: "none", background: "#f0ecff", color: "#5c4eb5", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>✕</button>
               </div>
+              {/* Contact details live here rather than in every table: a
+                  founder and their mentor's email and phone, side by side, at
+                  the one moment you actually want them. */}
+              {(() => {
+                const isMentee = profile.kind === "mentee";
+                const me = profile.person;
+                const mentor = isMentee && me.matchedMentorId
+                  ? (people?.mentors || []).find(mt => mt.id === me.matchedMentorId)
+                  : null;
+                const line = (label, person, name) => {
+                  if (!person) return null;
+                  const tel = String(person.phone || "").replace(/[^\d+]/g, "");
+                  return (
+                    <div key={label} style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "baseline", padding: "5px 0" }}>
+                      <span style={{ minWidth: 62, fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9b8fcf" }}>{label}</span>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#1a1733" }}>{name}</span>
+                      {person.email && <a href={`mailto:${person.email}`} style={{ fontSize: 12.5, color: "#5c4eb5", fontWeight: 600 }}>{person.email}</a>}
+                      {tel
+                        ? <a href={`tel:${tel}`} style={{ fontSize: 12.5, color: "#5c4eb5", fontWeight: 600 }}>{person.phone}</a>
+                        : <span style={{ fontSize: 12, color: "#c8bfef" }}>no phone on file</span>}
+                    </div>
+                  );
+                };
+                return (
+                  <div style={{ background: "#faf9ff", border: "1px solid #e8e4f5", borderRadius: 10, padding: "10px 14px", marginBottom: 14 }}>
+                    {line(isMentee ? "Founder" : "Mentor", me, isMentee ? `${me.first} ${me.last}` : me.name)}
+                    {mentor && line("Mentor", mentor, mentor.name)}
+                    {isMentee && !mentor && (
+                      <p style={{ margin: "4px 0 0", fontSize: 12, color: "#9b8fcf" }}>Not matched yet, so no mentor to contact.</p>
+                    )}
+                    {!isMentee && (me.assignedTo || []).length > 0 && (
+                      <p style={{ margin: "4px 0 0", fontSize: 12, color: "#6b6480" }}>Mentoring {me.assignedTo.join(", ")}.</p>
+                    )}
+                  </div>
+                );
+              })()}
               {profile.kind === "mentee" ? (
                 <>
                   {profile.person.bio && <p style={{ margin: "0 0 12px", fontSize: 13.5, color: "#55506e", fontStyle: "italic" }}>&ldquo;{profile.person.bio}&rdquo;</p>}
@@ -657,7 +693,7 @@ export default function AdminFall() {
           <div style={{ maxWidth: 1560, margin: "0 auto", padding: "4px 28px 0" }}>
             {[
               // Getting people in
-              [["today", "📋 Today"], ["overview", "Overview"], ["founders", "Roster"],
+              [["today", "📋 Today"], ["deadlines", "\u23F1 Deadlines"], ["overview", "Overview"], ["founders", "Roster"],
                 // These two counters are a to-do list, not a scoreboard: the
                 // number is how many applications still need a yes or a no, so
                 // it reads (0) once the inbox is clear. Totals live on Overview.
@@ -672,7 +708,7 @@ export default function AdminFall() {
                 ["signals", "Signals"],
                 ["pulse", "Pulse & Wins"]],
               // Reporting out
-              [["deadlines", "\u23F1 Deadlines"], ["reporting", "\ud83d\udcca Reporting"]],
+              [["reporting", "\ud83d\udcca Reporting"]],
               // The calendar
               [["sessions", "Sessions"],
                 ["speakers", `\ud83c\udfa4 Speakers${speakers?.counts ? ` (${speakers.counts.undecided})` : ""}`]],
@@ -1483,14 +1519,21 @@ export default function AdminFall() {
               if (days <= 3) return { label: `${days}d left`, bg: "#fef7e8", fg: "#9a6200" };
               return { label: `${days}d left`, bg: "#f6f4fc", fg: "#5c4eb5" };
             };
-            const rows = data.founders.filter(f => f.status !== "churned").map(f => {
+            // Which of the five peer rooms each founder sits in, so the
+            // deadline view can say it without a second lookup.
+            const roomOf = {};
+            for (const g of cohortGroups?.groups || []) {
+              for (const m of g.members) roomOf[`${m.first} ${m.last}`.trim().toLowerCase()] = g.name;
+            }
+            const rows = data.founders.filter(f => f.status !== "churned" && !TEST_SLUGS.includes(f.slug)).map(f => {
               const app = people.mentees.find(a => a.inRoster === f.slug);
               const matchedAt = app?.matchedAt ? new Date(app.matchedAt) : null;
               const log = f.meetingLog || [];
               const m1Due = matchedAt ? new Date(matchedAt.getTime() + 7 * DAY) : null;
               const m2Due = log[0] ? new Date(new Date(log[0].submittedAt).getTime() + 10 * DAY) : null;
               return {
-                f, matchedAt,
+                f, matchedAt, app,
+                room: roomOf[(f.name || "").trim().toLowerCase()] || null,
                 m1: { due: m1Due, ...clock(m1Due, f.meetingCount >= 1) },
                 m2: { due: m2Due, ...clock(m2Due, f.meetingCount >= 2) },
                 m3: { due: M3_DUE, ...clock(M3_DUE, f.meetingCount >= 3) },
@@ -1506,16 +1549,31 @@ export default function AdminFall() {
                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                     <thead>
                       <tr style={{ textAlign: "left", color: "#9b8fcf", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                        {["Founder", "Matched", "M1 · Discover", "M2 · Act", "M3 · Roadmap", "Minutes"].map(h => (
+                        {["Founder", "Cohort", "Mentor", "M1 · Discover", "M2 · Act", "M3 · Roadmap", "Minutes"].map(h => (
                           <th key={h} style={{ padding: "8px 10px", borderBottom: "1px solid #e8e4f5", whiteSpace: "nowrap" }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {rows.map(({ f, matchedAt, m1, m2, m3 }) => (
+                      {rows.map(({ f, matchedAt, app, room, m1, m2, m3 }) => (
                         <tr key={f.slug} style={{ borderBottom: "1px solid #f0edf9" }}>
-                          <td style={{ padding: "10px", fontWeight: 700, color: "#3d2f8a" }}>{f.name}<div style={{ fontSize: 11.5, fontWeight: 400, color: "#9b8fcf" }}>{f.company}</div></td>
-                          <td style={{ padding: "10px", fontSize: 12, whiteSpace: "nowrap" }}>{matchedAt ? `${fmt(matchedAt)} · ${f.mentor || ""}` : "not matched"}</td>
+                          <td style={{ padding: "10px" }}>
+                            {/* Click the name for their bio and both sides'
+                                contact details, instead of carrying email and
+                                phone columns on every table. */}
+                            {app ? (
+                              <button onClick={() => setProfile({ kind: "mentee", person: app })} style={{ border: "none", background: "none", padding: 0, fontWeight: 700, color: "#3d2f8a", fontSize: 13, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3, textAlign: "left" }}>{f.name}</button>
+                            ) : <span style={{ fontWeight: 700, color: "#3d2f8a" }}>{f.name}</span>}
+                            <div style={{ fontSize: 11.5, fontWeight: 400, color: "#9b8fcf" }}>{f.company}</div>
+                          </td>
+                          <td style={{ padding: "10px", fontSize: 12, whiteSpace: "nowrap" }}>
+                            {room || <span style={{ color: "#c8bfef" }}>—</span>}
+                          </td>
+                          <td style={{ padding: "10px", fontSize: 12, whiteSpace: "nowrap" }}>
+                            {f.mentor
+                              ? <>{f.mentor}<div style={{ fontSize: 11, color: "#9b8fcf" }}>matched {fmt(matchedAt)}</div></>
+                              : <span style={{ color: "#c0392b", fontWeight: 600 }}>not matched</span>}
+                          </td>
                           <td style={{ padding: "10px" }}>{pill(m1)}<div style={{ fontSize: 11, color: "#9b8fcf", marginTop: 2 }}>due {fmt(m1.due)}</div></td>
                           <td style={{ padding: "10px" }}>{pill(m2)}<div style={{ fontSize: 11, color: "#9b8fcf", marginTop: 2 }}>{m2.due ? `due ${fmt(m2.due)}` : "after M1"}</div></td>
                           <td style={{ padding: "10px" }}>{pill(m3)}<div style={{ fontSize: 11, color: "#9b8fcf", marginTop: 2 }}>due Oct 23</div></td>
@@ -1529,7 +1587,8 @@ export default function AdminFall() {
                   </table>
                 </div>
                 <p style={{ margin: "12px 0 0", fontSize: 11.5, color: "#9b8fcf", fontStyle: "italic" }}>
-                  Clocks start from the FallMatches timestamp and each founder's submitted meetings. Requirement: 3+ meetings and 180+ minutes.
+                  Clocks start from the FallMatches timestamp and each founder&apos;s submitted meetings. Requirement: 3+ meetings and 180+ minutes.
+                  Click any founder for their bio and both their own and their mentor&apos;s email and phone.
                 </p>
               </div>
             );
