@@ -991,7 +991,7 @@ export default function AdminFall() {
                               ))}
                             </ul>
                           )}
-                          <p style={{ margin: "8px 0 0", fontSize: 11, color: "#9b8fcf", fontStyle: "italic" }}>Scored live from current application data via scoreMentor() — see the Matching Logic doc in Resources for the full point breakdown.</p>
+                          <p style={{ margin: "8px 0 0", fontSize: 11, color: "#9b8fcf", fontStyle: "italic" }}>Scored live from current application data via scoreMentor() in lib/cohort-matching.js. This is the pair score on its own; which pairs the plan actually makes is decided by the whole-cohort solve. Full breakdown in the Matching Logic doc under Resources.</p>
                         </div>
                       )}
                     </div>
@@ -2114,6 +2114,23 @@ export default function AdminFall() {
                     {plan.summary.doubled === 0 && plan.summary.tripled === 0 && <> · nobody doubles up</>}
                     {" · "}no mentor booked past the sessions they offered
                   </p>
+                  {/* A waiting mentor is a to-do, not a statistic. Every one so
+                      far has been a thin application rather than a genuine gap
+                      in the cohort, and that is fixable. */}
+                  {plan.idle?.length > 0 && (
+                    <div style={{ marginBottom: 10, padding: "10px 14px", background: "#fff8ef", border: "1px solid #f2e2c8", borderRadius: 8 }}>
+                      <p style={{ margin: "0 0 5px", fontSize: 12.5, fontWeight: 700, color: "#b9770e" }}>
+                        {plan.idle.length} mentor{plan.idle.length === 1 ? "" : "s"} waiting — no founder here is better than a weak fit for them
+                      </p>
+                      {plan.idle.map(x => (
+                        <p key={x.mentor.id} style={{ margin: "0 0 3px", fontSize: 12, color: "#37324e", lineHeight: 1.55 }}>
+                          <strong>{x.mentor.name}</strong>
+                          {x.best && <> · closest founder is {x.best.mentee.first} {x.best.mentee.last} at {gradeOf(x.best.score).short.toLowerCase()} ({x.best.score})</>}
+                          {x.thinApplication && <span style={{ color: "#b35c00" }}> · application has no focus areas or stage preference, so nothing can score above a weak fit until that is filled in</span>}
+                        </p>
+                      ))}
+                    </div>
+                  )}
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
                     {[[true, "One mentee each"], [false, "Best quality, mentors may idle"]].map(([val, label]) => (
                       <button key={label} onClick={() => setOneEach(val)} style={{

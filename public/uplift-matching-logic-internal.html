@@ -102,7 +102,7 @@
   <div>
     <div class="eyebrow">Uplift · Fall 2026 · Internal</div>
     <h1>How matching actually works.</h1>
-    <p class="subtitle">The real scoring logic behind founder–mentor pairings, so anyone on the team can explain it accurately, debug a weird match, or update it responsibly. Every number here is read directly from the code, not summarized from memory — file:line citations throughout.</p>
+    <p class="subtitle">The real scoring logic behind founder–mentor pairings, so anyone on the team can explain it accurately, debug a weird match, or update it responsibly. Every number here is read directly from the code, not summarized from memory.</p>
   </div>
 
   <div class="card">
@@ -113,7 +113,7 @@
         <div class="tag">● Live — Fall 2026</div>
         <h3>Deterministic rules scorer</h3>
         <p>Plain JavaScript, runs client-side in the admin UI. No AI call. Same inputs always produce the same score.</p>
-        <p class="src mono">pages/admin-fall.js:5–72</p>
+        <p class="src mono">lib/cohort-matching.js</p>
       </div>
       <div class="system">
         <div class="tag">○ Not used for Fall</div>
@@ -126,18 +126,18 @@
 
   <div class="card">
     <h2>The Fall scoring formula</h2>
-    <p class="sub">Every mentor gets scored against every founder. Session commitment is weighted heaviest by design &mdash; the code comment states pairs "only work when both sides expect the same amount of time together." <span class="mono">scoreMentor()</span>, pages/admin-fall.js:38–71.</p>
+    <p class="sub">Every mentor gets scored against every founder. Session commitment is weighted heaviest by design &mdash; pairs "only work when both sides expect the same amount of time together." This score answers one question only: <em>how good is this pair?</em> Which pairs actually get made is decided by the cohort solve in the next section. <span class="mono">scoreMentor()</span>, lib/cohort-matching.js.</p>
     <div class="table-scroll">
       <table>
         <tr><th>Factor</th><th>How it's checked</th><th>Points</th></tr>
         <tr>
           <td><strong>Session commitment</strong></td>
-          <td>Mentee's requested tier vs. mentor's offered tier, banded into 3 / 4–6 / 7–10 sessions (<code>tierBand()</code>, :17–23)</td>
-          <td class="pts">+4 exact&nbsp;band<br>+2 mentor&nbsp;offers&nbsp;more<br class="neg"><span class="neg">−2 mentor&nbsp;offers&nbsp;fewer</span></td>
+          <td>Mentee's requested tier vs. mentor's offered tier, banded into 3 / 4–6 / 7–10 sessions (<code>tierBand()</code>). Alignment is worth more the deeper it goes: two people who both signed up for 7–10 sessions are agreeing to a materially different relationship than two who both want the minimum, and that mutual commitment is itself a sign of a strong match.</td>
+          <td class="pts">+6 both&nbsp;7–10<br>+5 both&nbsp;4–6<br>+4 both&nbsp;minimum<br>+2 mentor&nbsp;offers&nbsp;more<br class="neg"><span class="neg">−2 mentor&nbsp;offers&nbsp;fewer</span></td>
         </tr>
         <tr>
           <td><strong>Focus area overlap</strong></td>
-          <td>Mentee's topics/primary focus vs. mentor's focus areas, matched against a fixed 16-word keyword list (<code>FOCUS_KEYWORDS</code>, :9)</td>
+          <td>Mentee's topics/primary focus vs. mentor's focus areas, matched against a fixed 16-word keyword list (<code>FOCUS_KEYWORDS</code>)</td>
           <td class="pts">+2 per keyword<br>(max 3 counted = +6)</td>
         </tr>
         <tr>
@@ -161,9 +161,9 @@
 
   <div class="card">
     <h2>Tiers</h2>
-    <p class="sub"><span class="mono">gradeOf(score)</span>, pages/admin-fall.js:30–36</p>
+    <p class="sub"><span class="mono">gradeOf(score)</span>, lib/cohort-matching.js. The top threshold moved from 11 to 13 on Sept 3, 2026, exactly the size of the new depth-alignment bonus — without it a pairing scored Perfect for the same fit that read Excellent the day before, and over half the cohort came out Perfect, at which point the label stops carrying information.</p>
     <div>
-      <div class="tier-row"><span class="tier-badge" style="background:#e8f8f0; color:#1a6e42;">Perfect match</span><span class="tier-score">score ≥ 11</span><span class="tier-desc">Top of the range — strong alignment across nearly every factor.</span></div>
+      <div class="tier-row"><span class="tier-badge" style="background:#e8f8f0; color:#1a6e42;">Perfect match</span><span class="tier-score">score ≥ 13</span><span class="tier-desc">Top of the range — strong alignment across nearly every factor.</span></div>
       <div class="tier-row"><span class="tier-badge" style="background:#e8f8f0; color:#1a6e42;">Excellent match</span><span class="tier-score">score ≥ 8</span><span class="tier-desc">Strong alignment on most factors, typically including session commitment.</span></div>
       <div class="tier-row"><span class="tier-badge" style="background:#eafaf7; color:#0e7c6b;">Strong match</span><span class="tier-score">score ≥ 6</span><span class="tier-desc">Solid overlap, usually missing one dimension.</span></div>
       <div class="tier-row"><span class="tier-badge" style="background:#fffbeb; color:#7a5c00;">Good match</span><span class="tier-score">score ≥ 3</span><span class="tier-desc">Workable, but worth a second look before confirming.</span></div>
@@ -173,20 +173,50 @@
   </div>
 
   <div class="card">
+    <h2>The pair score does not decide the match. The cohort solve does.</h2>
+    <p class="sub">Added Sept 3, 2026. Ranking mentors per founder and working down the list is greedy: it is optimal for whoever you serve first and it quietly spends everybody else's options. A founder with ten excellent mentors and a founder with exactly one can both want the same person, and if the first gets there first the second drops to a poor match for no gain to anybody. <span class="mono">buildCohort()</span> / <span class="mono">cohortPlan()</span>, lib/cohort-matching.js.</p>
+    <p style="font-size: 14px; line-height: 1.6; color: var(--ink);">Every waiting founder and every open mentor slot go into one assignment problem, solved exactly (Hungarian / Jonker&ndash;Volgenant, milliseconds at cohort size). What it maximises is <em>not</em> the sum of pair scores. A cohort where everybody is Strong beats one where half are Perfect and half are Weak even when those add up the same, so the value of a pairing has to bend: the points that lift somebody off the floor are worth far more than the points that decorate an already-great match.</p>
+    <div class="table-scroll">
+      <table>
+        <tr><th>Grade the pairing reaches</th><th>What it contributes</th><th>Worth of the step up from the tier below</th></tr>
+        <tr><td>Weak</td><td class="pts">0</td><td class="pts">&mdash;</td></tr>
+        <tr><td>Good</td><td class="pts">100</td><td class="pts">+100</td></tr>
+        <tr><td>Strong</td><td class="pts">130</td><td class="pts">+30</td></tr>
+        <tr><td>Excellent</td><td class="pts">150</td><td class="pts">+20</td></tr>
+        <tr><td>Perfect</td><td class="pts">158</td><td class="pts">+8</td></tr>
+      </table>
+    </div>
+    <p style="font-size: 14px; line-height: 1.6; color: var(--ink); margin-top: 12px;">Weak&nbsp;&rarr;&nbsp;Good is worth 100 and Excellent&nbsp;&rarr;&nbsp;Perfect only 8, which is what stops the solver parking one founder on a weak match to upgrade a founder who was already excellent: that trade always loses. The raw score rides along as a tiebreaker at a tenth of a point each.</p>
+    <p style="font-size: 14px; line-height: 1.6; color: var(--ink);">The admin's <strong>Top 3</strong> panel is built on this. For the selected founder the entire cohort is re-solved once per candidate mentor with that pairing locked in, and the three picks are ranked by the cohort they leave behind rather than by their own score &mdash; so a mentor who is marginally better for this founder and ruinous for two others sinks. Each pick's stated consequence is a real diff against the unconstrained plan, not an estimate. A warning appears only when somebody is pushed <em>below Excellent</em>; shuffling founders around inside Perfect and Excellent is free and says so, because flagging a Perfect&nbsp;&rarr;&nbsp;Excellent move as a cost only trains the eye to ignore the line.</p>
+  </div>
+
+  <div class="card">
+    <h2>Mentor load and session capacity</h2>
+    <p class="sub">Two hard rules and one preference, all of them falling out of the three-session minimum.</p>
+    <div class="flag-list">
+      <div class="flag info"><span>1</span><div><strong>Every mentor gets one founder before anyone gets two.</strong> Each additional mentee steps down by more than every quality difference in the cohort added together, so no amount of match quality can buy a mentor a second founder while another mentor has none. A mentor who signed up and is told there was no founder for them is a cost the matching will not pay for quality.</div></div>
+      <div class="flag info"><span>2</span><div><strong>Two founders is the ceiling, always.</strong> A 7&ndash;10 mentor's sessions divide into three founders arithmetically, but somebody who volunteered for one deep relationship did not volunteer to run three shallow ones. <code>MAX_MENTEES = 2</code>.</div></div>
+      <div class="flag info"><span>3</span><div><strong>Nobody is booked past what they offered and nobody drops below three sessions.</strong> Both come out of one number: a mentor carries at most <code>floor(sessions_offered / 3)</code> founders. Sessions count at the top of each side's chosen band (3 / 6 / 10), so a 7&ndash;10 mentor paired with a 7&ndash;10 founder is full at one, while the same mentor paired with a minimum-commitment founder has room for another.</div></div>
+      <div class="flag"><span>&#9888;</span><div><strong>Session depth above the floor is a preference, and it loses to fit.</strong> A founder who asked for 7&ndash;10 and gets three sessions with a mentor who fits them perfectly has not been short-changed: they have the minimum they were promised and a better mentor than the alternative, and founders are told this. The depth term is derived from the grade weights so its whole range stays narrower than the smallest step between two grades &mdash; it can only ever choose between two mentors of the same grade. An earlier version priced it high enough to trade a better mentor for a more available one, which is the opposite of the deal on offer.</div></div>
+      <div class="flag"><span>&#9888;</span><div><strong>The "everybody gets one" bonus is earned, not automatic.</strong> Where the only founder a mentor could take is a weak fit, the bonus lapses and that founder goes to somebody they actually suit, even if it means the mentor waits. Filling a mentor by parking a founder on a weak match serves the mentor, not the founder. Waiting mentors are named on the Matching tab with their closest founder and whether their application is too thin to score on.</div></div>
+    </div>
+  </div>
+
+  <div class="card">
     <h2>The human step</h2>
-    <p style="font-size: 14px; line-height: 1.6; color: var(--ink);">Scoring never finalizes a match by itself. Ranked mentor candidates are shown per founder in the admin UI; a person reviews the list and reasons, then clicks to confirm a pairing. That click calls <code>doMatch()</code> (admin-fall.js:236–241), which POSTs to <code>pages/api/admin/fall-match.js:31–58</code> &mdash; a pure Google Sheets append. No scoring or auto-selection happens server-side; the endpoint only records what a human already decided.</p>
+    <p style="font-size: 14px; line-height: 1.6; color: var(--ink);">Scoring never finalizes a match by itself. Ranked mentor candidates are shown per founder in the admin UI; a person reviews the list and reasons, then clicks to confirm a pairing. That click calls <code>doMatch()</code> in pages/admin-fall.js, which POSTs to <code>pages/api/admin/fall-match.js</code> &mdash; a pure Google Sheets append. No scoring or auto-selection happens server-side; the endpoint only records what a human already decided.</p>
   </div>
 
   <div class="card">
     <h2>What this doesn't do (yet)</h2>
     <div class="flag-list">
-      <div class="flag"><span>⚠</span><div><strong>No industry or geography factor.</strong> Despite being a common assumption, industry alignment and NJ county/location are not scored anywhere in this formula. County appears in the admin UI for reference (admin-fall.js:313, 328) but doesn't affect the match score.</div></div>
+      <div class="flag"><span>⚠</span><div><strong>No industry or geography factor.</strong> Despite being a common assumption, industry alignment and NJ county/location are not scored anywhere in this formula. County appears in the admin UI for reference but doesn't affect the match score.</div></div>
       <div class="flag"><span>⚠</span><div><strong>Focus-area matching is keyword-based, not semantic.</strong> It only recognizes the 16 fixed terms in <code>FOCUS_KEYWORDS</code> — a mentee and mentor describing the same need in different words (e.g. "runway" vs. "fundraising") may not register as overlap unless the exact keyword appears.</div></div>
       <div class="flag info"><span>ℹ</span><div><strong>The Summer LLM tool did consider industry.</strong> Its prompt explicitly told the model to prioritize "industry alignment → focus area alignment → stage fit → NJ county proximity" (suggest-matches.js:82) — that ordering does not carry over to the Fall scorer, which is a different system entirely.</div></div>
     </div>
   </div>
 
-  <p class="footnote">Verified against the codebase Aug 25, 2026. If the scoring logic changes, this page will drift out of date — check pages/admin-fall.js:5–72 directly if something here seems off.</p>
+  <p class="footnote">Verified against the codebase Sept 3, 2026, when the cohort solve, the mentor-load rules and the session cap landed, and the scoring and grade thresholds moved with them. If the logic changes again this page will drift — lib/cohort-matching.js is the single file that holds all of it, and it is commented to explain why each weight is what it is.</p>
 
 </div>
 </body>
