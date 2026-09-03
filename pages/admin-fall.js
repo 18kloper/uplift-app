@@ -7,6 +7,7 @@ import { TEST_SLUGS } from "../lib/fall-roster";
 // "best for this founder" and "best for the whole group of them" separately.
 import {
   scoreMentor, gradeOf, buildCohort, cohortPlan, greedyPlan, recommendFor, isEligibleMentor, samePerson,
+  sessionsFor, sessionShortfall,
 } from "../lib/cohort-matching";
 
 
@@ -2028,32 +2029,44 @@ export default function AdminFall() {
             const lifted = unmatchedMentees.filter(a => tierOf(plan?.byMentee[a.id]) > tierOf(greedyForCohort?.byMentee[a.id])).length;
             const yielded = unmatchedMentees.filter(a => tierOf(plan?.byMentee[a.id]) < tierOf(greedyForCohort?.byMentee[a.id])).length;
 
-            // What a click actually does to everybody else. The cohort cost is
-            // the honest headline: a pick that reshuffles five founders and
-            // leaves the group exactly as strong is free, and saying otherwise
-            // would make the warnings worthless.
-            const names = (list) => list.slice(0, 3).map(d => `${d.mentee.first} ${d.mentee.last} ${d.from.short} → ${d.to ? d.to.short : "no mentor"}`).join(" · ")
+            // What a click actually does to everybody else.
+            //
+            // The first version of this warned on any downgrade at all, which
+            // meant it cried wolf: "Rosalind Griffie Perfect → Excellent" is
+            // not a cost anybody would refuse, and printing it under a ⚠
+            // trained the eye to ignore the line. What matters is whether
+            // somebody ends up on a match that is actually a problem, so the
+            // threshold is now the Excellent floor: shuffling people around
+            // inside Perfect and Excellent is free and says so, and the
+            // warning is reserved for pushing a founder below that line, with
+            // the cohort-wide count alongside it for scale.
+            const label = (d) => `${d.mentee.first} ${d.mentee.last} to ${d.to ? d.to.short : "no mentor"}`;
+            const names = (list) => list.slice(0, 3).map(label).join(" · ")
               + (list.length > 3 ? ` and ${list.length - 3} more` : "");
             const impactOf = (pick) => {
+              // Only worth saying when it moves. "28 → 28" next to a warning
+              // reads like a contradiction.
+              const scale = pick.summary.excellentPlus === plan.summary.excellentPlus
+                ? ""
+                : ` · excellent-or-better across the cohort ${plan.summary.excellentPlus} → ${pick.summary.excellentPlus}`;
               if (pick.benched > 0) {
-                return { tone: "warn", text: `Leaves ${pick.benched} approved mentor${pick.benched === 1 ? "" : "s"} with no founder at all${pick.downgraded.length ? `, and ${names(pick.downgraded)}` : ""}` };
+                return { tone: "risk", text: `Leaves ${pick.benched} approved mentor${pick.benched === 1 ? "" : "s"} with no founder at all` };
               }
-              if (pick.cohortCost > 0.05) {
-                return {
-                  tone: "warn",
-                  text: pick.downgraded.length
-                    ? `Costs the group: ${names(pick.downgraded)}`
-                    : "Leaves the group slightly weaker overall.",
-                };
+              // Newly pushed below Excellent, which is the line worth guarding.
+              const dropped = pick.downgraded.filter(d => d.to && d.to.tier < 3 && d.from.tier >= 3);
+              const veryDropped = pick.downgraded.filter(d => !d.to || d.to.tier <= 1);
+              if (veryDropped.length) {
+                return { tone: "risk", text: `Drops ${names(veryDropped)}${scale}` };
               }
-              if (pick.downgraded.length) {
-                return { tone: "ok", text: `Even trade: ${names(pick.downgraded)}, and somebody else comes up to match. Group is no weaker.` };
+              if (dropped.length) {
+                return { tone: "warn", text: `Drops ${names(dropped)} below Excellent${scale}` };
               }
               if (pick.moved.length) {
-                return { tone: "ok", text: `${pick.moved.length} other founder${pick.moved.length > 1 ? "s" : ""} swap mentors, nobody drops a grade.` };
+                return { tone: "ok", text: `${pick.moved.length} other founder${pick.moved.length > 1 ? "s" : ""} shuffle, everybody stays Excellent or better.` };
               }
               return { tone: "ok", text: "Nobody else's plan changes." };
             };
+            const toneColor = { risk: "#c0392b", warn: "#b35c00", ok: "#1a6e42" };
 
             const chip = (label, n, bg, color) => (
               <span key={label} style={{ background: bg, color, borderRadius: 6, padding: "3px 9px", fontSize: 11.5, fontWeight: 700 }}>
@@ -2099,6 +2112,7 @@ export default function AdminFall() {
                     {plan.summary.doubled > 0 && <> · {plan.summary.doubled} take a second</>}
                     {plan.summary.tripled > 0 && <span style={{ color: "#b35c00" }}> · {plan.summary.tripled} take a third</span>}
                     {plan.summary.doubled === 0 && plan.summary.tripled === 0 && <> · nobody doubles up</>}
+                    {" · "}no mentor booked past the sessions they offered
                   </p>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
                     {[[true, "One mentee each"], [false, "Best quality, mentors may idle"]].map(([val, label]) => (
@@ -2110,6 +2124,28 @@ export default function AdminFall() {
                       }}>{label}</button>
                     ))}
                   </div>
+                  {/* Sessions, not headcount. This is the constraint that
+                      actually decides whether the cohort can be served, and no
+                      amount of matching moves it. */}
+                  {cohort && cohort.sessionDemand > cohort.sessionSupply && (
+                    <div style={{ marginBottom: 10, padding: "10px 14px", background: "#fff8ef", border: "1px solid #f2e2c8", borderRadius: 8 }}>
+                      <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#b9770e" }}>
+                        Session capacity is short by {cohort.sessionDemand - cohort.sessionSupply}
+                      </p>
+                      <p style={{ margin: "0 0 4px", fontSize: 12.5, color: "#37324e", lineHeight: 1.6 }}>
+                        The mentor pool offers <strong>{cohort.sessionSupply} sessions</strong> and these founders asked for{" "}
+                        <strong>{cohort.sessionDemand}</strong>. {plan.summary.shortchanged} founder{plan.summary.shortchanged === 1 ? "" : "s"} will
+                        get fewer sessions than they asked for, {plan.summary.shortSessions} short in total, and that is the
+                        best any arrangement of these people can do.
+                      </p>
+                      <p style={{ margin: 0, fontSize: 12, color: "#6b6480" }}>
+                        {cohort.founderBands[3] || 0} founders asked for 7-10 sessions and {cohort.mentorBands[3] || 0} mentors offer that much
+                        · {cohort.founderBands[2] || 0} asked 4-6 against {cohort.mentorBands[2] || 0} mentors
+                        · {cohort.founderBands[1] || 0} asked the minimum against {cohort.mentorBands[1] || 0} mentors.
+                        Approving more high-availability mentors is the only thing that closes this.
+                      </p>
+                    </div>
+                  )}
                   {oneEach && cohort?.allowMultiple && (
                     <p style={{ margin: "0 0 6px", fontSize: 12, color: "#6b6480" }}>
                       {unmatchedMentees.length} founders and {eligibleMentors.length} mentors, so {unmatchedMentees.length - eligibleMentors.length} have
@@ -2141,6 +2177,13 @@ export default function AdminFall() {
                                   </button>
                                 </td>
                                 <td style={{ padding: "6px 10px", color: "#6b6480", whiteSpace: "nowrap" }}>→ {pr.mentor.name}{pr.second ? " (2nd founder)" : ""}</td>
+                                <td style={{ padding: "6px 10px", fontSize: 11.5, whiteSpace: "nowrap", color: sessionShortfall(pr.mentee, pr.mentor, pr.extra || 0) > 0 ? "#b35c00" : "#6b6480" }}>
+                                  {(() => {
+                                    const asked = sessionsFor(pr.mentee.tier);
+                                    const miss = Math.round(sessionShortfall(pr.mentee, pr.mentor, pr.extra || 0));
+                                    return miss > 0 ? `asked ${asked}, gets about ${asked - miss}` : `${asked} sessions, fits`;
+                                  })()}
+                                </td>
                                 <td style={{ padding: "6px 10px", whiteSpace: "nowrap" }}>
                                   <span style={{ background: g.bg, color: g.color, borderRadius: 5, padding: "2px 8px", fontSize: 11, fontWeight: 800 }}>{g.short} · {pr.score}</span>
                                 </td>
@@ -2226,8 +2269,8 @@ export default function AdminFall() {
                               </p>
                               {/* The consequence, spelled out. This is the part a
                                   one-founder-at-a-time view cannot tell you. */}
-                              <p style={{ margin: "4px 0 0", fontSize: 11.5, fontWeight: 700, color: im.tone === "warn" ? "#b35c00" : "#1a6e42" }}>
-                                {im.tone === "warn" ? "⚠ " : "✓ "}{im.text}
+                              <p style={{ margin: "4px 0 0", fontSize: 11.5, fontWeight: 700, color: toneColor[im.tone] }}>
+                                {im.tone === "ok" ? "✓ " : "⚠ "}{im.text}
                               </p>
                             </div>
                             <button disabled={matchBusy} onClick={() => doMatch("match", sel, pick.mentor)} style={{
@@ -2271,11 +2314,12 @@ export default function AdminFall() {
                             <p style={{ margin: "1px 0 0", fontSize: 11.5, color: "#6b6480" }}>
                               {mt.reasons.length ? mt.reasons.join(" · ") : "no signal overlap"}{mt.tier ? ` · ${mt.tier}` : ""}
                             </p>
-                            {cand && cand.cohortCost > 0.05 && cand.downgraded.length > 0 && (
-                              <p style={{ margin: "3px 0 0", fontSize: 11.5, fontWeight: 700, color: "#b35c00" }}>
-                                ⚠ {cand.downgraded.slice(0, 2).map(d => `${d.mentee.first} ${d.mentee.last} ${d.from.short} → ${d.to ? d.to.short : "no mentor"}`).join(" · ")}
-                              </p>
-                            )}
+                            {cand && (() => {
+                              const im = impactOf(cand);
+                              return im.tone === "ok" ? null : (
+                                <p style={{ margin: "3px 0 0", fontSize: 11.5, fontWeight: 700, color: toneColor[im.tone] }}>⚠ {im.text}</p>
+                              );
+                            })()}
                           </div>
                           <button disabled={matchBusy} onClick={() => doMatch("match", sel, mt)} style={{
                             border: "none", borderRadius: 6, padding: "6px 14px", flexShrink: 0,
