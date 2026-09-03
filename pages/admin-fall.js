@@ -9,7 +9,7 @@ import {
   scoreMentor, gradeOf, buildCohort, cohortPlan, greedyPlan, recommendFor, isEligibleMentor, samePerson,
   sessionsFor, sessionsPlanned,
 } from "../lib/cohort-matching";
-import { buildGroups, stageBandOf, stageRank, STAGE_LABEL, explainMember } from "../lib/cohort-groups";
+import { buildGroups, stageBandOf, stageRank, STAGE_LABEL, explainMember, blurbFor } from "../lib/cohort-groups";
 
 
 // ─── Fall 2026 admin ────────────────────────────────────────────────────────
@@ -117,6 +117,11 @@ export default function AdminFall() {
   const [signalSource, setSignalSource] = useState("");
   const [signalBusy, setSignalBusy] = useState(false);
   const [copiedPortal, setCopiedPortal] = useState(null);
+  const [copiedBlurb, setCopiedBlurb] = useState(null);
+  // Pairings the plan proposes that Kennedy has taken off the list before a
+  // bulk apply. Keyed by mentee id; anything not in here is in.
+  const [dropped, setDropped] = useState(() => new Set());
+  const [bulk, setBulk] = useState(null); // { phase: "confirm"|"running"|"done", done, total, errors }
   const [sendState, setSendState] = useState(null);   // { phase, plan, result, error }
   const [sendBusy, setSendBusy] = useState(false);
 
@@ -356,6 +361,14 @@ export default function AdminFall() {
     [people, waitingForMatch, oneEach],
   );
   const bestForCohort = useMemo(() => (cohort ? cohortPlan(cohort) : null), [cohort]);
+  // The other objective, solved alongside, purely so the screen can say what
+  // the choice between them actually costs instead of naming two options and
+  // leaving you to guess.
+  const cohortOther = useMemo(
+    () => (people ? buildCohort({ mentees: waitingForMatch, mentors: people.mentors, oneEach: !oneEach }) : null),
+    [people, waitingForMatch, oneEach],
+  );
+  const planOther = useMemo(() => (cohortOther ? cohortPlan(cohortOther) : null), [cohortOther]);
   const greedyForCohort = useMemo(() => (cohort ? greedyPlan(cohort) : null), [cohort]);
   // Re-solves the cohort once per candidate mentor, so the three picks come
   // with the exact fallout of choosing each one.
@@ -402,6 +415,38 @@ export default function AdminFall() {
     }
     await refreshPeople();
     setMatchBusy(false);
+  };
+
+  // Bulk apply. The plan is advisory until this runs, and this is the only
+  // thing on the screen that writes many rows at once, so it goes through an
+  // explicit confirm and reports every failure by name rather than stopping at
+  // the first one. Sequential on purpose: rapid appends trip the Sheets
+  // per-minute quota, and fall-match already retries a 429.
+  const applyPlan = async (pairs) => {
+    setBulk({ phase: "running", done: 0, total: pairs.length, errors: [] });
+    const errors = [];
+    for (let i = 0; i < pairs.length; i++) {
+      const p = pairs[i];
+      try {
+        const r = await fetch("/api/admin/fall-match", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "match",
+            mentee: { id: p.mentee.id, name: `${p.mentee.first} ${p.mentee.last}`.trim(), email: p.mentee.email },
+            mentor: { id: p.mentor.id, name: p.mentor.name, email: p.mentor.email },
+          }),
+        });
+        const body = await r.json().catch(() => ({}));
+        if (!r.ok || body.error) throw new Error(body.error || `HTTP ${r.status}`);
+      } catch (e) {
+        errors.push(`${p.mentee.first} ${p.mentee.last} ↔ ${p.mentor.name}: ${e.message}`);
+      }
+      setBulk({ phase: "running", done: i + 1, total: pairs.length, errors: [...errors] });
+      if (i < pairs.length - 1) await new Promise(r2 => setTimeout(r2, 250));
+    }
+    await refreshPeople();
+    setBulk({ phase: "done", done: pairs.length, total: pairs.length, errors });
   };
 
   if (!authed) {
@@ -534,7 +579,10 @@ export default function AdminFall() {
         </div>
 
         <div style={{ background: "#fff", borderBottom: "1px solid #e8e4f5" }}>
-          <div style={{ maxWidth: 1560, margin: "0 auto", padding: "0 28px", display: "flex", gap: 4 }}>
+          {/* Sixteen tabs do not fit on one line on a laptop, and a row that
+              scrolls sideways hides the tabs at the end of it. Wrapping to two
+              rows keeps every tab visible and clickable. */}
+          <div style={{ maxWidth: 1560, margin: "0 auto", padding: "0 28px", display: "flex", gap: 4, flexWrap: "wrap", rowGap: 0 }}>
             {[["today", "📋 Today"], ["overview", "Overview"], ["founders", "Roster"],
               // These two counters are a to-do list, not a scoreboard: the number
               // in the tab is how many applications still need a yes or a no.
@@ -552,7 +600,7 @@ export default function AdminFall() {
               ["cohorts", `Cohorts${cohortGroups ? ` (${cohortGroups.groups.length})` : ""}`],
               ["pulse", "Pulse & Wins"]].map(([id, label]) => (
               <button key={id} onClick={() => setTab(id)} style={{
-                border: "none", background: "none", padding: "12px 16px 10px",
+                border: "none", background: "none", padding: "10px 13px 8px", whiteSpace: "nowrap",
                 borderBottom: tab === id ? "3px solid #5c4eb5" : "3px solid transparent",
                 color: tab === id ? "#3d2f8a" : "#9b8fcf",
                 fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
@@ -932,14 +980,25 @@ export default function AdminFall() {
                         meets {win[s.bestWindow] || s.bestWindow} · {s.meetable === 1 ? "everyone free" : `${pct(s.meetable)} free`}
                       </span>
                     </div>
-                    <p style={{ margin: "0 0 12px", fontSize: 12, color: "#6b6480" }}>
-                      Why each founder is in this room, and not just who is.
-                    </p>
+                    {/* The blurb is the answer to "why these nine", written so
+                        it can go straight to the founders in it or into a
+                        funder report without being rewritten. */}
+                    <div style={{ background: "#faf9ff", border: "1px solid #e8e4f5", borderRadius: 10, padding: "13px 15px", marginBottom: 14 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 6 }}>
+                        <p style={{ margin: 0, fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5c4eb5" }}>
+                          Why this room is this room · shareable
+                        </p>
+                        <button onClick={() => { navigator.clipboard?.writeText(blurbFor(g.members, g.name)); setCopiedBlurb(g.name); setTimeout(() => setCopiedBlurb(null), 1800); }} style={{ border: "1px solid #d9d2f5", borderRadius: 6, padding: "3px 10px", background: "#fff", color: "#5c4eb5", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                          {copiedBlurb === g.name ? "copied" : "copy"}
+                        </button>
+                      </div>
+                      <p style={{ margin: 0, fontSize: 13, color: "#37324e", lineHeight: 1.7 }}>{blurbFor(g.members, g.name)}</p>
+                    </div>
                     <div style={{ overflowX: "auto" }}>
                       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
                         <thead>
                           <tr style={{ textAlign: "left", color: "#9b8fcf", fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                            {["Founder", "Stage", "Industry", "Can make the window", "Has already", "Peers here who have done what they need"].map(h => (
+                            {["Founder", "Stage", "Industry", "Free"].map(h => (
                               <th key={h} style={{ padding: "7px 10px", borderBottom: "1px solid #e8e4f5", whiteSpace: "nowrap" }}>{h}</th>
                             ))}
                           </tr>
@@ -962,27 +1021,8 @@ export default function AdminFall() {
                                   </span>
                                 </td>
                                 <td style={{ padding: "8px 10px", fontSize: 11.5 }}>{industryOf(m) || <span style={{ color: "#c8bfef" }}>unstated</span>}</td>
-                                <td style={{ padding: "8px 10px", fontSize: 11.5, whiteSpace: "nowrap", color: e.flexible || e.canMakeWindow ? "#1a6e42" : "#c0392b", fontWeight: 600 }}>
-                                  {e.flexible ? "flexible, any window" : e.canMakeWindow ? "yes" : "⚠ no, needs another window"}
-                                </td>
-                                <td style={{ padding: "8px 10px", fontSize: 11.5, maxWidth: 230, color: "#37324e" }}>
-                                  {e.capabilities.length
-                                    ? e.capabilities.map(c => c.replace(/^has /, "")).join(" · ")
-                                    : <span style={{ color: "#c8bfef" }}>nothing recorded yet</span>}
-                                  {e.helps.length > 0 && (
-                                    <div style={{ fontSize: 11, color: "#1a6e42", marginTop: 2 }}>
-                                      which {e.helps.length} {e.helps.length === 1 ? "founder" : "founders"} here {e.helps.length === 1 ? "needs" : "need"}
-                                    </div>
-                                  )}
-                                </td>
-                                <td style={{ padding: "8px 10px", fontSize: 11.5, maxWidth: 270, color: "#37324e" }}>
-                                  {e.statedNoFocus
-                                    ? <span style={{ color: "#c8bfef" }}>stated no focus, so nothing to look for</span>
-                                    : e.helpedBy.length
-                                      ? <>
-                                          <strong>{e.helpedBy.length}</strong>, including {e.helpedBy.slice(0, 2).map(h => `${h.person.first} ${h.person.last} (${h.on[0].replace(/^has /, "")})`).join(" and ")}
-                                        </>
-                                      : <span style={{ color: "#b35c00" }}>nobody here has done it yet</span>}
+                                <td style={{ padding: "8px 10px", fontSize: 11.5, whiteSpace: "nowrap", color: e.flexible || e.canMakeWindow ? "#6b6480" : "#c0392b", fontWeight: e.flexible || e.canMakeWindow ? 400 : 600 }}>
+                                  {e.flexible ? "flexible" : e.canMakeWindow ? win[s.bestWindow] : `⚠ not ${win[s.bestWindow]}`}
                                 </td>
                               </tr>
                             );
@@ -995,12 +1035,9 @@ export default function AdminFall() {
               })}
 
               <p style={{ fontSize: 11.5, color: "#9b8fcf", lineHeight: 1.6 }}>
-                &ldquo;Has already&rdquo; is read from the application facts — raised outside capital, paying customers,
-                employees, a prior accelerator, users — and matched against the focus each founder picked. It deliberately
-                does not read the &ldquo;what will you bring to the mentorship&rdquo; free text: that question is about the
-                mentor relationship, so founders answered it about their own coachability (&ldquo;a sponge-like willingness
-                to learn&rdquo;), which is a real answer to a different question and made the earlier version of this number
-                meaningless. Advisory and recomputed on every load,
+                The blurbs are composed from the same facts the grouping was decided on — stage, field, what each founder
+                has actually done, what they asked for, and when they are free — so they say the honest thing about each
+                room rather than the flattering one. Advisory and recomputed on every load,
                 so it moves as founders are approved and matched. Nothing is written anywhere yet: once the rooms are
                 settled they want a Cohort column in the sheet so the portal can name a founder&apos;s room. The names come
                 from the onboarding slots, which is worth a thought — a founder who onboarded in Hopper but sits in
@@ -2378,16 +2415,54 @@ export default function AdminFall() {
                       ))}
                     </div>
                   )}
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
-                    {[[true, "One mentee each"], [false, "Best quality, mentors may idle"]].map(([val, label]) => (
-                      <button key={label} onClick={() => setOneEach(val)} style={{
-                        border: "1px solid #e8e4f5", borderRadius: 20, padding: "4px 12px",
-                        background: oneEach === val ? "#5c4eb5" : "#fff",
-                        color: oneEach === val ? "#fff" : "#6b6480",
-                        fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-                      }}>{label}</button>
-                    ))}
+                  {/* Two objectives, and the choice between them is a real
+                      programme decision, so the screen states the exchange
+                      rate in this cohort's own numbers rather than making you
+                      flip the switch to find out. */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 10, marginBottom: 12 }}>
+                    {[
+                      [true, "Every mentor gets a founder", "Nobody who volunteered is told there was no founder for them."],
+                      [false, "Best possible matches", "Match quality first, and any mentor the cohort has no good founder for waits this round."],
+                    ].map(([val, label, sub]) => {
+                      const mine = oneEach === val ? plan.summary : planOther?.summary;
+                      const on = oneEach === val;
+                      return (
+                        <button key={label} onClick={() => setOneEach(val)} style={{
+                          textAlign: "left", cursor: "pointer", fontFamily: "inherit",
+                          border: on ? "2px solid #5c4eb5" : "1px solid #e8e4f5", borderRadius: 10,
+                          padding: on ? "11px 13px" : "12px 14px", background: on ? "#f5f3ff" : "#fff",
+                        }}>
+                          <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 800, color: on ? "#3d2f8a" : "#1a1733" }}>
+                            {on ? "● " : "○ "}{label}
+                          </p>
+                          <p style={{ margin: "0 0 6px", fontSize: 11.5, color: "#6b6480", lineHeight: 1.5 }}>{sub}</p>
+                          {mine && (
+                            <p style={{ margin: 0, fontSize: 11.5, color: "#37324e", lineHeight: 1.6 }}>
+                              <strong>{mine.excellentPlus}</strong> founders at excellent or better ·{" "}
+                              <strong>{mine.weak + mine.good}</strong> below strong ·{" "}
+                              <strong style={{ color: mine.mentorsIdle > 0 ? "#b35c00" : "#1a6e42" }}>
+                                {mine.mentorsIdle === 0 ? "no mentor left out" : `${mine.mentorsIdle} mentors left out`}
+                              </strong>
+                            </p>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
+                  {planOther && (
+                    <p style={{ margin: "0 0 10px", fontSize: 12.5, color: "#37324e", lineHeight: 1.65, background: "#faf9ff", border: "1px solid #e8e4f5", borderRadius: 8, padding: "9px 13px" }}>
+                      <strong>The exchange rate right now:</strong>{" "}
+                      {(() => {
+                        const a = oneEach ? plan.summary : planOther.summary;       // every mentor
+                        const b = oneEach ? planOther.summary : plan.summary;       // best quality
+                        const q = b.excellentPlus - a.excellentPlus;
+                        const m = b.mentorsIdle - a.mentorsIdle;
+                        if (q <= 0 && m <= 0) return "the two come out the same, so there is nothing to trade — stay on every mentor gets a founder.";
+                        if (q <= 0) return `chasing quality gains nothing here and would still leave ${m} more mentor${m === 1 ? "" : "s"} out. Stay on every mentor gets a founder.`;
+                        return `${q} more founder${q === 1 ? "" : "s"} would reach excellent or better, in exchange for ${m} more mentor${m === 1 ? "" : "s"} being told there is no founder for them this round. That is the whole trade: those ${m} mentors' hours against ${q} founders' match quality.`;
+                      })()}
+                    </p>
+                  )}
                   {/* Session depth, stated as the trade it is rather than as an
                       alarm. Three sessions is the promise and it is always
                       kept; asking for 7-10 is a preference that loses to match
@@ -2439,9 +2514,17 @@ export default function AdminFall() {
                             const g = gradeOf(pr.score);
                             const grab = greedyForCohort.byMentee[pr.mentee.id];
                             const gave = grab && grab.mentor.id !== pr.mentor.id && gradeOf(grab.score).tier > g.tier;
+                            const out = dropped.has(pr.mentee.id);
                             return (
-                              <tr key={pr.mentee.id} style={{ borderTop: "1px solid #f0edf9" }}>
-                                <td style={{ padding: "6px 10px 6px 0", fontWeight: 700, whiteSpace: "nowrap" }}>
+                              <tr key={pr.mentee.id} style={{ borderTop: "1px solid #f0edf9", opacity: out ? 0.4 : 1 }}>
+                                <td style={{ padding: "6px 8px 6px 0", width: 26 }}>
+                                  <input type="checkbox" checked={!out} onChange={() => setDropped(prev => {
+                                    const next = new Set(prev);
+                                    if (next.has(pr.mentee.id)) next.delete(pr.mentee.id); else next.add(pr.mentee.id);
+                                    return next;
+                                  })} style={{ cursor: "pointer" }} />
+                                </td>
+                                <td style={{ padding: "6px 10px 6px 0", fontWeight: 700, whiteSpace: "nowrap", textDecoration: out ? "line-through" : "none" }}>
                                   <button onClick={() => setSelectedMentee(pr.mentee.id)} style={{ border: "none", background: "none", padding: 0, fontWeight: 700, color: "#3d2f8a", fontSize: 12.5, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>
                                     {pr.mentee.first} {pr.mentee.last}
                                   </button>
@@ -2467,6 +2550,7 @@ export default function AdminFall() {
                           })}
                           {plan.unassigned.map(a => (
                             <tr key={a.id} style={{ borderTop: "1px solid #f0edf9" }}>
+                              <td />
                               <td style={{ padding: "6px 10px 6px 0", fontWeight: 700, whiteSpace: "nowrap" }}>{a.first} {a.last}</td>
                               <td colSpan={3} style={{ padding: "6px 10px", fontSize: 11.5, color: "#c0392b" }}>no mentor slot left — approve more mentors</td>
                             </tr>
@@ -2475,6 +2559,69 @@ export default function AdminFall() {
                       </table>
                     </div>
                   )}
+                  {showCohortPlan && (() => {
+                    const keep = plan.pairs.filter(pr => !dropped.has(pr.mentee.id));
+                    return (
+                      <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #e8e4f5" }}>
+                        {bulk?.phase === "running" && (
+                          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#5c4eb5" }}>
+                            Matching… {bulk.done} of {bulk.total}
+                            {bulk.errors.length > 0 && <span style={{ color: "#c0392b" }}> · {bulk.errors.length} failed</span>}
+                          </p>
+                        )}
+                        {bulk?.phase === "done" && (
+                          <div>
+                            <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: bulk.errors.length ? "#b35c00" : "#1a6e42" }}>
+                              {bulk.total - bulk.errors.length} of {bulk.total} matches saved to FallMatches.
+                              {bulk.errors.length > 0 && " The rest were not recorded — nothing partial was written for them, so they can be retried."}
+                            </p>
+                            {bulk.errors.map(e => (
+                              <p key={e} style={{ margin: "0 0 2px", fontSize: 11.5, color: "#c0392b" }}>{e}</p>
+                            ))}
+                            <button onClick={() => setBulk(null)} style={{ marginTop: 6, border: "1px solid #e8e4f5", borderRadius: 6, padding: "4px 10px", background: "#fff", color: "#5c4eb5", fontSize: 11.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>done</button>
+                          </div>
+                        )}
+                        {bulk?.phase === "confirm" && (
+                          <div style={{ background: "#fff8ef", border: "1px solid #f2e2c8", borderRadius: 8, padding: "11px 14px" }}>
+                            <p style={{ margin: "0 0 8px", fontSize: 13, color: "#37324e", lineHeight: 1.6 }}>
+                              This writes <strong>{keep.length} matches</strong> to the FallMatches sheet
+                              {dropped.size > 0 && <> and skips the {dropped.size} you unticked</>}. Founders do not see a
+                              match until their Week 1 gate is complete, and any of these can be unmatched afterwards
+                              without losing history.
+                            </p>
+                            <button disabled={matchBusy} onClick={() => applyPlan(keep)} style={{ border: "none", borderRadius: 6, padding: "6px 14px", background: "#5c4eb5", color: "#fff", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginRight: 8 }}>
+                              Yes, match these {keep.length}
+                            </button>
+                            <button onClick={() => setBulk(null)} style={{ border: "1px solid #e8e4f5", borderRadius: 6, padding: "6px 12px", background: "#fff", color: "#6b6480", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                              Cancel
+                            </button>
+                          </div>
+                        )}
+                        {!bulk && (
+                          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                            <button disabled={!keep.length} onClick={() => setBulk({ phase: "confirm" })} style={{
+                              border: "none", borderRadius: 8, padding: "8px 16px",
+                              background: keep.length ? "#5c4eb5" : "#e8e4f5", color: keep.length ? "#fff" : "#9b8fcf",
+                              fontSize: 13, fontWeight: 700, cursor: keep.length ? "pointer" : "default", fontFamily: "inherit",
+                            }}>
+                              Match these {keep.length} at once
+                            </button>
+                            {dropped.size > 0 && (
+                              <>
+                                <span style={{ fontSize: 12, color: "#b35c00", fontWeight: 600 }}>{dropped.size} unticked and left alone</span>
+                                <button onClick={() => setDropped(new Set())} style={{ border: "1px solid #e8e4f5", borderRadius: 6, padding: "4px 10px", background: "#fff", color: "#5c4eb5", fontSize: 11.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                                  tick all back
+                                </button>
+                              </>
+                            )}
+                            <span style={{ fontSize: 11.5, color: "#9b8fcf" }}>
+                              Untick anyone you want to place by hand, then apply the rest.
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </>)}
               </div>
 
