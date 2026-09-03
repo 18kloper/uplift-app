@@ -137,28 +137,48 @@ export default function AdminFall() {
   // Rebuilds the PortalSnapshot tab and reports whether anything is missing.
   const [snapshot, setSnapshot] = useState(null);
   const [snapshotBusy, setSnapshotBusy] = useState(false);
+  // The admin secret, asked for once per browser and then never again.
+  //
+  // It used to live in sessionStorage, which meant re-typing it every time a
+  // tab was closed — four different buttons each prompting for the same
+  // string. The gate itself stays: these endpoints read the whole cohort's
+  // names, emails and milestone data, and the page's own "admin" code is
+  // client-side only, so the token is the actual protection. Only the nagging
+  // is worth removing.
+  const adminToken = () => {
+    const stored = localStorage.getItem("uplift_admin_secret") || sessionStorage.getItem("uplift_admin_secret");
+    if (stored) {
+      localStorage.setItem("uplift_admin_secret", stored);
+      return stored;
+    }
+    const typed = window.prompt("Admin secret (ADMIN_SECRET in Vercel). Asked once, then remembered on this browser:");
+    if (typed) localStorage.setItem("uplift_admin_secret", typed);
+    return typed;
+  };
+  const forgetAdminToken = () => {
+    localStorage.removeItem("uplift_admin_secret");
+    sessionStorage.removeItem("uplift_admin_secret");
+  };
+
   // The NJEDA exhibit packs are token-gated HTML routes, so open them in a new
-  // tab with the same admin secret the write endpoints use. Scoped to whatever
-  // cohort the Reporting tab has selected.
-  const openExhibit = (path) => {
-    const token = sessionStorage.getItem("uplift_admin_secret") || window.prompt("Admin secret (from Vercel env ADMIN_SECRET):");
+  // tab with the same secret. Scoped to whatever cohort Reporting has selected.
+  const openExhibit = (path, extra = {}) => {
+    const token = adminToken();
     if (!token) return;
-    sessionStorage.setItem("uplift_admin_secret", token);
-    const qs = new URLSearchParams({ token });
+    const qs = new URLSearchParams({ token, ...extra });
     if (grantCohort !== "all") qs.set("cohort", grantCohort);
     window.open(`${path}?${qs}`, "_blank", "noopener");
   };
 
   const rebuildSnapshot = async () => {
-    const token = sessionStorage.getItem("uplift_admin_secret") || window.prompt("Admin secret (from Vercel env ADMIN_SECRET):");
+    const token = adminToken();
     if (!token) return;
-    sessionStorage.setItem("uplift_admin_secret", token);
     setSnapshotBusy(true);
     try {
       const r = await fetch(`/api/admin/portal-snapshot?token=${encodeURIComponent(token)}`, { method: "POST" });
       const d = await r.json();
       if (!r.ok) {
-        if (r.status === 401) sessionStorage.removeItem("uplift_admin_secret");
+        if (r.status === 401) forgetAdminToken();
         setSnapshot({ error: d.error || `HTTP ${r.status}` });
       } else {
         setSnapshot(d);
@@ -170,9 +190,8 @@ export default function AdminFall() {
   };
 
   const acceptanceSend = async (dryRun) => {
-    const token = sessionStorage.getItem("uplift_admin_secret") || window.prompt("Admin secret (from Vercel env ADMIN_SECRET):");
+    const token = adminToken();
     if (!token) return;
-    sessionStorage.setItem("uplift_admin_secret", token);
     setSendBusy(true);
     try {
       const r = await fetch(`/api/admin/send-acceptance-emails?token=${encodeURIComponent(token)}`, {
@@ -182,7 +201,7 @@ export default function AdminFall() {
       });
       const d = await r.json();
       if (!r.ok) {
-        if (r.status === 401) sessionStorage.removeItem("uplift_admin_secret");
+        if (r.status === 401) forgetAdminToken();
         setSendState({ phase: "error", error: d.error || `HTTP ${r.status}` });
       } else if (dryRun) {
         setSendState({ phase: "planned", plan: d });
@@ -508,6 +527,28 @@ export default function AdminFall() {
   // inbox is clear rather than keep reporting a total nobody has to act on.
   const undecidedMentees = people ? people.mentees.filter(a => !a.decision && !a.isTest).length : 0;
   const undecidedMentors = people ? people.mentors.filter(m2 => !m2.decision && !m2.isTest).length : 0;
+
+  // Mentors who already have a founder, by any route: a committed match, a
+  // roster assignment, or the plan earmarking them for somebody still
+  // waiting. Naming one of these as a "better fit" for an already-matched
+  // founder is not an upgrade, it is an unmatch of somebody else wearing an
+  // upgrade's clothes. And a gate built only on the plan stops working the
+  // moment the waiting room empties, which is exactly when every mentor is
+  // taken — so committed matches have to count too.
+  const mentorsTaken = useMemo(() => {
+    const taken = new Set();
+    for (const a of people?.mentees || []) if (a.matchedMentorId) taken.add(a.matchedMentorId);
+    for (const mt of people?.mentors || []) if ((mt.assignedTo || []).length) taken.add(mt.id);
+    for (const pr of bestForCohort?.pairs || []) taken.add(pr.mentor.id);
+    return taken;
+  }, [people, bestForCohort]);
+
+  // The only mentors worth suggesting as an upgrade: approved, and carrying
+  // nobody at all.
+  const mentorsFree = useMemo(
+    () => (people?.mentors || []).filter(mt => isEligibleMentor(mt) && !mentorsTaken.has(mt.id)),
+    [people, mentorsTaken],
+  );
 
   const needsSessionInfo = (sess) => !sess.lumaName || /educational session|uplift session|tbd|placeholder/i.test(sess.lumaName);
   const card = { background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 16 };
@@ -915,26 +956,47 @@ export default function AdminFall() {
 
             return (
             <>
-              {/* Say what was done, in three steps, with this cohort's own
-                  numbers in them. The principles alone did not land. */}
+              {/* The reasoning, not the algorithm. This is the paragraph the
+                  team reads out loud to founders and to funders, so it has to
+                  say why these particular people will recognise each other,
+                  with this cohort's real numbers in it. The sort steps on
+                  their own read like a machine talking. */}
               <div style={{ ...card, borderLeft: "4px solid #5c4eb5" }}>
-                <p style={kicker}>How these five rooms were decided</p>
-                <p style={{ margin: "0 0 10px", fontSize: 14, color: "#1a1733", lineHeight: 1.6, fontWeight: 600 }}>
-                  Sorted by stage, then cut into five rooms of {cohortGroups.groups.map(g => g.members.length).join(", ")}.
-                  A peer room only works when the problems in it rhyme.
+                <p style={kicker}>Why these are cohorts and not just groups</p>
+                <p style={{ margin: "0 0 10px", fontSize: 14, color: "#1a1733", lineHeight: 1.65, fontWeight: 600 }}>
+                  A mentor gives a founder expertise. A room of peers gives them company, and company is
+                  a different good that fails in its own ways.
+                </p>
+                <p style={{ margin: "0 0 10px", fontSize: 13.5, color: "#37324e", lineHeight: 1.7 }}>
+                  It fails when nine founders sit at nine different altitudes and nobody recognises anybody
+                  else&apos;s problem. It fails when half the room cannot make the time. And it fails when nine
+                  people all need the same thing and not one of them can give it.
+                </p>
+                <p style={{ margin: "0 0 10px", fontSize: 13.5, color: "#37324e", lineHeight: 1.7 }}>
+                  So these rooms were built for recognition first. {cohortGroups.groups.reduce((n, g) => n + g.members.length, 0)} founders,
+                  ordered by how far along they actually are, then cut into five rooms of{" "}
+                  {cohortGroups.groups.map(g => g.members.length).join(", ")}. The point of that shape is that when
+                  somebody says &ldquo;I cannot get past my first ten customers,&rdquo; the rest of the room exhales
+                  instead of looking blank.
                 </p>
                 <p style={{ margin: "0 0 6px", fontSize: 13, color: "#37324e" }}>
-                  Then founders were swapped between neighbouring rooms until each room had:
+                  Then founders were traded between neighbouring rooms until every room could actually work:
                 </p>
-                <ul style={{ margin: "0 0 10px", paddingLeft: 18, fontSize: 13, color: "#37324e", lineHeight: 1.8 }}>
-                  <li>one meeting time everybody can make</li>
-                  <li>a spread of industries, and no two competitors</li>
-                  <li>somebody who has already done what the others are attempting</li>
+                <ul style={{ margin: "0 0 10px", paddingLeft: 18, fontSize: 13, color: "#37324e", lineHeight: 1.85 }}>
+                  <li><strong>A time everybody can genuinely make.</strong> A room that never convenes is not a room, so this outranked everything else.</li>
+                  <li><strong>Enough different industries to keep the advice fresh</strong>, and never two founders chasing the same customer.</li>
+                  <li><strong>At least one person who has already done what the others are attempting.</strong> Without that it is a support group rather than a peer group.</li>
                 </ul>
-                <p style={{ margin: 0, fontSize: 12.5, color: "#6b6480", lineHeight: 1.6 }}>
-                  Not region — the sessions are virtual. Each room&apos;s own shareable paragraph is below.{" "}
-                  <strong style={{ color: "#b9770e" }}>{cohortGroups.groups.slice(0, 2).map(g => g.name).join(" and ")} are the exception:</strong>{" "}
-                  everyone in them is at the same starting line, so those two want a facilitator rather than a peer with the answer.
+                <p style={{ margin: "0 0 10px", fontSize: 12.5, color: "#6b6480", lineHeight: 1.65 }}>
+                  Deliberately not region. The sessions are virtual and a third of the county fields are blank,
+                  so grouping by geography would have cost stage proximity and bought nothing.
+                  Each room&apos;s own shareable paragraph is below.
+                </p>
+                <p style={{ margin: 0, fontSize: 12.5, color: "#6b6480", lineHeight: 1.65 }}>
+                  <strong style={{ color: "#b9770e" }}>{cohortGroups.groups.slice(0, 2).map(g => g.name).join(" and ")} are the honest exception.</strong>{" "}
+                  Everyone in them is standing at the same starting line, which is good for solidarity and bad
+                  for answers. Those two rooms need a facilitator in the room, rather than a peer who has
+                  already been through it.
                 </p>
               </div>
 
@@ -1257,17 +1319,16 @@ export default function AdminFall() {
 
           {tab === "matched" && people && (() => {
             const matchedMentees = people.mentees.filter(a => a.matchedMentorId);
-            // Same rule as the Today list: only surface a better fit that is
-            // actually spare. A mentor the cohort plan has earmarked for
-            // somebody still waiting is not an upgrade, it is a swap that
-            // demotes a founder nobody is looking at.
-            const spokenFor = new Set((bestForCohort?.pairs || []).map(pr => pr.mentor.id));
+            // The only mentor worth flagging here is one carrying nobody.
+            // Anybody already matched is not a spare upgrade: moving a founder
+            // onto them would unmatch a founder nobody was looking at, so the
+            // flag would be proposing damage and calling it an improvement.
             const betterFor = (a) => {
               const current = people.mentors.find(mt => mt.id === a.matchedMentorId);
               if (!current) return null;
               const currentScore = scoreMentor(a, current).score;
-              const best = people.mentors
-                .filter(mt => mt.id !== a.matchedMentorId && isEligibleMentor(mt) && !samePerson(a, mt) && !spokenFor.has(mt.id))
+              const best = mentorsFree
+                .filter(mt => mt.id !== a.matchedMentorId && !samePerson(a, mt))
                 .map(mt => ({ mt, sc: scoreMentor(a, mt).score }))
                 .sort((x, y) => y.sc - x.sc)[0];
               return best && best.sc > currentScore ? { name: best.mt.name, score: best.sc, currentScore } : null;
@@ -1296,7 +1357,7 @@ export default function AdminFall() {
                         )}
                         <span style={{ fontSize: 11.5, color: "#9b8fcf" }}>{a.matchedAt?.slice(0, 10)}</span>
                         {roster && <span style={{ fontSize: 11, color: "#6b6480" }}>portal: {roster.gateComplete ? "gate done ✓" : "gate incomplete"} · {roster.meetingCount}/3 meetings</span>}
-                        {better && <span style={{ fontSize: 11, fontWeight: 700, background: "#fff3e0", color: "#b35c00", borderRadius: 4, padding: "2px 8px" }}>⬆ Spare better fit: {better.name} ({better.score} vs {better.currentScore})</span>}
+                        {better && <span style={{ fontSize: 11, fontWeight: 700, background: "#fff3e0", color: "#b35c00", borderRadius: 4, padding: "2px 8px" }}>⬆ {better.name} has nobody and scores {better.score} vs {better.currentScore}</span>}
                         <button disabled={matchBusy} onClick={() => doMatch("unmatch", a, { id: a.matchedMentorId, name: a.matchedMentorName, email: "" })} style={{ marginLeft: "auto", border: "1px solid #e8e4f5", borderRadius: 6, padding: "3px 10px", background: "#fff", color: "#c0392b", fontSize: 11.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Unmatch</button>
                       </div>
                       {isOpen && scored && (
@@ -1318,7 +1379,7 @@ export default function AdminFall() {
                   );
                 })}
                 <p style={{ margin: "14px 0 0", fontSize: 11.5, color: "#9b8fcf", fontStyle: "italic" }}>
-                  Once matched, pairs track here: portal gate progress and meeting counts cross-reference automatically for roster founders. Better-fit flags appear when a stronger mentor enters the pool.
+                  Once matched, pairs track here: portal gate progress and meeting counts cross-reference automatically for roster founders. A better-fit flag only appears when an approved mentor is carrying nobody at all, so acting on one never unmatches anybody else.
                 </p>
               </div>
             );
@@ -1616,7 +1677,7 @@ export default function AdminFall() {
                     ["Verification forms", "forms"],
                     ["Attendance sheets", "sheets"],
                   ].map(([label, view]) => (
-                    <button key={view} onClick={() => openExhibit(`/api/admin/njeda-edu-verification-fall?view=${view}`.replace("?view=", "&view=").replace("njeda-edu-verification-fall&", "njeda-edu-verification-fall?"))} style={{ border: "1px solid #d4d0e8", borderRadius: 8, padding: "9px 14px", background: "#fff", color: "#3d2f8a", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>{label} ↗</button>
+                    <button key={view} onClick={() => openExhibit("/api/admin/njeda-edu-verification-fall", { view })} style={{ border: "1px solid #d4d0e8", borderRadius: 8, padding: "9px 14px", background: "#fff", color: "#3d2f8a", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>{label} ↗</button>
                   ))}
                 </div>
                 <p style={{ margin: "12px 0 0", fontSize: 11.5, color: "#6b6480", lineHeight: 1.55 }}>
@@ -2172,24 +2233,21 @@ export default function AdminFall() {
                 n => `${n} founder${n === 1 ? "" : "s"} still need${n === 1 ? "s" : ""} a mentor`, "matching",
                 f => `${f.name} (${f.company || "no company"})`);
             }
-            // "A stronger fit is available" used to be pure greed: it would push a
-            // rematch without noticing that the mentor it wanted is somebody
-            // else's only good option, and acting on it would quietly demote a
-            // founder nobody was looking at. It now only fires for a mentor the
-            // cohort plan leaves unused, so taking the advice costs no one.
-            const spokenFor = new Set((bestForCohort?.pairs || []).map(pr => pr.mentor.id));
+            // A stronger fit is only worth raising if the mentor it names is
+            // genuinely free. Every founder being matched empties the waiting
+            // room, which used to make every taken mentor look spare.
             const upgrades = (people?.mentees || []).filter(a => a.matchedMentorId && !a.isTest).map(a => {
               const current = (people?.mentors || []).find(mt => mt.id === a.matchedMentorId);
               if (!current) return null;
               const cs = scoreMentor(a, current).score;
-              const best = (people?.mentors || [])
-                .filter(mt => mt.id !== a.matchedMentorId && isEligibleMentor(mt) && !samePerson(a, mt) && !spokenFor.has(mt.id))
+              const best = mentorsFree
+                .filter(mt => mt.id !== a.matchedMentorId && !samePerson(a, mt))
                 .map(mt => ({ mt, sc: scoreMentor(a, mt).score })).sort((x, y) => y.sc - x.sc)[0];
               return best && best.sc > cs ? { a, best, cs } : null;
             }).filter(Boolean);
             roll(upgrades, "⬆", "info",
-              n => `${n} matched founder${n === 1 ? " has" : "s have"} a stronger mentor available that nobody waiting needs`, "matching",
-              u => `${u.a.first} ${u.a.last} → ${u.best.mt.name} (${u.best.sc} vs ${u.cs})`);
+              n => `${n} matched founder${n === 1 ? " could" : "s could"} swap to a mentor who has nobody`, "matched",
+              u => `${u.a.first} ${u.a.last} → ${u.best.mt.name}, free and scoring ${u.best.sc} vs ${u.cs}`);
             roll(fs.filter(f => f.mentor && !f.gateComplete && f.status === "on-track"), "🔓", "info",
               n => `${n} mentor reveal${n === 1 ? " is" : "s are"} waiting on a Week 1 gate`, "founders",
               f => `${f.name} (missing ${[!f.gate.onboarded && "onboarding", !f.gate.quizPassed && "quiz", !f.gate.deepWorkDone && "Deep Work"].filter(Boolean).join(", ")})`);
