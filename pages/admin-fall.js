@@ -9,7 +9,7 @@ import {
   scoreMentor, gradeOf, buildCohort, cohortPlan, greedyPlan, recommendFor, isEligibleMentor, samePerson,
   sessionsFor, sessionsPlanned,
 } from "../lib/cohort-matching";
-import { buildGroups, scoreCohort, stageBandOf, stageRank, STAGE_LABEL, windowsFor } from "../lib/cohort-groups";
+import { buildGroups, stageBandOf, stageRank, STAGE_LABEL, explainMember } from "../lib/cohort-groups";
 
 
 // ─── Fall 2026 admin ────────────────────────────────────────────────────────
@@ -784,111 +784,209 @@ export default function AdminFall() {
           {tab === "cohorts" && (() => {
             if (!people) return <div style={card}><p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>Loading applications…</p></div>;
             if (!cohortGroups) return <div style={card}><p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>No approved founders yet. Approve them on the Mentee Apps tab and the five rooms build themselves.</p></div>;
+
             const pct = (v) => `${Math.round(v * 100)}%`;
             const win = { morning: "weekday mornings", afternoon: "weekday afternoons", evening: "weekday evenings", weekend: "weekends" };
             const industryOf = (m) => {
               const v = String(m.industry || "").trim();
               return !v || /^other/i.test(v) ? null : v;
             };
+            // A sequential ramp, earliest stage to latest, so a room's colour
+            // spread IS its stage spread and the eye reads it without a key.
+            const STAGE_COLOR = {
+              0: { bg: "#f4f3f8", fg: "#9b8fcf" },
+              1: { bg: "#ece7fb", fg: "#5c4eb5" },
+              2: { bg: "#dcd6f7", fg: "#43389e" },
+              3: { bg: "#cde6f6", fg: "#17607f" },
+              4: { bg: "#d2f0e1", fg: "#1a6e42" },
+              5: { bg: "#fdf0c8", fg: "#8a6a10" },
+            };
+            const all = cohortGroups.groups.flatMap(g => g.members);
+            const stageCounts = [1, 2, 3, 4, 5].map(r => ({ r, n: all.filter(m => stageRank(m.stage) === r).length })).filter(x => x.n);
+
             return (
             <>
+              {/* Say what was done, in three steps, with this cohort's own
+                  numbers in them. The principles alone did not land. */}
               <div style={{ ...card, borderLeft: "4px solid #5c4eb5" }}>
-                <p style={kicker}>Peer groups · {cohortGroups.groups.reduce((n, g) => n + g.members.length, 0)} founders in 5 rooms</p>
-                <p style={{ margin: "0 0 10px", fontSize: 13, color: "#37324e", lineHeight: 1.65 }}>
-                  Mentors give a founder expertise; these rooms give them company, which is a different good and fails
-                  for different reasons. A peer room works when the problems in it rhyme, when everyone can actually
-                  show up, and when somebody present has already solved what somebody else is stuck on. So the split
-                  is decided on four things, in this order:
-                </p>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 12, marginBottom: 12 }}>
+                <p style={kicker}>How these five rooms were built</p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14, marginBottom: 16 }}>
                   {[
-                    ["1 · Can they meet", "A room with no common window never convenes, and then nothing else about it matters. Weighted hardest. Flexible counts for every window."],
-                    ["2 · Stage proximity", "Peer value comes from facing comparable problems at the same time. An idea-stage founder and a growth-stage founder produce mentoring, not peer exchange. Rooms span one stage, not four."],
-                    ["3 · Reciprocity", "What each founder says they bring against what the others say they need. This is the gives-and-gets axis, and it is what makes a room generative rather than merely similar."],
-                    ["4 · Spread of industry", "Fresh perspective, and it keeps direct competitors out of the same room. Pairs are good, three or more of anything is not."],
+                    ["Step 1 · Line all " + all.length + " up by stage",
+                      `Stage is the only field in the application with an order to it, and it is the thing that decides whether a room's problems rhyme. This cohort is ${stageCounts.map(x => `${x.n} ${STAGE_LABEL[x.r]}`).join(", ")}.`],
+                    ["Step 2 · Cut into five rooms",
+                      `${cohortGroups.groups.map(g => g.members.length).join(" / ")} founders, so no room is a rump. Cutting a sorted line means every room opens spanning one or two neighbouring stages instead of four.`],
+                    ["Step 3 · Swap until no swap helps",
+                      `${cohortGroups.passes} round${cohortGroups.passes === 1 ? "" : "s"} of trading founders between rooms, each trade taken only if it improves the set: a shared meeting window first, then reciprocity, then spread of industry. Sizes are held, so a swap never unbalances anything.`],
                   ].map(([h, b]) => (
-                    <div key={h} style={{ background: "#faf9ff", border: "1px solid #e8e4f5", borderRadius: 10, padding: "11px 13px" }}>
-                      <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 800, color: "#3d2f8a" }}>{h}</p>
-                      <p style={{ margin: 0, fontSize: 11.5, color: "#6b6480", lineHeight: 1.55 }}>{b}</p>
+                    <div key={h} style={{ background: "#faf9ff", border: "1px solid #e8e4f5", borderRadius: 10, padding: "12px 14px" }}>
+                      <p style={{ margin: "0 0 5px", fontSize: 12.5, fontWeight: 800, color: "#3d2f8a" }}>{h}</p>
+                      <p style={{ margin: 0, fontSize: 12, color: "#6b6480", lineHeight: 1.6 }}>{b}</p>
                     </div>
                   ))}
                 </div>
+                <p style={{ margin: "0 0 4px", fontSize: 12.5, color: "#37324e", lineHeight: 1.65 }}>
+                  <strong>The order matters.</strong> A room with no common window never convenes, and then nothing else
+                  about it is worth discussing — so that outranks everything. Stage comes next, because peer value comes
+                  from facing comparable problems at the same time; an idea-stage founder beside a growth-stage founder
+                  produces mentoring, not exchange. Then reciprocity, which is your gives-and-gets: what each founder
+                  says they bring, against what the others say they need. Then spread of industry, for fresh perspective
+                  and to keep direct competitors out of the same room.
+                </p>
                 <p style={{ margin: 0, fontSize: 12, color: "#6b6480", lineHeight: 1.6 }}>
                   <strong>Not region.</strong> The fall sessions are virtual and a third of the county fields are blank,
-                  so grouping by geography would fight stage for no gain. It would only earn its place if these rooms met
-                  in person. Rooms are seeded stage-sorted and then improved by swapping founders between them until no
-                  swap helps ({cohortGroups.passes} pass{cohortGroups.passes === 1 ? "" : "es"} on this cohort), sizes held
-                  within one of each other throughout. Same applications in, same rooms out, every time.
+                  so geography would fight stage for nothing. It would only earn a place if these rooms met in person.
+                </p>
+              </div>
+
+              {/* The one view that shows the grouping rather than describing
+                  it: each room as its founders coloured by stage. A tight band
+                  of colour is a tight room. */}
+              <div style={card}>
+                <p style={kicker}>The five rooms at a glance · one square per founder, coloured by stage</p>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
+                  {stageCounts.map(x => (
+                    <span key={x.r} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, color: "#6b6480" }}>
+                      <span style={{ width: 12, height: 12, borderRadius: 3, background: STAGE_COLOR[x.r].bg, border: `1px solid ${STAGE_COLOR[x.r].fg}33`, display: "inline-block" }} />
+                      {STAGE_LABEL[x.r]} ({x.n})
+                    </span>
+                  ))}
+                </div>
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
+                    <thead>
+                      <tr style={{ textAlign: "left", color: "#9b8fcf", fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        {["Room", "Stage make-up", "Everyone in the room", "When it can meet", "Peers who have done it", "Industries doubled"].map(h => (
+                          <th key={h} style={{ padding: "7px 10px", borderBottom: "1px solid #e8e4f5", whiteSpace: "nowrap" }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cohortGroups.groups.map(g => {
+                        const s = g.score;
+                        const inds = g.members.reduce((acc, m) => {
+                          const k = industryOf(m);
+                          if (k) acc[k] = (acc[k] || 0) + 1;
+                          return acc;
+                        }, {});
+                        const doubled = Object.entries(inds).filter(([, v]) => v > 1);
+                        return (
+                          <tr key={g.name} style={{ borderBottom: "1px solid #f0edf9", verticalAlign: "middle" }}>
+                            <td style={{ padding: "9px 10px", fontWeight: 800, fontSize: 14, whiteSpace: "nowrap" }}>{g.name}</td>
+                            <td style={{ padding: "9px 10px", fontSize: 12, whiteSpace: "nowrap", color: "#37324e" }}>{stageBandOf(g.members)}</td>
+                            <td style={{ padding: "9px 10px" }}>
+                              <span style={{ display: "inline-flex", gap: 3 }}>
+                                {[...g.members]
+                                  .sort((a, b) => stageRank(a.stage) - stageRank(b.stage))
+                                  .map(m => (
+                                    <span key={m.id} title={`${m.first} ${m.last} · ${STAGE_LABEL[stageRank(m.stage)]}`} style={{
+                                      width: 15, height: 15, borderRadius: 3, display: "inline-block",
+                                      background: STAGE_COLOR[stageRank(m.stage)].bg,
+                                      border: `1px solid ${STAGE_COLOR[stageRank(m.stage)].fg}44`,
+                                    }} />
+                                  ))}
+                              </span>
+                            </td>
+                            <td style={{ padding: "9px 10px", fontSize: 12, whiteSpace: "nowrap", color: s.meetable === 1 ? "#1a6e42" : "#b35c00", fontWeight: 700 }}>
+                              {s.meetable === 1 ? "all 9" : `${Math.round(s.meetable * g.members.length)} of ${g.members.length}`} · {win[s.bestWindow] || s.bestWindow}
+                            </td>
+                            <td style={{ padding: "9px 10px", fontSize: 12, whiteSpace: "nowrap", color: s.avgHelpers >= 3 ? "#1a6e42" : "#b35c00", fontWeight: 600 }}>
+                              {s.avgHelpers.toFixed(1)} of {g.members.length - 1} have done it before
+                            </td>
+                            <td style={{ padding: "9px 10px", fontSize: 11.5, color: "#6b6480" }}>
+                              {doubled.length ? doubled.map(([k, v]) => `${k.split(" /")[0]} ×${v}`).join(", ") : "none repeated"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <p style={{ margin: "12px 0 6px", fontSize: 12, color: "#37324e", lineHeight: 1.65 }}>
+                  Reading down the rooms is reading up the stages, which is the whole idea: a room whose squares are all
+                  one or two shades is a room where the problems rhyme. The last column but one is the reciprocity
+                  measure, and it reads literally — of the eight other people in the room, how many have already done the
+                  thing a given founder is working on. It comes from what founders have actually done (raised outside
+                  capital, paying customers, employees, been through an accelerator, users) against the focus they
+                  picked, not from what they wrote about themselves.
+                </p>
+                <p style={{ margin: 0, fontSize: 12, color: "#b9770e", lineHeight: 1.65 }}>
+                  <strong>Worth knowing:</strong> that number climbs as the stages do, and it has to. In a room of
+                  idea-stage founders nobody has raised, hired or sold anything yet, so peer expertise is thin at the
+                  early end no matter how the rooms are cut — stage cohesion and peer experience genuinely pull against
+                  each other down there. The two youngest rooms are the ones that will want a facilitator, an alum, or a
+                  deliberately seeded founder who is further along. That is a programme decision, so the split does not
+                  quietly make it: it leaves the bands clean and tells you instead.
                 </p>
               </div>
 
               {cohortGroups.groups.map(g => {
                 const s = g.score;
-                const inds = g.members.reduce((acc, m) => {
-                  const k = industryOf(m);
-                  if (k) acc[k] = (acc[k] || 0) + 1;
-                  return acc;
-                }, {});
-                const unstated = g.members.filter(m => !industryOf(m)).length;
                 return (
                   <div key={g.name} style={card}>
-                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 10 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 4 }}>
                       <p style={{ margin: 0, fontSize: 19, fontWeight: 800, color: "#1a1733" }}>
                         {g.name} <span style={{ fontSize: 13, fontWeight: 600, color: "#9b8fcf" }}>· {g.members.length} founders · {stageBandOf(g.members)}</span>
                       </p>
                       <span style={{ fontSize: 11.5, fontWeight: 700, color: s.meetable === 1 ? "#1a6e42" : "#b35c00", background: s.meetable === 1 ? "#e8f8f0" : "#fdf4e8", borderRadius: 6, padding: "3px 10px" }}>
-                        {s.meetable === 1 ? "everyone" : pct(s.meetable)} free {win[s.bestWindow] || s.bestWindow}
+                        meets {win[s.bestWindow] || s.bestWindow} · {s.meetable === 1 ? "everyone free" : `${pct(s.meetable)} free`}
                       </span>
                     </div>
-                    <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 10 }}>
-                      <span style={{ background: "#f0eef8", color: "#5c4eb5", borderRadius: 6, padding: "3px 9px", fontSize: 11.5, fontWeight: 700 }}>
-                        reciprocity {pct(s.reciprocal)}
-                      </span>
-                      <span style={{ background: s.stageSpread <= 1 ? "#e8f8f0" : "#fdf4e8", color: s.stageSpread <= 1 ? "#1a6e42" : "#b35c00", borderRadius: 6, padding: "3px 9px", fontSize: 11.5, fontWeight: 700 }}>
-                        {s.stageSpread === 0 ? "one stage" : s.stageSpread === 1 ? "adjacent stages" : `spans ${s.stageSpread + 1} stages`}
-                      </span>
-                      {s.siblings > 0 && (
-                        <span style={{ background: "#fdf4e8", color: "#b35c00", borderRadius: 6, padding: "3px 9px", fontSize: 11.5, fontWeight: 700 }}>
-                          {s.siblings} pair{s.siblings === 1 ? "" : "s"} sharing a mentor
-                        </span>
-                      )}
-                      {s.industryDupes > 0 && (
-                        <span style={{ background: "#fdf4e8", color: "#b35c00", borderRadius: 6, padding: "3px 9px", fontSize: 11.5, fontWeight: 700 }}>
-                          {s.industryDupes} over the two-per-industry line
-                        </span>
-                      )}
-                    </div>
-                    <p style={{ margin: "0 0 10px", fontSize: 12, color: "#6b6480" }}>
-                      {Object.entries(inds).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k}${v > 1 ? ` ×${v}` : ""}`).join(" · ")}
-                      {unstated > 0 && <span style={{ color: "#9b8fcf" }}> · {unstated} did not state an industry</span>}
+                    <p style={{ margin: "0 0 12px", fontSize: 12, color: "#6b6480" }}>
+                      Why each founder is in this room, and not just who is.
                     </p>
                     <div style={{ overflowX: "auto" }}>
                       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
                         <thead>
                           <tr style={{ textAlign: "left", color: "#9b8fcf", fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                            {["Founder", "Stage", "Industry", "What they need", "What they bring", "Free"].map(h => (
-                              <th key={h} style={{ padding: "6px 10px", borderBottom: "1px solid #e8e4f5", whiteSpace: "nowrap" }}>{h}</th>
+                            {["Founder", "Stage", "Industry", "Can make the window", "Has already", "Peers here who have done what they need"].map(h => (
+                              <th key={h} style={{ padding: "7px 10px", borderBottom: "1px solid #e8e4f5", whiteSpace: "nowrap" }}>{h}</th>
                             ))}
                           </tr>
                         </thead>
                         <tbody>
-                          {g.members.map(m => (
-                            <tr key={m.id} style={{ borderBottom: "1px solid #f0edf9", verticalAlign: "top" }}>
-                              <td style={{ padding: "7px 10px", whiteSpace: "nowrap" }}>
-                                <button onClick={() => setProfile({ kind: "mentee", person: m })} style={{ border: "none", background: "none", padding: 0, fontWeight: 700, color: "#3d2f8a", fontSize: 12.5, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>
-                                  {m.first} {m.last}
-                                </button>
-                                <div style={{ fontSize: 11, color: "#9b8fcf" }}>{m.company || "no company"}</div>
-                              </td>
-                              <td style={{ padding: "7px 10px", whiteSpace: "nowrap" }}>{STAGE_LABEL[stageRank(m.stage)]}</td>
-                              <td style={{ padding: "7px 10px", fontSize: 11.5 }}>{industryOf(m) || <span style={{ color: "#c8bfef" }}>unstated</span>}</td>
-                              <td style={{ padding: "7px 10px", fontSize: 11.5, maxWidth: 210 }}>{m.primaryFocus || "—"}</td>
-                              <td style={{ padding: "7px 10px", fontSize: 11.5, maxWidth: 260, color: "#6b6480" }}>{(m.brings || "").slice(0, 120) || <span style={{ color: "#c8bfef" }}>did not say</span>}</td>
-                              <td style={{ padding: "7px 10px", fontSize: 11, color: "#6b6480", whiteSpace: "nowrap" }}>
-                                {windowsFor(m).length === 4 ? "flexible" : windowsFor(m).join(", ") || "unstated"}
-                              </td>
-                            </tr>
-                          ))}
+                          {g.members.map((m, i) => {
+                            const e = explainMember(g.members, i);
+                            const sr = stageRank(m.stage);
+                            return (
+                              <tr key={m.id} style={{ borderBottom: "1px solid #f0edf9", verticalAlign: "top" }}>
+                                <td style={{ padding: "8px 10px", whiteSpace: "nowrap" }}>
+                                  <button onClick={() => setProfile({ kind: "mentee", person: m })} style={{ border: "none", background: "none", padding: 0, fontWeight: 700, color: "#3d2f8a", fontSize: 12.5, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>
+                                    {m.first} {m.last}
+                                  </button>
+                                  <div style={{ fontSize: 11, color: "#9b8fcf" }}>{m.company || "no company"}</div>
+                                </td>
+                                <td style={{ padding: "8px 10px", whiteSpace: "nowrap" }}>
+                                  <span style={{ fontSize: 11, fontWeight: 700, borderRadius: 4, padding: "2px 7px", background: STAGE_COLOR[sr].bg, color: STAGE_COLOR[sr].fg }}>
+                                    {STAGE_LABEL[sr]}
+                                  </span>
+                                </td>
+                                <td style={{ padding: "8px 10px", fontSize: 11.5 }}>{industryOf(m) || <span style={{ color: "#c8bfef" }}>unstated</span>}</td>
+                                <td style={{ padding: "8px 10px", fontSize: 11.5, whiteSpace: "nowrap", color: e.flexible || e.canMakeWindow ? "#1a6e42" : "#c0392b", fontWeight: 600 }}>
+                                  {e.flexible ? "flexible, any window" : e.canMakeWindow ? "yes" : "⚠ no, needs another window"}
+                                </td>
+                                <td style={{ padding: "8px 10px", fontSize: 11.5, maxWidth: 230, color: "#37324e" }}>
+                                  {e.capabilities.length
+                                    ? e.capabilities.map(c => c.replace(/^has /, "")).join(" · ")
+                                    : <span style={{ color: "#c8bfef" }}>nothing recorded yet</span>}
+                                  {e.helps.length > 0 && (
+                                    <div style={{ fontSize: 11, color: "#1a6e42", marginTop: 2 }}>
+                                      which {e.helps.length} {e.helps.length === 1 ? "founder" : "founders"} here {e.helps.length === 1 ? "needs" : "need"}
+                                    </div>
+                                  )}
+                                </td>
+                                <td style={{ padding: "8px 10px", fontSize: 11.5, maxWidth: 270, color: "#37324e" }}>
+                                  {e.statedNoFocus
+                                    ? <span style={{ color: "#c8bfef" }}>stated no focus, so nothing to look for</span>
+                                    : e.helpedBy.length
+                                      ? <>
+                                          <strong>{e.helpedBy.length}</strong>, including {e.helpedBy.slice(0, 2).map(h => `${h.person.first} ${h.person.last} (${h.on[0].replace(/^has /, "")})`).join(" and ")}
+                                        </>
+                                      : <span style={{ color: "#b35c00" }}>nobody here has done it yet</span>}
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -897,11 +995,16 @@ export default function AdminFall() {
               })}
 
               <p style={{ fontSize: 11.5, color: "#9b8fcf", lineHeight: 1.6 }}>
-                Advisory, and recomputed from the applications on every load, so it moves as founders are approved and
-                matched. Nothing is written anywhere yet: once the five rooms are settled they want a Cohort column in
-                the sheet so the portal can name a founder&apos;s room and their peer sessions. The names come from the
-                onboarding slots, which is worth a thought — a founder who onboarded in Hopper but sits in Bardeen for
-                eight weeks is a question waiting to be asked.
+                &ldquo;Has already&rdquo; is read from the application facts — raised outside capital, paying customers,
+                employees, a prior accelerator, users — and matched against the focus each founder picked. It deliberately
+                does not read the &ldquo;what will you bring to the mentorship&rdquo; free text: that question is about the
+                mentor relationship, so founders answered it about their own coachability (&ldquo;a sponge-like willingness
+                to learn&rdquo;), which is a real answer to a different question and made the earlier version of this number
+                meaningless. Advisory and recomputed on every load,
+                so it moves as founders are approved and matched. Nothing is written anywhere yet: once the rooms are
+                settled they want a Cohort column in the sheet so the portal can name a founder&apos;s room. The names come
+                from the onboarding slots, which is worth a thought — a founder who onboarded in Hopper but sits in
+                Bardeen for eight weeks is a question waiting to be asked.
               </p>
             </>
             );
