@@ -1,76 +1,14 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Head from "next/head";
 import { TEST_SLUGS } from "../lib/fall-roster";
 
+// Match scoring and the whole-cohort assignment both live in
+// lib/cohort-matching.js: the scoring heuristic, and the solver that answers
+// "best for this founder" and "best for the whole group of them" separately.
+import {
+  scoreMentor, gradeOf, buildCohort, cohortPlan, greedyPlan, recommendFor, isEligibleMentor, samePerson,
+} from "../lib/cohort-matching";
 
-// ─── Match scoring ────────────────────────────────────────────────────────────
-// Transparent heuristic, session commitment weighted heaviest: pairs only work
-// when both sides expect the same amount of time together. Every suggestion
-// shows its grade and reasons so the human stays the decision-maker.
-const FOCUS_KEYWORDS = ["go-to-market", "customer", "pitch", "narrative", "hiring", "leadership", "fundraising", "investor", "operational", "operations", "scaling", "product", "priorities", "strategy", "sounding board", "inflection", "brand", "marketing"];
-const STOPWORDS = new Set(["that", "this", "with", "have", "from", "they", "them", "will", "want", "hope", "hoping", "their", "would", "about", "more", "some", "what", "when", "your", "like", "just", "very", "into", "then", "than", "been", "being", "over", "also", "help", "make", "take"]);
-
-function keywordsOf(list) {
-  const text = (Array.isArray(list) ? list : [list]).filter(Boolean).join(" ").toLowerCase();
-  return FOCUS_KEYWORDS.filter(k => text.includes(k));
-}
-
-function tierBand(tier) {
-  const t = (tier || "").toLowerCase();
-  if (t.includes("7-10")) return 3;
-  if (t.includes("4-6")) return 2;
-  if (t.includes("minimum") || t.includes("3")) return 1;
-  return 0;
-}
-
-function meaningfulWords(text) {
-  return new Set(String(text || "").toLowerCase().replace(/[^a-z\s]/g, " ").split(/\s+/)
-    .filter(w => w.length >= 5 && !STOPWORDS.has(w)));
-}
-
-function gradeOf(score) {
-  if (score >= 11) return { label: "Perfect match", bg: "#e8f8f0", color: "#1a6e42" };
-  if (score >= 8) return { label: "Excellent match", bg: "#e8f8f0", color: "#1a6e42" };
-  if (score >= 6) return { label: "Strong match", bg: "#eafaf7", color: "#0e7c6b" };
-  if (score >= 3) return { label: "Good match", bg: "#fffbeb", color: "#7a5c00" };
-  return { label: "Weak match", bg: "#f0eef8", color: "#9b8fcf" };
-}
-
-function scoreMentor(mentee, mentor) {
-  const reasons = [];
-  let score = 0;
-
-  // Session commitment: the heavy weight
-  const mb = tierBand(mentee.tier);
-  const rb = tierBand(mentor.tier);
-  if (mb && rb) {
-    if (mb === rb) { score += 4; reasons.push(`sessions aligned (both ${mb === 1 ? "3" : mb === 2 ? "4-6" : "7-10"})`); }
-    else if (rb > mb) { score += 2; reasons.push("mentor offers more sessions than asked"); }
-    else { score -= 2; reasons.push("⚠ mentor offers fewer sessions than requested"); }
-  }
-
-  // Focus overlap
-  const menteeKw = keywordsOf([...(mentee.topics || []), mentee.primaryFocus]);
-  const mentorKw = keywordsOf(mentor.focusAreas || []);
-  const overlap = menteeKw.filter(k => mentorKw.includes(k));
-  if (overlap.length) { score += Math.min(overlap.length, 3) * 2; reasons.push(`focus: ${overlap.join(", ")}`); }
-
-  // Language overlap between what the founder wants and what the mentor offers
-  const wants = meaningfulWords(`${mentee.hoping || ""} ${mentee.valueSought || ""}`);
-  const offers = meaningfulWords(`${mentor.why || ""} ${mentor.give || ""}`);
-  const shared = [...wants].filter(w => offers.has(w));
-  if (shared.length >= 2) { score += 2; reasons.push(`shared language: ${shared.slice(0, 3).join(", ")}`); }
-  else if (shared.length === 1) { score += 1; reasons.push(`shared language: ${shared[0]}`); }
-
-  // Stage + schedule
-  const stageWord = (mentee.stage || "").split(" ")[0].toLowerCase();
-  if (stageWord && (mentor.stagePref || []).some(sp => sp.toLowerCase().includes(stageWord))) { score += 2; reasons.push("stage fit"); }
-  const mTime = (mentee.timePref || []).join(" ").toLowerCase();
-  const rTime = (mentor.timePref || []).join(" ").toLowerCase();
-  if (rTime.includes("flexible") || ["morning", "evening", "weekend"].some(k => mTime.includes(k) && rTime.includes(k))) { score += 1; reasons.push("schedule works"); }
-
-  return { score, reasons };
-}
 
 // ─── Fall 2026 admin ────────────────────────────────────────────────────────
 // One screen, one data request. Everything below renders from a single
@@ -165,6 +103,8 @@ export default function AdminFall() {
   const [appFilter, setAppFilter] = useState("undecided");
   const [profile, setProfile] = useState(null); // { kind, person }
   const [matchExplain, setMatchExplain] = useState(null); // mentee id with score breakdown expanded
+  const [showAllMentors, setShowAllMentors] = useState(false); // full ranked pool under the three picks
+  const [showCohortPlan, setShowCohortPlan] = useState(false); // the whole-hive plan, founder by founder
   const [todayState, setTodayState] = useState({});
   const [signals, setSignals] = useState(null);
   const [signalText, setSignalText] = useState("");
@@ -392,6 +332,32 @@ export default function AdminFall() {
     setMatchBusy(false);
   };
 
+  // ─── Whole-cohort matching ────────────────────────────────────────────────
+  // Matching one founder at a time is how the work actually gets done, but a
+  // single click is not a local decision: handing this founder their best
+  // mentor can be the same as taking somebody else's only good one. So the
+  // whole waiting room is solved as one assignment problem here, and every
+  // recommendation below is ranked by the cohort it leaves behind rather than
+  // by its own score. `bestForCohort` is that plan; `greedyForCohort` is what
+  // working down the list newest-first would have produced, kept only so the
+  // screen can show the difference.
+  const waitingForMatch = useMemo(
+    () => (people?.mentees || []).filter(a => a.decision === "approved" && !a.isTest && !a.matchedMentorId),
+    [people],
+  );
+  const cohort = useMemo(
+    () => (people ? buildCohort({ mentees: waitingForMatch, mentors: people.mentors }) : null),
+    [people, waitingForMatch],
+  );
+  const bestForCohort = useMemo(() => (cohort ? cohortPlan(cohort) : null), [cohort]);
+  const greedyForCohort = useMemo(() => (cohort ? greedyPlan(cohort) : null), [cohort]);
+  // Re-solves the cohort once per candidate mentor, so the three picks come
+  // with the exact fallout of choosing each one.
+  const recs = useMemo(
+    () => (cohort && selectedMentee ? recommendFor(cohort, selectedMentee, 3) : null),
+    [cohort, selectedMentee],
+  );
+
   const doMatch = async (action, mentee, mentor) => {
     setMatchBusy(true);
     setActionErr(null);
@@ -440,6 +406,13 @@ export default function AdminFall() {
   const freshness = data ? Math.round((Date.now() - new Date(data.generatedAt).getTime()) / 1000) : null;
 
   const isNew = (submittedAt) => submittedAt && (Date.now() - new Date(submittedAt).getTime()) < 7 * 24 * 3600 * 1000;
+
+  // What is left to decide. Test portals never count, and neither does anyone
+  // already approved or rejected — the tab counter should hit zero when the
+  // inbox is clear rather than keep reporting a total nobody has to act on.
+  const undecidedMentees = people ? people.mentees.filter(a => !a.decision && !a.isTest).length : 0;
+  const undecidedMentors = people ? people.mentors.filter(m2 => !m2.decision && !m2.isTest).length : 0;
+
   const needsSessionInfo = (sess) => !sess.lumaName || /educational session|uplift session|tbd|placeholder/i.test(sess.lumaName);
   const card = { background: "#fff", borderRadius: 14, border: "1px solid #e8e4f5", padding: "20px 24px", marginBottom: 16 };
   const kicker = { margin: "0 0 12px", fontSize: 12, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#5c4eb5" };
@@ -541,8 +514,12 @@ export default function AdminFall() {
         <div style={{ background: "#fff", borderBottom: "1px solid #e8e4f5" }}>
           <div style={{ maxWidth: 1560, margin: "0 auto", padding: "0 28px", display: "flex", gap: 4 }}>
             {[["today", "📋 Today"], ["overview", "Overview"], ["founders", "Roster"],
-              ["menteeapps", `Mentee Apps${people ? ` (${people.menteeCount})` : ""}`],
-              ["mentorapps", `Mentor Apps${people ? ` (${people.mentorCount})` : ""}`],
+              // These two counters are a to-do list, not a scoreboard: the number
+              // in the tab is how many applications still need a yes or a no.
+              // Once everyone is decided it reads (0) and the useful totals are
+              // on the Accepted tabs. Running totals stay on Overview.
+              ["menteeapps", `Mentee Apps${people ? ` (${undecidedMentees})` : ""}`],
+              ["mentorapps", `Mentor Apps${people ? ` (${undecidedMentors})` : ""}`],
               ["acceptedfounders", `Accepted Founders${people ? ` (${people.mentees.filter(a => a.decision === "approved" && !a.isTest).length})` : ""}`],
               ["acceptedmentors", `Accepted Mentors${people ? ` (${people.mentors.filter(m2 => m2.decision === "approved" && !m2.isTest).length})` : ""}`],
               ["matching", `Matching${people ? ` (${people.mentees.filter(a => a.decision === "approved" && !a.isTest && !a.matchedMentorId).length} waiting)` : ""}`],
@@ -955,11 +932,17 @@ export default function AdminFall() {
 
           {tab === "matched" && people && (() => {
             const matchedMentees = people.mentees.filter(a => a.matchedMentorId);
+            // Same rule as the Today list: only surface a better fit that is
+            // actually spare. A mentor the cohort plan has earmarked for
+            // somebody still waiting is not an upgrade, it is a swap that
+            // demotes a founder nobody is looking at.
+            const spokenFor = new Set((bestForCohort?.pairs || []).map(pr => pr.mentor.id));
             const betterFor = (a) => {
               const current = people.mentors.find(mt => mt.id === a.matchedMentorId);
               if (!current) return null;
               const currentScore = scoreMentor(a, current).score;
-              const best = people.mentors.filter(mt => mt.id !== a.matchedMentorId)
+              const best = people.mentors
+                .filter(mt => mt.id !== a.matchedMentorId && isEligibleMentor(mt) && !samePerson(a, mt) && !spokenFor.has(mt.id))
                 .map(mt => ({ mt, sc: scoreMentor(a, mt).score }))
                 .sort((x, y) => y.sc - x.sc)[0];
               return best && best.sc > currentScore ? { name: best.mt.name, score: best.sc, currentScore } : null;
@@ -988,7 +971,7 @@ export default function AdminFall() {
                         )}
                         <span style={{ fontSize: 11.5, color: "#9b8fcf" }}>{a.matchedAt?.slice(0, 10)}</span>
                         {roster && <span style={{ fontSize: 11, color: "#6b6480" }}>portal: {roster.gateComplete ? "gate done ✓" : "gate incomplete"} · {roster.meetingCount}/3 meetings</span>}
-                        {better && <span style={{ fontSize: 11, fontWeight: 700, background: "#fff3e0", color: "#b35c00", borderRadius: 4, padding: "2px 8px" }}>⬆ Better fit: {better.name} ({better.score} vs {better.currentScore})</span>}
+                        {better && <span style={{ fontSize: 11, fontWeight: 700, background: "#fff3e0", color: "#b35c00", borderRadius: 4, padding: "2px 8px" }}>⬆ Spare better fit: {better.name} ({better.score} vs {better.currentScore})</span>}
                         <button disabled={matchBusy} onClick={() => doMatch("unmatch", a, { id: a.matchedMentorId, name: a.matchedMentorName, email: "" })} style={{ marginLeft: "auto", border: "1px solid #e8e4f5", borderRadius: 6, padding: "3px 10px", background: "#fff", color: "#c0392b", fontSize: 11.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Unmatch</button>
                       </div>
                       {isOpen && scored && (
@@ -1333,7 +1316,8 @@ export default function AdminFall() {
                     ["Speaker Confirmed", `${speakers?.slots?.filter(sl => sl.status === "confirmed").length ?? 0}/${sessions.totals.eduTotal}`, "#1a6e42"],
                     ["Speaker Pending", speakers?.slots?.filter(sl => sl.status === "pending").length ?? 0, "#b35c00"],
                     ["Still Needs a Speaker", `${speakers?.slots ? speakers.slots.filter(sl => sl.status === "open").length : sessions.sessions.filter(needsSessionInfo).length}/${sessions.totals.eduTotal}`, "#c0392b"],
-                    ["Onboarding Slots w/ Luma", `${sessions.totals.onboardingWithLuma}/${sessions.totals.onboardingSlots}`, "#b35c00"],
+                    ["Onboarding Slots w/ Luma", `${sessions.totals.onboardingWithLuma}/${sessions.totals.onboardingSlots}`,
+                      sessions.totals.onboardingWithLuma >= sessions.totals.onboardingSlots ? "#1a6e42" : "#b35c00"],
                   ].map(([label, value, color]) => (
                     <div key={label} style={{ background: "#fafafa", borderRadius: 10, padding: "12px 14px", textAlign: "center" }}>
                       <p style={{ margin: 0, fontSize: 24, fontWeight: 800, color }}>{value}</p>
@@ -1387,8 +1371,54 @@ export default function AdminFall() {
                   </table>
                 </div>
               )}
+              {/* The onboarding slots used to be a hardcoded 0/7 and a standing
+                  to-do. They are read off the same Luma calendar now, so this
+                  table is whatever is actually on the calendar. */}
+              {sessions?.onboarding?.length > 0 && (() => {
+                const when = (iso) => iso ? new Date(iso).toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—";
+                return (
+                <div style={{ marginTop: 22 }}>
+                  <p style={kicker}>Onboarding Week · {sessions.onboarding.length} slots live on Luma · {sessions.totals.onboardingRegistrations ?? 0} registered</p>
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ textAlign: "left", color: "#9b8fcf", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                          {["#", "When (ET)", "Event Name", "Registered", "Link"].map(h => (
+                            <th key={h} style={{ padding: "8px 10px", borderBottom: "1px solid #e8e4f5", whiteSpace: "nowrap" }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sessions.onboarding.map(o => (
+                          <tr key={o.slug} style={{ borderBottom: "1px solid #f0edf9" }}>
+                            <td style={{ padding: "9px 10px", fontWeight: 800, color: "#3d2f8a" }}>{o.n}</td>
+                            <td style={{ padding: "9px 10px", whiteSpace: "nowrap" }}>{when(o.startAt)}</td>
+                            <td style={{ padding: "9px 10px", fontSize: 12.5, maxWidth: 320 }}>
+                              {/* The badge already says it; don't say it twice. */}
+                              {o.name.replace(/\s*[-·]?\s*IN-?PERSON\s*$/i, "")}
+                              {o.inPerson && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#efeaff", color: "#5c4eb5", borderRadius: 4, padding: "1px 6px" }}>IN PERSON</span>}
+                            </td>
+                            <td style={{ padding: "9px 10px", fontWeight: 700 }}>{o.registered ?? "—"}</td>
+                            <td style={{ padding: "9px 10px" }}><a href={o.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#5c4eb5", fontWeight: 600 }}>Luma →</a></td>
+                          </tr>
+                        ))}
+                        {sessions.overdrive?.onLuma && (
+                          <tr style={{ borderBottom: "1px solid #f0edf9" }}>
+                            <td style={{ padding: "9px 10px", fontWeight: 800, color: "#3d2f8a" }}>★</td>
+                            <td style={{ padding: "9px 10px", whiteSpace: "nowrap" }}>{sessions.overdrive.day}</td>
+                            <td style={{ padding: "9px 10px", fontSize: 12.5 }}>{sessions.overdrive.lumaName || sessions.overdrive.name}</td>
+                            <td style={{ padding: "9px 10px", fontWeight: 700 }}>{sessions.overdrive.registered ?? "—"}</td>
+                            <td style={{ padding: "9px 10px" }}><a href={sessions.overdrive.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#5c4eb5", fontWeight: 600 }}>Luma →</a></td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                );
+              })()}
               <p style={{ margin: "12px 0 0", fontSize: 11.5, color: "#9b8fcf", fontStyle: "italic" }}>
-                Registration counts sync from Luma every 5 minutes. Onboarding slot links and Uplift at OverdriveAI appear here once their Luma events exist.
+                Registration counts sync from Luma every 5 minutes, counted off each event&apos;s guest list. Onboarding slots and Uplift at OverdriveAI are matched by name against the same calendar, so a renamed or added event shows up here on its own.
               </p>
             </div>
           )}
@@ -1681,6 +1711,9 @@ export default function AdminFall() {
 
           {tab === "today" && (() => {
             const todo = [];
+            // Kickoff. Same date the deadline engine uses in
+            // pages/api/admin/fall-overview.js.
+            const PROGRAM_START = new Date("2026-09-09");
             const fs = data?.founders || [];
             const weekAgo = Date.now() - 7 * 24 * 3600 * 1000;
             const freshOf = (list) => (list || []).filter(a => a.submittedAt && new Date(a.submittedAt).getTime() > weekAgo);
@@ -1688,20 +1721,55 @@ export default function AdminFall() {
             const newMentorApps = freshOf(people?.mentors);
             if (newMenteeApps.length) todo.push({ icon: "📥", level: "info", text: `${newMenteeApps.length} new mentee application${newMenteeApps.length === 1 ? "" : "s"} this week awaiting a roster decision`, sub: newMenteeApps.slice(0, 6).map(a => `${a.first} ${a.last} (${a.company || "no company"})`).join(" · ") + (newMenteeApps.length > 6 ? ` · +${newMenteeApps.length - 6} more` : ""), go: "applications" });
             if (newMentorApps.length) todo.push({ icon: "🧑‍🏫", level: "info", text: `${newMentorApps.length} new mentor application${newMentorApps.length === 1 ? "" : "s"} this week to review for the pool`, sub: newMentorApps.slice(0, 6).map(m => `${m.name} (${m.company || "no company"})`).join(" · "), go: "applications" });
-            fs.filter(f => f.status === "at-risk").forEach(f => todo.push({ icon: "🚨", level: "risk", text: `${f.name} is at risk`, sub: f.flags.join(" · "), go: "founders" }));
-            fs.filter(f => f.status === "needs-attention").forEach(f => todo.push({ icon: "⚠️", level: "warn", text: `${f.name} needs attention`, sub: f.flags.join(" · "), go: "founders" }));
-            fs.filter(f => !f.mentor && f.status !== "churned").forEach(f => todo.push({ icon: "🤝", level: "warn", text: `Match ${f.name} with a mentor`, sub: `${f.company} · primary focus in their application`, go: "matching" }));
-            (people?.mentees || []).filter(a => a.matchedMentorId).forEach(a => {
+            // Today is a queue, not a ledger. One line per kind of work with a
+            // count that goes up, the way the wins line already reads, instead
+            // of a fresh line per person — thirty-nine rows saying the same
+            // thing is the same information as one row saying it once. Names
+            // still ride along underneath, so nothing is hidden.
+            const roll = (list, icon, level, label, go, subOf) => {
+              if (!list.length) return;
+              todo.push({
+                icon, level, go,
+                text: label(list.length),
+                sub: list.slice(0, 6).map(subOf).join(" · ") + (list.length > 6 ? ` · +${list.length - 6} more` : ""),
+              });
+            };
+            roll(fs.filter(f => f.status === "at-risk"), "🚨", "risk",
+              n => `${n} founder${n === 1 ? " is" : "s are"} at risk`, "founders",
+              f => `${f.name}${f.flags.length ? ` (${f.flags.join(", ")})` : ""}`);
+            roll(fs.filter(f => f.status === "needs-attention"), "⚠️", "warn",
+              n => `${n} founder${n === 1 ? "" : "s"} need${n === 1 ? "s" : ""} attention`, "founders",
+              f => `${f.name}${f.flags.length ? ` (${f.flags.join(", ")})` : ""}`);
+            // Nobody is behind on a mentor before the program exists. Until
+            // kickoff the waiting room lives on the Matching tab and in its own
+            // counter, where it belongs; after Sept 9 an unmatched founder is a
+            // real gap — a churned mentor, a rematch — and earns a line here.
+            if (new Date() >= PROGRAM_START) {
+              roll(fs.filter(f => !f.mentor && f.status !== "churned"), "🤝", "warn",
+                n => `${n} founder${n === 1 ? "" : "s"} still need${n === 1 ? "s" : ""} a mentor`, "matching",
+                f => `${f.name} (${f.company || "no company"})`);
+            }
+            // "A stronger fit is available" used to be pure greed: it would push a
+            // rematch without noticing that the mentor it wanted is somebody
+            // else's only good option, and acting on it would quietly demote a
+            // founder nobody was looking at. It now only fires for a mentor the
+            // cohort plan leaves unused, so taking the advice costs no one.
+            const spokenFor = new Set((bestForCohort?.pairs || []).map(pr => pr.mentor.id));
+            const upgrades = (people?.mentees || []).filter(a => a.matchedMentorId && !a.isTest).map(a => {
               const current = (people?.mentors || []).find(mt => mt.id === a.matchedMentorId);
-              if (!current) return;
+              if (!current) return null;
               const cs = scoreMentor(a, current).score;
-              const best = (people?.mentors || []).filter(mt => mt.id !== a.matchedMentorId).map(mt => ({ mt, sc: scoreMentor(a, mt).score })).sort((x, y) => y.sc - x.sc)[0];
-              if (best && best.sc > cs) todo.push({ icon: "⬆", level: "info", text: `A stronger mentor fit is available for ${a.first} ${a.last}`, sub: `${best.mt.name} scores ${best.sc} vs current ${cs}`, go: "matching" });
-            });
-            fs.filter(f => f.mentor && !f.gateComplete && f.status === "on-track").forEach(f => {
-              const missing = [!f.gate.onboarded && "onboarding", !f.gate.quizPassed && "quiz", !f.gate.deepWorkDone && "Deep Work"].filter(Boolean).join(", ");
-              todo.push({ icon: "🔓", level: "info", text: `${f.name}'s mentor reveal is waiting on their Week 1 gate`, sub: `Missing: ${missing}`, go: "founders" });
-            });
+              const best = (people?.mentors || [])
+                .filter(mt => mt.id !== a.matchedMentorId && isEligibleMentor(mt) && !samePerson(a, mt) && !spokenFor.has(mt.id))
+                .map(mt => ({ mt, sc: scoreMentor(a, mt).score })).sort((x, y) => y.sc - x.sc)[0];
+              return best && best.sc > cs ? { a, best, cs } : null;
+            }).filter(Boolean);
+            roll(upgrades, "⬆", "info",
+              n => `${n} matched founder${n === 1 ? " has" : "s have"} a stronger mentor available that nobody waiting needs`, "matching",
+              u => `${u.a.first} ${u.a.last} → ${u.best.mt.name} (${u.best.sc} vs ${u.cs})`);
+            roll(fs.filter(f => f.mentor && !f.gateComplete && f.status === "on-track"), "🔓", "info",
+              n => `${n} mentor reveal${n === 1 ? " is" : "s are"} waiting on a Week 1 gate`, "founders",
+              f => `${f.name} (missing ${[!f.gate.onboarded && "onboarding", !f.gate.quizPassed && "quiz", !f.gate.deepWorkDone && "Deep Work"].filter(Boolean).join(", ")})`);
             if (people) {
               const daysLeft = Math.max(0, Math.ceil((new Date("2026-09-03") - new Date()) / 86400000));
               if (people.menteeCount < 100) todo.push({ icon: "🎯", level: daysLeft <= 4 ? "warn" : "info", text: `${100 - people.menteeCount} more mentee applications needed by Sept 3 (${daysLeft} days left)`, sub: `${people.menteeCount}/100 received · ${people.mentees.filter(a => a.meetsRequirements).length}/80 meet requirements`, go: "overview" });
@@ -1941,26 +2009,131 @@ export default function AdminFall() {
           )}
 
           {tab === "matching" && people && (() => {
-            const unmatchedMentees = people.mentees.filter(a => !a.matchedMentorId && a.decision === "approved");
-            const matchedMentees = people.mentees.filter(a => a.matchedMentorId);
+            const unmatchedMentees = waitingForMatch;
             const sel = people.mentees.find(a => a.id === selectedMentee) || null;
+            const plan = bestForCohort;
+            const eligibleMentors = people.mentors.filter(isEligibleMentor);
+
+            // Every mentor ranked for this founder on the pair score alone —
+            // the old view, kept underneath the three picks for when the
+            // recommendation needs to be overruled by hand.
             const scored = sel ? people.mentors.map(mt => ({ ...mt, ...scoreMentor(sel, mt) })).sort((a, b) => b.score - a.score) : [];
-            const betterFor = (a) => {
-              const current = people.mentors.find(mt => mt.id === a.matchedMentorId);
-              if (!current) return null;
-              const currentScore = scoreMentor(a, current).score;
-              const best = people.mentors.filter(mt => mt.id !== a.matchedMentorId)
-                .map(mt => ({ mt, sc: scoreMentor(a, mt).score }))
-                .sort((x, y) => y.sc - x.sc)[0];
-              return best && best.sc > currentScore ? { name: best.mt.name, score: best.sc, currentScore } : null;
+
+            // How the cohort plan differs from taking each founder's own best.
+            const tierOf = (pair) => (pair ? gradeOf(pair.score).tier : -1);
+            const lifted = unmatchedMentees.filter(a => tierOf(plan?.byMentee[a.id]) > tierOf(greedyForCohort?.byMentee[a.id])).length;
+            const yielded = unmatchedMentees.filter(a => tierOf(plan?.byMentee[a.id]) < tierOf(greedyForCohort?.byMentee[a.id])).length;
+
+            // What a click actually does to everybody else. The cohort cost is
+            // the honest headline: a pick that reshuffles five founders and
+            // leaves the group exactly as strong is free, and saying otherwise
+            // would make the warnings worthless.
+            const names = (list) => list.slice(0, 3).map(d => `${d.mentee.first} ${d.mentee.last} ${d.from.short} → ${d.to ? d.to.short : "no mentor"}`).join(" · ")
+              + (list.length > 3 ? ` and ${list.length - 3} more` : "");
+            const impactOf = (pick) => {
+              if (pick.cohortCost > 0.05) {
+                return {
+                  tone: "warn",
+                  text: pick.downgraded.length
+                    ? `Costs the group: ${names(pick.downgraded)}`
+                    : "Leaves the group slightly weaker overall.",
+                };
+              }
+              if (pick.downgraded.length) {
+                return { tone: "ok", text: `Even trade: ${names(pick.downgraded)}, and somebody else comes up to match. Group is no weaker.` };
+              }
+              if (pick.moved.length) {
+                return { tone: "ok", text: `${pick.moved.length} other founder${pick.moved.length > 1 ? "s" : ""} swap mentors, nobody drops a grade.` };
+              }
+              return { tone: "ok", text: "Nobody else's plan changes." };
             };
+
+            const chip = (label, n, bg, color) => (
+              <span key={label} style={{ background: bg, color, borderRadius: 6, padding: "3px 9px", fontSize: 11.5, fontWeight: 700 }}>
+                {n} {label}
+              </span>
+            );
+
             return (
             <>
+              {/* The whole hive, before any single click. */}
+              <div style={{ ...card, borderLeft: "4px solid #5c4eb5" }}>
+                <p style={kicker}>Cohort plan · {unmatchedMentees.length} waiting · {cohort?.slotsOpen ?? 0} mentor slot{(cohort?.slotsOpen ?? 0) === 1 ? "" : "s"} open</p>
+                {eligibleMentors.length === 0 ? (
+                  <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>No approved mentors yet, so there is nothing to plan. Approve mentors on the Mentor Apps tab.</p>
+                ) : unmatchedMentees.length === 0 ? (
+                  <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>Everyone approved has a mentor. Nothing waiting.</p>
+                ) : (<>
+                  <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 10 }}>
+                    {plan.summary.perfect > 0 && chip("perfect", plan.summary.perfect, "#e8f8f0", "#1a6e42")}
+                    {plan.summary.excellent > 0 && chip("excellent", plan.summary.excellent, "#e8f8f0", "#1a6e42")}
+                    {plan.summary.strong > 0 && chip("strong", plan.summary.strong, "#eafaf7", "#0e7c6b")}
+                    {plan.summary.good > 0 && chip("good", plan.summary.good, "#fffbeb", "#7a5c00")}
+                    {chip("weak", plan.summary.weak, plan.summary.weak ? "#fef0f0" : "#f0eef8", plan.summary.weak ? "#c0392b" : "#9b8fcf")}
+                    {plan.summary.unmatched > 0 && chip("no mentor available", plan.summary.unmatched, "#fef0f0", "#c0392b")}
+                  </div>
+                  <p style={{ margin: "0 0 6px", fontSize: 13, color: "#37324e", lineHeight: 1.6 }}>
+                    This is the best set of pairings for all {unmatchedMentees.length} at once, not the best next click.
+                    Going down the list newest-first instead would leave{" "}
+                    <strong>{greedyForCohort.summary.weak} weak</strong> and{" "}
+                    <strong>{greedyForCohort.summary.excellentPlus} excellent-or-better</strong>, against{" "}
+                    <strong>{plan.summary.weak} weak</strong> and <strong>{plan.summary.excellentPlus} excellent-or-better</strong> here.
+                    {lifted > 0 && <> {lifted} founder{lifted > 1 ? "s" : ""} come up a grade because {yielded} give up a mentor they would have grabbed first.</>}
+                  </p>
+                  {cohort?.allowMultiple && (
+                    <p style={{ margin: "0 0 6px", fontSize: 12, color: "#b9770e" }}>
+                      ⚠ Not enough approved mentors for one each, so the plan doubles some up — never past the number of sessions they offered.
+                    </p>
+                  )}
+                  <button onClick={() => setShowCohortPlan(v => !v)} style={{ border: "1px solid #e8e4f5", borderRadius: 6, padding: "4px 10px", background: "#fff", color: "#5c4eb5", fontSize: 11.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                    {showCohortPlan ? "Hide the pairing list" : `Show all ${plan.pairs.length} planned pairings`}
+                  </button>
+                  {showCohortPlan && (
+                    <div style={{ marginTop: 10, overflowX: "auto" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
+                        <tbody>
+                          {plan.pairs.map(pr => {
+                            const g = gradeOf(pr.score);
+                            const grab = greedyForCohort.byMentee[pr.mentee.id];
+                            const gave = grab && grab.mentor.id !== pr.mentor.id && gradeOf(grab.score).tier > g.tier;
+                            return (
+                              <tr key={pr.mentee.id} style={{ borderTop: "1px solid #f0edf9" }}>
+                                <td style={{ padding: "6px 10px 6px 0", fontWeight: 700, whiteSpace: "nowrap" }}>
+                                  <button onClick={() => setSelectedMentee(pr.mentee.id)} style={{ border: "none", background: "none", padding: 0, fontWeight: 700, color: "#3d2f8a", fontSize: 12.5, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>
+                                    {pr.mentee.first} {pr.mentee.last}
+                                  </button>
+                                </td>
+                                <td style={{ padding: "6px 10px", color: "#6b6480", whiteSpace: "nowrap" }}>→ {pr.mentor.name}{pr.second ? " (2nd founder)" : ""}</td>
+                                <td style={{ padding: "6px 10px", whiteSpace: "nowrap" }}>
+                                  <span style={{ background: g.bg, color: g.color, borderRadius: 5, padding: "2px 8px", fontSize: 11, fontWeight: 800 }}>{g.short} · {pr.score}</span>
+                                </td>
+                                <td style={{ padding: "6px 0 6px 10px", fontSize: 11.5, color: "#b9770e" }}>
+                                  {gave ? `gives up ${grab.mentor.name} (${gradeOf(grab.score).short}) so the group nets out better` : ""}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                          {plan.unassigned.map(a => (
+                            <tr key={a.id} style={{ borderTop: "1px solid #f0edf9" }}>
+                              <td style={{ padding: "6px 10px 6px 0", fontWeight: 700, whiteSpace: "nowrap" }}>{a.first} {a.last}</td>
+                              <td colSpan={3} style={{ padding: "6px 10px", fontSize: 11.5, color: "#c0392b" }}>no mentor slot left — approve more mentors</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>)}
+              </div>
+
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
                 <div style={card}>
                   <p style={kicker}>Awaiting Match · {unmatchedMentees.length} approved · newest first</p>
-                  {unmatchedMentees.length === 0 && <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>No approved applicants waiting. Approve founders on the Applications tab and they land here.</p>}
-                  {unmatchedMentees.map(a => (
+                  {unmatchedMentees.length === 0 && <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>No approved applicants waiting. Approve founders on the Mentee Apps tab and they land here.</p>}
+                  {unmatchedMentees.map(a => {
+                    const mine = plan?.byMentee[a.id];
+                    const g = mine ? gradeOf(mine.score) : null;
+                    return (
                     <div key={a.id} onClick={() => setSelectedMentee(a.id)} style={{
                       padding: "10px 12px", borderRadius: 10, marginBottom: 6, cursor: "pointer",
                       border: selectedMentee === a.id ? "2px solid #5c4eb5" : "1px solid #f0edf9",
@@ -1973,15 +2146,79 @@ export default function AdminFall() {
                       <p style={{ margin: "2px 0 0", fontSize: 12, color: "#6b6480" }}>
                         {[a.primaryFocus, a.stage, a.tier?.startsWith("Minimum") ? "3 sessions" : a.tier].filter(Boolean).join(" · ")}
                       </p>
+                      {/* Their place in the whole-cohort plan, so the queue reads
+                          as a group rather than a stack of separate decisions. */}
+                      {g && <p style={{ margin: "3px 0 0", fontSize: 11.5, color: g.color, fontWeight: 700 }}>plan: {mine.mentor.name} · {g.short}</p>}
+                      {!mine && <p style={{ margin: "3px 0 0", fontSize: 11.5, color: "#c0392b", fontWeight: 700 }}>plan: no mentor slot left</p>}
                     </div>
-                  ))}
+                  );})}
                 </div>
                 <div style={card}>
-                  {!sel && <><p style={kicker}>Mentor Pool · {people.mentorCount}</p><p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>Select a founder on the left to see mentors ranked for them, strongest first.</p></>}
+                  {!sel && <><p style={kicker}>Mentor Pool · {eligibleMentors.length} approved</p><p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>Select a founder on the left for the three picks that work best once everybody else still waiting is accounted for.</p></>}
                   {sel && (
                     <>
-                      <p style={kicker}>Best mentors for {sel.first} {sel.last}</p>
-                      {scored.slice(0, 12).map(mt => (
+                      <p style={kicker}>Top 3 for {sel.first} {sel.last} · weighed against the other {Math.max(0, unmatchedMentees.length - 1)} waiting</p>
+                      {(!recs || recs.picks.length === 0) && (
+                        <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>
+                          {sel.matchedMentorId ? "Already matched — unmatch them on the Matched tab to plan again." : "No approved mentor has an open slot. Approve mentors on the Mentor Apps tab."}
+                        </p>
+                      )}
+                      {recs?.picks.map((pick, i) => {
+                        const im = impactOf(pick);
+                        return (
+                          <div key={pick.mentor.id} style={{
+                            display: "flex", gap: 10, alignItems: "flex-start", padding: "12px 0",
+                            borderTop: i === 0 ? "none" : "1px solid #f0edf9",
+                          }}>
+                            <span style={{
+                              minWidth: 100, borderRadius: 6, flexShrink: 0, padding: "5px 8px",
+                              background: pick.grade.bg, color: pick.grade.color,
+                              textAlign: "center", fontSize: 11, fontWeight: 800, lineHeight: 1.35,
+                            }}>
+                              {i + 1}. {pick.grade.short}
+                              <br /><span style={{ fontWeight: 600, opacity: 0.7 }}>score {pick.score}</span>
+                            </span>
+                            <div style={{ flex: 1 }}>
+                              <p style={{ margin: 0, fontSize: 13.5, fontWeight: 700 }}>
+                                <button onClick={() => setProfile({ kind: "mentor", person: pick.mentor })} style={{ border: "none", background: "none", padding: 0, fontWeight: 700, color: "#1a1733", fontSize: 13.5, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>{pick.mentor.name}</button> <span style={{ fontWeight: 400, color: "#9b8fcf" }}>· {pick.mentor.company || ""}</span>
+                                {pick.isCohortPick && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#efeaff", color: "#5c4eb5", borderRadius: 4, padding: "1px 6px" }}>BEST FOR THE GROUP</span>}
+                                {pick.second && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#6b6480", borderRadius: 4, padding: "1px 6px" }}>2ND FOUNDER</span>}
+                              </p>
+                              <p style={{ margin: "1px 0 0", fontSize: 11.5, color: "#6b6480" }}>
+                                {pick.reasons.length ? pick.reasons.join(" · ") : "no signal overlap"}{pick.mentor.tier ? ` · ${pick.mentor.tier}` : ""}
+                              </p>
+                              {/* The consequence, spelled out. This is the part a
+                                  one-founder-at-a-time view cannot tell you. */}
+                              <p style={{ margin: "4px 0 0", fontSize: 11.5, fontWeight: 700, color: im.tone === "warn" ? "#b35c00" : "#1a6e42" }}>
+                                {im.tone === "warn" ? "⚠ " : "✓ "}{im.text}
+                              </p>
+                            </div>
+                            <button disabled={matchBusy} onClick={() => doMatch("match", sel, pick.mentor)} style={{
+                              border: "none", borderRadius: 6, padding: "6px 14px", flexShrink: 0,
+                              background: i === 0 ? "#5c4eb5" : "#fff", color: i === 0 ? "#fff" : "#5c4eb5",
+                              boxShadow: i === 0 ? "none" : "inset 0 0 0 1px #d9d2f5",
+                              fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: matchBusy ? 0.6 : 1,
+                            }}>
+                              {matchBusy ? "…" : "Match"}
+                            </button>
+                          </div>
+                        );
+                      })}
+                      {recs?.picks.length > 0 && (
+                        <p style={{ margin: "10px 0 0", fontSize: 11, color: "#9b8fcf", fontStyle: "italic", lineHeight: 1.6 }}>
+                          Ranked by re-solving all {unmatchedMentees.length} pairings with each mentor locked to {sel.first}, so a mentor who is slightly better here and costly elsewhere sinks. Their own highest-scoring mentor is{" "}
+                          {(() => {
+                            const raw = recs.all[0] && [...recs.all].sort((x, y) => y.score - x.score)[0];
+                            return raw ? `${raw.mentor.name} (${raw.score})` : "—";
+                          })()}.
+                        </p>
+                      )}
+                      <button onClick={() => setShowAllMentors(v => !v)} style={{ marginTop: 10, border: "1px solid #e8e4f5", borderRadius: 6, padding: "4px 10px", background: "#fff", color: "#5c4eb5", fontSize: 11.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                        {showAllMentors ? "Hide the full pool" : "Override: show every mentor by pair score"}
+                      </button>
+                      {showAllMentors && scored.slice(0, 12).map(mt => {
+                        const cand = recs?.all.find(c => c.mentor.id === mt.id);
+                        return (
                         <div key={mt.id} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "10px 0", borderTop: "1px solid #f0edf9" }}>
                           <span style={{
                             minWidth: 96, borderRadius: 6, flexShrink: 0, padding: "4px 8px",
@@ -1991,27 +2228,33 @@ export default function AdminFall() {
                           <div style={{ flex: 1 }}>
                             <p style={{ margin: 0, fontSize: 13.5, fontWeight: 700 }}>
                               <button onClick={() => setProfile({ kind: "mentor", person: mt })} style={{ border: "none", background: "none", padding: 0, fontWeight: 700, color: "#1a1733", fontSize: 13.5, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>{mt.name}</button> <span style={{ fontWeight: 400, color: "#9b8fcf" }}>· {mt.company || ""}</span>
+                              {!isEligibleMentor(mt) && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#fef0f0", color: "#c0392b", borderRadius: 4, padding: "1px 6px" }}>{mt.isTest ? "TEST ACCOUNT" : mt.decision === "rejected" ? "REJECTED" : "NOT APPROVED"}</span>}
                               {mt.assignedTo.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#6b6480", borderRadius: 4, padding: "1px 6px" }}>{mt.assignedTo.length} MENTEE{mt.assignedTo.length > 1 ? "S" : ""}</span>}
                             </p>
                             <p style={{ margin: "1px 0 0", fontSize: 11.5, color: "#6b6480" }}>
                               {mt.reasons.length ? mt.reasons.join(" · ") : "no signal overlap"}{mt.tier ? ` · ${mt.tier}` : ""}
                             </p>
+                            {cand && cand.cohortCost > 0.05 && cand.downgraded.length > 0 && (
+                              <p style={{ margin: "3px 0 0", fontSize: 11.5, fontWeight: 700, color: "#b35c00" }}>
+                                ⚠ {cand.downgraded.slice(0, 2).map(d => `${d.mentee.first} ${d.mentee.last} ${d.from.short} → ${d.to ? d.to.short : "no mentor"}`).join(" · ")}
+                              </p>
+                            )}
                           </div>
                           <button disabled={matchBusy} onClick={() => doMatch("match", sel, mt)} style={{
                             border: "none", borderRadius: 6, padding: "6px 14px", flexShrink: 0,
-                            background: "#5c4eb5", color: "#fff", fontSize: 12, fontWeight: 700,
-                            cursor: "pointer", fontFamily: "inherit", opacity: matchBusy ? 0.6 : 1,
+                            background: "#fff", color: "#5c4eb5", boxShadow: "inset 0 0 0 1px #d9d2f5",
+                            fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: matchBusy ? 0.6 : 1,
                           }}>
                             {matchBusy ? "…" : "Match"}
                           </button>
                         </div>
-                      ))}
+                      );})}
                     </>
                   )}
                 </div>
               </div>
               <p style={{ fontSize: 11.5, color: "#9b8fcf", lineHeight: 1.6 }}>
-                Matches save to the FallMatches sheet tab instantly and survive new applications arriving; nothing is imported or frozen. Portal mentor reveals still come from the roster file until the ingest wires these matches through automatically.
+                Matches save to the FallMatches sheet tab instantly and survive new applications arriving; nothing is imported or frozen. The plan is advisory and recomputes every time you match somebody, so it always reflects who is actually left. Portal mentor reveals still come from the roster file until the ingest wires these matches through automatically.
               </p>
             </>
             );
