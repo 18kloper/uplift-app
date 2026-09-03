@@ -98,6 +98,12 @@ export default function AdminFall() {
   const [speakersLoading, setSpeakersLoading] = useState(false);
   const [speakerFilter, setSpeakerFilter] = useState("undecided");
   const [slotPick, setSlotPick] = useState({}); // applicant id -> session slot chosen in the dropdown
+  // Grant reporting: the single computed answer to who completed, from
+  // /api/admin/fall-reporting. The Reporting tab and the NJEDA exhibit forms
+  // both read it, so the two can no longer disagree.
+  const [grant, setGrant] = useState(null);
+  const [grantLoading, setGrantLoading] = useState(false);
+  const [grantCohort, setGrantCohort] = useState("all");
   const [slotFocus, setSlotFocus] = useState(null); // session number the list is filtered to
   const [selectedMentee, setSelectedMentee] = useState(null);
   const [matchBusy, setMatchBusy] = useState(false);
@@ -131,6 +137,18 @@ export default function AdminFall() {
   // Rebuilds the PortalSnapshot tab and reports whether anything is missing.
   const [snapshot, setSnapshot] = useState(null);
   const [snapshotBusy, setSnapshotBusy] = useState(false);
+  // The NJEDA exhibit packs are token-gated HTML routes, so open them in a new
+  // tab with the same admin secret the write endpoints use. Scoped to whatever
+  // cohort the Reporting tab has selected.
+  const openExhibit = (path) => {
+    const token = sessionStorage.getItem("uplift_admin_secret") || window.prompt("Admin secret (from Vercel env ADMIN_SECRET):");
+    if (!token) return;
+    sessionStorage.setItem("uplift_admin_secret", token);
+    const qs = new URLSearchParams({ token });
+    if (grantCohort !== "all") qs.set("cohort", grantCohort);
+    window.open(`${path}?${qs}`, "_blank", "noopener");
+  };
+
   const rebuildSnapshot = async () => {
     const token = sessionStorage.getItem("uplift_admin_secret") || window.prompt("Admin secret (from Vercel env ADMIN_SECRET):");
     if (!token) return;
@@ -239,6 +257,17 @@ export default function AdminFall() {
       .catch(() => setPeople({ mentees: [], mentors: [], error: "load failed" }))
       .finally(() => setPeopleLoading(false));
   }, [authed, tab, people, peopleLoading]);
+
+  // Grant reporting loads lazily when the Reporting tab opens
+  useEffect(() => {
+    if (!authed || tab !== "reporting" || grant || grantLoading) return;
+    setGrantLoading(true);
+    fetch("/api/admin/fall-reporting")
+      .then(r => r.json())
+      .then(d => setGrant(d))
+      .catch(() => setGrant({ error: "load failed" }))
+      .finally(() => setGrantLoading(false));
+  }, [authed, tab, grant, grantLoading]);
 
   // Signals load lazily when the Signals tab opens
   useEffect(() => {
@@ -890,25 +919,22 @@ export default function AdminFall() {
                   numbers in them. The principles alone did not land. */}
               <div style={{ ...card, borderLeft: "4px solid #5c4eb5" }}>
                 <p style={kicker}>How these five rooms were decided</p>
-                <p style={{ margin: "0 0 8px", fontSize: 13.5, color: "#37324e", lineHeight: 1.75 }}>
-                  All {all.length} founders were lined up by how far along they are — from shaping an idea through to
-                  scaling an operation — and cut into five rooms of {cohortGroups.groups.map(g => g.members.length).join(", ")}.
-                  That ordering is the spine of it, because a peer room only works when the problems in it rhyme: an
-                  idea-stage founder sitting with a growth-stage founder gets mentoring, not an exchange between equals.
-                  From there founders were traded between neighbouring rooms for three reasons, in this order of
-                  importance. First, that everybody in a room can make the same meeting time, since a room with no
-                  common window never actually meets and nothing else about it matters then. Second, that each room
-                  holds a spread of industries rather than five of one, so the perspectives are fresh and nobody is
-                  sitting across from a competitor. Third, that each room contains people who have already done what
-                  the others are setting out to do — somebody who has raised, hired or sold, beside somebody about to.
-                  Region was deliberately left out: the sessions are virtual and a third of founders did not state a
-                  county, so grouping by geography would have fought stage for nothing.
+                <p style={{ margin: "0 0 10px", fontSize: 14, color: "#1a1733", lineHeight: 1.6, fontWeight: 600 }}>
+                  Sorted by stage, then cut into five rooms of {cohortGroups.groups.map(g => g.members.length).join(", ")}.
+                  A peer room only works when the problems in it rhyme.
                 </p>
-                <p style={{ margin: 0, fontSize: 12, color: "#6b6480", lineHeight: 1.6 }}>
-                  Each room&apos;s own paragraph is below, written to be shared as it stands. The two earliest rooms are
-                  the ones to watch: with everyone at the same starting line there is nobody in the room who has done it
-                  before, so those two want a facilitator or an alum in the chair rather than waiting for a peer to have
-                  the answer. Recomputed from the applications on every load, so the rooms move as founders are approved.
+                <p style={{ margin: "0 0 6px", fontSize: 13, color: "#37324e" }}>
+                  Then founders were swapped between neighbouring rooms until each room had:
+                </p>
+                <ul style={{ margin: "0 0 10px", paddingLeft: 18, fontSize: 13, color: "#37324e", lineHeight: 1.8 }}>
+                  <li>one meeting time everybody can make</li>
+                  <li>a spread of industries, and no two competitors</li>
+                  <li>somebody who has already done what the others are attempting</li>
+                </ul>
+                <p style={{ margin: 0, fontSize: 12.5, color: "#6b6480", lineHeight: 1.6 }}>
+                  Not region — the sessions are virtual. Each room&apos;s own shareable paragraph is below.{" "}
+                  <strong style={{ color: "#b9770e" }}>{cohortGroups.groups.slice(0, 2).map(g => g.name).join(" and ")} are the exception:</strong>{" "}
+                  everyone in them is at the same starting line, so those two want a facilitator rather than a peer with the answer.
                 </p>
               </div>
 
@@ -1498,8 +1524,106 @@ export default function AdminFall() {
             const yn = v => (
               <span style={{ fontSize: 12, fontWeight: 800, color: v ? "#1a6e42" : "#c9c3e0" }}>{v ? "✓" : "—"}</span>
             );
+            // Grant status comes from /api/admin/fall-reporting, which computes
+            // completion from raw evidence (Luma check-ins, Approved sessions)
+            // plus labelled manual overrides. The per-founder table further
+            // down still reads the milestone checkboxes; the reconciler will
+            // bring those into line, and until it runs a mismatch between the
+            // two is worth looking at rather than papering over.
+            const gm = grantCohort === "all"
+              ? grant?.overall
+              : (grant?.byCohort || []).find(c => c.cohort === grantCohort);
+            const reqs = grant?.requirements;
+            const tile = (label, value, sub, ok) => (
+              <div style={{ flex: "1 1 150px", minWidth: 150, border: `1px solid ${ok === false ? "#f0d5cf" : ok === true ? "#c9e8d5" : "#e8e4f5"}`, background: ok === false ? "#fdf6f4" : ok === true ? "#f4fbf7" : "#fafaff", borderRadius: 10, padding: "12px 14px" }}>
+                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9b8fcf" }}>{label}</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: ok === false ? "#b3452f" : ok === true ? "#1a6e42" : "#3d2f8a", lineHeight: 1.15, marginTop: 3 }}>{value}</div>
+                <div style={{ fontSize: 11.5, color: "#6b6480", marginTop: 2, lineHeight: 1.45 }}>{sub}</div>
+              </div>
+            );
+
             return (
               <>
+              <div style={card}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "baseline", justifyContent: "space-between", marginBottom: 12 }}>
+                  <p style={{ ...kicker, margin: 0 }}>Grant milestone status · computed from evidence, not checkboxes</p>
+                  <select value={grantCohort} onChange={e => setGrantCohort(e.target.value)} style={{ fontFamily: "inherit", fontSize: 12.5, fontWeight: 700, color: "#3d2f8a", border: "1px solid #e8e4f5", borderRadius: 8, padding: "6px 10px", background: "#fff" }}>
+                    <option value="all">All cohorts</option>
+                    {(grant?.cohorts || []).map(c => <option key={c} value={c}>{c}</option>)}
+                    <option value="Unassigned">Unassigned</option>
+                  </select>
+                </div>
+
+                {grantLoading && <p style={{ margin: 0, fontSize: 12.5, color: "#9b8fcf" }}>Loading grant status…</p>}
+                {grant?.error && <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: "#c0392b" }}>Could not load grant status: {grant.error}</p>}
+
+                {gm && reqs && (<>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                    {tile("Verified completers", `${gm.verifiedCompleters} of ${reqs.completersPerCohort}`,
+                      gm.milestoneCompletersMet ? "Milestone threshold met" : `${gm.completersGapToMilestone} more needed to requisition`,
+                      gm.milestoneCompletersMet)}
+                    {tile(`${reqs.inPersonEvent} attendance`, `${Math.round(gm.inPersonPct * 100)}%`,
+                      `${gm.inPersonAttended} of ${gm.total} · threshold ${Math.round(reqs.inPersonThreshold * 100)}% · ${reqs.inPersonEventDay}`,
+                      gm.inPersonThresholdMet)}
+                    {tile("3 mentor meetings", `${gm.mentorComplete} of ${gm.total}`, "Approved sessions only", null)}
+                    {tile("3 educational sessions", `${gm.eduComplete} of ${gm.total}`, "Luma check-ins only", null)}
+                  </div>
+                  <p style={{ margin: "12px 0 0", fontSize: 12, color: "#6b6480", lineHeight: 1.6 }}>
+                    A <strong>verified completer</strong> has both three approved mentor meetings and three educational sessions. That is the number the requisition counts, so it is computed once and every exhibit form reads the same figure.
+                    {gm.unassigned > 0 && <> <strong style={{ color: "#b3452f" }}>{gm.unassigned} founder{gm.unassigned === 1 ? " has" : "s have"} no cohort yet</strong>, because cohort comes from which onboarding session they check into. Those cannot appear on a per-cohort Exhibit C until they do.</>}
+                  </p>
+
+                  {grantCohort === "all" && (grant?.byCohort || []).length > 0 && (
+                    <div style={{ overflowX: "auto", marginTop: 14 }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
+                        <thead><tr>
+                          {["Cohort", "Founders", "Completers", "In person", "3 meetings", "3 sessions"].map(h => (
+                            <th key={h} style={{ textAlign: h === "Cohort" ? "left" : "center", padding: "7px 10px", borderBottom: "2px solid #e8e4f5", fontSize: 10.5, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: "#9b8fcf", whiteSpace: "nowrap" }}>{h}</th>
+                          ))}
+                        </tr></thead>
+                        <tbody>
+                          {grant.byCohort.map(c => (
+                            <tr key={c.cohort}>
+                              <td style={{ padding: "7px 10px", borderBottom: "1px solid #f3f1fb", fontWeight: 700, color: "#3d2f8a" }}>{c.cohort}</td>
+                              <td style={{ padding: "7px 10px", borderBottom: "1px solid #f3f1fb", textAlign: "center" }}>{c.total}</td>
+                              <td style={{ padding: "7px 10px", borderBottom: "1px solid #f3f1fb", textAlign: "center", fontWeight: 800, color: c.milestoneCompletersMet ? "#1a6e42" : "#4a4363" }}>{c.verifiedCompleters} / {reqs.completersPerCohort}</td>
+                              <td style={{ padding: "7px 10px", borderBottom: "1px solid #f3f1fb", textAlign: "center", color: c.inPersonThresholdMet ? "#1a6e42" : "#4a4363" }}>{Math.round(c.inPersonPct * 100)}%</td>
+                              <td style={{ padding: "7px 10px", borderBottom: "1px solid #f3f1fb", textAlign: "center" }}>{c.mentorComplete}</td>
+                              <td style={{ padding: "7px 10px", borderBottom: "1px solid #f3f1fb", textAlign: "center" }}>{c.eduComplete}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>)}
+              </div>
+
+              <div style={card}>
+                <p style={{ ...kicker, margin: 0 }}>NJEDA exhibit forms · generated live, nothing to regenerate</p>
+                <p style={{ margin: "6px 0 12px", fontSize: 12.5, color: "#4a4363", lineHeight: 1.55 }}>
+                  These render fresh every time you open them, so they are always current. Fields with no data yet show a visible <em>pending</em> marker rather than a blank line, and each form carries its own ready-to-send status. Scoped to the cohort selected above.
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {[
+                    ["Exhibit D · participant certifications", "/api/admin/njeda-exhibit-d-fall"],
+                    ["Educational sessions · full pack", "/api/admin/njeda-edu-verification-fall"],
+                  ].map(([label, path]) => (
+                    <button key={path} onClick={() => openExhibit(path)} style={{ border: "none", borderRadius: 8, padding: "9px 16px", background: "#5c4eb5", color: "#fff", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>{label} ↗</button>
+                  ))}
+                  {[
+                    ["Session reference", "reference"],
+                    ["Verification forms", "forms"],
+                    ["Attendance sheets", "sheets"],
+                  ].map(([label, view]) => (
+                    <button key={view} onClick={() => openExhibit(`/api/admin/njeda-edu-verification-fall?view=${view}`.replace("?view=", "&view=").replace("njeda-edu-verification-fall&", "njeda-edu-verification-fall?"))} style={{ border: "1px solid #d4d0e8", borderRadius: 8, padding: "9px 14px", background: "#fff", color: "#3d2f8a", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>{label} ↗</button>
+                  ))}
+                </div>
+                <p style={{ margin: "12px 0 0", fontSize: 11.5, color: "#6b6480", lineHeight: 1.55 }}>
+                  Exhibit C (per-cohort certification) and Exhibit A (requisition) are not built yet. Exhibit C needs cohort assignments, which arrive with onboarding check-ins.
+                </p>
+              </div>
+
               <div style={card}>
                 <p style={{ ...kicker, margin: 0 }}>Portal data · everything the portal has recorded, one row per founder</p>
                 <p style={{ margin: "6px 0 10px", fontSize: 12.5, color: "#4a4363", lineHeight: 1.55 }}>
