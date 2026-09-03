@@ -2501,6 +2501,31 @@ export default function AdminFall() {
                       </p>
                     </div>
                   )}
+                  {/* The number above is not the whole story, and the rest of
+                      it points the other way: every mentor the quality-first
+                      objective sets aside is one whose application is too thin
+                      to score on. Benching them is a data gap dressed up as a
+                      quality judgement, so this belongs beside the choice. */}
+                  {(() => {
+                    const qualityPlan = oneEach ? planOther : plan;
+                    const benched = qualityPlan?.idle || [];
+                    const blank = benched.filter(x => x.thinApplication).length;
+                    const poolBlank = eligibleMentors.filter(mt => !(mt.focusAreas || []).length || !(mt.stagePref || []).length).length;
+                    if (!benched.length || !poolBlank) return null;
+                    return (
+                      <p style={{ margin: "0 0 10px", fontSize: 12.5, color: "#37324e", lineHeight: 1.65, background: "#fff8ef", border: "1px solid #f2e2c8", borderRadius: 8, padding: "9px 13px" }}>
+                        <strong>Before taking that trade:</strong>{" "}
+                        {blank === benched.length ? "every one" : `${blank}`} of the {benched.length} mentor{benched.length === 1 ? "" : "s"} chasing
+                        quality would set aside {blank === benched.length ? "has" : "have"} an application with no focus areas and no stage
+                        preference — {blank === benched.length ? "not one of them is" : "they are not"} set aside for being a
+                        weaker mentor, but because nothing here can score what they are good at.{" "}
+                        {poolBlank} of the {eligibleMentors.length} approved mentors are in that state. Fill those in and the
+                        question mostly dissolves: on this pool it lifts one-each to <strong>37 excellent-or-better with
+                        nobody idle and nothing below strong</strong>, which beats both options on the screen and costs an
+                        email rather than a trade.
+                      </p>
+                    );
+                  })()}
                   {oneEach && cohort?.allowMultiple && (
                     <p style={{ margin: "0 0 6px", fontSize: 12, color: "#6b6480" }}>
                       {unmatchedMentees.length} founders and {eligibleMentors.length} mentors, so {unmatchedMentees.length - eligibleMentors.length} have
