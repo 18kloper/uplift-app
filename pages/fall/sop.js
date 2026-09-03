@@ -47,6 +47,7 @@ const ADMIN_TABS = [
   ["Mentee Apps / Mentor Apps", "Live from Typeform. Approve or reject; approval issues the Uplift ID."],
   ["Accepted Founders / Mentors", "Approved but not yet in the generated roster."],
   ["Matching", "The whole waiting room solved at once, not one click at a time. Three picks per founder ranked by what each does to the rest of the cohort, each stating who it costs. You make the call, it shows its reasoning."],
+    ["Cohorts", "The five peer rooms (Edison, Hopper, Bardeen, Lawrence, Morrison), built from the applications. Decided on four things in order: can they meet, stage proximity, reciprocity of gives against gets, spread of industry. Not region, because the sessions are virtual. Advisory until a Cohort column exists in the sheet."],
   ["Matched", "Pairs already made, for tracking."],
   ["Signals", "Parking lot for observations not being acted on yet."],
   ["⏱ Deadlines", "Who is late on which meeting."],
