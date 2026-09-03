@@ -105,6 +105,10 @@ export default function AdminFall() {
   const [matchExplain, setMatchExplain] = useState(null); // mentee id with score breakdown expanded
   const [showAllMentors, setShowAllMentors] = useState(false); // full ranked pool under the three picks
   const [showCohortPlan, setShowCohortPlan] = useState(false); // the whole-hive plan, founder by founder
+  // One mentee per mentor is the house rule; a second is the backup. Flipping
+  // this off optimises purely for match quality and lets mentors sit idle,
+  // which is only ever worth looking at to see what the rule costs.
+  const [oneEach, setOneEach] = useState(true);
   const [todayState, setTodayState] = useState({});
   const [signals, setSignals] = useState(null);
   const [signalText, setSignalText] = useState("");
@@ -346,8 +350,8 @@ export default function AdminFall() {
     [people],
   );
   const cohort = useMemo(
-    () => (people ? buildCohort({ mentees: waitingForMatch, mentors: people.mentors }) : null),
-    [people, waitingForMatch],
+    () => (people ? buildCohort({ mentees: waitingForMatch, mentors: people.mentors, oneEach }) : null),
+    [people, waitingForMatch, oneEach],
   );
   const bestForCohort = useMemo(() => (cohort ? cohortPlan(cohort) : null), [cohort]);
   const greedyForCohort = useMemo(() => (cohort ? greedyPlan(cohort) : null), [cohort]);
@@ -2031,6 +2035,9 @@ export default function AdminFall() {
             const names = (list) => list.slice(0, 3).map(d => `${d.mentee.first} ${d.mentee.last} ${d.from.short} → ${d.to ? d.to.short : "no mentor"}`).join(" · ")
               + (list.length > 3 ? ` and ${list.length - 3} more` : "");
             const impactOf = (pick) => {
+              if (pick.benched > 0) {
+                return { tone: "warn", text: `Leaves ${pick.benched} approved mentor${pick.benched === 1 ? "" : "s"} with no founder at all${pick.downgraded.length ? `, and ${names(pick.downgraded)}` : ""}` };
+              }
               if (pick.cohortCost > 0.05) {
                 return {
                   tone: "warn",
@@ -2080,9 +2087,39 @@ export default function AdminFall() {
                     <strong>{plan.summary.weak} weak</strong> and <strong>{plan.summary.excellentPlus} excellent-or-better</strong> here.
                     {lifted > 0 && <> {lifted} founder{lifted > 1 ? "s" : ""} come up a grade because {yielded} give up a mentor they would have grabbed first.</>}
                   </p>
-                  {cohort?.allowMultiple && (
+                  {/* How the mentors are loaded, which is a programme decision
+                      rather than a matching one: a mentor who signed up and
+                      gets nobody costs something real, and so does a founder on
+                      a bad match. Both numbers are on screen so the call can be
+                      made with them in view. */}
+                  <p style={{ margin: "0 0 8px", fontSize: 13, color: "#37324e", lineHeight: 1.6 }}>
+                    <strong>Mentor load:</strong>{" "}
+                    {plan.summary.mentorsUsed} of {eligibleMentors.length} approved mentors get a founder
+                    {plan.summary.mentorsIdle > 0 && <span style={{ color: "#b35c00", fontWeight: 700 }}> · {plan.summary.mentorsIdle} get nobody</span>}
+                    {plan.summary.doubled > 0 && <> · {plan.summary.doubled} take a second</>}
+                    {plan.summary.tripled > 0 && <span style={{ color: "#b35c00" }}> · {plan.summary.tripled} take a third</span>}
+                    {plan.summary.doubled === 0 && plan.summary.tripled === 0 && <> · nobody doubles up</>}
+                  </p>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+                    {[[true, "One mentee each"], [false, "Best quality, mentors may idle"]].map(([val, label]) => (
+                      <button key={label} onClick={() => setOneEach(val)} style={{
+                        border: "1px solid #e8e4f5", borderRadius: 20, padding: "4px 12px",
+                        background: oneEach === val ? "#5c4eb5" : "#fff",
+                        color: oneEach === val ? "#fff" : "#6b6480",
+                        fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                      }}>{label}</button>
+                    ))}
+                  </div>
+                  {oneEach && cohort?.allowMultiple && (
+                    <p style={{ margin: "0 0 6px", fontSize: 12, color: "#6b6480" }}>
+                      {unmatchedMentees.length} founders and {eligibleMentors.length} mentors, so {unmatchedMentees.length - eligibleMentors.length} have
+                      to be somebody&apos;s second. Every mentor gets one before anyone gets two, a third only if
+                      there is no other way, and never past the number of sessions they offered.
+                    </p>
+                  )}
+                  {!oneEach && plan.summary.mentorsIdle > 0 && (
                     <p style={{ margin: "0 0 6px", fontSize: 12, color: "#b9770e" }}>
-                      ⚠ Not enough approved mentors for one each, so the plan doubles some up — never past the number of sessions they offered.
+                      ⚠ Quality-first: {plan.summary.mentorsIdle} approved mentor{plan.summary.mentorsIdle === 1 ? "" : "s"} would be told there was no founder for them. Switch back to one-each unless that is the call.
                     </p>
                   )}
                   <button onClick={() => setShowCohortPlan(v => !v)} style={{ border: "1px solid #e8e4f5", borderRadius: 6, padding: "4px 10px", background: "#fff", color: "#5c4eb5", fontSize: 11.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
