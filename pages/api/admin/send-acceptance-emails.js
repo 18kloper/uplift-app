@@ -57,6 +57,12 @@ const ALREADY_SENT = [
   "tamara-fleming", "melinda-rushing", "rachel-khasky-levy", "rosalind-griffie",
   "tammy-hollaway", "megan-fonseca", "suresh-y", "jannie-wolff",
   "david-singletary", "mehul-shah", "naomie-sophia-renarde", "sanjeev-wadhwa",
+  // Sent 2026-09-04: the twelve accepted after the 09-01 batch. Four of them
+  // (davina-ward, nana-abban, renee-williams, deb-di-gregorio) had no portal
+  // until that morning, so the roster deploy had to land first.
+  "maureen-teyssier", "livingston-steele", "karleen-leveille", "emery-smiolia",
+  "john-chang", "talaya-loftin", "amy-bohne", "raj-somas",
+  "davina-ward", "nana-abban", "renee-williams", "deb-di-gregorio",
 ];
 
 // Uplift IDs and emails live in the decision tab, keyed by the name that was
