@@ -29,7 +29,11 @@ import {
   ACCEPTANCE_SUBJECT,
 } from "../../../lib/acceptance-email";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Constructed on the send path only, never at module load: the Resend
+// constructor throws on a missing key, which used to 500 the dry run on any
+// machine without RESEND_API_KEY — exactly the local preview this route
+// promises above. A dry run must never need the send key.
+const resendClient = () => new Resend(process.env.RESEND_API_KEY);
 
 const FROM = "Uplift by TechUnited:NJ <kennedy@techunited.co>";
 const CC = "uplift@techunited.co";
@@ -145,11 +149,12 @@ export default async function handler(req, res) {
       });
     }
 
+    const mailer = resendClient();
     const sent = [];
     const failed = [];
     for (const p of planned) {
       try {
-        const { data, error } = await resend.emails.send({
+        const { data, error } = await mailer.emails.send({
           from: FROM,
           to: p.email,
           cc: CC,
