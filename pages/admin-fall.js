@@ -117,6 +117,12 @@ export default function AdminFall() {
   // this off optimises purely for match quality and lets mentors sit idle,
   // which is only ever worth looking at to see what the rule costs.
   const [oneEach, setOneEach] = useState(true);
+  // "Fill the gaps" plans only the founders still waiting, against whatever
+  // mentor capacity is left. "Re-plan everyone" throws the committed matches
+  // back in the pot and solves all approved founders at once, which is the
+  // only way to see the best case for the whole cohort rather than the best
+  // case for the leftovers.
+  const [replanAll, setReplanAll] = useState(false);
   const [todayState, setTodayState] = useState({});
   const [signals, setSignals] = useState(null);
   const [signalText, setSignalText] = useState("");
@@ -404,17 +410,31 @@ export default function AdminFall() {
     () => (people?.mentees || []).filter(a => a.decision === "approved" && !a.isTest && !a.matchedMentorId),
     [people],
   );
+  const allApproved = useMemo(
+    () => (people?.mentees || []).filter(a => a.decision === "approved" && !a.isTest),
+    [people],
+  );
+  // Re-planning everyone means the mentors have to start empty, otherwise
+  // their committed founders count against their own capacity and every one
+  // of them looks full.
+  const planMentors = useMemo(() => {
+    if (!people) return [];
+    return replanAll
+      ? people.mentors.map(mt => ({ ...mt, assignedTo: [] }))
+      : people.mentors;
+  }, [people, replanAll]);
+  const planMentees = replanAll ? allApproved : waitingForMatch;
   const cohort = useMemo(
-    () => (people ? buildCohort({ mentees: waitingForMatch, mentors: people.mentors, oneEach }) : null),
-    [people, waitingForMatch, oneEach],
+    () => (people ? buildCohort({ mentees: planMentees, mentors: planMentors, oneEach }) : null),
+    [people, planMentees, planMentors, oneEach],
   );
   const bestForCohort = useMemo(() => (cohort ? cohortPlan(cohort) : null), [cohort]);
   // The other objective, solved alongside, purely so the screen can say what
   // the choice between them actually costs instead of naming two options and
   // leaving you to guess.
   const cohortOther = useMemo(
-    () => (people ? buildCohort({ mentees: waitingForMatch, mentors: people.mentors, oneEach: !oneEach }) : null),
-    [people, waitingForMatch, oneEach],
+    () => (people ? buildCohort({ mentees: planMentees, mentors: planMentors, oneEach: !oneEach }) : null),
+    [people, planMentees, planMentors, oneEach],
   );
   const planOther = useMemo(() => (cohortOther ? cohortPlan(cohortOther) : null), [cohortOther]);
   const greedyForCohort = useMemo(() => (cohort ? greedyPlan(cohort) : null), [cohort]);
@@ -2613,7 +2633,32 @@ export default function AdminFall() {
             <>
               {/* The whole hive, before any single click. */}
               <div style={{ ...card, borderLeft: "4px solid #5c4eb5" }}>
-                <p style={kicker}>Cohort plan · {unmatchedMentees.length} waiting · {cohort?.slotsOpen ?? 0} mentor slot{(cohort?.slotsOpen ?? 0) === 1 ? "" : "s"} open</p>
+                <p style={kicker}>
+                  {replanAll
+                    ? `Cohort plan · all ${planMentees.length} approved founders, re-solved from scratch`
+                    : `Cohort plan · ${unmatchedMentees.length} still waiting · ${cohort?.slotsOpen ?? 0} mentor slot${(cohort?.slotsOpen ?? 0) === 1 ? "" : "s"} open`}
+                </p>
+                {/* Which problem is being solved. Planning only the leftovers
+                    answers "who do these four get", which is not the same
+                    question as "is this the best arrangement of everybody". */}
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+                  {[[false, `Fill the gaps · ${waitingForMatch.length} waiting`], [true, `Re-plan everyone · all ${allApproved.length}`]].map(([val, label]) => (
+                    <button key={label} onClick={() => setReplanAll(val)} style={{
+                      border: "1px solid #e8e4f5", borderRadius: 20, padding: "5px 13px",
+                      background: replanAll === val ? "#5c4eb5" : "#fff",
+                      color: replanAll === val ? "#fff" : "#6b6480",
+                      fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                    }}>{label}</button>
+                  ))}
+                </div>
+                {replanAll && (
+                  <p style={{ margin: "0 0 10px", fontSize: 12.5, color: "#37324e", lineHeight: 1.6, background: "#fff8ef", border: "1px solid #f2e2c8", borderRadius: 8, padding: "9px 13px" }}>
+                    Every committed match is back in the pot and all {planMentees.length} founders are solved together, so
+                    this is the best arrangement of the whole cohort rather than the best use of what is left over. The
+                    pairings below that differ from what is already saved are marked, and nothing changes until you
+                    apply them.
+                  </p>
+                )}
                 {eligibleMentors.length === 0 ? (
                   <p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>No approved mentors yet, so there is nothing to plan. Approve mentors on the Mentor Apps tab.</p>
                 ) : unmatchedMentees.length === 0 ? (
@@ -2642,8 +2687,9 @@ export default function AdminFall() {
                       made with them in view. */}
                   <p style={{ margin: "0 0 8px", fontSize: 13, color: "#37324e", lineHeight: 1.6 }}>
                     <strong>Mentor load:</strong>{" "}
-                    {plan.summary.mentorsUsed} of {eligibleMentors.length} approved mentors get a founder
-                    {plan.summary.mentorsIdle > 0 && <span style={{ color: "#b35c00", fontWeight: 700 }}> · {plan.summary.mentorsIdle} get nobody</span>}
+                    {plan.summary.mentorsUsed} of {cohort?.pool.length ?? 0} mentor{(cohort?.pool.length ?? 0) === 1 ? "" : "s"} with room get a founder
+                    {(cohort?.alreadyPlaced ?? 0) > 0 && <span style={{ color: "#6b6480" }}> · {cohort.alreadyPlaced} already have one</span>}
+                    {plan.summary.mentorsIdle > 0 && <span style={{ color: "#b35c00", fontWeight: 700 }}> · {plan.summary.mentorsIdle} still get nobody</span>}
                     {plan.summary.doubled > 0 && <> · {plan.summary.doubled} take a second</>}
                     {plan.summary.tripled > 0 && <span style={{ color: "#b35c00" }}> · {plan.summary.tripled} take a third</span>}
                     {plan.summary.doubled === 0 && plan.summary.tripled === 0 && <> · nobody doubles up</>}
@@ -2655,7 +2701,7 @@ export default function AdminFall() {
                   {plan.idle?.length > 0 && (
                     <div style={{ marginBottom: 10, padding: "10px 14px", background: "#fff8ef", border: "1px solid #f2e2c8", borderRadius: 8 }}>
                       <p style={{ margin: "0 0 5px", fontSize: 12.5, fontWeight: 700, color: "#b9770e" }}>
-                        {plan.idle.length} mentor{plan.idle.length === 1 ? "" : "s"} waiting — no founder here is better than a weak fit for them
+                        {plan.idle.length} mentor{plan.idle.length === 1 ? " has" : "s have"} room and no founder — nobody left is better than a weak fit for them
                       </p>
                       {plan.idle.map(x => (
                         <p key={x.mentor.id} style={{ margin: "0 0 3px", fontSize: 12, color: "#37324e", lineHeight: 1.55 }}>
@@ -2791,6 +2837,11 @@ export default function AdminFall() {
                             const grab = greedyForCohort.byMentee[pr.mentee.id];
                             const gave = grab && grab.mentor.id !== pr.mentor.id && gradeOf(grab.score).tier > g.tier;
                             const out = dropped.has(pr.mentee.id);
+                            // In re-plan mode most rows restate a match that
+                            // already exists; only the differences are work.
+                            const currentId = pr.mentee.matchedMentorId || null;
+                            const changed = replanAll && currentId && currentId !== pr.mentor.id;
+                            const isNew = replanAll && !currentId;
                             return (
                               <tr key={pr.mentee.id} style={{ borderTop: "1px solid #f0edf9", opacity: out ? 0.4 : 1 }}>
                                 <td style={{ padding: "6px 8px 6px 0", width: 26 }}>
@@ -2805,7 +2856,16 @@ export default function AdminFall() {
                                     {pr.mentee.first} {pr.mentee.last}
                                   </button>
                                 </td>
-                                <td style={{ padding: "6px 10px", color: "#6b6480", whiteSpace: "nowrap" }}>→ {pr.mentor.name}{pr.second ? " (2nd founder)" : ""}</td>
+                                <td style={{ padding: "6px 10px", color: "#6b6480", whiteSpace: "nowrap" }}>
+                                  → {pr.mentor.name}{pr.second ? " (2nd founder)" : ""}
+                                  {changed && (
+                                    <div style={{ fontSize: 11, color: "#b35c00", fontWeight: 700 }}>
+                                      change · currently {pr.mentee.matchedMentorName || "someone else"}
+                                    </div>
+                                  )}
+                                  {isNew && <div style={{ fontSize: 11, color: "#1a6e42", fontWeight: 700 }}>new match</div>}
+                                  {replanAll && currentId && !changed && <div style={{ fontSize: 11, color: "#9b8fcf" }}>unchanged</div>}
+                                </td>
                                 <td style={{ padding: "6px 10px", fontSize: 11.5, whiteSpace: "nowrap", color: "#6b6480" }}>
                                   {(() => {
                                     const asked = sessionsFor(pr.mentee.tier);
@@ -2836,7 +2896,13 @@ export default function AdminFall() {
                     </div>
                   )}
                   {showCohortPlan && (() => {
-                    const keep = plan.pairs.filter(pr => !dropped.has(pr.mentee.id));
+                    // Re-planning restates every existing pairing; only the
+                    // ones that actually differ are work, so those are what
+                    // the apply button touches.
+                    const actionable = replanAll
+                      ? plan.pairs.filter(pr => pr.mentee.matchedMentorId !== pr.mentor.id)
+                      : plan.pairs;
+                    const keep = actionable.filter(pr => !dropped.has(pr.mentee.id));
                     return (
                       <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #e8e4f5" }}>
                         {bulk?.phase === "running" && (
@@ -2860,13 +2926,13 @@ export default function AdminFall() {
                         {bulk?.phase === "confirm" && (
                           <div style={{ background: "#fff8ef", border: "1px solid #f2e2c8", borderRadius: 8, padding: "11px 14px" }}>
                             <p style={{ margin: "0 0 8px", fontSize: 13, color: "#37324e", lineHeight: 1.6 }}>
-                              This writes <strong>{keep.length} matches</strong> to the FallMatches sheet
+                              This writes <strong>{keep.length} {replanAll ? "changed matches" : "matches"}</strong> to the FallMatches sheet
                               {dropped.size > 0 && <> and skips the {dropped.size} you unticked</>}. Founders do not see a
                               match until their Week 1 gate is complete, and any of these can be unmatched afterwards
                               without losing history.
                             </p>
                             <button disabled={matchBusy} onClick={() => applyPlan(keep)} style={{ border: "none", borderRadius: 6, padding: "6px 14px", background: "#5c4eb5", color: "#fff", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", marginRight: 8 }}>
-                              Yes, match these {keep.length}
+                              {replanAll ? `Yes, apply these ${keep.length}` : `Yes, match these ${keep.length}`}
                             </button>
                             <button onClick={() => setBulk(null)} style={{ border: "1px solid #e8e4f5", borderRadius: 6, padding: "6px 12px", background: "#fff", color: "#6b6480", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                               Cancel
@@ -2880,7 +2946,7 @@ export default function AdminFall() {
                               background: keep.length ? "#5c4eb5" : "#e8e4f5", color: keep.length ? "#fff" : "#9b8fcf",
                               fontSize: 13, fontWeight: 700, cursor: keep.length ? "pointer" : "default", fontFamily: "inherit",
                             }}>
-                              Match these {keep.length} at once
+                              {replanAll ? `Apply these ${keep.length} change${keep.length === 1 ? "" : "s"}` : `Match these ${keep.length} at once`}
                             </button>
                             {dropped.size > 0 && (
                               <>
@@ -2891,7 +2957,9 @@ export default function AdminFall() {
                               </>
                             )}
                             <span style={{ fontSize: 11.5, color: "#9b8fcf" }}>
-                              Untick anyone you want to place by hand, then apply the rest.
+                              {replanAll
+                                ? `${plan.pairs.length - actionable.length} of the ${plan.pairs.length} pairings are already saved and are left alone. Untick any change you do not want.`
+                                : "Untick anyone you want to place by hand, then apply the rest."}
                             </span>
                           </div>
                         )}
