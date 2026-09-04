@@ -735,7 +735,7 @@ export default function AdminFall() {
                 ["signals", "Signals"],
                 ["pulse", "Pulse & Wins"]],
               // Reporting out
-              [["reporting", "\ud83d\udcca Reporting"]],
+              [["reporting", "\ud83d\udcca Reporting"], ["why", "\ud83e\udde0 How We Decided"]],
               // The calendar
               [["sessions", "Sessions"],
                 ["speakers", `\ud83c\udfa4 Speakers${speakers?.counts ? ` (${speakers.counts.undecided})` : ""}`]],
@@ -993,6 +993,35 @@ export default function AdminFall() {
           </div>
 
           </>)}
+
+          {tab === "why" && (
+            <div style={card}>
+              {/* The reasoning behind matching and the peer rooms. It lives as
+                  a standalone page so it can be read, printed or sent on its
+                  own; embedding it here rather than restating it keeps one
+                  copy of the argument. Internal: it names the trade-offs we
+                  lose on, which is right for the team and not for a founder
+                  reading their own match. */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, flexWrap: "wrap", marginBottom: 10 }}>
+                <div>
+                  <p style={{ ...kicker, margin: "0 0 4px" }}>How we decided · internal</p>
+                  <p style={{ margin: 0, fontSize: 13, color: "#6b6480", lineHeight: 1.6, maxWidth: "70ch" }}>
+                    The five judgement calls behind the matching and the peer rooms, each with its reasoning and its
+                    cost. Written so anyone on the team can defend a pairing without re-deriving it, and honest about
+                    the two trades we lose on. Not in the founder Resources tab.
+                  </p>
+                </div>
+                <a href="/uplift-how-we-decided.html" target="_blank" rel="noopener noreferrer" style={{ border: "1px solid #d9d2f5", borderRadius: 8, padding: "7px 14px", background: "#fff", color: "#5c4eb5", fontSize: 12.5, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}>
+                  Open full page ↗
+                </a>
+              </div>
+              <iframe
+                src="/uplift-how-we-decided.html"
+                title="How we decided"
+                style={{ width: "100%", height: "78vh", border: "1px solid #e8e4f5", borderRadius: 12, background: "#fff" }}
+              />
+            </div>
+          )}
 
           {tab === "cohorts" && (() => {
             if (!people) return <div style={card}><p style={{ margin: 0, fontSize: 13, color: "#9b8fcf" }}>Loading applications…</p></div>;
