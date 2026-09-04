@@ -17,6 +17,7 @@
 import { getSheetsClient } from "../../lib/sheets-helper";
 import { FALL_SLUGS } from "../../lib/fall-roster";
 import { MENTEES } from "../../lib/mentees";
+import { isUpliftId, isRetiredMarker } from "../../lib/uplift-id";
 
 const masterPw = () => process.env.PORTAL_MASTER_PASSWORD || process.env.ADMIN_SECRET || "";
 
@@ -75,10 +76,18 @@ async function findUpliftId(sheets, spreadsheetId, slug) {
       rows = r.data.values || [];
     } catch (_) { continue; }
     // Latest ID wins, though fall-decide.js never reassigns one anyway.
+    // isUpliftId is what makes this a password check rather than a string
+    // compare against whatever is in that column: a retired ID, or anything
+    // else typed in by hand, is not a login and leaves the founder on the
+    // legacy slug code below.
     let found = null;
     for (let i = 1; i < rows.length; i++) {
       const [, , name, , , id] = rows[i];
-      if (id && (name || "").trim().toLowerCase() === fullName) found = id;
+      if ((name || "").trim().toLowerCase() !== fullName) continue;
+      // Rows are in write order and the last word wins, so a retirement takes
+      // the login away again rather than leaving the earlier row latched.
+      if (isRetiredMarker(id)) found = null;
+      else if (isUpliftId(id)) found = id.trim();
     }
     if (found) return found;
   }

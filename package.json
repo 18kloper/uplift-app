@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "dev:alt": "NEXT_DIST_DIR=.next-alt next dev"
+    "dev:alt": "NEXT_DIST_DIR=.next-alt next dev",
+    "start:preview": "NEXT_DIST_DIR=.next-preview next start -p 3200"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",

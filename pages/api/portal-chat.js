@@ -164,7 +164,7 @@ export default async function handler(req, res) {
         .replace(/^#{1,4}\s+/gm, "");
 
     // Log the exchange to #uplift-portal-inputs; never block the response on it.
-    postPortalInput({ slug, weekNum: 0, fieldKey: "bot_chat", question: q, value: answer, channel: "ulrike-questions" }).catch(() => {});
+    postPortalInput({ slug, weekNum: 0, fieldKey: "bot_chat", question: q, value: answer, channel: "upliftchatbotinquiries" }).catch(() => {});
 
     return res.status(200).json({ answer });
   } catch (err) {

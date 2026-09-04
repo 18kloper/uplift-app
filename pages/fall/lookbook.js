@@ -622,7 +622,13 @@ export default function Lookbook() {
               if (!near(idx)) return null;
               const last = idx === pages.length - 1;
               const key = pg.people ? pg.people.map(f => f.id).join("-") : `${pg.kind}-${idx}`;
-              const on = page === idx;
+              // Sheet only runs its fit-to-page scaling while `active`. On
+              // screen that is the page you are looking at, but printing
+              // mounts every page at once, and any page left inactive keeps
+              // no transform, so a long one is clipped by the sheet's
+              // overflow:hidden. The customers-and-partners index (41 rows)
+              // lost its bottom rows in the PDF for exactly this reason.
+              const on = printAll || page === idx;
               return (
                 <div
                   key={key}

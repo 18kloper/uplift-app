@@ -21,6 +21,7 @@
 
 import { Resend } from "resend";
 import { getSheetsClient } from "../../../lib/sheets-helper";
+import { isUpliftId, isRetiredMarker } from "../../../lib/uplift-id";
 import { FALL_FOUNDERS } from "../../../lib/fall-cohort";
 import {
   acceptanceEmailHTML,
@@ -72,8 +73,13 @@ async function readMenteeSheet() {
     byName[key] = {
       email: email || prev.email || "",
       decision: decision || prev.decision,
-      // an ID is permanent once issued: never let a later blank row clear it
-      upliftId: upliftId || prev.upliftId || "",
+      // an ID is permanent once issued: never let a later blank row clear it.
+      // A retirement is the one thing that does clear it, so a dead number is
+      // never emailed to anyone as their password: the send refuses them below
+      // instead, by name, where it can be seen.
+      upliftId: isRetiredMarker(upliftId)
+        ? ""
+        : isUpliftId(upliftId) ? upliftId.trim() : prev.upliftId || "",
     };
   }
   return byName;

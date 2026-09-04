@@ -284,7 +284,7 @@ export function IndexPage({ kicker, title, standfirst, rows, onOpen, empty, acti
   return (
     <Sheet active={active} fitViewport mark="right">
       <Page active={active} pad={deep ? "1.5in 0.7in 0.2in" : undefined}>
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 26, marginBottom: deep ? 30 : 16 }}>
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 26, marginBottom: deep ? 30 : 12 }}>
           <div style={{ maxWidth: deep ? "5.1in" : "4.9in" }}>
             <Label size={deep ? 9.5 : 8.5}>{kicker}</Label>
             <h2 style={{ margin: deep ? "14px 0 0" : "8px 0 0", fontFamily: DISPLAY, fontWeight: 900, fontSize: deep ? 52 : 40, letterSpacing: "-0.02em", lineHeight: deep ? 0.98 : 1.02 }}>
@@ -299,20 +299,20 @@ export function IndexPage({ kicker, title, standfirst, rows, onOpen, empty, acti
 
         <div style={{ flex: 1 }}>
           {rows.length === 0 && <p style={{ fontFamily: SANS, fontSize: 11, color: INK_SOFT }}>{empty}</p>}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 30px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 24px" }}>
             {rows.map(({ founder, note }) => (
               <button key={founder.id} onClick={() => onOpen(founder.id)}
-                style={{ display: "flex", gap: 10, alignItems: "center", width: "100%", textAlign: "left", background: "none", border: "none", borderTop: `1px solid ${RULE}`, padding: "8px 0", cursor: "pointer" }}>
+                style={{ display: "flex", gap: 9, alignItems: "center", width: "100%", textAlign: "left", background: "none", border: "none", borderTop: `1px solid ${RULE}`, padding: "5px 0", cursor: "pointer" }}>
                 <FounderPhoto founder={founder} fontSize={10} fillFrame
-                  style={{ width: 30, height: 38, objectFit: "cover", flexShrink: 0, background: "#efe9df" }} />
+                  style={{ width: 27, height: 34, objectFit: "cover", flexShrink: 0, background: "#efe9df" }} />
                 <span style={{ minWidth: 0, flex: 1 }}>
                   <span style={{ display: "block", fontFamily: DISPLAY, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.15 }}>
                     {founder.first} {founder.last}
                   </span>
-                  <span style={{ display: "block", fontFamily: SANS, fontSize: 8.5, letterSpacing: "0.06em", textTransform: "uppercase", color: INK_SOFT, marginTop: 3 }}>
+                  <span style={{ display: "block", fontFamily: SANS, fontSize: 8.5, letterSpacing: "0.06em", textTransform: "uppercase", color: INK_SOFT, marginTop: 2 }}>
                     {founder.company}
                   </span>
-                  <span style={{ display: "block", fontFamily: SANS, fontSize: 9, color: ACCENT, marginTop: 2 }}>{note}</span>
+                  <span style={{ display: "block", fontFamily: SANS, fontSize: 9, color: ACCENT, marginTop: 1 }}>{note}</span>
                 </span>
               </button>
             ))}
