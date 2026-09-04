@@ -694,8 +694,15 @@ export default function AdminFall() {
               <a href="/fallsop" style={{ border: "1px solid rgba(255,255,255,0.28)", borderRadius: 8, padding: "7px 14px", color: "#fff", fontSize: 13, fontWeight: 700, textDecoration: "none", fontFamily: "inherit", whiteSpace: "nowrap" }}>
                 SOP
               </a>
-              <a href="/fallfounderlookbook" style={{ border: "1px solid rgba(255,255,255,0.28)", borderRadius: 8, padding: "7px 14px", color: "#fff", fontSize: 13, fontWeight: 700, textDecoration: "none", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+              <a href="/fallfounderlookbook" target="_blank" rel="noopener noreferrer" style={{ border: "1px solid rgba(255,255,255,0.28)", borderRadius: 8, padding: "7px 14px", color: "#fff", fontSize: 13, fontWeight: 700, textDecoration: "none", fontFamily: "inherit", whiteSpace: "nowrap" }}>
                 Lookbook
+              </a>
+              {/* The same book with the photo tools on: drag a face to set its
+                  focal point, zoom, hide, reorder. Separate button rather than
+                  a mode on the first one, so the clean read-only view stays one
+                  click away while the pictures are being fixed. */}
+              <a href="/fall/lookbook?edit=1" target="_blank" rel="noopener noreferrer" title="Opens the lookbook with the photo tools on: drag a face to reposition it, zoom, hide, reorder. Saving needs the edit code." style={{ border: "1px solid rgba(255,255,255,0.28)", borderRadius: 8, padding: "7px 14px", color: "#fff", fontSize: 13, fontWeight: 700, textDecoration: "none", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                ✎ Adjust photos
               </a>
               <button onClick={() => { load(true); if (["speakers", "today"].includes(tab)) refreshSpeakers(); }} disabled={loading} style={{ border: "none", borderRadius: 8, padding: "8px 16px", background: "#5c4eb5", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", opacity: loading ? 0.6 : 1 }}>
                 {loading ? "Refreshing…" : "↻ Refresh now"}
