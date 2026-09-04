@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The decisions behind Uplift's fall matching and peer cohorts, and the reasoning for each one: why the whole cohort is solved at once, why every mentor gets a founder, why fit beats session count, and what the programme is genuinely short of.">
+<title>How We Decided &middot; Uplift Fall 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --navy:#110465;
+  --indigo:#3d2f8a;
+  --violet:#5c4eb5;
+  --pink:#d86697;
+  --pink-ink:#ab3f6f;
+  --gold:#8f6710;
+  --ink:#1c1a2e;
+  --ink-2:#5f5c78;
+  --ink-3:#8b87a3;
+  --ground:#f4f2fb;
+  --surface:#ffffff;
+  --surface-2:#f0ecff;
+  --rule:#ddd8ee;
+  --rule-2:#ebe7f7;
+  --panel:#110465;
+  --onpanel:#f4f2fb;
+  --shadow:0 1px 2px rgba(17,4,101,.05), 0 10px 32px rgba(17,4,101,.07);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --navy:#b9a9ff;
+    --indigo:#a897ee;
+    --violet:#9b8ae6;
+    --pink:#ef94b9;
+    --pink-ink:#ef94b9;
+    --gold:#dfae4c;
+    --ink:#eeebf8;
+    --ink-2:#a9a2c4;
+    --ink-3:#807a9c;
+    --ground:#100e1c;
+    --surface:#191630;
+    --surface-2:#221e3c;
+    --rule:#332d52;
+    --rule-2:#272247;
+    --panel:#241f42;
+    --onpanel:#eeebf8;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 32px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --navy:#b9a9ff;
+  --indigo:#a897ee;
+  --violet:#9b8ae6;
+  --pink:#ef94b9;
+  --pink-ink:#ef94b9;
+  --gold:#dfae4c;
+  --ink:#eeebf8;
+  --ink-2:#a9a2c4;
+  --ink-3:#807a9c;
+  --ground:#100e1c;
+  --surface:#191630;
+  --surface-2:#221e3c;
+  --rule:#332d52;
+  --rule-2:#272247;
+  --panel:#241f42;
+  --onpanel:#eeebf8;
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 32px rgba(0,0,0,.4);
+}
+
+*,*::before,*::after{box-sizing:border-box;}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:"Figtree",system-ui,-apple-system,sans-serif;
+  font-size:16.5px;line-height:1.66;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px 110px;}
+
+h1,h2,h3,.dsp{font-family:"Bricolage Grotesque","Figtree",system-ui,sans-serif;}
+p{margin:0 0 15px;max-width:70ch;}
+strong{font-weight:600;}
+a{color:var(--indigo);text-underline-offset:3px;}
+a:focus-visible{outline:2.5px solid var(--violet);outline-offset:3px;border-radius:3px;}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;}
+
+/* ── masthead ─────────────────────────────────────────── */
+.mast{padding:60px 0 0;}
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--pink-ink);margin:0 0 22px;
+}
+.mast h1{
+  font-size:clamp(38px,6.6vw,72px);font-weight:800;letter-spacing:-.035em;
+  line-height:.98;margin:0 0 22px;text-wrap:balance;max-width:15ch;color:var(--navy);
+}
+.mast .standfirst{font-size:20.5px;color:var(--ink-2);max-width:60ch;line-height:1.55;}
+
+/* ── stage rail ───────────────────────────────────────── */
+.rail{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:1px;
+  background:var(--rule);border:1px solid var(--rule);border-radius:4px;
+  overflow:hidden;margin:44px 0 0;box-shadow:var(--shadow);
+}
+.rail a{
+  background:var(--surface);padding:18px 20px 20px;text-decoration:none;color:inherit;
+  display:block;transition:background .15s;
+}
+.rail a:hover{background:var(--surface-2);}
+.rail .rn{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10px;font-weight:600;letter-spacing:.14em;color:var(--pink-ink);
+  display:block;margin-bottom:9px;
+}
+.rail .rt{
+  font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:17px;font-weight:700;letter-spacing:-.022em;display:block;
+  margin-bottom:4px;color:var(--navy);line-height:1.15;
+}
+.rail .rd{font-size:13px;color:var(--ink-2);line-height:1.45;display:block;}
+
+/* ── chapters ─────────────────────────────────────────── */
+.chapter{padding-top:82px;scroll-margin-top:20px;}
+.chead{border-top:3px solid var(--navy);padding-top:18px;margin-bottom:26px;}
+.chead .cn{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--pink-ink);margin:0 0 12px;
+}
+.chead h2{
+  font-size:clamp(28px,4.2vw,44px);font-weight:800;letter-spacing:-.03em;
+  line-height:1.04;margin:0 0 14px;text-wrap:balance;max-width:19ch;color:var(--navy);
+}
+.chead .clede{font-size:18.5px;color:var(--ink-2);max-width:64ch;line-height:1.56;margin:0;}
+
+h3{
+  font-size:21px;font-weight:700;letter-spacing:-.022em;
+  margin:44px 0 12px;text-wrap:balance;color:var(--ink);
+}
+h4.lbl{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 10px;
+}
+
+/* ── ask / tells split ────────────────────────────────── */
+.split{
+  display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
+  gap:0;background:var(--rule);border:1px solid var(--rule);
+  border-radius:4px;overflow:hidden;margin:16px 0;box-shadow:var(--shadow);
+}
+.split > div{background:var(--surface);padding:22px 26px;}
+.split .asks{border-right:1px solid var(--rule);}
+.split .gname{
+  font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:17.5px;font-weight:700;letter-spacing:-.02em;margin:0 0 3px;color:var(--navy);
+}
+.split .gcount{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--pink-ink);
+  margin:0 0 13px;
+}
+.qlist{margin:0;padding:0;list-style:none;}
+.qlist li{
+  position:relative;padding-left:17px;margin-bottom:6px;
+  font-size:14.5px;line-height:1.5;color:var(--ink);
+}
+.qlist li::before{
+  content:"";position:absolute;left:0;top:.66em;
+  width:7px;height:2.5px;border-radius:2px;background:var(--pink);
+}
+.tells{display:flex;flex-direction:column;justify-content:center;}
+.tells p{margin:0;font-size:15.5px;color:var(--ink-2);line-height:1.62;max-width:46ch;}
+.tells p + p{margin-top:11px;}
+.tells strong{color:var(--ink);font-weight:600;}
+
+/* ── funnel ───────────────────────────────────────────── */
+.funnel{
+  background:var(--panel);border-radius:5px;padding:30px 34px;margin:26px 0;
+  color:var(--onpanel);
+}
+.funnel h4{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;
+  margin:0 0 16px;opacity:.72;color:var(--onpanel);
+}
+.fsteps{display:flex;flex-wrap:wrap;align-items:stretch;gap:12px;}
+.fstep{
+  flex:1 1 190px;border:1px solid rgba(216,102,151,.5);border-radius:4px;
+  padding:15px 17px;background:rgba(216,102,151,.09);
+}
+.fstep .fq{
+  font-size:13.5px;line-height:1.45;margin:0 0 9px;opacity:.85;color:var(--onpanel);
+}
+.fstep .fa{
+  font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:16px;font-weight:700;letter-spacing:-.018em;margin:0;color:var(--pink);
+}
+.farrow{
+  align-self:center;color:var(--pink);font-size:19px;font-weight:700;flex:0 0 auto;
+}
+.funnel .fnote{
+  margin:18px 0 0;font-size:14.5px;line-height:1.6;opacity:.82;max-width:66ch;color:var(--onpanel);
+}
+
+/* ── meeting cards ────────────────────────────────────── */
+.meetings{display:flex;flex-direction:column;gap:14px;margin:24px 0;}
+.meet{
+  background:var(--surface);border:1px solid var(--rule);border-radius:5px;
+  border-top:4px solid var(--navy);padding:22px 26px;box-shadow:var(--shadow);
+}
+.meet.m2{border-top-color:var(--pink);}
+.meet.m3{border-top-color:var(--gold);}
+.meet-hd{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 14px;margin-bottom:4px;}
+.meet-hd h3{margin:0;font-size:25px;font-weight:800;letter-spacing:-.028em;color:var(--navy);}
+.meet.m2 .meet-hd h3{color:var(--pink-ink);}
+.meet.m3 .meet-hd h3{color:var(--gold);}
+.meet-hd .when{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10.5px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);
+}
+.meet .job{font-size:16px;color:var(--ink);margin:0 0 18px;max-width:62ch;}
+.meet .job b{font-weight:600;}
+.bl{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+.bl h5{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 8px;
+}
+.bl ul{margin:0;padding:0;list-style:none;}
+.bl li{
+  position:relative;padding-left:16px;margin-bottom:6px;
+  font-size:14.5px;line-height:1.48;
+}
+.bl li::before{
+  content:"";position:absolute;left:0;top:.64em;
+  width:7px;height:2.5px;border-radius:2px;background:var(--pink);
+}
+
+/* ── loop table ───────────────────────────────────────── */
+.tscroll{
+  overflow-x:auto;margin:22px 0;border:1px solid var(--rule);
+  border-radius:4px;background:var(--surface);box-shadow:var(--shadow);
+}
+table{border-collapse:collapse;width:100%;font-size:14.5px;}
+thead th{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:9.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;
+  text-align:left;vertical-align:bottom;padding:14px 16px;
+  background:var(--surface-2);border-bottom:1.5px solid var(--rule);white-space:nowrap;
+  color:var(--ink-3);
+}
+thead th.before{color:var(--navy);}
+thead th.during{color:var(--pink-ink);}
+thead th.after{color:var(--gold);}
+tbody td{padding:15px 16px;border-bottom:1px solid var(--rule-2);vertical-align:top;line-height:1.5;}
+tbody tr:last-child td{border-bottom:0;}
+td.q{font-weight:600;color:var(--ink);min-width:180px;}
+td.mid{color:var(--ink-2);}
+td.out{color:var(--ink-2);}
+td.prod{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:12.5px;color:var(--indigo);font-weight:500;min-width:150px;
+}
+.same{
+  display:inline-block;font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--gold);border:1px solid var(--gold);border-radius:2px;
+  padding:2px 6px;margin-left:6px;white-space:nowrap;vertical-align:1px;
+}
+
+/* ── five promises ────────────────────────────────────── */
+.five{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:1px;background:var(--rule);border:1px solid var(--rule);
+  border-radius:4px;overflow:hidden;margin:24px 0;box-shadow:var(--shadow);
+}
+.pr{background:var(--surface);padding:20px 22px;}
+.pr .pe{font-size:22px;display:block;margin-bottom:9px;line-height:1;}
+.pr h5{
+  font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:16.5px;font-weight:700;letter-spacing:-.02em;margin:0 0 6px;color:var(--navy);
+}
+.pr p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.5;}
+.pr .test{
+  margin-top:11px;padding-top:10px;border-top:1px solid var(--rule-2);
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:11px;color:var(--pink-ink);line-height:1.45;
+}
+
+/* ── leave-with ledger ────────────────────────────────── */
+.ledger{
+  margin:24px 0;border:1px solid var(--rule);border-radius:4px;
+  overflow:hidden;background:var(--surface);box-shadow:var(--shadow);
+}
+.lrow{
+  display:grid;grid-template-columns:104px minmax(0,1fr);
+  gap:0;border-bottom:1px solid var(--rule-2);
+}
+.lrow:last-child{border-bottom:0;}
+.lrow .lq{
+  font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:23px;font-weight:800;letter-spacing:-.03em;color:var(--pink-ink);
+  padding:18px 0 18px 24px;font-variant-numeric:tabular-nums;line-height:1.2;
+}
+.lrow .lc{padding:18px 26px 18px 12px;}
+.lrow .lc h5{
+  font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:16.5px;font-weight:700;letter-spacing:-.018em;margin:0 0 4px;color:var(--navy);
+}
+.lrow .lc p{margin:0;font-size:14.5px;color:var(--ink-2);line-height:1.55;max-width:62ch;}
+
+/* ── pullquote ────────────────────────────────────────── */
+.pull{
+  border-left:3px solid var(--pink);padding:4px 0 4px 24px;margin:30px 0;
+}
+.pull p{
+  font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:clamp(20px,2.7vw,27px);font-weight:600;letter-spacing:-.024em;
+  line-height:1.28;color:var(--navy);margin:0;max-width:26ch;text-wrap:balance;
+}
+
+/* ── note ─────────────────────────────────────────────── */
+.note{
+  background:var(--surface-2);border-radius:4px;padding:20px 24px;margin:24px 0;
+}
+.note p{margin:0;font-size:15.5px;color:var(--ink);line-height:1.6;max-width:66ch;}
+.note p + p{margin-top:10px;}
+
+/* ── worked example ───────────────────────────────────── */
+.example{
+  background:var(--surface-2);border-radius:6px;
+  padding:38px 38px 42px;margin:34px 0 0;
+}
+.example .exlabel{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--pink-ink);margin:0 0 12px;
+}
+.example h3{margin-top:36px;}
+.example h3:first-of-type{margin-top:30px;}
+.exgrid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));
+  gap:1px;background:var(--rule);border:1px solid var(--rule);
+  border-radius:4px;overflow:hidden;margin:18px 0;
+}
+.exgrid > div{background:var(--surface);padding:16px 19px;}
+.exgrid dt{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
+  margin:0 0 5px;
+}
+.exgrid dd{
+  margin:0;font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:16px;font-weight:700;letter-spacing:-.018em;color:var(--navy);line-height:1.28;
+}
+.exgrid dd small{
+  display:block;font-family:"Figtree",sans-serif;font-size:13px;
+  font-weight:400;color:var(--ink-2);letter-spacing:0;margin-top:3px;line-height:1.45;
+}
+.scoretag{
+  display:inline-flex;align-items:baseline;gap:10px;
+  background:var(--panel);color:var(--onpanel);border-radius:4px;
+  padding:12px 20px;margin:6px 0 4px;
+}
+.scoretag b{
+  font-family:"Bricolage Grotesque","Figtree",sans-serif;
+  font-size:20px;font-weight:800;letter-spacing:-.024em;
+}
+.scoretag span{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:12px;letter-spacing:.08em;opacity:.8;
+}
+td.pts{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;
+  font-weight:600;color:var(--navy);
+}
+th.pts{text-align:right;}
+td.pts.zero{color:var(--ink-3);}
+tr.runtot td{
+  background:var(--surface-2);font-weight:700;
+  border-top:1.5px solid var(--rule);
+}
+tr.runtot td.pts{font-size:16px;color:var(--navy);}
+.arc{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:1px;background:var(--rule);border:1px solid var(--rule);
+  border-radius:4px;overflow:hidden;margin:18px 0;
+}
+.arc > div{background:var(--surface);padding:17px 20px;}
+.arc .an{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:9.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;
+  margin:0 0 7px;
+}
+.arc .a1 .an{color:var(--navy);}
+.arc .a2 .an{color:var(--pink-ink);}
+.arc .a3 .an{color:var(--gold);}
+.arc p{margin:0;font-size:14px;color:var(--ink-2);line-height:1.55;}
+.arc p b{color:var(--ink);font-weight:600;}
+td.delta{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:12.5px;font-weight:600;color:var(--gold);white-space:nowrap;
+}
+td.delta.flat{color:var(--ink-3);font-weight:400;}
+@media (max-width:800px){
+  .example{padding:26px 20px 30px;margin-left:-18px;margin-right:-18px;border-radius:0;}
+}
+
+.foot{
+  margin-top:84px;border-top:3px solid var(--navy);padding-top:22px;
+  display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+}
+
+@media (max-width:800px){
+  .wrap{padding:0 18px 76px;}
+  .rail{grid-template-columns:1fr 1fr;}
+  .split{grid-template-columns:1fr;}
+  .split .asks{border-right:0;border-bottom:1px solid var(--rule);}
+  .bl{grid-template-columns:1fr;gap:16px;}
+  .fsteps{flex-direction:column;}
+  .farrow{align-self:flex-start;transform:rotate(90deg);}
+  .lrow{grid-template-columns:1fr;}
+  .lrow .lq{padding:16px 24px 0;}
+  .lrow .lc{padding:6px 24px 18px;}
+}
+@media print{
+  body{background:#fff;}
+  .rail,.split,.meet,.tscroll,.five,.ledger{box-shadow:none;}
+  .chapter{break-inside:avoid-page;}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style><style>
+  /* A few additions on top of the shared essay styles. */
+  .decision{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:22px 24px;margin:0 0 18px;box-shadow:var(--shadow);}
+  .decision .dlbl{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10.5px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--pink-ink);margin:0 0 8px;}
+  .decision h3{font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.2;margin:0 0 10px;color:var(--navy);max-width:32ch;}
+  .decision p{margin:0 0 12px;}
+  .decision p:last-child{margin-bottom:0;}
+  .because{border-left:3px solid var(--pink);padding-left:16px;margin:14px 0 0;color:var(--ink-2);}
+  .because b{color:var(--ink);font-weight:600;}
+  .tradeoff{background:var(--surface-2);border-radius:10px;padding:14px 16px;margin:14px 0 0;font-size:15px;}
+  .tradeoff .tlbl{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 6px;font-weight:600;}
+  .shortfall{background:var(--panel);color:var(--onpanel);border-radius:14px;padding:26px 28px;margin:26px 0;}
+  .shortfall h3{color:#fff;font-size:24px;font-weight:700;margin:0 0 12px;letter-spacing:-.02em;}
+  .shortfall p{color:#cfc9ea;max-width:66ch;}
+  .shortfall .big{font-family:"Bricolage Grotesque",sans-serif;font-size:clamp(30px,5vw,46px);font-weight:800;color:var(--gold);letter-spacing:-.03em;line-height:1;margin:0 0 6px;}
+  .numgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0 0;}
+  .numgrid div{background:var(--surface-2);border-radius:10px;padding:14px 16px;}
+  .numgrid .n{font-family:"Bricolage Grotesque",sans-serif;font-size:27px;font-weight:800;color:var(--navy);letter-spacing:-.02em;line-height:1;}
+  .numgrid .l{font-size:12.5px;color:var(--ink-2);margin-top:4px;line-height:1.4;}
+  .aside{font-size:15px;color:var(--ink-2);border-top:1px solid var(--rule-2);padding-top:14px;margin-top:22px;}
+  @media print{.decision,.numgrid div{box-shadow:none;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">TechUnited:NJ &nbsp;&middot;&nbsp; Uplift Mentorship Program &nbsp;&middot;&nbsp; Fall 2026</p>
+  <h1>How we decided</h1>
+  <p class="standfirst">Matching forty-eight founders to thirty-seven mentors involves a dozen judgement calls, and most programmes never write them down. These are ours: what we chose, what we chose against, and what each decision costs. Where a decision has a price, the price is named.</p>
+
+  <nav class="rail">
+    <a href="#d1"><span class="rn">One</span><span class="rt">The whole room at once</span><span class="rd">Why your place in the queue does not decide your mentor</span></a>
+    <a href="#d2"><span class="rn">Two</span><span class="rt">Everyone who volunteered</span><span class="rd">Why no mentor is left without a founder</span></a>
+    <a href="#d3"><span class="rn">Three</span><span class="rt">Fit over hours</span><span class="rd">Why the better mentor wins, even with less time</span></a>
+    <a href="#d4"><span class="rn">Four</span><span class="rt">Rooms that rhyme</span><span class="rd">Why the peer cohorts are built on stage, not geography</span></a>
+    <a href="#d5"><span class="rn">Five</span><span class="rt">What we are short of</span><span class="rd">The number no amount of matching can fix</span></a>
+  </nav>
+</header>
+
+<!-- 1 -->
+<section class="chapter" id="d1">
+  <div class="chead">
+    <p class="cn">Decision one</p>
+    <h2>The whole room is solved at once</h2>
+    <p class="clede">The obvious way to match a cohort is one founder at a time: open the list, take whoever is next, give them the best mentor still free. We do not do that, and it is worth explaining why, because the obvious way is quietly unfair.</p>
+  </div>
+
+  <div class="decision">
+    <p class="dlbl">The problem with going in order</p>
+    <h3>Whoever gets served first spends everybody else&rsquo;s options</h3>
+    <p>Imagine two founders who both want the same mentor. One of them has ten mentors who would suit them well. The other has exactly one. If the founder with ten happens to be higher up the list, they take the shared mentor, and the founder with one drops to a poor match. Nothing was gained. One founder went from excellent to excellent-by-another-route, and the other went from excellent to barely workable.</p>
+    <p>That is not a hypothetical. It is what happens by default, and the person it happens to never finds out, because there is nothing to compare against.</p>
+    <div class="because">
+      <p><b>So every approved founder and every available mentor go into one problem, solved together.</b> Where two founders want the same person, the one with fewer good alternatives gets them. Which means a founder is sometimes handed a mentor who is a slightly different fit from their own top option, so that the group as a whole is better matched.</p>
+    </div>
+  </div>
+
+  <div class="decision">
+    <p class="dlbl">What that changed</p>
+    <h3>The highest-scoring mentor is not always the one you get</h3>
+    <p>Every pairing is scored on five things: how well the expected number of sessions lines up, focus areas, the overlap between what a founder said they need and what a mentor offered in their own words, company stage, and whether their availability has a window in common.</p>
+    <p>But the score decides how good a pairing is, not which pairings get made. A mentor who is marginally better for one founder and the only strong option for two others does not win. When we tested the two approaches against the same applications, going in order left eight founders below a strong match; solving together left one.</p>
+    <div class="tradeoff">
+      <p class="tlbl">The trade</p>
+      <p>A founder can end up with their second-best mentor rather than their first. What they get in exchange is that nobody in the room is carrying a bad match so that they could have a marginally better one.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="chapter" id="d2">
+  <div class="chead">
+    <p class="cn">Decision two</p>
+    <h2>Every mentor who volunteered gets a founder</h2>
+    <p class="clede">Mentors are volunteers. They filled in a form, named their availability, and offered their time to somebody they had never met. Telling one of them there was nobody for them is a real cost, and we decided it is a cost we do not pay for a better-looking set of matches.</p>
+  </div>
+
+  <div class="decision">
+    <p class="dlbl">The rule</p>
+    <h3>One founder each before anyone gets two, and never more than two</h3>
+    <p>A mentor offering seven to ten sessions could, on paper, carry three founders. We cap it at two. Somebody who volunteered for one deep relationship did not volunteer to run three shallow ones, and the arithmetic working out is not the same as the offer being honoured.</p>
+    <div class="because">
+      <p><b>Nobody is booked past the number of sessions they offered, and nobody is given fewer than three.</b> Both fall out of one rule: a mentor carries at most their offered sessions divided by three.</p>
+    </div>
+    <div class="tradeoff">
+      <p class="tlbl">The trade, stated honestly</p>
+      <p>Optimising purely for match quality and letting mentors sit out would put ten more founders on an excellent-or-better match. It would also mean telling six more volunteers there was no founder for them. We took the mentors&rsquo; side of that, on the grounds that a founder on a strong rather than excellent match still has a good mentor, and a mentor sent away has nothing and probably does not come back.</p>
+    </div>
+  </div>
+
+  <div class="decision">
+    <p class="dlbl">The one exception</p>
+    <h3>A mentor waits rather than a founder taking a bad match</h3>
+    <p>The rule above has a limit. If the only founder left for a mentor would be a genuinely weak fit, we do not force the pairing to keep the mentor busy. That serves the mentor, not the founder. The mentor waits for the next cohort or a later arrival, and the founder goes to somebody they actually suit.</p>
+    <p>On the current cohort that applies to two mentors, and in both cases for a fixable reason: their applications arrived without focus areas or a stage preference, so nothing in the system can see what they are good at. That is a form problem, not a judgement about them.</p>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="chapter" id="d3">
+  <div class="chead">
+    <p class="cn">Decision three</p>
+    <h2>Three sessions is a promise. More is a preference.</h2>
+    <p class="clede">Founders choose how much time they want: the three-session minimum, four to six, or seven to ten. Mentors choose the same. Those two numbers rarely line up perfectly, and how you break the tie says a lot about what you think the programme is for.</p>
+  </div>
+
+  <div class="decision">
+    <p class="dlbl">The choice</p>
+    <h3>The better-fitting mentor wins, even with fewer hours to give</h3>
+    <p>Every founder gets at least three sessions. That is the promise and it is always kept. Above the minimum, session count is a preference, and it loses to fit.</p>
+    <p>If the mentor who genuinely understands your business has four sessions to give, and a more available mentor is a weaker fit, we will hand you the better mentor every time. You get more out of four hours with the right person than ten with the wrong one.</p>
+    <div class="because">
+      <p><b>We had this weighted wrongly at first, and it showed.</b> Session shortfall was priced high enough that the system would trade a genuinely better mentor for a more available one &mdash; the exact opposite of the deal on offer. It is now weighted so it can only ever choose between two mentors of equal quality.</p>
+    </div>
+    <div class="tradeoff">
+      <p class="tlbl">What this means for you</p>
+      <p>If you asked for seven to ten sessions and your mentor has fewer, that is not an oversight and not a downgrade. It means the alternative was somebody who fit you less well. Your mentor is never booked past what they offered, either &mdash; so the answer is never that they overcommitted.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="chapter" id="d4">
+  <div class="chead">
+    <p class="cn">Decision four</p>
+    <h2>The peer rooms are built on stage, not geography</h2>
+    <p class="clede">Alongside a mentor, every founder sits in one of five peer cohorts &mdash; Edison, Hopper, Bardeen, Lawrence and Morrison. A mentor gives you expertise. A peer room gives you company, which is a different good and fails for different reasons.</p>
+  </div>
+
+  <div class="decision">
+    <p class="dlbl">How the rooms are cut</p>
+    <h3>Sorted by how far along you are, then adjusted three ways</h3>
+    <p>All founders are lined up by stage &mdash; from shaping an idea through to scaling an operation &mdash; and cut into five rooms of nine or ten. A peer room only works when the problems in it rhyme: an idea-stage founder sitting with a growth-stage founder gets mentoring, not an exchange between equals.</p>
+    <p>From there, founders move between neighbouring rooms for three reasons, in this order. First, that everybody in a room can make the same meeting time, because a room with no common window never actually meets and nothing else about it matters then. Second, that each room holds a spread of industries rather than five of one, so the perspectives are fresh and nobody is sitting across from a competitor. Third, that each room contains people who have already done what the others are setting out to do.</p>
+    <div class="because">
+      <p><b>Region was considered and left out.</b> The fall sessions are virtual and a third of founders did not state a county, so grouping by geography would have fought stage for nothing. It would only earn a place if these rooms met in person.</p>
+    </div>
+  </div>
+
+  <div class="decision">
+    <p class="dlbl">Where this one has a weakness</p>
+    <h3>The earliest rooms have nobody who has done it before</h3>
+    <p>Peer experience climbs with stage, and it has to. In a room of idea-stage founders, nobody has raised, hired or sold anything yet. Stage cohesion and peer experience genuinely pull against each other at the early end, and no arrangement of the same people fixes it.</p>
+    <p>So we say it rather than hide it: the two earliest rooms will get more out of a facilitated conversation, or an alum in the chair, than out of waiting for a peer to have the answer. That is a programme decision, and naming it is better than quietly trading away the thing that makes those rooms coherent.</p>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="chapter" id="d5">
+  <div class="chead">
+    <p class="cn">Decision five</p>
+    <h2>What we are actually short of</h2>
+    <p class="clede">Some problems are matching problems. This one is not, and it would be dishonest to present a tidy set of pairings without saying so.</p>
+  </div>
+
+  <div class="shortfall">
+    <p class="big">190 offered &middot; 329 asked</p>
+    <h3>The mentor pool is short on hours, not on people</h3>
+    <p>Founders asked for 329 one-to-one sessions between them. The mentors who volunteered offered 190. Twenty founders asked for seven to ten sessions; seven mentors offered that much.</p>
+    <p>No amount of clever matching closes a gap like that. It means a number of founders land nearer the three-session minimum than the range they picked &mdash; not because anything went wrong, but because that is the honest shape of the pool. More mentors with high availability is the only thing that buys more depth.</p>
+  </div>
+
+  <div class="numgrid">
+    <div><p class="n">48</p><p class="l">approved founders</p></div>
+    <div><p class="n">37</p><p class="l">approved mentors</p></div>
+    <div><p class="n">5</p><p class="l">peer rooms</p></div>
+    <div><p class="n">3</p><p class="l">sessions guaranteed to every founder</p></div>
+    <div><p class="n">2</p><p class="l">most founders any one mentor carries</p></div>
+  </div>
+
+  <p class="aside">Every match is confirmed by a person before it is real. The system builds the case and shows its reasoning; it never assigns anybody. And if a pairing is not working, saying so is a normal part of the programme rather than a complaint &mdash; rematching is expected, not exceptional.</p>
+</section>
+
+<footer class="foot">
+  <p><strong>Questions on any of this?</strong> uplift@techunited.co, or ask your Program Manager. The mechanics behind the scoring live in <a href="/uplift-matching-logic-one-pager.html">How We Match Founders &amp; Mentors</a>.</p>
+  <p class="fnote">Uplift Mentorship Program &middot; TechUnited:NJ &middot; Fall 2026. Figures on this page are from the cohort as approved in early September and move as founders and mentors are added.</p>
+</footer>
+
+</div>
+</body>
+</html>
