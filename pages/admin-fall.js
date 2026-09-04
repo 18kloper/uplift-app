@@ -2687,9 +2687,18 @@ export default function AdminFall() {
                       made with them in view. */}
                   <p style={{ margin: "0 0 8px", fontSize: 13, color: "#37324e", lineHeight: 1.6 }}>
                     <strong>Mentor load:</strong>{" "}
-                    {plan.summary.mentorsUsed} of {cohort?.pool.length ?? 0} mentor{(cohort?.pool.length ?? 0) === 1 ? "" : "s"} with room get a founder
-                    {(cohort?.alreadyPlaced ?? 0) > 0 && <span style={{ color: "#6b6480" }}> · {cohort.alreadyPlaced} already have one</span>}
-                    {plan.summary.mentorsIdle > 0 && <span style={{ color: "#b35c00", fontWeight: 700 }}> · {plan.summary.mentorsIdle} still get nobody</span>}
+                    {(() => {
+                      const withRoom = cohort?.pool.length ?? 0;
+                      const full = cohort?.alreadyPlaced ?? 0;
+                      const emptyIdle = plan.idle?.length ?? 0;
+                      return (
+                        <>
+                          {plan.summary.mentorsUsed} of {withRoom} mentor{withRoom === 1 ? "" : "s"} with room take a founder here
+                          {full > 0 && <span style={{ color: "#6b6480" }}> · {full} already full</span>}
+                          {emptyIdle > 0 && <span style={{ color: "#b35c00", fontWeight: 700 }}> · {emptyIdle} still have nobody at all</span>}
+                        </>
+                      );
+                    })()}
                     {plan.summary.doubled > 0 && <> · {plan.summary.doubled} take a second</>}
                     {plan.summary.tripled > 0 && <span style={{ color: "#b35c00" }}> · {plan.summary.tripled} take a third</span>}
                     {plan.summary.doubled === 0 && plan.summary.tripled === 0 && <> · nobody doubles up</>}
@@ -2701,7 +2710,7 @@ export default function AdminFall() {
                   {plan.idle?.length > 0 && (
                     <div style={{ marginBottom: 10, padding: "10px 14px", background: "#fff8ef", border: "1px solid #f2e2c8", borderRadius: 8 }}>
                       <p style={{ margin: "0 0 5px", fontSize: 12.5, fontWeight: 700, color: "#b9770e" }}>
-                        {plan.idle.length} mentor{plan.idle.length === 1 ? " has" : "s have"} room and no founder — nobody left is better than a weak fit for them
+                        {plan.idle.length} approved mentor{plan.idle.length === 1 ? " has" : "s have"} no founder at all — nobody left is better than a weak fit for them
                       </p>
                       {plan.idle.map(x => (
                         <p key={x.mentor.id} style={{ margin: "0 0 3px", fontSize: 12, color: "#37324e", lineHeight: 1.55 }}>
