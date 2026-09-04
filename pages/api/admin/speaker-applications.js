@@ -142,11 +142,26 @@ export default async function handler(req, res) {
 
     const [form, decisions] = await Promise.all([fetchForm(SPEAKER_FORM, token), readDecisions()]);
 
-    const speakers = form.items
-      .map(i => parseSpeaker(form.refs, i))
-      // Typeform records partial drop-offs too; a row with no name and no
-      // email is nobody worth deciding on.
+    const parsed = form.items.map(i => parseSpeaker(form.refs, i));
+    // Typeform records partial drop-offs too; a row with no name and no email
+    // is nobody worth deciding on. But dropping them silently is how seven
+    // real applications went unnoticed: between the form being created on
+    // Aug 28 and rebuilt on Sept 1, every submission came back with no answers
+    // at all, because deleting a Typeform field deletes the answers given to
+    // it. People sat in that form for up to 94 minutes and we have nothing.
+    // So the count of what was thrown away is reported rather than swallowed.
+    const speakers = parsed
       .filter(s => s.email || s.first || s.last)
+      .sort((a, b) => (b.submittedAt || "").localeCompare(a.submittedAt || ""));
+    const blank = form.items
+      .filter((i, n) => !(parsed[n].email || parsed[n].first || parsed[n].last))
+      .map(i => ({
+        submittedAt: i.submitted_at,
+        landedAt: i.landed_at,
+        minutesInForm: i.landed_at && i.submitted_at
+          ? Math.round((new Date(i.submitted_at) - new Date(i.landed_at)) / 60000)
+          : null,
+      }))
       .sort((a, b) => (b.submittedAt || "").localeCompare(a.submittedAt || ""));
 
     for (const s of speakers) {
@@ -185,6 +200,9 @@ export default async function handler(req, res) {
       sheetReadError: decisions.failed,
       counts: {
         total: speakers.length,
+        // What Typeform holds, against what could actually be read.
+        submissions: form.items.length,
+        blank: blank.length,
         undecided: speakers.filter(s => !s.decision).length,
         approved: speakers.filter(s => s.decision === "approved").length,
         pending: speakers.filter(s => s.decision === "pending").length,
@@ -194,6 +212,7 @@ export default async function handler(req, res) {
         slotsTotal: EDU_SESSIONS.length,
       },
       speakers,
+      blank,
       slots,
     };
     if (!decisions.failed) cache = { at: now, payload };

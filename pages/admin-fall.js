@@ -2027,7 +2027,7 @@ export default function AdminFall() {
                   {speakers?.counts && (
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 14 }}>
                       {[
-                        ["Applications", speakers.counts.total, "#5c4eb5"],
+                        ["Readable applications", speakers.counts.total, "#5c4eb5"],
                         ["Waiting on you", speakers.counts.undecided, speakers.counts.undecided ? "#c0392b" : "#1a6e42"],
                         ["Confirmed", `${speakers.counts.slotsFilled}/${speakers.counts.slotsTotal}`, "#1a6e42"],
                         ["Pending reply", speakers.counts.slotsPending ?? 0, "#b35c00"],
@@ -2038,6 +2038,31 @@ export default function AdminFall() {
                           <p style={{ margin: "2px 0 0", fontSize: 11, fontWeight: 600, color: "#6b6480" }}>{label}</p>
                         </div>
                       ))}
+                    </div>
+                  )}
+                  {/* Typeform holds more submissions than this page can read.
+                      That gap used to be silent, which is how seven speaker
+                      applications went unnoticed for a week. */}
+                  {speakers?.counts?.blank > 0 && (
+                    <div style={{ background: "#fff8ef", border: "1px solid #f2e2c8", borderRadius: 8, padding: "10px 14px", marginBottom: 14 }}>
+                      <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#b9770e" }}>
+                        Typeform has {speakers.counts.submissions} submissions but only {speakers.counts.total} carry any answers
+                      </p>
+                      <p style={{ margin: "0 0 5px", fontSize: 12.5, color: "#37324e", lineHeight: 1.6 }}>
+                        {speakers.counts.blank} came back completely empty. Deleting a field in Typeform deletes the answers
+                        given to it, so anything submitted before the form was last restructured is gone — and these are not
+                        drop-offs, several of them sat in the form for twenty minutes or more. Their answers are not
+                        recoverable here or from email; the only route back to those people is Typeform&apos;s own Results
+                        view, or re-opening the call.
+                      </p>
+                      <div style={{ fontSize: 11.5, color: "#6b6480" }}>
+                        {speakers.blank?.slice(0, 8).map(b => (
+                          <span key={b.submittedAt} style={{ marginRight: 12, whiteSpace: "nowrap" }}>
+                            {new Date(b.submittedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            {b.minutesInForm != null && ` · ${b.minutesInForm} min in the form`}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
                   {speakers?.formUrl && (
