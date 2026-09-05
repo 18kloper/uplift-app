@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Head from "next/head";
+import { searchesFor } from "../lib/mentor-verification";
 import { TEST_SLUGS } from "../lib/fall-roster";
 
 // Match scoring and the whole-cohort assignment both live in
@@ -57,6 +58,25 @@ function GateDots({ gate }) {
     </span>
   );
 }
+
+// What each flag means you should actually ask the person for. A band label
+// tells you a mentor needs attention; this tells you what the email says.
+const FLAG_ASKS = {
+  "both-narratives-blank": "Ask what they want to give a founder and what they want out of it. Both were left blank.",
+  "one-narrative-blank": "Ask for the open answer they skipped.",
+  "thin-why": "Ask them to say more about why they want to mentor. One line is not enough to match on.",
+  "generic-title": "Ask for their actual job title and current employer.",
+  "multi-org-company": "Ask which organization they actually work for, and in what capacity at the others.",
+  "bad-linkedin": "Ask for a LinkedIn URL that opens. The one on file does not resolve.",
+  "no-linkedin": "Ask for a LinkedIn profile or another way to verify their background.",
+  "outside-region": "Confirm they can meet a New Jersey founder, and in which timezone.",
+  "non-us-phone": "Confirm how a founder reaches them, and whether the session times work where they are.",
+  "no-location": "Ask where they are based.",
+  "no-time-pref": "Ask when they are actually free. No schedule was given.",
+  "pre-cutoff": "This application predates the cohort. Confirm they still want in and still have the availability they listed.",
+  "all-stages": "Ask which founder stage they are strongest with. They selected all of them.",
+  "email-name-mismatch": "Low priority. Confirm the email belongs to them.",
+};
 
 // Plain English for the screening flags, so the mentor pop-up reads like a
 // sentence instead of a log line.
@@ -122,6 +142,13 @@ export default function AdminFall() {
   const [grant, setGrant] = useState(null);
   const [grantLoading, setGrantLoading] = useState(false);
   const [grantCohort, setGrantCohort] = useState("all");
+  // The Comms tab: every participant and the emails they have actually been
+  // sent, read from the Email Log tab rather than inferred from milestones.
+  const [comms, setComms] = useState(null);
+  const [commsLoading, setCommsLoading] = useState(false);
+  const [commsPerson, setCommsPerson] = useState(null); // slug whose timeline is open
+  const [commsRole, setCommsRole] = useState("all");
+  const [commsSearch, setCommsSearch] = useState("");
   const [slotFocus, setSlotFocus] = useState(null); // session number the list is filtered to
   const [selectedMentee, setSelectedMentee] = useState(null);
   const [matchBusy, setMatchBusy] = useState(false);
@@ -311,6 +338,17 @@ export default function AdminFall() {
       .catch(() => setGrant({ error: "load failed" }))
       .finally(() => setGrantLoading(false));
   }, [authed, tab, grant, grantLoading]);
+
+  // The email log loads lazily when the Comms tab opens
+  useEffect(() => {
+    if (!authed || tab !== "comms" || comms || commsLoading) return;
+    setCommsLoading(true);
+    fetch("/api/admin/email-log")
+      .then(r => r.json())
+      .then(d => setComms(d))
+      .catch(() => setComms({ error: "load failed", people: [], types: [] }))
+      .finally(() => setCommsLoading(false));
+  }, [authed, tab, comms, commsLoading]);
 
   // Signals load lazily when the Signals tab opens
   useEffect(() => {
@@ -681,9 +719,13 @@ export default function AdminFall() {
                     return (
                       <div style={{ border: `1px solid ${c.band.fg}33`, background: c.band.bg, borderRadius: 10, padding: "12px 14px", marginBottom: 14 }}>
                         <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 6 }}>
-                          <span style={{ fontSize: 22, fontWeight: 900, color: c.band.fg, lineHeight: 1 }}>{c.score}</span>
-                          <span style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: c.band.fg }}>{c.standard.label}</span>
+                          <span style={{ fontSize: 26, fontWeight: 900, color: c.band.fg, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{c.score}</span>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: "#9b8fcf" }}>/100</span>
+                          <span style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: c.band.fg, marginLeft: 2 }}>{c.standard.label}</span>
                           {c.known && <span style={{ fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#5c4eb5", borderRadius: 4, padding: "2px 7px" }}>RETURNING MENTOR</span>}
+                        </div>
+                        <div style={{ height: 5, borderRadius: 3, background: "#ffffffcc", margin: "0 0 9px", overflow: "hidden", maxWidth: 240 }}>
+                          <div style={{ width: `${c.score}%`, height: "100%", background: c.band.fg, borderRadius: 3 }} />
                         </div>
                         <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{c.standard.action}</p>
                         <p style={{ margin: 0, fontSize: 12.5, color: "#55506e", lineHeight: 1.55 }}>{c.standard.detail}</p>
@@ -703,6 +745,33 @@ export default function AdminFall() {
                         )}
                         {c.known && (
                           <p style={{ margin: "8px 0 0", fontSize: 12, color: "#5c4eb5" }}>Mentored in the Summer 2026 cohort, which floors the score. A mentor we have already watched work with a founder is the most verified thing on this page.</p>
+                        )}
+                        {c.band.key !== "clear" && (
+                          <div style={{ marginTop: 10, borderTop: `1px solid ${c.band.fg}22`, paddingTop: 9 }}>
+                            <p style={{ margin: "0 0 5px", fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: c.band.fg }}>Do this next</p>
+                            <ol style={{ margin: "0 0 8px", paddingLeft: 18 }}>
+                              {c.band.key === "review" && (
+                                <li style={{ fontSize: 12.5, color: "#37324e", lineHeight: 1.55, marginBottom: 4 }}>
+                                  <b>Ask for a reference.</b> Someone credible who will vouch for them by name. Do not match on the application alone.
+                                </li>
+                              )}
+                              {c.flags.map(f => FLAG_ASKS[f.flag] && (
+                                <li key={f.flag} style={{ fontSize: 12.5, color: "#37324e", lineHeight: 1.55, marginBottom: 4 }}>{FLAG_ASKS[f.flag]}</li>
+                              )).filter(Boolean)}
+                            </ol>
+                            <p style={{ margin: "0 0 5px", fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: c.band.fg }}>Check these first (opens in a new tab)</p>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                              {searchesFor(profile.person).map(s => (
+                                <a key={s.label} href={s.url} target="_blank" rel="noreferrer"
+                                  style={{ fontSize: 11.5, fontWeight: 700, color: "#5c4eb5", background: "#fff", border: "1px solid #e8e4f5", borderRadius: 6, padding: "3px 9px", textDecoration: "none" }}>
+                                  {s.label} ↗
+                                </a>
+                              ))}
+                            </div>
+                            <p style={{ margin: "9px 0 0", fontSize: 11.5, color: "#6b6480", lineHeight: 1.5 }}>
+                              When it checks out, approve and match as normal. When it does not, reject and tell them why. Either way the score is a prompt to look, never the decision itself.
+                            </p>
+                          </div>
                         )}
                       </div>
                     );
@@ -791,7 +860,8 @@ export default function AdminFall() {
                 ["matched", `Matched${people ? ` (${people.matchedCount})` : ""}`],
                 ["cohorts", `Cohorts${cohortGroups ? ` (${cohortGroups.groups.length})` : ""}`],
                 ["signals", "Signals"],
-                ["pulse", "Pulse & Wins"]],
+                ["pulse", "Pulse & Wins"],
+                ["comms", "\u2709\ufe0f Comms"]],
               // Reporting out
               [["reporting", "\ud83d\udcca Reporting"], ["why", "\ud83e\udde0 How We Decided"]],
               // The calendar
@@ -1532,6 +1602,177 @@ export default function AdminFall() {
                   Once matched, pairs track here: portal gate progress and meeting counts cross-reference automatically for roster founders. A better-fit flag only appears when an approved mentor is carrying nobody at all, so acting on one never unmatches anybody else.
                 </p>
               </div>
+            );
+          })()}
+
+          {tab === "comms" && (() => {
+            if (commsLoading && !comms) return <div style={card}><p style={{ margin: 0, fontSize: 14, color: "#6b6480" }}>Reading the email log…</p></div>;
+            if (comms?.error) return <div style={{ ...card, borderLeft: "4px solid #e74c3c" }}><p style={{ margin: 0, fontSize: 14, color: "#c0392b", fontWeight: 600 }}>Email log failed to load: {comms.error}</p></div>;
+            if (!comms) return null;
+
+            const types = comms.types || [];
+            const sources = comms.sources || {};
+            const everyone = comms.people || [];
+
+            const shown = everyone.filter(p => {
+              if (commsRole !== "all" && p.role !== commsRole) return false;
+              if (commsSearch && !`${p.name} ${p.email} ${p.company}`.toLowerCase().includes(commsSearch.toLowerCase())) return false;
+              return true;
+            });
+
+            const open = commsPerson ? everyone.find(p => p.slug === commsPerson) : null;
+
+            // A type only applies to the people it can be sent to, so a
+            // founder-only column is blank for a mentor rather than empty. The
+            // difference matters: one means "not applicable", the other means
+            // "we owe them this email".
+            const applies = (type, person) => type.audience === "both" || type.audience === person.role;
+
+            const cell = (type, person) => {
+              if (!applies(type, person)) return { mark: "", title: `${type.label} does not go to ${person.role}s`, tone: "na" };
+              const hits = person.emails.filter(e => e.emailKey === type.key);
+              if (!hits.length) return { mark: "—", title: `No record of ${type.label}`, tone: "none" };
+              const soft = hits.every(h => sources[h.source] && sources[h.source].confident === false);
+              return {
+                mark: soft ? "~" : "✓",
+                tone: soft ? "soft" : "sent",
+                title: hits.map(h => `${type.label}${h.sentAt ? ` · ${String(h.sentAt).slice(0, 10)}` : ""} · ${sources[h.source]?.label || h.source}`).join("\n"),
+              };
+            };
+
+            const TONE = {
+              sent: { color: "#1a6e42", background: "#e8f8f0" },
+              soft: { color: "#a37c1f", background: "#fdf6e3" },
+              none: { color: "#c9c2e0", background: "transparent" },
+              na:   { color: "transparent", background: "#fbfaff" },
+            };
+
+            const counted = t => everyone.filter(p => applies(t, p) && p.emails.some(e => e.emailKey === t.key)).length;
+            const eligible = t => everyone.filter(p => applies(t, p)).length;
+
+            return (
+              <>
+                <div style={card}>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, flexWrap: "wrap", marginBottom: 4 }}>
+                    <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>Who has been sent what</h2>
+                    <span style={{ fontSize: 12, color: "#9b8fcf" }}>{comms.logRows || 0} logged sends across {everyone.length} people</span>
+                  </div>
+                  <p style={{ margin: "0 0 14px", fontSize: 13, color: "#6b6480", lineHeight: 1.6 }}>
+                    Read from the Email Log tab, which every sender writes to. A dash is
+                    the absence of a record, which is not the same as proof nothing was
+                    sent — anything written by hand outside the app only appears here once
+                    it has been reconstructed. A <strong style={{ color: "#a37c1f" }}>~</strong> is
+                    exactly that: reconstructed after the fact rather than logged at the moment of sending.
+                  </p>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                    {[["all", "Everyone"], ["founder", "Founders"], ["mentor", "Mentors"]].map(([id, label]) => (
+                      <button key={id} onClick={() => setCommsRole(id)} style={{
+                        border: commsRole === id ? "1.5px solid #5c4eb5" : "1px solid #e8e4f5", borderRadius: 8,
+                        padding: "6px 12px", background: commsRole === id ? "#f4f2fb" : "#fff",
+                        color: commsRole === id ? "#3d2f8a" : "#6b6480", fontSize: 12.5, fontWeight: 700,
+                        cursor: "pointer", fontFamily: "inherit",
+                      }}>{label}</button>
+                    ))}
+                    <input
+                      value={commsSearch} onChange={e => setCommsSearch(e.target.value)}
+                      placeholder="Search name, company or address"
+                      style={{ flex: "1 1 220px", padding: "7px 12px", borderRadius: 8, border: "1px solid #e8e4f5", fontSize: 13, fontFamily: "inherit", outline: "none" }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ ...card, padding: 0, overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: "left", padding: "12px 16px", position: "sticky", left: 0, background: "#fff", fontSize: 11.5, textTransform: "uppercase", color: "#9b8fcf", letterSpacing: "0.04em" }}>Person</th>
+                        {types.map(t => (
+                          <th key={t.key} title={t.blurb} style={{ padding: "12px 10px", fontSize: 11.5, color: "#6b6480", fontWeight: 700, minWidth: 92, lineHeight: 1.35 }}>
+                            {t.label}
+                            <span style={{ display: "block", fontWeight: 600, color: "#c0b8e0", fontSize: 10.5 }}>{counted(t)}/{eligible(t)}</span>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {shown.map((p, i) => (
+                        <tr key={`${p.role}-${p.slug}`} onClick={() => setCommsPerson(p.slug === commsPerson ? null : p.slug)}
+                          style={{ borderTop: "1px solid #f0edf9", background: i % 2 ? "#fafafa" : "#fff", cursor: "pointer" }}>
+                          <td style={{ padding: "9px 16px", position: "sticky", left: 0, background: "inherit" }}>
+                            <span style={{ fontWeight: 700 }}>{p.name}</span>
+                            <span style={{ fontSize: 11, color: "#9b8fcf", marginLeft: 8 }}>{p.role}</span>
+                            <span style={{ display: "block", fontSize: 11.5, color: "#9b8fcf" }}>{p.email || "no address on file"}</span>
+                          </td>
+                          {types.map(t => {
+                            const c = cell(t, p);
+                            return (
+                              <td key={t.key} title={c.title} style={{ textAlign: "center", padding: "9px 10px", background: TONE[c.tone].background }}>
+                                <span style={{ color: TONE[c.tone].color, fontWeight: 800, fontSize: 14 }}>{c.mark}</span>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                      {shown.length === 0 && (
+                        <tr><td colSpan={types.length + 1} style={{ padding: "20px 16px", fontSize: 13, color: "#9b8fcf" }}>Nobody matches that filter.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {open && (
+                  <div style={card}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 10 }}>
+                      <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800 }}>{open.name}</h3>
+                      <button onClick={() => setCommsPerson(null)} style={{ border: "none", background: "none", color: "#9b8fcf", fontSize: 18, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>×</button>
+                    </div>
+                    <p style={{ margin: "0 0 14px", fontSize: 12.5, color: "#6b6480" }}>{open.email || "no address on file"}{open.upliftId ? ` · Uplift ID ${open.upliftId}` : ""}</p>
+                    {open.emails.length === 0 ? (
+                      <p style={{ margin: 0, fontSize: 13.5, color: "#9b8fcf" }}>Nothing logged for this person yet.</p>
+                    ) : (
+                      <div style={{ border: "1px solid #e8e4f5", borderRadius: 10, overflow: "hidden" }}>
+                        {open.emails.map((e, i) => {
+                          const t = types.find(x => x.key === e.emailKey);
+                          const src = sources[e.source] || {};
+                          return (
+                            <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14, padding: "11px 14px", borderTop: i > 0 ? "1px solid #f0edf9" : "none" }}>
+                              <div style={{ minWidth: 0 }}>
+                                <p style={{ margin: 0, fontSize: 13.5, fontWeight: 700 }}>{t?.label || e.emailKey}</p>
+                                <p style={{ margin: "2px 0 0", fontSize: 12, color: "#6b6480" }}>{e.subject || "(no subject recorded)"}</p>
+                                <p style={{ margin: "2px 0 0", fontSize: 11.5, color: src.confident === false ? "#a37c1f" : "#9b8fcf" }}>
+                                  {e.sentAt ? String(e.sentAt).slice(0, 10) : "date not recorded"} · {e.channel} · {src.label || e.source}{e.note ? ` · ${e.note}` : ""}
+                                </p>
+                              </div>
+                              {t?.render ? (
+                                <a href={`/api/admin/email-render?key=${encodeURIComponent(e.emailKey)}&slug=${encodeURIComponent(open.slug)}`} target="_blank" rel="noopener noreferrer"
+                                  style={{ flexShrink: 0, border: "1px solid #e8e4f5", borderRadius: 8, padding: "6px 12px", color: "#3d2f8a", fontSize: 12.5, fontWeight: 700, textDecoration: "none", fontFamily: "inherit" }}>
+                                  Read it
+                                </a>
+                              ) : (
+                                <span title="Written by hand, so there is no template to rebuild it from" style={{ flexShrink: 0, fontSize: 11.5, color: "#c0b8e0" }}>no template</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {(comms.orphans || []).length > 0 && (
+                  <div style={{ ...card, borderLeft: "4px solid #e67e22" }}>
+                    <p style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 700 }}>{comms.orphans.length} logged {comms.orphans.length === 1 ? "send" : "sends"} match nobody in the roster</p>
+                    <p style={{ margin: "0 0 10px", fontSize: 12.5, color: "#6b6480", lineHeight: 1.6 }}>
+                      Usually a withdrawn participant or an address that has since changed. They are shown rather than dropped, because the email still went out.
+                    </p>
+                    {comms.orphans.slice(0, 12).map((e, i) => (
+                      <p key={i} style={{ margin: "0 0 3px", fontSize: 12.5, color: "#55506e" }}>
+                        {e.name || e.slug || "(unnamed)"} &lt;{e.email || "no address"}&gt; · {e.emailKey}{e.sentAt ? ` · ${String(e.sentAt).slice(0, 10)}` : ""}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </>
             );
           })()}
 
@@ -2677,20 +2918,30 @@ export default function AdminFall() {
                           {(() => {
                             const c = m.credibility;
                             if (!c) return <span style={{ fontSize: 12, color: "#9b8fcf" }}>—</span>;
+                            // A filled pill is the vocabulary this table already
+                            // uses for status — APPROVED, REJECTED, the Uplift
+                            // ID — so wearing one made the score read as another
+                            // label rather than as a measurement. It is a number
+                            // out of 100 now, with the scale drawn under it.
                             return (
-                              <>
-                                <span title={c.why.length ? c.why.join("\n") : "Nothing on the form to question."}
-                                  style={{ fontSize: 11, fontWeight: 800, background: c.band.bg, color: c.band.fg, borderRadius: 4, padding: "2px 8px", cursor: c.why.length ? "help" : "default" }}>
-                                  {c.score} · {c.band.label.toUpperCase()}
-                                </span>
-                                {c.known && <span title="Served in the Summer 2026 cohort" style={{ marginLeft: 5, fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#5c4eb5", borderRadius: 4, padding: "1px 6px" }}>RETURNING</span>}
-                                {c.standard && c.band.key !== "clear" && (
-                                  <div style={{ fontSize: 10.5, color: c.band.fg, fontWeight: 700, marginTop: 3, maxWidth: 190, whiteSpace: "normal" }}>{c.standard.action}</div>
+                              <div title={c.why.length ? c.why.join("\n") : "Nothing on the form to question."}
+                                style={{ minWidth: 150, cursor: c.why.length ? "help" : "default" }}>
+                                <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                                  <span style={{ fontSize: 19, fontWeight: 800, color: c.band.fg, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{c.score}</span>
+                                  <span style={{ fontSize: 11, color: "#b0a8cc", fontWeight: 600 }}>/100</span>
+                                  <span style={{ fontSize: 11, fontWeight: 700, color: c.band.fg, marginLeft: 2 }}>{c.standard.label}</span>
+                                  {c.known && <span title="Served in the Summer 2026 cohort" style={{ marginLeft: 2, fontSize: 9.5, fontWeight: 800, background: "#f0eef8", color: "#5c4eb5", borderRadius: 4, padding: "1px 5px" }}>RETURNING</span>}
+                                </div>
+                                <div style={{ height: 4, borderRadius: 3, background: "#efecf8", margin: "5px 0 6px", overflow: "hidden", maxWidth: 130 }}>
+                                  <div style={{ width: `${c.score}%`, height: "100%", background: c.band.fg, borderRadius: 3 }} />
+                                </div>
+                                {c.band.key !== "clear" && (
+                                  <div style={{ fontSize: 10.5, color: c.band.fg, fontWeight: 700, maxWidth: 190, whiteSpace: "normal", lineHeight: 1.4 }}>{c.standard.action}</div>
                                 )}
                                 {c.why.length > 0 && (
-                                  <div style={{ fontSize: 10.5, color: "#9b8fcf", marginTop: 2, maxWidth: 190, whiteSpace: "normal" }}>{c.why.join(" · ")}</div>
+                                  <div style={{ fontSize: 10.5, color: "#9b8fcf", marginTop: 2, maxWidth: 190, whiteSpace: "normal", lineHeight: 1.4 }}>{c.why.join(" · ")}</div>
                                 )}
-                              </>
+                              </div>
                             );
                           })()}
                         </td>
