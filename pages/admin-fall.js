@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Head from "next/head";
-import { searchesFor } from "../lib/mentor-verification";
+import { searchesFor, MENTOR_FLAG_WEIGHTS, POINTS_PER_WEIGHT, RETURNING_FLOOR, STANDARD } from "../lib/mentor-verification";
 import { TEST_SLUGS } from "../lib/fall-roster";
 
 // Match scoring and the whole-cohort assignment both live in
@@ -95,6 +95,64 @@ const FLAG_LABELS = {
   "all-stages": "Selected every founder stage",
   "email-name-mismatch": "Email does not match their name",
 };
+
+// Hover explainer for the Credibility column. The deduction list is generated
+// from MENTOR_FLAG_WEIGHTS rather than written out, so it can never describe a
+// score the code no longer produces.
+function CredibilityInfo() {
+  const [open, setOpen] = useState(false);
+  const byCost = {};
+  for (const [flag, w] of Object.entries(MENTOR_FLAG_WEIGHTS)) {
+    (byCost[w * POINTS_PER_WEIGHT] ||= []).push(FLAG_LABELS[flag] || flag);
+  }
+  const costs = Object.keys(byCost).map(Number).sort((a, b) => b - a);
+  return (
+    <span style={{ position: "relative", display: "inline-block" }}
+      onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+      <span style={{ marginLeft: 5, display: "inline-flex", alignItems: "center", justifyContent: "center",
+        width: 13, height: 13, borderRadius: "50%", border: "1px solid #c8bfef", color: "#9b8fcf",
+        fontSize: 9, fontWeight: 800, cursor: "help", verticalAlign: "middle" }}>?</span>
+      {open && (
+        <div style={{ position: "absolute", top: 20, left: -8, zIndex: 200, width: 340, background: "#fff",
+          border: "1px solid #e8e4f5", borderRadius: 10, boxShadow: "0 12px 32px rgba(16,9,45,0.18)",
+          padding: "13px 15px", textTransform: "none", letterSpacing: "normal", color: "#37324e",
+          fontSize: 12, lineHeight: 1.55, fontWeight: 400 }}>
+          <p style={{ margin: "0 0 7px", fontSize: 12.5, fontWeight: 800, color: "#1a1733" }}>How the score is decided</p>
+          <p style={{ margin: "0 0 8px" }}>
+            Every application starts at <b>100</b>. Points come off for each thing on the form that cannot be
+            verified or does not hold up. Nothing is added, so a complete application that checks out stays at 100.
+          </p>
+          {costs.map(cost => (
+            <div key={cost} style={{ display: "flex", gap: 8, marginBottom: 5 }}>
+              <span style={{ minWidth: 30, fontWeight: 800, color: "#c0392b", fontVariantNumeric: "tabular-nums" }}>&minus;{cost}</span>
+              <span style={{ color: "#55506e" }}>{byCost[cost].join(", ")}</span>
+            </div>
+          ))}
+          <p style={{ margin: "9px 0 8px", paddingTop: 8, borderTop: "1px solid #f0edf9" }}>
+            Mentoring a past Uplift cohort floors the score at <b>{RETURNING_FLOOR}</b>, so a returning mentor never
+            lands in Review. Someone we have watched work with a founder is the most verified thing on this page,
+            and their short re-application leaving company and title blank is the form working correctly.
+          </p>
+          <div style={{ borderTop: "1px solid #f0edf9", paddingTop: 8 }}>
+            {STANDARD.map((s, i) => (
+              <div key={s.key} style={{ display: "flex", gap: 8, marginBottom: 3 }}>
+                <span style={{ minWidth: 82, fontWeight: 800, color: s.key === "clear" ? "#1a6e42" : s.key === "check" ? "#b35c00" : "#c0392b" }}>
+                  {/* Ranges, not floors: "Check 60+" reads as overlapping Clear. */}
+                  {s.label} {i === 0 ? `${s.min}+` : `${s.min}\u2013${STANDARD[i - 1].min - 1}`}
+                </span>
+                <span style={{ color: "#55506e" }}>{s.action}</span>
+              </div>
+            ))}
+          </div>
+          <p style={{ margin: "9px 0 0", paddingTop: 8, borderTop: "1px solid #f0edf9", color: "#6b6480", fontStyle: "italic" }}>
+            It scores the claims on the application, never the person. Someone who claims little is treated
+            neutrally rather than badly, and the score is a prompt to look, never the decision itself.
+          </p>
+        </div>
+      )}
+    </span>
+  );
+}
 
 function PasswordGate({ onAuthenticated }) {
   const [input, setInput] = useState("");
@@ -1620,13 +1678,15 @@ export default function AdminFall() {
               return true;
             });
 
-            const open = commsPerson ? everyone.find(p => p.slug === commsPerson) : null;
+            const pid = p => `${p.role}::${p.slug}`;
+            const open = commsPerson ? everyone.find(p => pid(p) === commsPerson) : null;
 
             // A type only applies to the people it can be sent to, so a
             // founder-only column is blank for a mentor rather than empty. The
             // difference matters: one means "not applicable", the other means
             // "we owe them this email".
-            const applies = (type, person) => type.audience === "both" || type.audience === person.role;
+            const applies = (type, person) =>
+              person.role === "other" || type.audience === "both" || type.audience === person.role;
 
             const cell = (type, person) => {
               if (!applies(type, person)) return { mark: "", title: `${type.label} does not go to ${person.role}s`, tone: "na" };
@@ -1647,8 +1707,12 @@ export default function AdminFall() {
               na:   { color: "transparent", background: "#fbfaff" },
             };
 
-            const counted = t => everyone.filter(p => applies(t, p) && p.emails.some(e => e.emailKey === t.key)).length;
-            const eligible = t => everyone.filter(p => applies(t, p)).length;
+            // The x/y under each column is about the cohort we are running,
+            // so it counts founders and mentors only. Past cohorts and event
+            // guests still get rows, but they are not a denominator.
+            const roster = everyone.filter(p => p.role !== "other");
+            const counted = t => roster.filter(p => applies(t, p) && p.emails.some(e => e.emailKey === t.key)).length;
+            const eligible = t => roster.filter(p => applies(t, p)).length;
 
             return (
               <>
@@ -1665,7 +1729,7 @@ export default function AdminFall() {
                     exactly that: reconstructed after the fact rather than logged at the moment of sending.
                   </p>
                   <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-                    {[["all", "Everyone"], ["founder", "Founders"], ["mentor", "Mentors"]].map(([id, label]) => (
+                    {[["all", "Everyone"], ["founder", "Founders"], ["mentor", "Mentors"], ["other", "Past & guests"]].map(([id, label]) => (
                       <button key={id} onClick={() => setCommsRole(id)} style={{
                         border: commsRole === id ? "1.5px solid #5c4eb5" : "1px solid #e8e4f5", borderRadius: 8,
                         padding: "6px 12px", background: commsRole === id ? "#f4f2fb" : "#fff",
@@ -1696,7 +1760,7 @@ export default function AdminFall() {
                     </thead>
                     <tbody>
                       {shown.map((p, i) => (
-                        <tr key={`${p.role}-${p.slug}`} onClick={() => setCommsPerson(p.slug === commsPerson ? null : p.slug)}
+                        <tr key={pid(p)} onClick={() => setCommsPerson(pid(p) === commsPerson ? null : pid(p))}
                           style={{ borderTop: "1px solid #f0edf9", background: i % 2 ? "#fafafa" : "#fff", cursor: "pointer" }}>
                           <td style={{ padding: "9px 16px", position: "sticky", left: 0, background: "inherit" }}>
                             <span style={{ fontWeight: 700 }}>{p.name}</span>
@@ -1759,19 +1823,6 @@ export default function AdminFall() {
                   </div>
                 )}
 
-                {(comms.orphans || []).length > 0 && (
-                  <div style={{ ...card, borderLeft: "4px solid #e67e22" }}>
-                    <p style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 700 }}>{comms.orphans.length} logged {comms.orphans.length === 1 ? "send" : "sends"} match nobody in the roster</p>
-                    <p style={{ margin: "0 0 10px", fontSize: 12.5, color: "#6b6480", lineHeight: 1.6 }}>
-                      Usually a withdrawn participant or an address that has since changed. They are shown rather than dropped, because the email still went out.
-                    </p>
-                    {comms.orphans.slice(0, 12).map((e, i) => (
-                      <p key={i} style={{ margin: "0 0 3px", fontSize: 12.5, color: "#55506e" }}>
-                        {e.name || e.slug || "(unnamed)"} &lt;{e.email || "no address"}&gt; · {e.emailKey}{e.sentAt ? ` · ${String(e.sentAt).slice(0, 10)}` : ""}
-                      </p>
-                    ))}
-                  </div>
-                )}
               </>
             );
           })()}
@@ -2887,7 +2938,9 @@ export default function AdminFall() {
                   <thead>
                     <tr style={{ textAlign: "left", color: "#9b8fcf", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em" }}>
                       {["Mentor", "Decision", "Credibility", "Company · Title", "Focus Areas", "Availability", "Based", "Submitted"].map(h => (
-                        <th key={h} style={{ padding: "8px 10px", borderBottom: "1px solid #e8e4f5", whiteSpace: "nowrap" }}>{h}</th>
+                        <th key={h} style={{ padding: "8px 10px", borderBottom: "1px solid #e8e4f5", whiteSpace: "nowrap", overflow: "visible" }}>
+                          {h}{h === "Credibility" && <CredibilityInfo />}
+                        </th>
                       ))}
                     </tr>
                   </thead>
