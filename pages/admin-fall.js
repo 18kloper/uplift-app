@@ -58,6 +58,24 @@ function GateDots({ gate }) {
   );
 }
 
+// Plain English for the screening flags, so the mentor pop-up reads like a
+// sentence instead of a log line.
+const FLAG_LABELS = {
+  "outside-region": "Outside the tri-state area",
+  "non-us-phone": "Non-US phone number",
+  "pre-cutoff": "Applied before the cohort opened",
+  "no-location": "No location given",
+  "both-narratives-blank": "Both open answers blank",
+  "one-narrative-blank": "One open answer blank",
+  "generic-title": "Job title is a role claim",
+  "multi-org-company": "Several organizations in one field",
+  "bad-linkedin": "LinkedIn URL does not resolve",
+  "thin-why": "Very short reason for mentoring",
+  "no-time-pref": "No schedule given",
+  "all-stages": "Selected every founder stage",
+  "email-name-mismatch": "Email does not match their name",
+};
+
 function PasswordGate({ onAuthenticated }) {
   const [input, setInput] = useState("");
   const [error, setError] = useState(false);
@@ -655,6 +673,40 @@ export default function AdminFall() {
                 </>
               ) : (
                 <>
+                  {/* Credibility, expanded. The table row gives the number; this
+                      is where you find out what it is made of and what it
+                      obliges you to do before matching them. */}
+                  {profile.person.credibility && (() => {
+                    const c = profile.person.credibility;
+                    return (
+                      <div style={{ border: `1px solid ${c.band.fg}33`, background: c.band.bg, borderRadius: 10, padding: "12px 14px", marginBottom: 14 }}>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 6 }}>
+                          <span style={{ fontSize: 22, fontWeight: 900, color: c.band.fg, lineHeight: 1 }}>{c.score}</span>
+                          <span style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: c.band.fg }}>{c.standard.label}</span>
+                          {c.known && <span style={{ fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#5c4eb5", borderRadius: 4, padding: "2px 7px" }}>RETURNING MENTOR</span>}
+                        </div>
+                        <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 700, color: "#1a1733" }}>{c.standard.action}</p>
+                        <p style={{ margin: 0, fontSize: 12.5, color: "#55506e", lineHeight: 1.55 }}>{c.standard.detail}</p>
+                        {c.flags.length > 0 && (
+                          <div style={{ marginTop: 10, borderTop: `1px solid ${c.band.fg}22`, paddingTop: 8 }}>
+                            <p style={{ margin: "0 0 5px", fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: c.band.fg }}>What pulled the score down</p>
+                            {c.flags.map(f => (
+                              <div key={f.flag} style={{ display: "flex", gap: 8, alignItems: "baseline", padding: "2px 0" }}>
+                                <span style={{ fontSize: 12, fontWeight: 700, color: "#1a1733", minWidth: 148 }}>{FLAG_LABELS[f.flag] || f.flag}</span>
+                                {f.detail && <span style={{ fontSize: 12, color: "#6b6480", wordBreak: "break-word" }}>{f.detail}</span>}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {c.flags.length === 0 && (
+                          <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "#55506e" }}>Nothing on the application to question.</p>
+                        )}
+                        {c.known && (
+                          <p style={{ margin: "8px 0 0", fontSize: 12, color: "#5c4eb5" }}>Mentored in the Summer 2026 cohort, which floors the score. A mentor we have already watched work with a founder is the most verified thing on this page.</p>
+                        )}
+                      </div>
+                    );
+                  })()}
                   <div style={{ border: "1px solid #e8e4f5", borderRadius: 10, overflow: "hidden", marginBottom: 14 }}>
                     {[["Focus areas", (profile.person.focusAreas || []).join(", ")], ["Sessions offered", profile.person.tier],
                       ["Stage preference", (profile.person.stagePref || []).join(", ")], ["Schedule", (profile.person.timePref || []).join(", ")],
@@ -693,6 +745,12 @@ export default function AdminFall() {
                   everyone already opens. Same admin session, no second login. */}
               <a href="/fallsop" style={{ border: "1px solid rgba(255,255,255,0.28)", borderRadius: 8, padding: "7px 14px", color: "#fff", fontSize: 13, fontWeight: 700, textDecoration: "none", fontFamily: "inherit", whiteSpace: "nowrap" }}>
                 SOP
+              </a>
+              {/* The launch guide is the week-by-week version of the same
+                  question the SOP answers, so it sits next to it. It lives on
+                  claude.ai rather than in this app, hence the new tab. */}
+              <a href="https://claude.ai/code/artifact/973dba46-e23e-4c0e-9c78-7a7c8225dc6c" target="_blank" rel="noopener noreferrer" title="Cohort Launch Guide: the week-by-week ops plan, email templates, grant exhibits, and what's improved vs. Summer." style={{ border: "1px solid rgba(255,255,255,0.28)", borderRadius: 8, padding: "7px 14px", color: "#fff", fontSize: 13, fontWeight: 700, textDecoration: "none", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                Launch Guide
               </a>
               <a href="/fallfounderlookbook" target="_blank" rel="noopener noreferrer" style={{ border: "1px solid rgba(255,255,255,0.28)", borderRadius: 8, padding: "7px 14px", color: "#fff", fontSize: 13, fontWeight: 700, textDecoration: "none", fontFamily: "inherit", whiteSpace: "nowrap" }}>
                 Lookbook
@@ -2587,7 +2645,7 @@ export default function AdminFall() {
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                   <thead>
                     <tr style={{ textAlign: "left", color: "#9b8fcf", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      {["Mentor", "Decision", "Company · Title", "Focus Areas", "Availability", "Based", "Submitted"].map(h => (
+                      {["Mentor", "Decision", "Credibility", "Company · Title", "Focus Areas", "Availability", "Based", "Submitted"].map(h => (
                         <th key={h} style={{ padding: "8px 10px", borderBottom: "1px solid #e8e4f5", whiteSpace: "nowrap" }}>{h}</th>
                       ))}
                     </tr>
@@ -2614,6 +2672,27 @@ export default function AdminFall() {
                           ) : (
                             <button disabled={matchBusy} onClick={() => doDecide("mentor", m, "clear")} style={{ border: "1px solid #e8e4f5", borderRadius: 6, padding: "3px 8px", background: "#fff", color: "#9b8fcf", fontSize: 10.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>undo</button>
                           )}
+                        </td>
+                        <td style={{ padding: "10px", whiteSpace: "nowrap" }}>
+                          {(() => {
+                            const c = m.credibility;
+                            if (!c) return <span style={{ fontSize: 12, color: "#9b8fcf" }}>—</span>;
+                            return (
+                              <>
+                                <span title={c.why.length ? c.why.join("\n") : "Nothing on the form to question."}
+                                  style={{ fontSize: 11, fontWeight: 800, background: c.band.bg, color: c.band.fg, borderRadius: 4, padding: "2px 8px", cursor: c.why.length ? "help" : "default" }}>
+                                  {c.score} · {c.band.label.toUpperCase()}
+                                </span>
+                                {c.known && <span title="Served in the Summer 2026 cohort" style={{ marginLeft: 5, fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#5c4eb5", borderRadius: 4, padding: "1px 6px" }}>RETURNING</span>}
+                                {c.standard && c.band.key !== "clear" && (
+                                  <div style={{ fontSize: 10.5, color: c.band.fg, fontWeight: 700, marginTop: 3, maxWidth: 190, whiteSpace: "normal" }}>{c.standard.action}</div>
+                                )}
+                                {c.why.length > 0 && (
+                                  <div style={{ fontSize: 10.5, color: "#9b8fcf", marginTop: 2, maxWidth: 190, whiteSpace: "normal" }}>{c.why.join(" · ")}</div>
+                                )}
+                              </>
+                            );
+                          })()}
                         </td>
                         <td style={{ padding: "10px", fontSize: 12, maxWidth: 200 }}>{[m.company, m.title].filter(Boolean).join(" · ") || "—"}</td>
                         <td style={{ padding: "10px", fontSize: 12 }}>{(Array.isArray(m.focusAreas) ? m.focusAreas : []).join(", ") || "—"}</td>

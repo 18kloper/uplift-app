@@ -1452,6 +1452,7 @@ export default function MentorPreview() {
             { icon: "🗓️", label: "Uplift Program Schedule",          href: "/resources/program-schedule",   desc: "Key dates, milestones, and events" },
             { icon: "💡", label: "How to Give Feedback to Founders",  href: "/resources/feedback-guide",     desc: "Practical tips for high-impact mentor feedback" },
             { icon: "🌐", label: "NJ Startup Ecosystem Overview",     href: "/resources/nj-ecosystem",       desc: "Key players, resources, and networks in NJ" },
+            { icon: "🔎", label: "How We Verify Mentors",              href: "/resources/mentor-credibility", desc: "What we check before a match, and the three outcomes" },
             { icon: "📜", label: "Sign-Off Report",                   href: "#eop",                          desc: "🔒 Unlocks Week 8 · required for mentee program completion", locked: true },
           ].map(({ icon, label, href, desc, locked }) => (
             <a key={label} href={href} target={locked ? undefined : "_blank"} rel="noreferrer"

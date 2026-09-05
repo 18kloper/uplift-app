@@ -92,6 +92,7 @@ const SURFACES = [
       ["/resources/feedback-guide", "Giving feedback.", true],
       ["/resources/program-schedule", "The schedule.", true],
       ["/resources/nj-ecosystem", "NJ ecosystem map.", true],
+      ["/resources/mentor-credibility", "How we verify mentors.", true],
     ],
   },
 ];
