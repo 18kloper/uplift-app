@@ -2065,11 +2065,15 @@ export default function AdminFall() {
               // the "Matched with a Mentor" milestone records; until then M1
               // has no due date to be late against.
               const told = !!f.milestones?.mentorMatched;
+              // Run the clock from the day they were told. Founders told
+              // before that date was being recorded fall back to the match
+              // row, which is the old behaviour and the best we have for them.
+              const toldAt = f.mentorMatchedAt ? new Date(f.mentorMatchedAt) : matchedAt;
               const log = f.meetingLog || [];
-              const m1Due = told && matchedAt ? new Date(matchedAt.getTime() + 7 * DAY) : null;
+              const m1Due = told && toldAt ? new Date(toldAt.getTime() + 7 * DAY) : null;
               const m2Due = log[0] ? new Date(new Date(log[0].submittedAt).getTime() + 10 * DAY) : null;
               return {
-                f, matchedAt, app, told,
+                f, matchedAt, app, told, toldAt,
                 room: roomOf[(f.name || "").trim().toLowerCase()] || null,
                 m1: told
                   ? { due: m1Due, ...clock(m1Due, f.meetingCount >= 1) }
@@ -2094,7 +2098,7 @@ export default function AdminFall() {
                       </tr>
                     </thead>
                     <tbody>
-                      {rows.map(({ f, matchedAt, app, told, room, m1, m2, m3 }) => (
+                      {rows.map(({ f, matchedAt, app, told, toldAt, room, m1, m2, m3 }) => (
                         <tr key={f.slug} style={{ borderBottom: "1px solid #f0edf9" }}>
                           <td style={{ padding: "10px" }}>
                             {/* Click the name for their bio and both sides'
@@ -2113,7 +2117,7 @@ export default function AdminFall() {
                               ? <>
                                   {f.mentor}
                                   <div style={{ fontSize: 11, color: told ? "#9b8fcf" : "#b35c00", fontWeight: told ? 400 : 600 }}>
-                                    {told ? `told ${fmt(matchedAt)}` : "not told yet"}
+                                    {told ? `told ${fmt(toldAt)}` : "not told yet"}
                                   </div>
                                 </>
                               : <span style={{ color: "#c0392b", fontWeight: 600 }}>not matched</span>}

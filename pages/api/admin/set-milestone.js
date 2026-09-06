@@ -3,6 +3,48 @@
 // Sets a single milestone cell to TRUE/FALSE on the Milestone Dashboard tab.
 
 import { getSheetsClient, MILESTONE_KEYS, MILESTONE_LABELS } from "../../../lib/sheets-helper";
+import { FALL_RESPONSES_TAB } from "../../../lib/fall-roster";
+
+// The Dashboard milestones are bare TRUE/FALSE with nowhere to put a date, and
+// for most of them that is fine. "Matched with a Mentor" is the exception: the
+// seven-day Meeting 1 clock is measured from it, so without a date the clock
+// falls back to the FallMatches row, which records when we matched somebody
+// internally rather than when we told them. Those were days apart for the fall
+// cohort and the difference showed up as founders being marked overdue for a
+// meeting with a mentor they had never heard of.
+//
+// So the moment the milestone goes true, the timestamp is written as an
+// ordinary FallResponses row. That tab already carries an updatedAt per
+// fieldKey and fall-overview already reads it, so this needs no new tab, no
+// schema change, and nothing else has to know about it.
+const MATCH_TOLD_FIELD = "mentor_matched_at";
+
+async function stampToldDate(sheets, spreadsheetId, slug) {
+  const now = new Date().toISOString();
+  try {
+    const existing = await sheets.spreadsheets.values.get({
+      spreadsheetId, range: `${FALL_RESPONSES_TAB}!A:F`,
+    }).catch(() => ({ data: { values: [] } }));
+    const rows = existing.data.values || [];
+    const at = rows.findIndex((r, i) => i > 0 && r[0] === slug && r[2] === MATCH_TOLD_FIELD);
+    // First time wins. Re-flipping the milestone must not restart somebody's
+    // clock, or an accidental toggle would hand them another seven days.
+    if (at > -1) return rows[at][5] || now;
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: `${FALL_RESPONSES_TAB}!A:F`,
+      valueInputOption: "USER_ENTERED",
+      insertDataOption: "INSERT_ROWS",
+      requestBody: { values: [[slug, "2", MATCH_TOLD_FIELD, "Told who their mentor is", now, now]] },
+    });
+    return now;
+  } catch (err) {
+    // A failed stamp must not fail the milestone write. The clock falls back
+    // to the match date, which is the behaviour we already had.
+    console.error("[set-milestone] could not stamp told-date:", err.message);
+    return null;
+  }
+}
 
 function colLetter(idx) {
   let s = "", n = idx;
@@ -46,7 +88,12 @@ export default async function handler(req, res) {
       requestBody: { values: [[value === false ? "FALSE" : "TRUE"]] },
     });
 
-    return res.status(200).json({ ok: true, slug, milestone, range, value: value === false ? false : true });
+    const on = value !== false;
+    const toldAt = on && milestone === "mentorMatched"
+      ? await stampToldDate(sheets, sheetId, slug)
+      : null;
+
+    return res.status(200).json({ ok: true, slug, milestone, range, value: on, toldAt });
   } catch (err) {
     console.error("set-milestone error:", err.message);
     return res.status(500).json({ error: err.message });

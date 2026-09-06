@@ -233,6 +233,10 @@ function computeFounder(m, sheetRec, meetings, activity, now, firstLogin) {
   const participationStatus = accepted ? "accepted" : declined ? "declined" : "waiting";
   const participationSource = !accepted ? null : answeredYes ? "confirmed" : "inferred-week1";
   const participationAt = get("participation")?.updatedAt || sheetRec?.participationAt || null;
+  // When the founder was told who their mentor is, which is what the Meeting 1
+  // clock runs from. Absent for anyone matched before this was recorded, and
+  // the client falls back to the match date in that case.
+  const mentorMatchedAt = get("mentor_matched_at")?.updatedAt || null;
   if (accepted) milestones.participation = true;
 
   const quizPassed = !!get("quiz_passed");
@@ -320,6 +324,7 @@ function computeFounder(m, sheetRec, meetings, activity, now, firstLogin) {
     participationStatus,
     participationSource,
     participationAt,
+    mentorMatchedAt,
     firstLoginApprox: !!firstLogin?.approx,
     milestones,
     notes: sheetRec?.notes || "",
