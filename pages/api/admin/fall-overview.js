@@ -275,10 +275,22 @@ function computeFounder(m, sheetRec, meetings, activity, now, firstLogin) {
     else if (now >= D.onboardingDue && !milestones.onboarding) attention("Onboarding session not attended");
     if (now >= D.onboardingDue && !quizPassed) attention("Onboarding quiz not passed");
     if (now >= D.onboardingDue && !deepWorkDone) attention("Week 1 Deep Work incomplete");
-    if (now >= D.m1Hard && meetingCount < 1) risk("No mentor meeting submitted (M1 hard threshold)");
-    else if (now >= D.m1Due && meetingCount < 1) attention("Meeting 1 (Discover) not submitted");
-    if (now >= D.m2Due && meetingCount < 2) attention("Meeting 2 (Act) not submitted");
-    if (now >= D.m3Hard && meetingCount < 3) risk("Meeting 3 (Roadmap) missed the Oct 23 deadline");
+    // A founder cannot be late to meet a mentor they have not been told they
+    // have. Matching them in FallMatches is an internal act; the clock starts
+    // when the match is actually sent to them, which is what the "Matched with
+    // a Mentor" milestone records. Without this gate every meeting deadline
+    // fires on its calendar date whether or not anybody ever made the
+    // introduction, and blames the founder for our own unsent email.
+    const toldAboutMentor = !!milestones.mentorMatched;
+    if (!toldAboutMentor && m.mentor?.name) {
+      attention("Matched internally but not told yet, so no meeting clock is running");
+    }
+    if (toldAboutMentor) {
+      if (now >= D.m1Hard && meetingCount < 1) risk("No mentor meeting submitted (M1 hard threshold)");
+      else if (now >= D.m1Due && meetingCount < 1) attention("Meeting 1 (Discover) not submitted");
+      if (now >= D.m2Due && meetingCount < 2) attention("Meeting 2 (Act) not submitted");
+      if (now >= D.m3Hard && meetingCount < 3) risk("Meeting 3 (Roadmap) missed the Oct 23 deadline");
+    }
     if (now >= D.edu1Due && eduCount < 1) attention("No educational session by Oct 1");
     if (missStreak >= 2) attention(`${missStreak} pulse checks missed in a row`);
     if (latestPulse === 1) attention("Latest pulse is red");

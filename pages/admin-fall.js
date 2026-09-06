@@ -2060,13 +2060,20 @@ export default function AdminFall() {
             const rows = data.founders.filter(f => f.status !== "churned" && !TEST_SLUGS.includes(f.slug)).map(f => {
               const app = people.mentees.find(a => a.inRoster === f.slug);
               const matchedAt = app?.matchedAt ? new Date(app.matchedAt) : null;
+              // Matched in the sheet is not the same as told. The meeting
+              // clock starts when the founder hears who their mentor is, which
+              // the "Matched with a Mentor" milestone records; until then M1
+              // has no due date to be late against.
+              const told = !!f.milestones?.mentorMatched;
               const log = f.meetingLog || [];
-              const m1Due = matchedAt ? new Date(matchedAt.getTime() + 7 * DAY) : null;
+              const m1Due = told && matchedAt ? new Date(matchedAt.getTime() + 7 * DAY) : null;
               const m2Due = log[0] ? new Date(new Date(log[0].submittedAt).getTime() + 10 * DAY) : null;
               return {
-                f, matchedAt, app,
+                f, matchedAt, app, told,
                 room: roomOf[(f.name || "").trim().toLowerCase()] || null,
-                m1: { due: m1Due, ...clock(m1Due, f.meetingCount >= 1) },
+                m1: told
+                  ? { due: m1Due, ...clock(m1Due, f.meetingCount >= 1) }
+                  : { due: null, label: "not told yet", bg: "#f6f4fc", fg: "#9b8fcf" },
                 m2: { due: m2Due, ...clock(m2Due, f.meetingCount >= 2) },
                 m3: { due: M3_DUE, ...clock(M3_DUE, f.meetingCount >= 3) },
               };
@@ -2087,7 +2094,7 @@ export default function AdminFall() {
                       </tr>
                     </thead>
                     <tbody>
-                      {rows.map(({ f, matchedAt, app, room, m1, m2, m3 }) => (
+                      {rows.map(({ f, matchedAt, app, told, room, m1, m2, m3 }) => (
                         <tr key={f.slug} style={{ borderBottom: "1px solid #f0edf9" }}>
                           <td style={{ padding: "10px" }}>
                             {/* Click the name for their bio and both sides'
@@ -2103,10 +2110,20 @@ export default function AdminFall() {
                           </td>
                           <td style={{ padding: "10px", fontSize: 12, whiteSpace: "nowrap" }}>
                             {f.mentor
-                              ? <>{f.mentor}<div style={{ fontSize: 11, color: "#9b8fcf" }}>matched {fmt(matchedAt)}</div></>
+                              ? <>
+                                  {f.mentor}
+                                  <div style={{ fontSize: 11, color: told ? "#9b8fcf" : "#b35c00", fontWeight: told ? 400 : 600 }}>
+                                    {told ? `told ${fmt(matchedAt)}` : "not told yet"}
+                                  </div>
+                                </>
                               : <span style={{ color: "#c0392b", fontWeight: 600 }}>not matched</span>}
                           </td>
-                          <td style={{ padding: "10px" }}>{pill(m1)}<div style={{ fontSize: 11, color: "#9b8fcf", marginTop: 2 }}>due {fmt(m1.due)}</div></td>
+                          <td style={{ padding: "10px" }}>
+                            {pill(m1)}
+                            <div style={{ fontSize: 11, color: "#9b8fcf", marginTop: 2 }}>
+                              {m1.due ? `due ${fmt(m1.due)}` : "clock starts when they are told"}
+                            </div>
+                          </td>
                           <td style={{ padding: "10px" }}>{pill(m2)}<div style={{ fontSize: 11, color: "#9b8fcf", marginTop: 2 }}>{m2.due ? `due ${fmt(m2.due)}` : "after M1"}</div></td>
                           <td style={{ padding: "10px" }}>{pill(m3)}<div style={{ fontSize: 11, color: "#9b8fcf", marginTop: 2 }}>due Oct 23</div></td>
                           <td style={{ padding: "10px", whiteSpace: "nowrap" }}>
@@ -2864,6 +2881,12 @@ export default function AdminFall() {
             roll(upgrades, "⬆", "info",
               n => `${n} matched founder${n === 1 ? " could" : "s could"} swap to a mentor who has nobody`, "matched",
               u => `${u.a.first} ${u.a.last} → ${u.best.mt.name}, free and scoring ${u.best.sc} vs ${u.cs}`);
+            // The gap that matters right now: matched on our side, and the
+            // founder still does not know. Nothing downstream can start until
+            // this is closed, so it sits above the reveal-gate nudge.
+            roll(fs.filter(f => f.mentor && !f.milestones?.mentorMatched && f.status !== "churned"), "📣", "warn",
+              n => `${n} founder${n === 1 ? " is" : "s are"} matched but have not been told yet`, "matched",
+              f => `${f.name} → ${f.mentor}`);
             roll(fs.filter(f => f.mentor && !f.gateComplete && f.status === "on-track"), "🔓", "info",
               n => `${n} mentor reveal${n === 1 ? " is" : "s are"} waiting on a Week 1 gate`, "founders",
               f => `${f.name} (missing ${[!f.gate.onboarded && "onboarding", !f.gate.quizPassed && "quiz", !f.gate.deepWorkDone && "Deep Work"].filter(Boolean).join(", ")})`);
