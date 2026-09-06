@@ -68,6 +68,7 @@ const FLAG_ASKS = {
   "generic-title": "Ask for their actual job title and current employer.",
   "multi-org-company": "Ask which organization they actually work for, and in what capacity at the others.",
   "bad-linkedin": "Ask for a LinkedIn URL that opens. The one on file does not resolve.",
+  "linkedin-name-mismatch": "The LinkedIn URL carries a different person's name. Ask for their own profile.",
   "no-linkedin": "Ask for a LinkedIn profile or another way to verify their background.",
   "outside-region": "Confirm they can meet a New Jersey founder, and in which timezone.",
   "non-us-phone": "Confirm how a founder reaches them, and whether the session times work where they are.",
@@ -90,6 +91,7 @@ const FLAG_LABELS = {
   "generic-title": "Job title is a role claim",
   "multi-org-company": "Several organizations in one field",
   "bad-linkedin": "LinkedIn URL does not resolve",
+  "linkedin-name-mismatch": "LinkedIn belongs to another name",
   "thin-why": "Very short reason for mentoring",
   "no-time-pref": "No schedule given",
   "all-stages": "Selected every founder stage",
@@ -151,6 +153,107 @@ function CredibilityInfo() {
         </div>
       )}
     </span>
+  );
+}
+
+// The "run the checks" button behind a Check or Review score. Fires the same
+// searches the links below it open by hand, and reports whether anything the
+// applicant does not control corroborates their application.
+function VerifyButton({ person }) {
+  const [state, setState] = useState("idle"); // idle | running | done | error
+  const [out, setOut] = useState(null);
+  const [tip, setTip] = useState(false);
+
+  const run = async () => {
+    setState("running"); setOut(null);
+    try {
+      const token = (typeof window !== "undefined" && localStorage.getItem("uplift_admin_secret")) || "";
+      const r = await fetch(`/api/admin/verify-mentor${token ? `?token=${encodeURIComponent(token)}` : ""}`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: person.name, company: person.company, title: person.title, based: person.based, linkedin: person.linkedin }),
+      });
+      const j = await r.json();
+      if (!r.ok || j.error) { setOut(j.error || `HTTP ${r.status}`); setState("error"); return; }
+      setOut(j); setState("done");
+    } catch (e) { setOut(e?.message || "Request failed"); setState("error"); }
+  };
+
+  const VERDICTS = {
+    corroborated: { label: "Corroborated", fg: "#1a6e42", bg: "#e8f8f0", say: "The web backs up what they wrote. Approve and match." },
+    partial: { label: "Partly corroborated", fg: "#b35c00", bg: "#fff3e0", say: "Some of it checks out. Ask them about the rest before matching." },
+    "nothing-found": { label: "Nothing found", fg: "#b35c00", bg: "#fff3e0", say: "No trace either way. This is not proof of anything, so ask for a reference." },
+    contradicted: { label: "Contradicted", fg: "#c0392b", bg: "#fef0f0", say: "The web disagrees with the application. Read the detail before you reply to them." },
+  };
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      <span style={{ position: "relative", display: "inline-block" }}
+        onMouseEnter={() => setTip(true)} onMouseLeave={() => setTip(false)}>
+        <button onClick={run} disabled={state === "running"}
+          style={{ border: "none", borderRadius: 7, padding: "6px 13px", background: state === "running" ? "#e8e4f5" : "#5c4eb5",
+            color: state === "running" ? "#9b8fcf" : "#fff", fontSize: 12, fontWeight: 700,
+            cursor: state === "running" ? "default" : "pointer", fontFamily: "inherit" }}>
+          {state === "running" ? "Searching…" : state === "done" || state === "error" ? "Run the checks again" : "Run the checks"}
+        </button>
+        {tip && (
+          <div style={{ position: "absolute", bottom: 32, left: 0, zIndex: 300, width: 320, background: "#fff",
+            border: "1px solid #e8e4f5", borderRadius: 10, boxShadow: "0 12px 32px rgba(16,9,45,0.18)",
+            padding: "12px 14px", fontSize: 12, lineHeight: 1.55, color: "#37324e", fontWeight: 400, textAlign: "left" }}>
+            <p style={{ margin: "0 0 6px", fontWeight: 800, color: "#1a1733", fontSize: 12.5 }}>What this does</p>
+            <p style={{ margin: "0 0 7px" }}>
+              Runs the searches listed above for you and reports whether their name, employer and title turn up
+              anywhere they do not control. Takes about half a minute.
+            </p>
+            <p style={{ margin: "0 0 7px" }}>
+              LinkedIn cannot be read directly, so this reads what search engines say about the profile instead.
+            </p>
+            <p style={{ margin: 0, color: "#6b6480", fontStyle: "italic" }}>
+              It gathers, you decide. &ldquo;Nothing found&rdquo; means the web is quiet about them, which is common for
+              good mentors and is never on its own a reason to reject.
+            </p>
+          </div>
+        )}
+      </span>
+
+      {state === "error" && (
+        <p style={{ margin: "8px 0 0", fontSize: 12, color: "#c0392b" }}>{String(out)}</p>
+      )}
+
+      {state === "done" && out?.result && (() => {
+        const v = VERDICTS[out.result.verdict] || { label: out.result.verdict, fg: "#6b6480", bg: "#f6f4fc", say: "" };
+        return (
+          <div style={{ marginTop: 9, background: v.bg, border: `1px solid ${v.fg}33`, borderRadius: 9, padding: "10px 13px" }}>
+            <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: v.fg }}>{v.label}</p>
+            <p style={{ margin: "0 0 6px", fontSize: 12.5, color: "#1a1733", lineHeight: 1.55 }}>{out.result.summary}</p>
+            {v.say && <p style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: v.fg }}>{v.say}</p>}
+            {(out.result.contradictions || []).length > 0 && (
+              <div style={{ marginBottom: 8 }}>
+                <p style={{ margin: "0 0 3px", fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", color: "#c0392b" }}>Contradicts the application</p>
+                {out.result.contradictions.map((c, i) => (
+                  <p key={i} style={{ margin: "0 0 2px", fontSize: 12, color: "#37324e" }}>{c}</p>
+                ))}
+              </div>
+            )}
+            {(out.result.findings || []).map((f, i) => (
+              <div key={i} style={{ borderTop: "1px solid #ffffffcc", paddingTop: 6, marginTop: 6 }}>
+                <p style={{ margin: 0, fontSize: 11.5, fontWeight: 700, color: "#1a1733" }}>{f.claim}</p>
+                <p style={{ margin: "1px 0 0", fontSize: 12, color: "#55506e", lineHeight: 1.5 }}>{f.result}</p>
+                {f.source && (/^https?:/i.test(f.source)
+                  ? <a href={f.source} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: "#5c4eb5", wordBreak: "break-all" }}>{f.source}</a>
+                  : <span style={{ fontSize: 11, color: "#9b8fcf" }}>{f.source}</span>)}
+              </div>
+            ))}
+            {(out.searchErrors || []).length > 0 && (
+              <p style={{ margin: "8px 0 0", fontSize: 11, color: "#b35c00" }}>Some searches failed ({out.searchErrors.join(", ")}), so this may be incomplete.</p>
+            )}
+          </div>
+        );
+      })()}
+
+      {state === "done" && !out?.result && out?.raw && (
+        <pre style={{ marginTop: 9, whiteSpace: "pre-wrap", fontSize: 11.5, color: "#55506e", background: "#faf9ff", border: "1px solid #e8e4f5", borderRadius: 8, padding: "9px 11px" }}>{out.raw}</pre>
+      )}
+    </div>
   );
 }
 
@@ -829,6 +932,7 @@ export default function AdminFall() {
                             <p style={{ margin: "9px 0 0", fontSize: 11.5, color: "#6b6480", lineHeight: 1.5 }}>
                               When it checks out, approve and match as normal. When it does not, reject and tell them why. Either way the score is a prompt to look, never the decision itself.
                             </p>
+                            <VerifyButton person={profile.person} />
                           </div>
                         )}
                       </div>
