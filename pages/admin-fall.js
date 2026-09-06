@@ -869,6 +869,18 @@ export default function AdminFall() {
                   {profile.person.hoping && <><p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#5c4eb5" }}>Hoping to accomplish</p><p style={{ margin: "0 0 12px", fontSize: 13.5, color: "#37324e", lineHeight: 1.6 }}>{profile.person.hoping}</p></>}
                   {profile.person.valueSought && <><p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#a37c1f" }}>What they want from mentorship</p><p style={{ margin: "0 0 12px", fontSize: 13.5, color: "#37324e", lineHeight: 1.6 }}>{profile.person.valueSought}</p></>}
                   {profile.person.brings && <><p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#1a6e42" }}>What they bring</p><p style={{ margin: 0, fontSize: 13.5, color: "#37324e", lineHeight: 1.6 }}>{profile.person.brings}</p></>}
+                  {/* Access note. Optional on the form, and the form promises
+                      in writing that it will not affect their application, so
+                      this is never scored and never reaches a rubric. It is an
+                      obligation the program took on the moment they answered,
+                      which is why it renders as an action rather than a field. */}
+                  {profile.person.accessNeeds && (
+                    <div style={{ marginTop: 14, border: "1px solid #5c4eb555", background: "#f5f3ff", borderRadius: 10, padding: "12px 14px" }}>
+                      <p style={{ margin: "0 0 5px", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: "#5c4eb5" }}>Access note · needs a human</p>
+                      <p style={{ margin: "0 0 8px", fontSize: 13.5, color: "#37324e", lineHeight: 1.6 }}>{profile.person.accessNeeds}</p>
+                      <p style={{ margin: 0, fontSize: 12, color: "#6b6480", lineHeight: 1.5 }}>They were told this would not affect their application. Keep that promise, and make sure someone actually follows up on what they asked for.</p>
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
@@ -952,6 +964,13 @@ export default function AdminFall() {
                   {profile.person.give && <><p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#1a6e42" }}>Give</p><p style={{ margin: "0 0 12px", fontSize: 13.5, color: "#37324e", lineHeight: 1.6 }}>{profile.person.give}</p></>}
                   {profile.person.getOut && <><p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#a37c1f" }}>Get</p><p style={{ margin: "0 0 12px", fontSize: 13.5, color: "#37324e", lineHeight: 1.6 }}>{profile.person.getOut}</p></>}
                   {profile.person.why && <><p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#5c4eb5" }}>Why they're mentoring</p><p style={{ margin: 0, fontSize: 13.5, color: "#37324e", lineHeight: 1.6 }}>{profile.person.why}</p></>}
+                  {profile.person.accessNeeds && (
+                    <div style={{ marginTop: 14, border: "1px solid #5c4eb555", background: "#f5f3ff", borderRadius: 10, padding: "12px 14px" }}>
+                      <p style={{ margin: "0 0 5px", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: "#5c4eb5" }}>Access note · needs a human</p>
+                      <p style={{ margin: "0 0 8px", fontSize: 13.5, color: "#37324e", lineHeight: 1.6 }}>{profile.person.accessNeeds}</p>
+                      <p style={{ margin: 0, fontSize: 12, color: "#6b6480", lineHeight: 1.5 }}>They were told this would not affect their application. Keep that promise, and make sure someone actually follows up on what they asked for.</p>
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -1660,6 +1679,9 @@ export default function AdminFall() {
                 <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: "1px solid #f0edf9", flexWrap: "wrap" }}>
                   <button onClick={() => setProfile({ kind: "mentee", person: a })} style={{ border: "none", background: "none", padding: 0, fontWeight: 700, color: "#3d2f8a", fontSize: 14, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>{a.first} {a.last}</button>
                   {a.upliftId && <span title="Uplift ID — their portal password. Private to them." style={{ fontSize: 10.5, fontWeight: 700, fontFamily: "monospace", background: "#f0eef8", color: "#5c4eb5", borderRadius: 4, padding: "2px 7px", cursor: "help" }}>{a.upliftId}</span>}
+                  {/* Visible on the row, not only inside the profile: the point
+                      of asking was to act on it, and nobody opens every card. */}
+                  {a.accessNeeds && <span title={`Access note: ${a.accessNeeds}`} style={{ fontSize: 10.5, fontWeight: 800, background: "#f0eef8", color: "#5c4eb5", border: "1px solid #5c4eb555", borderRadius: 4, padding: "2px 7px", cursor: "help" }}>ACCESS NOTE</span>}
                   <span style={{ fontSize: 12.5, color: "#9b8fcf" }}>{a.company || "no company"} · {a.tier?.startsWith("Minimum") ? "3 sessions" : a.tier || ""}</span>
                   {a.matchedMentorName
                     ? <span style={{ fontSize: 11, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "2px 8px" }}>MATCHED → {a.matchedMentorName}</span>
@@ -2987,6 +3009,9 @@ export default function AdminFall() {
                             <button onClick={() => setProfile({ kind: "mentee", person: a })} style={{ border: "none", background: "none", padding: 0, fontWeight: 700, color: "#3d2f8a", fontSize: 13, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>{a.first} {a.last}</button>
                           </span>
                           {isNew(a.submittedAt) && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#f5f3ff", color: "#5c4eb5", borderRadius: 4, padding: "1px 6px" }}>NEW</span>}
+                          {/* Visible where approve actually gets clicked, not only on the
+                              card somebody may never open. */}
+                          {a.accessNeeds && <span title={`Access note: ${a.accessNeeds}`} style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#5c4eb5", border: "1px solid #5c4eb555", borderRadius: 4, padding: "1px 6px", cursor: "help" }}>ACCESS NOTE</span>}
                           {a.isTest
                             ? <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#6b6480", borderRadius: 4, padding: "1px 6px" }}>TEST ACCOUNT</span>
                             : a.inRoster && <a href={`/fall/${a.inRoster}`} target="_blank" rel="noopener noreferrer" title="Open their portal" style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "1px 6px", textDecoration: "none" }}>PORTAL ↗</a>}
@@ -3054,6 +3079,9 @@ export default function AdminFall() {
                         <td style={{ padding: "10px", whiteSpace: "nowrap" }}>
                           <button onClick={() => setProfile({ kind: "mentor", person: m })} style={{ border: "none", background: "none", padding: 0, fontWeight: 700, color: "#3d2f8a", fontSize: 13, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: 3 }}>{m.name}</button>
                           {isNew(m.submittedAt) && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#f5f3ff", color: "#5c4eb5", borderRadius: 4, padding: "1px 6px" }}>NEW</span>}
+                          {/* Visible where approve actually gets clicked, not only on the
+                              card somebody may never open. */}
+                          {m.accessNeeds && <span title={`Access note: ${m.accessNeeds}`} style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#5c4eb5", border: "1px solid #5c4eb555", borderRadius: 4, padding: "1px 6px", cursor: "help" }}>ACCESS NOTE</span>}
                           {m.isTest && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#f0eef8", color: "#6b6480", borderRadius: 4, padding: "1px 6px" }}>TEST ACCOUNT</span>}
                           {m.assignedTo.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, background: "#e8f8f0", color: "#1a6e42", borderRadius: 4, padding: "1px 6px" }}>MATCHED</span>}
                           <div style={{ fontSize: 11.5, color: "#9b8fcf" }}>{m.email}</div>
